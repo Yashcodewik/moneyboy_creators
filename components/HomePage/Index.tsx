@@ -1,7 +1,7 @@
 "use client";
 import React from 'react'
 
-const Dashboard = () => {
+const Index = () => {
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="discovery-page-container">
@@ -1619,8 +1619,13 @@ const Dashboard = () => {
 
         </div>
       </div>
+
+     
     </div>
+
+
+
   )
 }
 
-export default Dashboard;
+export default Index;

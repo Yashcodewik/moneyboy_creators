@@ -1,7 +1,66 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Link from 'next/link';
+import { usePathname ,useRouter} from 'next/navigation';
 
 const Sidebar: React.FC = () => {
+  const [activePage, setActivePage] = useState<string>("discover");
+  
+const pathname = usePathname();
+const router = useRouter();
+
+ useEffect(() => {
+    const pathToPageMap: Record<string, string> = {
+      "/": "discover",
+      "/feed": "feed",
+      "/like": "likes",
+      "/wishlist": "wishlist",
+      "/#": "subscriptions",
+      "/purchasedmedia": "purchasedmedia",
+      "/store": "store",
+    };
+    
+    // Check if current path is in map
+    const currentPage = Object.keys(pathToPageMap).find(path => 
+      pathname === path || pathname.startsWith(`${path}/`)
+    );
+    
+    if (currentPage) {
+      setActivePage(pathToPageMap[currentPage]);
+    }
+  }, [pathname]);
+
+  const handleNavClick = (page: string, href: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setActivePage(page);
+    router.push(href);
+  };
+
+  const handleMobileNavClick = (page: string, href: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setActivePage(page);
+    router.push(href);
+  };
+
+
+  // const navItems = [
+  //   { id: "feed", label: "Feed", icon: "feed" },
+  //   { id: "discover", label: "Discover", icon: "discover" },
+  //   { id: "likes", label: "Likes", icon: "likes" },
+  //   { id: "wishlist", label: "Wishlist", icon: "wishlist" },
+  //   { id: "subscriptions", label: "Subscriptions", icon: "subscriptions" },
+  //   { id: "purchased", label: "Purchased Media", icon: "purchased" },
+  //   { id: "store", label: "Store", icon: "store" }
+  // ];
+
+  // const mobileNavItems = [
+  //   { id: "feed", label: "Home", icon: "home" },
+  //   { id: "search", label: "Search", icon: "search" },
+  //   { id: "discover", label: "Discover", icon: "discover" },
+  //   { id: "subscriptions", label: "Subscriptions", icon: "subscriptions" },
+  //   { id: "messages", label: "Messages", icon: "messages" }
+  // ];
+
   return (
     <div className="moneyboy-global-sidebar-wrapper" id="leftSidebar">
       <aside className="global-sidebar-container">
@@ -211,9 +270,15 @@ const Sidebar: React.FC = () => {
         <div className="sidebar-navigation-container card">
           <nav className="sidbar-navigation">
             <ul>
-              {/* Navigation Button */}
+              {/* Navigation Button - Feed */}
               <li>
-                <a href="#" className="active-down-effect">
+                <Link 
+                  href="/feed" 
+                  className={`active-down-effect ${activePage === "feed" ? "active" : ""}`}
+                  onClick={(e) => handleNavClick("feed", "/feed", e)}
+
+                >
+                  
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -239,12 +304,17 @@ const Sidebar: React.FC = () => {
                     </svg>
                     <span>Feed</span>
                   </div>
-                </a>
+                </Link>
               </li>
 
-              {/* Navigation Button */}
+              {/* Navigation Button - Discover */}
               <li>
-                <a href="#" className="active-down-effect active">
+                <Link 
+                  href="/" 
+                  className={`active-down-effect ${activePage === "discover" ? "active" : ""}`}
+                  onClick={(e) => handleNavClick("discover", "/", e)}
+
+                >
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -270,12 +340,17 @@ const Sidebar: React.FC = () => {
                     </svg>
                     <span>Discover</span>
                   </div>
-                </a>
+                </Link>
               </li>
 
-              {/* Navigation Button */}
+              {/* Navigation Button - Likes */}
               <li>
-                <a href="#" className="active-down-effect">
+                <Link 
+                  href="/like" 
+                  className={`active-down-effect ${activePage === "likes" ? "active" : ""}`}
+                  onClick={(e) => handleNavClick("likes", "/like", e)}
+
+                >
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -294,12 +369,17 @@ const Sidebar: React.FC = () => {
                     </svg>
                     <span>Likes</span>
                   </div>
-                </a>
+                </Link>
               </li>
 
-              {/* Navigation Button */}
+              {/* Navigation Button - Wishlist */}
               <li>
-                <a href="#" className="active-down-effect">
+                <Link 
+                  href="/wishlist" 
+                  className={`active-down-effect ${activePage === "wishlist" ? "active" : ""}`}
+                  onClick={(e) => handleNavClick("wishlist", "/wishlist", e)}
+
+                >
                   <div>
                     <svg
                       className="wishlist-icon"
@@ -333,12 +413,17 @@ const Sidebar: React.FC = () => {
                     </svg>
                     <span>Wishlist</span>
                   </div>
-                </a>
+                </Link>
               </li>
 
-              {/* Navigation Button */}
+              {/* Navigation Button - Subscriptions */}
               <li>
-                <a href="#" className="active-down-effect">
+                <Link 
+                  href="#" 
+                  className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""}`}
+               onClick={(e) => handleNavClick("subscriptions", "/#", e)}
+
+                >
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -386,12 +471,17 @@ const Sidebar: React.FC = () => {
                     </svg>
                     <span>Subscriptions</span>
                   </div>
-                </a>
+                </Link>
               </li>
 
-              {/* Navigation Button */}
+              {/* Navigation Button - Purchased Media */}
               <li>
-                <a href="#" className="active-down-effect">
+                <Link 
+                  href="/purchasemedia" 
+                  className={`active-down-effect ${activePage === "purchased" ? "active" : ""}`}
+                 onClick={(e) => handleNavClick("purchased", "/purchasedmedia", e)}
+
+                >
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -421,12 +511,17 @@ const Sidebar: React.FC = () => {
                     </svg>
                     <span>Purchased Media</span>
                   </div>
-                </a>
+                </Link>
               </li>
 
-              {/* Navigation Button */}
+              {/* Navigation Button - Store */}
               <li>
-                <a href="#" className="active-down-effect">
+                <Link 
+                  href="/store" 
+                  className={`active-down-effect ${activePage === "store" ? "active" : ""}`}
+                  onClick={(e) => handleNavClick("store", "/store", e)}
+
+                >
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -473,7 +568,7 @@ const Sidebar: React.FC = () => {
                     </svg>
                     <span>Store</span>
                   </div>
-                </a>
+                </Link>
               </li>
             </ul>
           </nav>
@@ -511,28 +606,164 @@ const Sidebar: React.FC = () => {
             </nav>
             {/* Footer Payment Card logos */}
             <div className="footer-logos">
-              <a href="#" className="footer-logo">
+              <Link href="#" className="footer-logo">
                 <img
                   src="/images/debit-cards-logo/dmca-logo.svg"
                   alt="DMCA Logo"
                 />
-              </a>
-              <a href="#" className="footer-logo">
+              </Link>
+              <Link href="#" className="footer-logo">
                 <img
                   src="/images/debit-cards-logo/master-card-logo.svg"
                   alt="Master Logo"
                 />
-              </a>
-              <a href="#" className="footer-logo">
+              </Link>
+              <Link href="#" className="footer-logo">
                 <img
                   src="/images/debit-cards-logo/visa-card-logo.svg"
                   alt="Visa Logo"
                 />
-              </a>
+              </Link>
             </div>
           </footer>
         </div>
       </aside>
+
+      <div className="mobile-navigations-container">
+        <div className="mobile-navigations">
+          <nav>
+            <ul>
+              {/* Mobile Navigation - Home (Feed) */}
+              <li>
+                <Link 
+                  href="#" 
+                  className={activePage === "feed" ? "active" : ""}
+                 onClick={(e) => handleMobileNavClick("feed", "/feed", e)}
+
+                >
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+                      <path
+                        d="M13.4266 3.76005L4.18661 11.16C3.14661 11.9867 2.47995 13.7334 2.70661 15.0401L4.47995 25.6534C4.79995 27.5467 6.61327 29.08 8.53327 29.08H23.4666C25.3733 29.08 27.1999 27.5334 27.5199 25.6534L29.2933 15.0401C29.5066 13.7334 28.84 11.9867 27.8133 11.16L18.5733 3.77339C17.1466 2.62673 14.84 2.62671 13.4266 3.76005Z"
+                        stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path
+                        d="M16.0001 20.6667C17.841 20.6667 19.3334 19.1743 19.3334 17.3333C19.3334 15.4924 17.841 14 16.0001 14C14.1591 14 12.6667 15.4924 12.6667 17.3333C12.6667 19.1743 14.1591 20.6667 16.0001 20.6667Z"
+                        stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span> Home </span>
+                  </div>
+                </Link>
+              </li>
+
+              {/* Mobile Navigation - Search */}
+              <li>
+                <Link 
+                  href="#" 
+                  className={activePage === "search" ? "active" : ""}
+                 onClick={(e) => handleMobileNavClick("search", "/search", e)}
+
+                >
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                      <path
+                        d="M20.7 11C20.7 15.97 16.67 20 11.7 20C6.72995 20 2.69995 15.97 2.69995 11C2.69995 6.03 6.72995 2 11.7 2"
+                        stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path
+                        d="M19.6299 20.6898C20.1599 22.2898 21.3699 22.4498 22.2999 21.0498C23.1499 19.7698 22.5899 18.7198 21.0499 18.7198C19.9099 18.7098 19.2699 19.5998 19.6299 20.6898Z"
+                        stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M14.7 5H20.7" stroke="none" strokeWidth="1.5" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                      <path d="M14.7 8H17.7" stroke="none" strokeWidth="1.5" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                    </svg>
+                    <span> Search </span>
+                  </div>
+                </Link>
+              </li>
+
+              {/* Mobile Navigation - Discover */}
+              <li>
+                <Link 
+                  href="#" 
+                  className={activePage === "discover" ? "active" : ""}
+                 onClick={(e) => handleMobileNavClick("discover", "/", e)}
+
+                >
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                      <path
+                        d="M18.3001 2.1L8.37009 4.59C6.92009 4.95 5.45009 6.42 5.09009 7.87L2.60009 17.8C1.85009 20.8 3.69009 22.65 6.70009 21.9L16.6301 19.42C18.0701 19.06 19.5501 17.58 19.9101 16.14L22.4001 6.2C23.1501 3.2 21.3001 1.35 18.3001 2.1Z"
+                        stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path
+                        d="M12.5 15.5C14.433 15.5 16 13.933 16 12C16 10.067 14.433 8.5 12.5 8.5C10.567 8.5 9 10.067 9 12C9 13.933 10.567 15.5 12.5 15.5Z"
+                        stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span> Discover </span>
+                  </div>
+                </Link>
+              </li>
+
+              {/* Mobile Navigation - Subscriptions */}
+              <li>
+                <Link 
+                  href="#" 
+                  className={activePage === "subscriptions" ? "active" : ""}
+                 onClick={(e) => handleMobileNavClick("subscriptions", "/subscriptions", e)}
+
+                >
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                      <path
+                        d="M22.2998 15V9C22.2998 4 20.2998 2 15.2998 2H9.29981C4.29981 2 2.2998 4 2.2998 9V15C2.2998 20 4.29981 22 9.29981 22H15.2998C20.2998 22 22.2998 20 22.2998 15Z"
+                        stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2.81982 7.10986H21.7798" stroke="none" strokeWidth="1.5" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                      <path d="M8.81982 2.10986V6.96986" stroke="none" strokeWidth="1.5" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                      <path d="M15.7798 2.10986V6.51986" stroke="none" strokeWidth="1.5" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                      <path
+                        d="M10.0498 14.4501V13.2501C10.0498 11.7101 11.1398 11.0801 12.4698 11.8501L13.5098 12.4501L14.5498 13.0501C15.8798 13.8201 15.8798 15.0801 14.5498 15.8501L13.5098 16.4501L12.4698 17.0501C11.1398 17.8201 10.0498 17.1901 10.0498 15.6501V14.4501V14.4501Z"
+                        stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                    </svg>
+                    <span> Subscriptions </span>
+                  </div>
+                </Link>
+              </li>
+
+              {/* Mobile Navigation - Messages */}
+              <li>
+                <Link 
+                  href="#" 
+                  className={activePage === "messages" ? "active" : ""}
+               onClick={(e) => handleMobileNavClick("messages", "/messages", e)}
+
+                >
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                      <path
+                        d="M22.0999 8V13C22.0999 17 20.0999 19 16.0999 19H15.5999C15.2899 19 14.9899 19.15 14.7999 19.4L13.2999 21.4C12.6399 22.28 11.5599 22.28 10.8999 21.4L9.39985 19.4C9.23985 19.18 8.86985 19 8.59985 19H8.09985C4.09985 19 2.09985 18 2.09985 13V8C2.09985 4 4.09985 2 8.09985 2H12.0999"
+                        stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                      <path
+                        d="M15.2998 4.62008C14.9698 3.63008 15.3598 2.41008 16.4398 2.07008C16.9998 1.90008 17.6998 2.04008 18.0998 2.57008C18.4798 2.02008 19.1998 1.90008 19.7598 2.07008C20.8398 2.40008 21.2298 3.63008 20.8998 4.62008C20.3898 6.19008 18.5998 7.00008 18.0998 7.00008C17.5998 7.00008 15.8298 6.20008 15.2998 4.62008Z"
+                        stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M16.0963 11H16.1053" stroke="none" strokeWidth="2" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                      <path d="M12.0953 11H12.1043" stroke="none" strokeWidth="2" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                      <path d="M8.09436 11H8.10334" stroke="none" strokeWidth="2" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                    </svg>
+                    <span> Messages </span>
+                  </div>
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
     </div>
   );
 };
