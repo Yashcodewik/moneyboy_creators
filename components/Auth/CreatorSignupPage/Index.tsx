@@ -9,6 +9,7 @@ import { apiPost, apiPostWithMultiForm } from "@/utils/endpoints/common";
 import ShowToast from "@/components/common/ShowToast";
 import { API_CREATOR_REGISTER } from "@/utils/api/APIConstant";
 import DatePicker from "react-datepicker";
+import CustomSelect from "@/components/CustomSelect";
 
 const CreatorSignupPage = () => {
   const [activeTab, setActiveTab] = useState("fan");
