@@ -55,8 +55,8 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  // Check if current page is an auth page
   const isAuthPage =
+  pathname === "/" || 
     pathname?.includes("/signup") ||
     pathname?.includes("/creator") ||
     pathname?.includes("/contact-us") ||

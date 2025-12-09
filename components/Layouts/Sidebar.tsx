@@ -11,7 +11,7 @@ const router = useRouter();
 
  useEffect(() => {
     const pathToPageMap: Record<string, string> = {
-      "/": "discover",
+      "/dashboard": "discover",
       "/feed": "feed",
       "/like": "likes",
       "/wishlist": "wishlist",
@@ -310,9 +310,9 @@ const router = useRouter();
               {/* Navigation Button - Discover */}
               <li>
                 <Link 
-                  href="/" 
+                  href="/dashboard" 
                   className={`active-down-effect ${activePage === "discover" ? "active" : ""}`}
-                  onClick={(e) => handleNavClick("discover", "/", e)}
+                  onClick={(e) => handleNavClick("discover", "/dashboard", e)}
 
                 >
                   <div>
