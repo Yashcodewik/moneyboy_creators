@@ -15,6 +15,7 @@ import "../public/styles/pages/discover-page/layout.css";
 import "../public/styles/main-responsive.css";
 import "../public/styles/pages/discover-page/responsive.css";
 import "../public/styles/style.css";
+import "react-datepicker/dist/react-datepicker.css";
 
 import Header from "@/components/Layouts/Header";
 import Sidebar from "@/components/Layouts/Sidebar";
