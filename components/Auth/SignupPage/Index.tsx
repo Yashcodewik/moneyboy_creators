@@ -120,70 +120,211 @@ const SignupPage = () => {
             <h3 className="heading">Fan Sign up</h3>
             <p>Sign up to interact with your idols!</p>
             <div className="loginbtn_wrap">
-              <button type="button" className="google-button active-down-effect"><FcGoogle size={22} /> Sign up with Google</button>
-              <button type="button" className="x-button active-down-effect"><FaXTwitter size={22} /> Sign up with X</button>
+              <button
+                type="button"
+                className="google-button active-down-effect"
+              >
+                <FcGoogle size={22} /> Sign up with Google
+              </button>
+              <button type="button" className="x-button active-down-effect">
+                <FaXTwitter size={22} /> Sign up with X
+              </button>
             </div>
-            <div className="or-divider"><span>Or</span></div>
+            <div className="or-divider">
+              <span>Or</span>
+            </div>
             <form onSubmit={formik.handleSubmit} noValidate>
               <div className="form_grid">
                 <div>
                   <div className="label-input">
-                    <div className="input-placeholder-icon"><i className="icons user svg-icon"></i></div>
-                    <input type="text" placeholder="First Name *" name="firstName" value={formik.values.firstName} onChange={formik.handleChange} onBlur={formik.handleBlur} className={formik.touched.firstName && formik.errors.firstName ? "error" : "" }/>
+                    <div className="input-placeholder-icon">
+                      <i className="icons user svg-icon"></i>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="First Name *"
+                      name="firstName"
+                      value={formik.values.firstName}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={
+                        formik.touched.firstName && formik.errors.firstName
+                          ? "error"
+                          : ""
+                      }
+                    />
                   </div>
                   {renderError("firstName")}
                 </div>
                 <div>
                   <div className="label-input">
-                    <div className="input-placeholder-icon"><i className="icons user svg-icon"></i></div>
-                    <input type="text" placeholder="Last name *" name="lastName" value={formik.values.lastName} onChange={formik.handleChange} onBlur={formik.handleBlur} className={formik.touched.lastName && formik.errors.lastName ? "error" : "" }/>
+                    <div className="input-placeholder-icon">
+                      <i className="icons user svg-icon"></i>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Last name *"
+                      name="lastName"
+                      value={formik.values.lastName}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={
+                        formik.touched.lastName && formik.errors.lastName
+                          ? "error"
+                          : ""
+                      }
+                    />
                   </div>
                   {renderError("lastName")}
                 </div>
                 <div className="one">
                   <div className="label-input">
-                    <div className="input-placeholder-icon"><i className="icons user2 svg-icon"></i></div>
-                    <input type="text" placeholder="Display name *" name="displayName" value={formik.values.displayName} onChange={formik.handleChange} onBlur={formik.handleBlur} className={formik.touched.displayName && formik.errors.displayName ? "error" : "" }/>
+                    <div className="input-placeholder-icon">
+                      <i className="icons user2 svg-icon"></i>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Display name *"
+                      name="displayName"
+                      value={formik.values.displayName}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={
+                        formik.touched.displayName && formik.errors.displayName
+                          ? "error"
+                          : ""
+                      }
+                    />
                   </div>
                   {renderError("displayName")}
                 </div>
                 <div className="one">
                   <div className="label-input">
-                    <div className="input-placeholder-icon"><i className="icons profile-check svg-icon"></i></div>
-                    <input type="text" placeholder="User name *" name="userName" value={formik.values.userName} onChange={formik.handleChange} onBlur={formik.handleBlur} className={formik.touched.userName && formik.errors.userName ? "error" : "" }/>
+                    <div className="input-placeholder-icon">
+                      <i className="icons profile-check svg-icon"></i>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="User name *"
+                      name="userName"
+                      value={formik.values.userName}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={
+                        formik.touched.userName && formik.errors.userName
+                          ? "error"
+                          : ""
+                      }
+                    />
                   </div>
                   {renderError("userName")}
                 </div>
                 <div className="one">
                   <div className="label-input">
-                    <div className="input-placeholder-icon"><i className="icons message svg-icon"></i></div>
-                    <input type="email" placeholder="Email Address *" name="email" value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur} className={formik.touched.email && formik.errors.email ? "error" : ""}/>
+                    <div className="input-placeholder-icon">
+                      <i className="icons message svg-icon"></i>
+                    </div>
+                    <input
+                      type="email"
+                      placeholder="Email Address *"
+                      name="email"
+                      value={formik.values.email}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={
+                        formik.touched.email && formik.errors.email
+                          ? "error"
+                          : ""
+                      }
+                    />
                   </div>
                   {renderError("email")}
                 </div>
                 <div className="one">
                   <div className="label-input password">
-                    <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-                    <input type={showPass ? "text" : "password"} placeholder="Password *" name="password" value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur} className={formik.touched.password && formik.errors.password ? "error" : "" }/>
-                    <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye svg-icon"></i>) : (<i className="icons eye-slash svg-icon"></i>)}</span>
+                    <div className="input-placeholder-icon">
+                      <i className="icons lock svg-icon"></i>
+                    </div>
+                    <input
+                      type={showPass ? "text" : "password"}
+                      placeholder="Password *"
+                      name="password"
+                      value={formik.values.password}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={
+                        formik.touched.password && formik.errors.password
+                          ? "error"
+                          : ""
+                      }
+                    />
+                    <span
+                      onClick={() => setShowPass((prev) => !prev)}
+                      className="input-placeholder-icon eye-icon"
+                    >
+                      {showPass ? (
+                        <i className="icons eye svg-icon"></i>
+                      ) : (
+                        <i className="icons eye-slash svg-icon"></i>
+                      )}
+                    </span>
                   </div>
                   {renderError("password")}
                 </div>
                 <div className="one">
                   <div className="label-input password">
-                    <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-                    <input type={showConfirmPass ? "text" : "password"} placeholder="Confirm password *" name="confirmPassword" value={formik.values.confirmPassword} onChange={formik.handleChange} onBlur={formik.handleBlur} className={formik.touched.confirmPassword && formik.errors.confirmPassword ? "error" : "" }/>
-                    <span onClick={() => setShowConfirmPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showConfirmPass ? (<i className="icons eye svg-icon"></i>) : (<i className="icons eye-slash svg-icon"></i>)}</span>
+                    <div className="input-placeholder-icon">
+                      <i className="icons lock svg-icon"></i>
+                    </div>
+                    <input
+                      type={showConfirmPass ? "text" : "password"}
+                      placeholder="Confirm password *"
+                      name="confirmPassword"
+                      value={formik.values.confirmPassword}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={
+                        formik.touched.confirmPassword &&
+                        formik.errors.confirmPassword
+                          ? "error"
+                          : ""
+                      }
+                    />
+                    <span
+                      onClick={() => setShowConfirmPass((prev) => !prev)}
+                      className="input-placeholder-icon eye-icon"
+                    >
+                      {showConfirmPass ? (
+                        <i className="icons eye svg-icon"></i>
+                      ) : (
+                        <i className="icons eye-slash svg-icon"></i>
+                      )}
+                    </span>
                   </div>
                   {renderError("confirmPassword")}
                 </div>
               </div>
-              <button type="submit" className="premium-btn" disabled={isSubmitting}><span>{isSubmitting ? "Signing up..." : "Sign up"}</span></button>
+              <button
+                type="submit"
+                className="premium-btn"
+                disabled={isSubmitting}
+              >
+                <span>{isSubmitting ? "Signing up..." : "Sign up"}</span>
+              </button>
             </form>
-            <p>By signing up you agree to our{" "} <Link href="#">Terms of Service</Link> and{" "} <Link href="#">Privacy Policy</Link>, and confirm that you are at least 18 years old.</p>
-            <p className="fs-18">Have an account already? <Link href="#">Log in here.</Link></p>
+            <p>
+              By signing up you agree to our{" "}
+              <Link href="#">Terms of Service</Link> and{" "}
+              <Link href="#">Privacy Policy</Link>, and confirm that you are at
+              least 18 years old.
+            </p>
+            <p className="fs-18">
+              Have an account already? <Link href="#">Log in here.</Link>
+            </p>
           </div>
-          <h4 className="account_login">Are you a creator? <a href="#">Sign up here.</a></h4>
+          <h4 className="account_login">
+            Are you a creator? <a href="#">Sign up here.</a>
+          </h4>
         </div>
       </div>
     </div>

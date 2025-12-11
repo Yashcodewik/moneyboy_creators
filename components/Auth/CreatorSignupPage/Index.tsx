@@ -118,7 +118,7 @@ const CreatorSignupPage = () => {
                 </div>
                 <div className="label-input textarea one">
                  <div className="input-placeholder-icon"><svg className="icons messageUser svg-icon"></svg></div>
-                  <textarea rows="4"  placeholder="Bio"></textarea>
+                  <textarea rows={4}  placeholder="Bio"></textarea>
                 </div>
 
                 <CustomSelect label="All Body Types" icon={<svg className="icons handbody svg-icon" />}
