@@ -101,7 +101,7 @@ const ContactPage = () => {
               </div>
               <div className="label-input textarea one">
                 <div className="input-placeholder-icon"><i className="icons documentIcon svg-icon"></i></div>
-                <textarea rows="2" placeholder="Message *"></textarea>
+                <textarea rows={2} placeholder="Message *"></textarea>
               </div>
             </div>
             <button className="premium-btn"><span>Send</span></button>
