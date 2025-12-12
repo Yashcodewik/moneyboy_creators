@@ -106,18 +106,20 @@ const SignupPage = () => {
                 <span>Sign up</span>
               </button>
             </Link>
-            <p>
-              By signing up you agree to our{" "}
-              <Link href="#">Terms of Service</Link> and{" "}
-              <Link href="#">Privacy Policy</Link>, and confirm that you are at
-              least 18 years old.
-            </p>
-            <p className="fs-18">
-              Have an account already? <Link href="#">Log in here.</Link>
-            </p>
+            <div className="login_with">
+              <p>
+                By signing up you agree to our{" "}
+                <Link href="#">Terms of Service</Link> and{" "}
+                <Link href="#">Privacy Policy</Link>, and confirm that you are
+                at least 18 years old.
+              </p>
+              <p className="fs-18">
+                Have an account already? <Link href="#">Log in here.</Link>
+              </p>
+            </div>
           </div>
           <h4 className="account_login">
-            Are you a creator? <a href="/signup">Sign up here.</a>
+            Are you a creator? <a href="/creator">Sign up here.</a>
           </h4>
         </div>
       </div>
