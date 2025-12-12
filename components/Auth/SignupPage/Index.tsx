@@ -365,33 +365,3 @@ const SignupPage = () => {
 };
 
 export default SignupPage;
-
-
-
-
-// Name:Yash Raval
-// Project Name;moneyboy-creators,realyze
-// Date: 10/12/2025
-// ---------------------------------
-
-// Completed tasks:
-
-// moneyboy-creators:
-// Task 1: make page of otp(frontend)(Completed)
-// Task 2: add otp verification in signup page(Completed)
-// Task 3: In signup page verification complete with session generate(Completed)
-
-
-
-// realyze:
-
-// Task 1: make api for contact-us (for admin)(Completed)
-// Task 2: show contact-us detail in adminside(Completed)
-// Task 3: some changes done in blog backend(Completed)
-// Task 4: blog page dynamic userside(Completed)
-
- 
-
- 
- 
- 
