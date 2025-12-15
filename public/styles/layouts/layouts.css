@@ -1,0 +1,337 @@
+/* ==========================================================================
+   Scaffolding and Layout Stylesheet (Layouts Layer)
+   
+   Purpose:
+     - Defines the primary structural regions of the application (Header, Sidebars, Main Content).
+     - Establishes persistent positioning (e.g., sticky headers) and overall page dimensions.
+   - Implements responsive grid patterns using flexbox for major content distribution.
+   Scope Note:
+     - This layer should handle *structure* and *placement*, not component-level styling.
+   ========================================================================== */
+/* Root Layout Container: Defines the viewport dimensions and primary scroll behavior */
+.moneyboy-layout-container {
+   min-height: 100dvh;
+   max-height: 100dvh;
+   overflow: auto;
+   /* overflow-y: scroll; */
+   background: #F4F4F4;
+   scrollbar-gutter: stable both-edges;
+
+   /* Enables scrolling for the primary page content area */
+   .header-main {
+      /* Sticky Header: Ensures the main navigation/header remains visible */
+      position: sticky;
+      z-index: 10;
+      /* High z-index to overlay scrolling content */
+      top: 0;
+      height: var(--header-height);
+      /* Uses design token for standardized height */
+   }
+
+   /* Main Content and Asides Wrapper: Flex container for the page's core structure (Sidebar + Main Content + Aside) */
+   .moneyboy-main-asides-layout-container {
+      display: flex;
+      gap: var(--spacing-md);
+
+      /* Conditional Styling: Adjusts sidebar width when a custom scrollbar is present (via the `has-scroll` class) */
+      &:has(.moneyboy-global-sidebar-wrapper.has-scroll) {
+         .moneyboy-global-sidebar-wrapper {
+            max-width: calc(var(--sidebar-width) + calc(calc(var(--spacing-sm) + calc(var(--spacing-xxs) + 0px))));
+            min-width: calc(var(--sidebar-width) + calc(calc(var(--spacing-sm) + calc(var(--spacing-xxs) + 0px))));
+            padding-right: var(--spacing-xxs);
+            margin-right: calc(-1 * calc(var(--spacing-xxs) + 10px));
+         }
+      }
+
+      /* Global Sidebar Wrapper: Defines the structural constraints for the left navigation/sidebar */
+      .moneyboy-global-sidebar-wrapper {
+         width: 100%;
+         border-radius: 32px;
+         overflow: auto;
+         position: sticky;
+         /* Sticky position relative to the main layout container */
+         top: calc(calc(var(--header-height) + var(--spacing-md)) - var(--spacing-sm) + 2px);
+         /* Calculated sticky offset */
+         max-height: calc(calc(100dvh - calc(calc(var(--header-height) + calc(2 * var(--spacing-md))) - calc(2 * var(--spacing-sm)))) - 4px);
+         /* Full height minus header/padding */
+         max-width: calc(var(--sidebar-width) + calc(var(--spacing-sm) + var(--spacing-sm)));
+         /* Fixed width definition */
+         min-width: calc(var(--sidebar-width) + calc(var(--spacing-sm) + var(--spacing-sm)));
+         padding-block: var(--spacing-sm);
+         padding-left: var(--spacing-sm);
+         padding-right: var(--spacing-sm);
+         margin-left: calc(-1 * var(--spacing-sm));
+         /* Negative margin for visual alignment/overlap */
+         margin-right: calc(-1 * var(--spacing-sm));
+         /* Scrollbar Customization (Firefox/Non-Webkit) */
+         scrollbar-width: thin;
+         scrollbar-color: #aaaaaa00 transparent;
+         padding-block: 10px;
+
+         &:hover {
+            scrollbar-color: #aaaaaa transparent;
+            /* Makes scrollbar visible on hover */
+         }
+
+         /* Sidebar Content Alignment */
+         .global-sidebar-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+
+            /* gap: 10px; */
+            .sidebar-profile-card {}
+
+            /* Placeholder for component styling */
+            .sidebar-post-button {}
+
+            /* Placeholder for component styling */
+            .sidebar-navigation-container {}
+
+            /* Placeholder for component styling */
+            .sidebar-footer-card.card {
+               border-radius: 21px;
+               /* Component specific override for radius */
+            }
+         }
+      }
+
+      /* Main Page Content Area: Primary flexible container */
+      .moneyboy-page-content-container {
+         padding-block: var(--spacing-md);
+         padding-top: 13px;
+         width: 100%;
+         min-width: 0px;
+         display: flex;
+         max-width: 100%;
+         padding-top: 10px;
+
+         /* Dynamic Content Wrapper */
+         .moneyboy-dynamic-content-layout {
+            width: 100%;
+            max-width: 100%;
+
+            /* 2-Column Responsive Grid (2x / 1x pattern) */
+            .moneyboy-2x-1x-layout-container {
+               display: flex;
+               gap: var(--spacing-md);
+
+               .moneyboy-2x-1x-a-layout {
+                  width: 100%;
+                  min-width: 0px;
+                  /* Flexible Main Content Column (2x) */
+                  max-width: 100%;
+               }
+
+               .moneyboy-2x-1x-b-layout {
+                  width: 100%;
+                  max-width: var(--right-aside-width);
+                  min-width: var(--right-aside-width);
+                  /* Fixed Aside/Secondary Column (1x) */
+               }
+
+               /* Specific Page Layout Override (e.g., Creator Profile) */
+               .creator-profile-page-container {
+                  width: 100%;
+
+                  .creator-profile-front-content-container {
+                     display: flex;
+                     flex-direction: column;
+                     gap: 20px;
+
+                     .creator-profile-page-multi-tab-section {
+                        .creator-profile-page-multi-tab-container {
+                           /* Placeholder for specific component instance styling */
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+.multi-dem-cards-wrapper-layout {
+   gap: 16px;
+   display: grid;
+
+   &[data-layout-toggle-rows] {
+      .col-4-cards-layout {
+         grid-template-columns: 1fr !important;
+
+         .creator-media-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+
+            .creator-media-card__media-wrapper {
+               max-width: 250px;
+               grid-row: span 2;
+            }
+
+            .creator-media-card__desc {
+               display: flex;
+               align-items: end;
+            }
+
+            .creator-media-card__btn {
+               max-width: 200px;
+            }
+         }
+      }
+   }
+
+   &[data-direct-cards-layout] {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+
+      &[data-layout-toggle-rows] {
+         grid-template-columns: 1fr 1fr;
+      }
+   }
+
+   &[data-multi-child-grid-layout-wishlist] {
+      .creator-content-type-container-wrapper {
+         grid-template-columns: 1fr 1fr 1fr;
+         gap: 16px;
+         gap: 10px;
+         display: grid;
+      }
+
+      &[data-2-cols] {
+         .creator-content-type-container-wrapper {
+            grid-template-columns: 1fr 1fr;
+         }
+      }
+
+      &[data-layout-toggle-rows] {
+         &[data-2-cols] {
+            .creator-content-type-container-wrapper {
+               grid-template-columns: 1fr;
+            }
+         }
+
+         .creator-content-type-container-wrapper {
+            grid-template-columns: 1fr;
+            display: grid;
+            gap: 16px;
+
+            .creator-content-card-container {
+               .creator-content-card {
+                  flex-direction: row;
+                  align-items: center;
+                  gap: 12px;
+
+                  .creator-content-card__media {
+                     max-width: 200px;
+                  }
+
+                  .desc-btns {
+                     flex-direction: column;
+                     align-items: center;
+                  }
+
+                  .creator-content-card__stats {
+                     width: 100%;
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+.content-creator-profile-tabs-layout-wrapper {
+   .multi-dem-cards-wrapper-layout {
+      &[data-direct-cards-layout] {
+         &[data-layout-toggle-rows] {
+            grid-template-columns: 1fr !important;
+
+            .creator-content-card {
+               display: grid;
+               grid-template-columns: auto 1fr;
+
+               .creator-content-card__media {
+                  max-width: 250px;
+                  grid-row: span 2;
+               }
+
+               .creator-content-card__description {
+                  display: flex;
+                  align-items: end;
+               }
+
+               .creator-content-card__stats {
+                  max-width: 200px;
+                  align-items: start;
+
+                  .creator-content-stat-box {
+                     height: 32px;
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+@media (min-width: 768px) {
+   .content-creator-profile-tabs-layout-wrapper {
+      .multi-dem-cards-wrapper-layout {
+         &[data-direct-cards-layout] {
+            &[data-layout-toggle-rows] {
+               .creator-content-card {
+                  .creator-content-card__media {
+                     .content-locked-label {
+                        transform: scale(1.25);
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+/*  */
+.moneyboy-diff-content-wrappers {
+   .desc-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+   }
+
+   .creator-content-filter-grid-container {
+      .search-features-grid-btns {
+         .creator-content-tabs-btn-wrapper {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+
+            button.multi-tab-switch-btn {
+               padding: 4px 6px;
+
+               svg {
+                  width: 20px;
+               }
+
+               span {
+                  font-size: 14px;
+               }
+            }
+         }
+      }
+   }
+
+   .creator-content-card-container {
+      .creator-content-card {
+         .creator-content-card__stats {
+            .creator-content-stat-box {
+               button {
+                  display: flex;
+                  align-items: center;
+               }
+            }
+         }
+      }
+   }
+}

@@ -1,0 +1,40 @@
+@media (max-width: 1280px) {
+    .container {
+        max-width: calc(100% - 75px);
+    }
+}
+
+@media (max-width: 992px) {
+    .container {
+        max-width: calc(100% - 40px);
+    }
+}
+
+@media (max-width: 620px) {
+    .container {
+        max-width: calc(100% - 25px);
+    }
+
+    .featured-profiles-wrapper {
+        padding-top: 16px;
+    }
+
+    .icon-btn {
+        width: 22px;
+    }
+
+    .filters-card-wrapper {
+        padding: 8px;
+        border-radius: 16px;
+    }
+
+    .filters-card-layout-wrapper {
+        /* padding: 0px; */
+    }
+}
+
+@media (max-width: 560px) {
+    .col-4-cards-layout {
+        gap: 10px;
+    }
+}
