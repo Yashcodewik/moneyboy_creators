@@ -195,7 +195,7 @@ body {
         border-radius: 18px;
         top: 0px;
         button {
-        padding: 14px 0px;
+         /* padding: 14px 0px; */
         }
     }
     .moneyboy-post__container.card {
@@ -406,7 +406,7 @@ body {
 
     }
     .premium-btn {
-        padding: 16px;
+        /* padding: 16px; */
         max-width: 50%;
         width: 100%;
         margin: 10px auto;
