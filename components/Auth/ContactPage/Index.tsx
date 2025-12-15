@@ -54,6 +54,7 @@ const ContactPage = () => {
             <p className="fs-18">Please don’t send sensitive data or personal content through this form.</p>
           </div>
           <h4 className="account_login">Are you a creator? <Link href="/signup">Sign up here.</Link></h4>
+          <h4 className="account_login"><Link href="#">Help & Support</Link></h4>
         </div>
       </div>
     </div>
