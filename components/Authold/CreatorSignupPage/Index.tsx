@@ -9,19 +9,8 @@ import { apiPost, apiPostWithMultiForm } from "@/utils/endpoints/common";
 import ShowToast from "@/components/common/ShowToast";
 import { API_CREATOR_REGISTER } from "@/utils/api/APIConstant";
 import DatePicker from "react-datepicker";
-import {
-  countryOptions,
-  bodyTypeOptions,
-  sexualOrientationOptions,
-  ageGroupOptions,
-  eyeColorOptions,
-  hairColorOptions,
-  ethnicityOptions,
-  heightOptions,
-  styleOptions,
-  sizeOptions,
-  popularityOptions,
-} from "../../../utils/creatorOptions";
+import { ageGroupOptions, bodyTypeOptions, countryOptions, ethnicityOptions, eyeColorOptions, hairColorOptions, heightOptions, popularityOptions, sexualOrientationOptions, sizeOptions, styleOptions } from "@/components/helper/creatorOptions";
+
 
 const CreatorSignupPage = () => {
   const [activeTab, setActiveTab] = useState("fan");

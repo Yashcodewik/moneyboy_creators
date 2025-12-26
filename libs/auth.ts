@@ -2,7 +2,10 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { apiPost } from "@/utils/endpoints/common";
 import { encrypt } from "./encryption.service";
-import { API_VERIFY_OTP } from "@/utils/api/APIConstant";
+import {
+  API_VERIFY_OTP,
+  API_LOGIN,
+} from "@/utils/api/APIConstant";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,25 +14,44 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "text" },
         otp: { label: "OTP", type: "text" },
+        password: { label: "Password", type: "password" }, 
       },
+
       async authorize(credentials) {
         console.log("Authorize called with:", credentials);
 
-        if (!credentials?.email) throw new Error("email_required");
-        if (!credentials?.otp) throw new Error("otp_required");
+        if (!credentials?.email) {
+          throw new Error("email_required");
+        }
 
-        const res = await apiPost({
-          url: API_VERIFY_OTP,
-          values: {
-            email: credentials.email,
-            otp: credentials.otp,
-          },
-        });
+        let res: any;
+
+        if (credentials.password) {
+          res = await apiPost({
+            url: API_LOGIN,
+            values: {
+              email: credentials.email,
+              password: credentials.password,
+            },
+          });
+        }
+
+        else if (credentials.otp) {
+          res = await apiPost({
+            url: API_VERIFY_OTP,
+            values: {
+              email: credentials.email,
+              otp: credentials.otp,
+            },
+          });
+        } else {
+          throw new Error("credentials_missing");
+        }
 
         console.log("Authorize API response:", res);
 
         if (!res?.success) {
-          throw new Error(res?.message || "verification_failed");
+          throw new Error(res?.message || "authentication_failed");
         }
 
         if (!res.token) {
@@ -102,7 +124,6 @@ export const authOptions: NextAuthOptions = {
           session.encrypted = encrypt(JSON.stringify(sensitiveData));
           delete session.user;
           delete session.isAuthenticated;
-
           return session;
         } catch (err) {
           console.error("Failed to encrypt session data:", err);
