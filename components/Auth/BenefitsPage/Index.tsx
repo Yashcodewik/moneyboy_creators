@@ -9,7 +9,7 @@ const BenefitsPage = () => {
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap"/>
       </div>
-      <div className="moneyboy-feed-page-container cont_wrap">
+      <div className="moneyboy-feed-page-container cont_wrap justify-center">
         <div className="main_cont">
           <img src="/images/logo.svg" className="logo_wrap"/>
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">

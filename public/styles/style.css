@@ -5,6 +5,13 @@
 body {
     background: #F4F4F4;
 }
+
+/* Animation Start */
+@keyframes otpFadeIn {
+  from {opacity: 0;transform: translateY(10px) scale(0.98);}
+  to {opacity: 1;transform: translateY(0) scale(1);}
+}
+
 /* Custome Class Start  */
 .bg-off-white {
     background-color: #f4f4f4;
@@ -138,6 +145,8 @@ body {
 .mb-10 {
   margin-bottom: 15px !important;
 }
+.justify-center {justify-content: center;}
+.text-right {text-align: right;}
 
 /* Login Page Start */
 .login_wrap {
@@ -171,7 +180,7 @@ body {
     flex-direction: column;
     align-self: center;
     padding: 20px 40px 20px;
-    overflow-y: auto;
+    overflow-y: hidden;
     max-height: calc(100vh - 55px);
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -405,6 +414,29 @@ body {
         font-family: var(--font-family-base);
 
     }
+    .forget_link {
+        text-align: right;
+        color: #e5741f;
+        font-size: 14px;
+        line-height: 18px;
+        font-weight: 500;
+        letter-spacing: 0;
+        font-style: normal;
+        font-family: var(--font-family-base);
+        margin-bottom: 0px;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+    .error-message {
+      color: #FF0000;
+      letter-spacing: 0;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 16px;
+      font-family: var(--font-family-base);
+    }
     .premium-btn {
         /* padding: 16px; */
         max-width: 50%;
@@ -423,7 +455,10 @@ body {
         letter-spacing: 0px;
         font-style: normal;
         font-family: var(--font-family-base);
-        margin-bottom: 15px;
+        margin-bottom: 0px;
+        &:last-child {
+            margin-bottom: 0px;
+        }
         a {
             color: #E5741F;
             &:hover {
@@ -587,4 +622,242 @@ body {
         }
     }
   }
+  /* ========== DESKTOP <= 1400px ONLY ========== */
+  @media screen and (min-width: 1200px) and (max-width: 1700px) {
+    height: calc(100vh - 55px);
+    min-height: unset;
+    max-height: unset;
+    overflow: hidden;
+    .cont_wrap {
+        height: 100%;
+        overflow: hidden !important;
+        padding: 20px 32px;
+        .main_cont {
+            max-width: 100%;
+            max-height: 100%;
+            overflow: unset;
+            gap: 8px;
+            .logo_wrap {
+                max-width: 150px;
+            }
+            .moneyboy-feed-page-cate-buttons {
+                border-radius: 9px;
+                .page-content-type-button {
+                    padding: 10px 0;
+                    font-size: 12px;
+                    border-radius: 9px;
+                }
+            }
+            h3.heading {
+                font-size: 22px;
+            }
+            p {
+                font-size: 12px;
+            }
+            ul.benefitspoint {
+                margin: 0 auto 10px;
+                li {
+                    font-size: 12px;
+                    margin-bottom: 6px;
+                }
+            }
+            .premium-btn {
+                margin: 7px auto;
+                padding: 10px 0px;
+                border-radius: 9px;
+                span {
+                    font-size: 12px;
+                }
+            }
+            .loginbtn_wrap {
+                border-radius: 7px;
+                gap: 5px;
+                margin-bottom: 6px;
+                button {
+                    padding: 10px 8px;
+                    border-radius: 12px;
+                }
+            }
+            .or-divider {
+                max-width: 80%;
+                margin: 10px auto;
+            }
+            .form_grid {
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+            .label-input {
+                &.file-upload-wrapper {
+                    padding: 10px;
+                    font-size: 12px;
+                    .input-placeholder-icon {
+                        width: 50px;
+                        height: 50px;
+                        min-width: 50px;
+                    }
+                }
+                input, textarea {
+                    border-radius: 10px;
+                    padding: 10px;
+                    padding-inline-start: 30px;
+                    color: #444444;
+                    font-size: 12px;
+                }
+                .svg-icon {
+                    width: 18px;
+                    height: 18px;
+                }
+            }
+            .custom-select-label-wrapper {
+                padding: 10px 9px;
+            }
+            .account_login {
+              font-size: 12px;
+              line-height: 16px;
+              margin-bottom: 0px !important;
+            }
+        }
+    }
+    &.creator_wrap {
+     height: auto;
+     overflow: auto;
+     .cont_wrap {
+         overflow: auto !important;
+       .main_cont {
+         overflow: unset;
+         .logo_wrap {
+            margin-top: 20px;
+            max-width: 150px;
+         }
+           h3.heading {
+               font-size: 22px;
+               line-height: 26px;
+           }
+           .premium-btn {
+               max-width: 30%;
+               margin: 8px auto;
+           }
+           .creator_maingrid {
+               gap: 8px;
+               margin-bottom: 10px;
+               .right_wrap {
+                   gap: 8px;
+                   .label-input{
+                       &.file-upload-wrapper {
+                           padding: 10px 12px !important;
+                       }
+                   }
+               }
+           }
+       }
+     }
+    }
+  }
 }
+
+@media screen and (min-width: 1200px) and (max-width: 1600px) {
+  .mb-10 {
+    margin-bottom: 10px !important;
+  } 
+}
+
+/* Modal Start */
+.otp-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    .otp-modal {
+      background: #fff;
+      padding: 28px 24px;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      animation: otpFadeIn 0.25s ease-out;
+      .otp-close {
+        position: absolute;
+        top: 12px;
+        right: 14px;
+        background: none;
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+        color: #888;
+        .otp-close:hover {
+          color: #000;
+        }
+      }
+      .otp-title {
+        text-align: center;
+        color: var(--color-text-active);
+        letter-spacing: 0;
+        text-transform: capitalize;
+        font-size: 26px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 30px;
+        font-family: var(--font-family-heading);
+        margin-bottom: 8px;
+      }
+      .otp-subtitle {
+        text-align: center;
+        color: #505050;
+        font-size: 13px;
+        line-height: 17px;
+        font-weight: 500;
+        letter-spacing: 0;
+        font-style: normal;
+        font-family: var(--font-family-base);
+        margin-bottom: 10px;
+      }
+      .otp-boxes {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        .otp-box {
+          width: 44px;
+          height: 52px;
+          border-radius: 10px;
+          border: 1.5px solid #ddd;
+          font-size: 20px;
+          font-weight: 600;
+          text-align: center;
+          outline: none;
+          &:focus {
+            border-color: #000;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+          }
+        }
+      }
+      /* Buttons */
+      .modal_footer {
+          display: flex;
+          gap: 12px;
+          .mw-50 {max-width: 50%;}
+          .otp-cancel {
+            flex: 1;
+            padding: 12px;
+            background: #f2f2f2;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+          }
+        }
+    }
+    /* ========== Mobile Screen Size ========== */
+  @media screen and (max-width:767px) {
+    .otp-modal {
+      max-width: 100%;
+      margin: 0px 15px;
+    }
+  }
+}
+  
