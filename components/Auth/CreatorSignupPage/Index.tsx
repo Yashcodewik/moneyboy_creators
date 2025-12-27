@@ -25,45 +25,53 @@ import OtpModal from "@/components/OtpModal";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+const validationSchema = yup.object({
+  firstName: yup.string().required("First name is required"),
+  lastName: yup.string().required("Last name is required"),
+  displayName: yup.string().required("Display name is required"),
+  userName: yup
+    .string()
+    .matches(
+      /^[A-Za-z0-9]{5,20}$/,
+      "Username must be 5-20 characters long, letters A-Z, and numbers 0-9 only, no spaces."
+    )
+    .required("Username is required"),
+  email: yup.string().email("Invalid email").required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password")], "Passwords must match")
+    .required("Confirm password is required"),
+  gender: yup.string().required("Gender is required"),
+  dob: yup.string().required("Date of birth is required"),
+  bio: yup.string().required("Bio is required"),
+  country: yup.string().required("Country is required"),
+  city: yup.string().required("City is required"),
+  bodyType: yup.string().required("Body type is required"),
+  sexualOrientation: yup.string().required("Sexual orientation is required"),
+  age: yup.string().required("Age is required"),
+  eyeColor: yup.string().required("Eye color is required"),
+  hairColor: yup.string().required("Hair color is required"),
+  ethnicity: yup.string().required("Ethnicity is required"),
+  height: yup.string().required("Height is required"),
+  style: yup.string().required("Style is required"),
+  size: yup.string().required("Size is required"),
+  popularity: yup.string().required("Popularity is required"),
+});
 
 const CreatorSignupPage = () => {
-  const [activeTab, setActiveTab] = useState("fan");
+  const router = useRouter();
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
   const [emailForOtp, setEmailForOtp] = useState("");
-   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [idPreview, setIdPreview] = useState<string | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
 
-  const validationSchema = yup.object({
-    firstName: yup.string().required("First name is required"),
-    lastName: yup.string().required("Last name is required"),
-    displayName: yup.string().required("Display name is required"),
-    userName: yup.string().required("Username is required"),
-    email: yup.string().email("Invalid email").required("Email is required"),
-    password: yup
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .required("Password is required"),
-    confirmPassword: yup
-      .string()
-      .oneOf([yup.ref("password")], "Passwords must match")
-      .required("Confirm password is required"),
-    gender: yup.string().required("Gender is required"),
-    dob: yup.string().required("Date of birth is required"),
-    bio: yup.string().required("Bio is required"),
-    country: yup.string().required("Country is required"),
-    city: yup.string().required("City is required"),
-    bodyType: yup.string().required("Body type is required"),
-    sexualOrientation: yup.string().required("Sexual orientation is required"),
-    age: yup.string().required("Age is required"),
-    eyeColor: yup.string().required("Eye color is required"),
-    hairColor: yup.string().required("Hair color is required"),
-    ethnicity: yup.string().required("Ethnicity is required"),
-    height: yup.string().required("Height is required"),
-    style: yup.string().required("Style is required"),
-    size: yup.string().required("Size is required"),
-    popularity: yup.string().required("Popularity is required"),
-  });
   const formik = useFormik({
     initialValues: {
       firstName: "",
@@ -91,39 +99,46 @@ const CreatorSignupPage = () => {
     },
     validationSchema,
     onSubmit: async (values) => {
-      const res = await apiPost({ url: API_CREATOR_REGISTER, values });
-      if (res?.success) {
-      ShowToast(res.message, "success");
-      setEmailForOtp(values.email); // save email for OTP verification
-      setOtpOpen(true);
-      } else {
-        ShowToast(res?.error || "Something went wrong", "error");
+      try {
+        setLoading(true);
+        const res = await apiPost({ url: API_CREATOR_REGISTER, values });
+        if (res?.success) {
+          ShowToast(res.message, "success");
+          setEmailForOtp(values.email);
+          setOtpOpen(true);
+        } else {
+          ShowToast(res?.error || "Something went wrong", "error");
+        }
+      } catch (err: any) {
+        ShowToast(err?.error || "Registration failed", "error");
+      } finally {
+        setLoading(false);
       }
     },
   });
-    const handleVerifyOtp = async (otp: string) => {
-      try {
-        const result = await signIn("credentials", {
-          redirect: false,
-          email: emailForOtp,
-          otp,
-        });
-  
-        console.log("signIn result:", result);
-  
-        if (result?.error) {
-          ShowToast("Invalid OTP", "error");
-          return;
-        }
-  
-        ShowToast("Registration completed!", "success");
-        setOtpOpen(false);
-  
-        router.push("/dashboard");
-      } catch (error: any) {
-        ShowToast(error?.message || "Error verifying OTP", "error");
-      }
-    };
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "id" | "selfie"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type.startsWith("image/")) {
+      const previewUrl = URL.createObjectURL(file);
+      type === "id" ? setIdPreview(previewUrl) : setSelfiePreview(previewUrl);
+    } else {
+      type === "id" ? setIdPreview("pdf") : setSelfiePreview("pdf");
+    }
+  };
+
+  const handleRemoveFile = (type: "id" | "selfie") => {
+    if (type === "id") {
+      setIdPreview(null);
+    } else {
+      setSelfiePreview(null);
+    }
+  };
 
   return (
     <div className="bg-off-white">
@@ -372,7 +387,9 @@ const CreatorSignupPage = () => {
                       />
                     </div>
                     {formik.touched.city && formik.errors.city && (
-                      <span className="error-message">{formik.errors.city}</span>
+                      <span className="error-message">
+                        {formik.errors.city}
+                      </span>
                     )}
                   </div>
                   <div className="one">
@@ -525,7 +542,9 @@ const CreatorSignupPage = () => {
                       onChange={(val) => formik.setFieldValue("size", val)}
                     />
                     {formik.touched.size && formik.errors.size && (
-                      <span className="error-message">{formik.errors.size}</span>
+                      <span className="error-message">
+                        {formik.errors.size}
+                      </span>
                     )}
                   </div>
                   {/* <CustomSelect
@@ -570,7 +589,26 @@ const CreatorSignupPage = () => {
                       type="file"
                       className="real-file-input"
                       accept="image/*,.pdf"
+                      onChange={(e) => handleFileChange(e, "id")}
                     />
+                    {idPreview && (
+                      <div className="input-placeholder-icon">
+                        <div className="preview-wrapper">
+                          {idPreview === "pdf" ? (
+                            <p>PDF Uploaded</p>
+                          ) : (
+                            <img src={idPreview} className="preview-img" />
+                          )}
+
+                          <span
+                            className="remove-btn"
+                            onClick={() => handleRemoveFile("id")}
+                          >
+                            ✕
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="label-input one file-upload-wrapper">
                     <div className="input-placeholder-icon">
@@ -584,15 +622,40 @@ const CreatorSignupPage = () => {
                       type="file"
                       className="real-file-input"
                       accept="image/*,.pdf"
+                      onChange={(e) => handleFileChange(e, "selfie")}
                     />
+
+                    {selfiePreview && (
+                      <div className="input-placeholder-icon">
+                        <div className="preview-wrapper">
+                          {selfiePreview === "pdf" ? (
+                            <p>PDF Uploaded</p>
+                          ) : (
+                            <img src={selfiePreview} className="preview-img" />
+                          )}
+
+                          <span
+                            className="remove-btn"
+                            onClick={() => handleRemoveFile("selfie")}
+                          >
+                            ✕
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
               <button
                 className="premium-btn"
                 onClick={() => formik.handleSubmit()}
+                disabled={loading}
               >
-                <span>Create your account</span>
+                {loading ? (
+                  <span className="loader"></span>
+                ) : (
+                  <span>Create your account</span>
+                )}
               </button>
               <p>
                 By signing up you agree to our{" "}
@@ -601,7 +664,7 @@ const CreatorSignupPage = () => {
                 at least 18 years old.
               </p>
               <p className="fs-18">
-                Have an account already? <Link href="#">Log in here.</Link>
+                Have an account already? <Link href="/login">Log in here.</Link>
               </p>
             </div>
             <h4 className="account_login">
@@ -610,11 +673,13 @@ const CreatorSignupPage = () => {
           </div>
         </div>
       </div>
+      {emailForOtp && otpOpen && (
         <OtpModal
-        open={otpOpen}
-        onClose={() => setOtpOpen(false)}
-        onSubmit={handleVerifyOtp}
-      />
+          open={otpOpen}
+          onClose={() => setOtpOpen(false)}
+          email={emailForOtp}
+        />
+      )}
     </div>
   );
 };

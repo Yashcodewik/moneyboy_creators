@@ -3,10 +3,7 @@
   import ShowToast from "@/components/common/ShowToast";
   import defaultAxios from "../api/axios";
   
-  interface PageResponse {
-    results: any[];
-    hasMore: boolean;
-  }
+ 
   interface deleteParams {
     url: string;
   }

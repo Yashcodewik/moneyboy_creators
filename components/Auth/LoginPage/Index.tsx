@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { useFormik } from "formik";
@@ -9,9 +8,7 @@ import * as Yup from "yup";
 import { signIn } from "next-auth/react";
 
 const LoginPage = () => {
-  const [activeTab, setActiveTab] = useState("fan");
   const [showPass, setShowPass] = useState(false);
-  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   const validationSchema = Yup.object({
     email: Yup.string()

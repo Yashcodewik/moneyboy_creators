@@ -13,7 +13,6 @@ const defaultAxios = axios.create({ baseURL: APIBaseUrl });
 defaultAxios.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const session: any = await getDecryptedSession();
- console.log("===========",getDecryptedSession)
     if (session?.token) {
       if (!config.headers) {
         config.headers = new AxiosHeaders();

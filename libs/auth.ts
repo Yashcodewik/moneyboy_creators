@@ -2,10 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { apiPost } from "@/utils/endpoints/common";
 import { encrypt } from "./encryption.service";
-import {
-  API_VERIFY_OTP,
-  API_LOGIN,
-} from "@/utils/api/APIConstant";
+import { API_VERIFY_OTP, API_LOGIN } from "@/utils/api/APIConstant";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,7 +11,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "text" },
         otp: { label: "OTP", type: "text" },
-        password: { label: "Password", type: "password" }, 
+        password: { label: "Password", type: "password" },
       },
 
       async authorize(credentials) {
@@ -34,9 +31,7 @@ export const authOptions: NextAuthOptions = {
               password: credentials.password,
             },
           });
-        }
-
-        else if (credentials.otp) {
+        } else if (credentials.otp) {
           res = await apiPost({
             url: API_VERIFY_OTP,
             values: {
