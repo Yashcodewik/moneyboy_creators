@@ -284,7 +284,7 @@ const SignupPage = () => {
             </p>
           </div>
           <h4 className="account_login">
-            Are you a creator? <a href="/creator">Sign up here.</a>
+            Are you a creator? <Link href="/creator">Sign up here.</Link>
           </h4>
         </div>
       </div>
