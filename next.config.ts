@@ -1,8 +1,14 @@
-import type { NextConfig } from "next";
+module.exports = {
+  turbopack: {
+    root: __dirname,
+  },
 
-const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        destination: "/feed",
+      },
+    ];
+  },
 };
-
-export default nextConfig;

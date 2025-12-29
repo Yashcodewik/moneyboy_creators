@@ -1,36 +1,173 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 MoneyBoy – Full Stack Application
 
-## Getting Started
+A modern, secure, and scalable web application built using **Next.js (App Router)** and **NestJS**, designed with clean architecture, secure authentication, and production-ready practices.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📌 Tech Stack
+
+### Frontend
+
+* **Next.js (App Router)**
+* **React 19**
+* **TypeScript**
+* **NextAuth** – Authentication
+* **React Query** – API State Management
+* **Formik + Yup** – Forms & Validation
+* **Axios** – API Requests
+
+### Backend
+
+* **NestJS**
+* **JWT / Session-based Authentication**
+* **OTP Verification**
+* **Secure APIs**
+
+### Security
+
+* **Encrypted session storage (CryptoJS)**
+* **Environment-based secrets (.env)**
+* **Server-side authentication**
+
+---
+
+## 🧱 Project Architecture
+
+```
+User → Next.js Frontend
+     → NextAuth (Session Handling)
+     → NestJS Backend
+     → Database
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+✔ Modular Architecture
+✔ Secure Authentication
+✔ Scalable Backend
+✔ Production Ready
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Folder Structure
 
-## Learn More
+```
+app/
+ ├── (auth)          → Login / Signup pages
+ ├── (dashboard)     → Protected routes
+ ├── api/            → API handlers
+ ├── layout.tsx      → Global layout
 
-To learn more about Next.js, take a look at the following resources:
+components/          → Reusable UI components
+libs/                → Auth, encryption, helpers
+utils/               → API config & constants
+public/              → Static assets
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔐 Authentication Flow
 
-## Deploy on Vercel
+1. User logs in via frontend
+2. Request sent to NestJS backend
+3. Backend verifies credentials / OTP
+4. Valid user data returned
+5. NextAuth creates secure session
+6. Encrypted session stored
+7. User gets authorized access
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+✅ Secure
+✅ Backend-driven
+✅ Scalable
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🛡️ Security Implementation
+
+* NextAuth for session handling
+* CryptoJS encryption for browser data
+* Environment variables for secrets
+* No sensitive logic on frontend
+* Secure API communication
+
+---
+
+## 🔄 API Handling
+
+* Axios for API requests
+* React Query for:
+
+  * Caching
+  * Auto refetch
+  * Error handling
+  * Performance optimization
+
+---
+
+## ⚙️ Environment Setup
+
+Create a `.env` file:
+
+```env
+NEXTAUTH_SECRET=your_secret
+NEXTAUTH_URL=http://localhost:3000
+API_BASE_URL=your_backend_url
+```
+
+⚠️ Do not commit `.env` to GitHub.
+
+---
+
+## ▶️ Run Project
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## 📦 Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 🚀 Features
+
+* Authentication (Login / Signup)
+* OTP Verification
+* Encrypted session handling
+* API-driven architecture
+* Scalable backend
+* Clean folder structure
+
+---
+
+## 📈 Future Enhancements
+
+* Role-based access
+* Admin dashboard
+* Mobile app integration
+* Analytics & logs
+
+---
+
+## ✅ Conclusion
+
+This project follows modern full-stack best practices with a strong focus on:
+
+* Security
+* Scalability
+* Clean code
+* Maintainability
+
+It is production-ready and easily extendable for future features.
+
+---
+
+### 👨‍💻 Developed By
+
+**Sanjay**
+Full Stack Developer
