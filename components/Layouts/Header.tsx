@@ -176,25 +176,9 @@ const Header = () => {
                   </div>
                 </>
               ) : (
-                <div className="header-auth-buttons">
-                  <Link href="/login" className="btn btn--primary">
-                    <img
-                      src="/images/icons/sign-up-icon.svg"
-                      alt="Sign In"
-                      width="22"
-                      height="22"
-                    />{" "}
-                    Sign In
-                  </Link>
-                  <Link href="/benefits" className="btn btn--secondary">
-                    <img
-                      src="/images/icons/sign-in-icon.svg"
-                      alt="Sign Up"
-                      width="28"
-                      height="28"
-                    />{" "}
-                    Sign Up
-                  </Link>
+                <div className="header-auth-buttons gap-10">
+                  <Link href="/login" className="btn-txt-gradient btn-grey">{" "} <span>Sign In</span></Link>
+                  <Link href="/benefits" className="btn-txt-gradient">{" "} <span>Sign Up</span></Link>
                 </div>
               )}
             </div>

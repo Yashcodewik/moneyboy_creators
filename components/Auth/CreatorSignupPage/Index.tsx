@@ -8,22 +8,12 @@ import * as yup from "yup";
 import { apiPost } from "@/utils/endpoints/common";
 import { API_CREATOR_REGISTER } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
-import {
-  ageGroupOptions,
-  bodyTypeOptions,
-  countryOptions,
-  ethnicityOptions,
-  eyeColorOptions,
-  hairColorOptions,
-  heightOptions,
-  popularityOptions,
-  sexualOrientationOptions,
-  sizeOptions,
-  styleOptions,
-} from "@/components/helper/creatorOptions";
+import {ageGroupOptions, bodyTypeOptions, countryOptions, ethnicityOptions, eyeColorOptions, hairColorOptions, heightOptions, popularityOptions, sexualOrientationOptions, sizeOptions, styleOptions,} from "@/components/helper/creatorOptions";
 import OtpModal from "@/components/OtpModal";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { FaFilePdf, FaTrash } from "react-icons/fa6";
+import { FiEdit } from "react-icons/fi";
 
 const validationSchema = yup.object({
   firstName: yup.string().required("First name is required"),
@@ -555,11 +545,7 @@ const CreatorSignupPage = () => {
                     )}
                   </div>
                   <div>
-                    <CustomSelect
-                      label="All Sizes"
-                      icon={
-                        <svg className="icons expanddiagonal svg-icon"></svg>
-                      }
+                    <CustomSelect label="All Sizes" icon={<svg className="icons expanddiagonal svg-icon size-18"></svg>}
                       options={sizeOptions}
                       value={formik.values.size}
                       onChange={(val) => formik.setFieldValue("size", val)}
@@ -600,39 +586,29 @@ const CreatorSignupPage = () => {
                   <div className="label-input one file-upload-wrapper">
                     <div className="input-placeholder-icon">
                       <svg className="icons idshape size-45"></svg>
-                      <div className="imgicons">
-                        <TbCamera size="16" />
-                      </div>
+                      <div className="imgicons"><TbCamera size="16" /></div>
                     </div>
-                    <p>
-                      Your government issued ID card, National ID card, Passport
-                      or Driving license *
-                    </p>
-                    <input
-                      type="file"
-                      className="real-file-input"
-                      accept="image/*,.pdf"
-                      onChange={(e) => handleFileChange(e, "id")}
-                    />
-                    {idPreview && (
-                      <div className="input-placeholder-icon">
-                        <div className="preview-wrapper">
-                          {idPreview === "pdf" ? (
-                            <p>PDF Uploaded</p>
-                          ) : (
-                            <img src={idPreview} className="preview-img" />
-                          )}
-
-                          <span
-                            className="remove-btn"
-                            onClick={() => handleRemoveFile("id")}
-                          >
-                            ✕
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                    <p>Your government issued ID card, National ID card, Passport or Driving license *</p>
+                    <input type="file" className="real-file-input" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, "id")}/>
                   </div>
+                  {idPreview && (
+                    <div className="label-input file-upload-wrapper preview-wrapper">
+                      {idPreview === "pdf" ? (
+                        <div className="input-placeholder-icon">
+                          <FaFilePdf className="icons" color="#E5741F"/>
+                        </div>
+                        ) : (
+                        <div className="input-placeholder-icon">
+                          <img src={idPreview} className="preview-img" />
+                        </div>
+                        )}
+                        <p>PDF Uploaded</p>
+                        <div className="right_box">
+                          <Link href="#" className="icons"><FiEdit /></Link>
+                          <Link href="#" className="icons" onClick={() => handleRemoveFile("id")}><FaTrash /></Link>
+                        </div>
+                    </div>
+                  )}
                   <div className="label-input one file-upload-wrapper">
                     <div className="input-placeholder-icon">
                       <svg className="icons profilecards size-45"></svg>
@@ -647,7 +623,6 @@ const CreatorSignupPage = () => {
                       accept="image/*,.pdf"
                       onChange={(e) => handleFileChange(e, "selfie")}
                     />
-
                     {selfiePreview && (
                       <div className="input-placeholder-icon">
                         <div className="preview-wrapper">
@@ -666,6 +641,7 @@ const CreatorSignupPage = () => {
                         </div>
                       </div>
                     )}
+
                   </div>
                 </div>
               </div>

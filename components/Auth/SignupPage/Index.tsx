@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaXTwitter } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
+import { IoArrowBackOutline } from "react-icons/io5";
 import * as yup from "yup";
 
 export const signupSchema = yup.object().shape({
@@ -113,6 +114,9 @@ const SignupPage = () => {
     <div className="container login_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
+        <div className="backicons">
+          <button className="btn-txt-gradient btn-outline"><IoArrowBackOutline className="icons"/></button>
+        </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap">
         <div className="main_cont">

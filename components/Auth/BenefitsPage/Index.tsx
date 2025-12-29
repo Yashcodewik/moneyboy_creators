@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { IoArrowBackOutline } from "react-icons/io5";
 
 const BenefitsPage = () => {
   const [activeTab, setActiveTab] = useState("fan");
@@ -8,6 +9,9 @@ const BenefitsPage = () => {
     <div className="container login_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
+        <div className="backicons">
+          <button className="btn-txt-gradient btn-outline"><IoArrowBackOutline className="icons"/></button>
+        </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap justify-center">
         <div className="main_cont">

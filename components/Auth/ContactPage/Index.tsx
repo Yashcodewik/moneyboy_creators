@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { TbCamera } from "react-icons/tb";
 import CustomSelect from "@/components/CustomSelect";
+import { IoArrowBackOutline } from "react-icons/io5";
 
 const ContactPage = () => {
   
@@ -10,6 +11,9 @@ const ContactPage = () => {
     <div className="container login_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap"/>
+        <div className="backicons">
+          <button className="btn-txt-gradient btn-outline"><IoArrowBackOutline className="icons"/></button>
+        </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap">
         <div className="main_cont">
