@@ -595,8 +595,8 @@ const Sidebar: React.FC = () => {
                         <img
                           src="/images/icons/sign-up-icon.svg"
                           alt="Login Icon"
-                          width="25"
-                          height="25"
+                          width="22"
+                          height="22"
                         />
                         <span>Login</span>
                       </div>
@@ -608,8 +608,8 @@ const Sidebar: React.FC = () => {
                         <img
                           src="/images/icons/sign-in-icon.svg"
                           alt="Login Icon"
-                          width="32"
-                          height="32"
+                          width="25"
+                          height="25"
                         />
                         <span>Sign Up</span>
                       </div>

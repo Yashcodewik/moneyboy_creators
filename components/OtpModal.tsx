@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { CgCloseO } from "react-icons/cg";
 
 type OtpModalProps = {
   open: boolean;
@@ -39,8 +40,8 @@ const OtpModal = ({ open, onClose, onSubmit,email }: OtpModalProps) => {
   return (
     <div className="otp-overlay">
       <div className="otp-modal">
-        <button className="otp-close" onClick={onClose}>
-          ×
+        <button className="otp-close otp-cancel" onClick={onClose}>
+         <CgCloseO size={22} color="red"/>
         </button>
         <h3 className="otp-title">Verify OTP</h3>
         <p className="otp-subtitle">

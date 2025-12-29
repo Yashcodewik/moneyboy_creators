@@ -6,6 +6,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { signIn } from "next-auth/react";
+import { IoArrowBackOutline } from "react-icons/io5";
 
 const LoginPage = () => {
   const [showPass, setShowPass] = useState(false);
@@ -47,6 +48,9 @@ const LoginPage = () => {
     <div className="container login_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
+        <div className="backicons">
+          <button className="btn-txt-gradient btn-outline"><IoArrowBackOutline className="icons"/></button>
+        </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap justify-center">
         <div className="main_cont">
