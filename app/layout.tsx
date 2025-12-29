@@ -68,9 +68,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}>
         <AuthProviders session={session}>
           {children}
           <Footer />
