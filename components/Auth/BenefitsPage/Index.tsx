@@ -12,7 +12,7 @@ const BenefitsPage = () => {
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/dashboard')}><IoArrowBackOutline className="icons"/></button>
+          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/feed')}><IoArrowBackOutline className="icons"/></button>
         </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap justify-center">
