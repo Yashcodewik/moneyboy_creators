@@ -1,15 +1,18 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Link from 'next/link';
-import { usePathname ,useRouter} from 'next/navigation';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("discover");
-  
-const pathname = usePathname();
-const router = useRouter();
 
- useEffect(() => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role;
+
+  useEffect(() => {
     const pathToPageMap: Record<string, string> = {
       "/dashboard": "discover",
       "/feed": "feed",
@@ -19,12 +22,12 @@ const router = useRouter();
       "/purchasedmedia": "purchasedmedia",
       "/store": "store",
     };
-    
+
     // Check if current path is in map
-    const currentPage = Object.keys(pathToPageMap).find(path => 
-      pathname === path || pathname.startsWith(`${path}/`)
+    const currentPage = Object.keys(pathToPageMap).find(
+      (path) => pathname === path || pathname.startsWith(`${path}/`)
     );
-    
+
     if (currentPage) {
       setActivePage(pathToPageMap[currentPage]);
     }
@@ -36,12 +39,15 @@ const router = useRouter();
     router.push(href);
   };
 
-  const handleMobileNavClick = (page: string, href: string, e: React.MouseEvent) => {
+  const handleMobileNavClick = (
+    page: string,
+    href: string,
+    e: React.MouseEvent
+  ) => {
     e.preventDefault();
     setActivePage(page);
     router.push(href);
   };
-
 
   // const navItems = [
   //   { id: "feed", label: "Feed", icon: "feed" },
@@ -235,35 +241,37 @@ const router = useRouter();
           </div>
         </div>
 
-        {/* ################## */}
+      
         {/* Create Post Button */}
-        <div className="sidebar-post-button card active-down-effect">
-          <a href="#" className="btn-primary">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M22 12V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H12"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M20.96 17.84L19.33 18.39C18.88 18.54 18.52 18.89 18.37 19.35L17.82 20.98C17.35 22.39 15.37 22.36 14.93 20.95L13.08 15C12.72 13.82 13.81 12.72 14.98 13.09L20.94 14.94C22.34 15.38 22.36 17.37 20.96 17.84Z"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Create a Post</span>
-          </a>
-        </div>
+        {role === 2 && (
+          <div className="sidebar-post-button card active-down-effect">
+            <a href="#" className="btn-primary">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M22 12V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H12"
+                  stroke="white"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M20.96 17.84L19.33 18.39C18.88 18.54 18.52 18.89 18.37 19.35L17.82 20.98C17.35 22.39 15.37 22.36 14.93 20.95L13.08 15C12.72 13.82 13.81 12.72 14.98 13.09L20.94 14.94C22.34 15.38 22.36 17.37 20.96 17.84Z"
+                  stroke="white"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Create a Post</span>
+            </a>
+          </div>
+        )}
 
         {/* ########## */}
         {/* Navigation */}
@@ -272,13 +280,13 @@ const router = useRouter();
             <ul>
               {/* Navigation Button - Feed */}
               <li>
-                <Link 
-                  href="/feed" 
-                  className={`active-down-effect ${activePage === "feed" ? "active" : ""}`}
+                <Link
+                  href="/feed"
+                  className={`active-down-effect ${
+                    activePage === "feed" ? "active" : ""
+                  }`}
                   onClick={(e) => handleNavClick("feed", "/feed", e)}
-
                 >
-                  
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -309,11 +317,12 @@ const router = useRouter();
 
               {/* Navigation Button - Discover */}
               <li>
-                <Link 
-                  href="/dashboard" 
-                  className={`active-down-effect ${activePage === "discover" ? "active" : ""}`}
+                <Link
+                  href="/dashboard"
+                  className={`active-down-effect ${
+                    activePage === "discover" ? "active" : ""
+                  }`}
                   onClick={(e) => handleNavClick("discover", "/dashboard", e)}
-
                 >
                   <div>
                     <svg
@@ -345,11 +354,12 @@ const router = useRouter();
 
               {/* Navigation Button - Likes */}
               <li>
-                <Link 
-                  href="/like" 
-                  className={`active-down-effect ${activePage === "likes" ? "active" : ""}`}
+                <Link
+                  href="/like"
+                  className={`active-down-effect ${
+                    activePage === "likes" ? "active" : ""
+                  }`}
                   onClick={(e) => handleNavClick("likes", "/like", e)}
-
                 >
                   <div>
                     <svg
@@ -374,11 +384,12 @@ const router = useRouter();
 
               {/* Navigation Button - Wishlist */}
               <li>
-                <Link 
-                  href="/wishlist" 
-                  className={`active-down-effect ${activePage === "wishlist" ? "active" : ""}`}
+                <Link
+                  href="/wishlist"
+                  className={`active-down-effect ${
+                    activePage === "wishlist" ? "active" : ""
+                  }`}
                   onClick={(e) => handleNavClick("wishlist", "/wishlist", e)}
-
                 >
                   <div>
                     <svg
@@ -418,11 +429,12 @@ const router = useRouter();
 
               {/* Navigation Button - Subscriptions */}
               <li>
-                <Link 
-                  href="#" 
-                  className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""}`}
-               onClick={(e) => handleNavClick("subscriptions", "/#", e)}
-
+                <Link
+                  href="#"
+                  className={`active-down-effect ${
+                    activePage === "subscriptions" ? "active" : ""
+                  }`}
+                  onClick={(e) => handleNavClick("subscriptions", "/#", e)}
                 >
                   <div>
                     <svg
@@ -476,11 +488,14 @@ const router = useRouter();
 
               {/* Navigation Button - Purchased Media */}
               <li>
-                <Link 
-                  href="/purchasemedia" 
-                  className={`active-down-effect ${activePage === "purchased" ? "active" : ""}`}
-                 onClick={(e) => handleNavClick("purchased", "/purchasedmedia", e)}
-
+                <Link
+                  href="/purchasemedia"
+                  className={`active-down-effect ${
+                    activePage === "purchased" ? "active" : ""
+                  }`}
+                  onClick={(e) =>
+                    handleNavClick("purchased", "/purchasedmedia", e)
+                  }
                 >
                   <div>
                     <svg
@@ -516,11 +531,12 @@ const router = useRouter();
 
               {/* Navigation Button - Store */}
               <li>
-                <Link 
-                  href="/store" 
-                  className={`active-down-effect ${activePage === "store" ? "active" : ""}`}
+                <Link
+                  href="/store"
+                  className={`active-down-effect ${
+                    activePage === "store" ? "active" : ""
+                  }`}
                   onClick={(e) => handleNavClick("store", "/store", e)}
-
                 >
                   <div>
                     <svg

@@ -122,8 +122,8 @@ export const authOptions: NextAuthOptions = {
 
         try {
           session.encrypted = encrypt(JSON.stringify(sensitiveData));
-          delete session.user;
-          delete session.isAuthenticated;
+          // delete session.user;
+          // delete session.isAuthenticated;
           return session;
         } catch (err) {
           console.error("Failed to encrypt session data:", err);

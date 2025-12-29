@@ -38,17 +38,39 @@ const OtpModal = ({ open, onClose, onSubmit }: OtpModalProps) => {
   return (
     <div className="otp-overlay">
       <div className="otp-modal">
-        <button className="otp-close" onClick={onClose}>×</button>
+        <button className="otp-close" onClick={onClose}>
+          ×
+        </button>
         <h3 className="otp-title">Verify OTP</h3>
-        <p className="otp-subtitle">Enter the 6-digit code sent to your email</p>
+        <p className="otp-subtitle">
+          Enter the 6-digit code sent to your email
+        </p>
         <div className="otp-boxes">
           {otp.map((digit, index) => (
-            <input key={index} ref={(el) => (inputsRef.current[index] = el)} type="text" inputMode="numeric" maxLength={1} className="otp-box" value={digit} onChange={(e) => handleChange(e.target.value, index)} onKeyDown={(e) => handleKeyDown(e, index)} autoFocus={index === 0}/>
+            <input
+              key={index}
+              ref={(el) => {
+                inputsRef.current[index] = el;
+              }}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              className="otp-box"
+              value={digit}
+              onChange={(e) => handleChange(e.target.value, index)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              autoFocus={index === 0}
+            />
           ))}
         </div>
+
         <div className="modal_footer">
-          <button className="otp-cancel mw-50" onClick={onClose}>Cancel</button>
-          <button className="premium-btn mw-50" onClick={handleSubmit}><span>Verify OTP</span></button>
+          <button className="otp-cancel mw-50" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="premium-btn mw-50" onClick={handleSubmit}>
+            <span>Verify OTP</span>
+          </button>
         </div>
       </div>
     </div>

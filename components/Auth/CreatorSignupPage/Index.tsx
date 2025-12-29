@@ -601,7 +601,7 @@ const CreatorSignupPage = () => {
                 at least 18 years old.
               </p>
               <p className="fs-18">
-                Have an account already? <Link href="#">Log in here.</Link>
+                Have an account already? <Link href="/login">Log in here.</Link>
               </p>
             </div>
             <h4 className="account_login">

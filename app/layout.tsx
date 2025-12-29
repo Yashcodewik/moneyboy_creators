@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins, Plus_Jakarta_Sans } from "next/font/google";
 import localFont from "next/font/local";
 
+
 import "../public/styles/main.css";
 import "../public/styles/pages/discover-page/layout.css";
 import "../public/styles/main-responsive.css";
@@ -9,6 +10,9 @@ import "../public/styles/pages/discover-page/responsive.css";
 import "../public/styles/icons.css";
 import "../public/styles/style.css";
 import Footer from "@/components/Layouts/Footer";
+import Providers from "./providers";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/libs/auth";
 
 export const metadata: Metadata = {
   title: "Moneyboy Creators",
@@ -50,12 +54,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function RootLayout({children,}: {children: React.ReactNode;}) {
+export default async function RootLayout({children,}: {children: React.ReactNode;}) {
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}>
+        <Providers session={session}>
         {children}
         <Footer/>
+        </Providers>
       </body>
     </html>
   );

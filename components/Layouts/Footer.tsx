@@ -7,8 +7,8 @@ const Footer = () => {
     <div className="bg-white">
       <div className="container footer_main">
       <ul className="ft_links">
-        <li><Link href="#">Login</Link></li>
-        <li><Link href="#">Signup</Link></li>
+        <li><Link href="/login">Login</Link></li>
+        <li><Link href="/signup">Signup</Link></li>
         <li><Link href="#">Help & Support</Link></li>
         <li><Link href="#">Terms of Service</Link></li>
         <li><Link href="#">U.S.C 2257</Link></li>

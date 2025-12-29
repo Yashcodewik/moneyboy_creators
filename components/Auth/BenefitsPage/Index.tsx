@@ -53,7 +53,7 @@ const BenefitsPage = () => {
               </>
             )}
           </div>
-          <h4 className="account_login">Have an account already? <Link href="signup">Login here</Link></h4>
+          <h4 className="account_login">Have an account already? <Link href="/login">Login here</Link></h4>
         </div>
       </div>
     </div>
