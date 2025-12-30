@@ -1,33 +1,30 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 const Feedpage = () => {
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  useEffect(() => {
-    const likeButtons = document.querySelectorAll("[data-like-button]");
-
-    const handleClick = (event: Event) => {
-      const button = event.currentTarget as HTMLElement;
-      button.classList.toggle("liked");
-    };
-
-    likeButtons.forEach((button) => {
-      button.addEventListener("click", handleClick);
-    });
-
-    // Cleanup function
-    return () => {
-      likeButtons.forEach((button) => {
-        button.removeEventListener("click", handleClick);
-      });
-    };
-  }, []);
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prev) => (prev === id ? null : id));
+useEffect(() => {
+  const likeButtons = document.querySelectorAll("[data-like-button]");
+  
+  const handleClick = (event: Event) => {
+    const button = event.currentTarget as HTMLElement;
+    button.classList.toggle("liked");
   };
+  
+  likeButtons.forEach(button => {
+    button.addEventListener('click', handleClick);
+  });
+  
+  // Cleanup function
+  return () => {
+    likeButtons.forEach(button => {
+      button.removeEventListener('click', handleClick);
+    });
+  };
+}, []);
   return (
-    <div className="moneyboy-page-content-container">
-      <main className="moneyboy-dynamic-content-layout">
+
+     <div className="moneyboy-page-content-container">
+       <main className="moneyboy-dynamic-content-layout">
         <div className="moneyboy-2x-1x-layout-container">
           <div className="moneyboy-2x-1x-a-layout">
             <div
