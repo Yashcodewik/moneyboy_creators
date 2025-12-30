@@ -6,23 +6,26 @@ import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { signOut } from "next-auth/react";
 
 const Sidebar: React.FC = () => {
-  const [activePage, setActivePage] = useState<string>("discover");
+  const [activePage, setActivePage] = useState<string>("feed");
   const { session } = useDecryptedSession();
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     const pathToPageMap: Record<string, string> = {
-      "/dashboard": "discover",
+      "/discover": "discover",
       "/feed": "feed",
       "/like": "likes",
       "/wishlist": "wishlist",
       "/#": "subscriptions",
       "/purchasedmedia": "purchasedmedia",
       "/store": "store",
+      "/notifications": "notifications",
+      "/message": "message",
+      "/profile": "profile",
+      "/userprofile": "userprofile",
     };
 
-    // Check if current path is in map
     const currentPage = Object.keys(pathToPageMap).find(
       (path) => pathname === path || pathname.startsWith(`${path}/`)
     );
@@ -107,7 +110,9 @@ const Sidebar: React.FC = () => {
                     <div className="profile-card__username">@coreybergson</div>
                   </div>
                 </a>
+                
                 <div className="profile-card__stats">
+                    {session?.user?.role === 2 && (
                   <div className="profile-card__stats-item posts-stats">
                     <div className="profile-card__stats-num">2,880</div>
                     <div className="profile-card__stats-label">
@@ -150,6 +155,7 @@ const Sidebar: React.FC = () => {
                       <span>Posts</span>
                     </div>
                   </div>
+                    )}
                   <div className="profile-card__stats-item followers-stats">
                     <div className="profile-card__stats-num">253</div>
                     <div className="profile-card__stats-label">
@@ -298,11 +304,11 @@ const Sidebar: React.FC = () => {
               {/* Navigation Button - Discover */}
               <li>
                 <Link
-                  href="/dashboard"
+                  href="/discover"
                   className={`active-down-effect ${
                     activePage === "discover" ? "active" : ""
                   }`}
-                  onClick={(e) => handleNavClick("discover", "/dashboard", e)}
+                  onClick={(e) => handleNavClick("discover", "/discover", e)}
                 >
                   <div>
                     <svg
@@ -474,10 +480,10 @@ const Sidebar: React.FC = () => {
                     <Link
                       href="/purchasemedia"
                       className={`active-down-effect ${
-                        activePage === "purchased" ? "active" : ""
+                        activePage === "purchasedmedia" ? "active" : ""
                       }`}
                       onClick={(e) =>
-                        handleNavClick("purchased", "/purchasedmedia", e)
+                        handleNavClick("purchasedmedia", "/purchasedmedia", e)
                       }
                     >
                       <div>
@@ -513,6 +519,7 @@ const Sidebar: React.FC = () => {
                   </li>
 
                   {/* Navigation Button - Store */}
+                    {session?.user?.role === 2 && (
                   <li>
                     <Link
                       href="/store"
@@ -569,6 +576,7 @@ const Sidebar: React.FC = () => {
                       </div>
                     </Link>
                   </li>
+                    )}
                   <li>
                     <Link
                       href="/"

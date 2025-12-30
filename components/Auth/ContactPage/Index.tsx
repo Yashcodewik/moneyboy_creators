@@ -4,15 +4,17 @@ import Link from "next/link";
 import { TbCamera } from "react-icons/tb";
 import CustomSelect from "@/components/CustomSelect";
 import { IoArrowBackOutline } from "react-icons/io5";
+import { useRouter } from "next/navigation";
 
 const ContactPage = () => {
+  const router=useRouter()
   
   return (
     <div className="container login_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap"/>
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline"><IoArrowBackOutline className="icons"/></button>
+          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/feed')}><IoArrowBackOutline className="icons"/></button>
         </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap">

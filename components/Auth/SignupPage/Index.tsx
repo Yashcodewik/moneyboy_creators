@@ -104,18 +104,20 @@ const SignupPage = () => {
       setOtpOpen(false);
 
       // redirect to feed
-      router.push("/dashboard");
+      router.push("/discover");
     } catch (err: any) {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
   };
+
+
 
   return (
     <div className="container login_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline"><IoArrowBackOutline className="icons"/></button>
+          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/feed')}><IoArrowBackOutline className="icons"/></button>
         </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap">

@@ -1,6 +1,8 @@
-import React from 'react'
+"use client"
+import React, { useState } from 'react'
 
 const StorePage = () => {
+    const [store, setStore] = useState(false);
   return (
     <div className="moneyboy-page-content-container">
           <main className="moneyboy-dynamic-content-layout">
@@ -445,7 +447,9 @@ const StorePage = () => {
                                     <div className="creator-content-select-filter">
                                       <div className="custom-select-element bg-white p-sm size-sm"
                                         data-custom-select-element data-custom-select-value>
-                                        <div className="custom-select-label-wrapper" data-custom-select-triger>
+                                        <div className="custom-select-label-wrapper" data-custom-select-triger
+                                        onClick={() => setStore((prev) => !prev)}
+                                        >
                                           <div className="custom-select-icon-txt">
                                             <span className="custom-select-label-txt">
                                               All Time
@@ -461,6 +465,7 @@ const StorePage = () => {
                                             </svg>
                                           </div>
                                         </div>
+                                         {store && (
                                         <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown>
                                           <div className="custom-select-options-dropdown-container">
                                             <div className="custom-select-options-lists-container">
@@ -481,6 +486,7 @@ const StorePage = () => {
                                             </div>
                                           </div>
                                         </div>
+                                         )}
                                       </div>
                                     </div>
                                     <div className="creator-content-grid-layout-options" data-multi-dem-cards-layout-btns>

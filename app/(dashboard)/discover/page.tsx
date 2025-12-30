@@ -1,4 +1,4 @@
-import Dashboard from "@/components/Dashboard/Index";
+import Dashboard from "@/components/Discover/Index";
 
 const Index = () => {
     return <Dashboard />

@@ -7,9 +7,11 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { signIn } from "next-auth/react";
 import { IoArrowBackOutline } from "react-icons/io5";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const [showPass, setShowPass] = useState(false);
+  const router = useRouter();
 
   const validationSchema = Yup.object({
     email: Yup.string()
@@ -40,7 +42,7 @@ const LoginPage = () => {
         return;
       }
 
-      window.location.href = "/dashboard";
+      window.location.href = "/discover";
     },
   });
 
@@ -49,7 +51,7 @@ const LoginPage = () => {
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline"><IoArrowBackOutline className="icons"/></button>
+          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/feed')}><IoArrowBackOutline className="icons"/></button>
         </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap justify-center">

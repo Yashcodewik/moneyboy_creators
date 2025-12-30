@@ -1,6 +1,7 @@
 import React from 'react'
 
 const ProfilePage = () => {
+  
   return (
      <div className="moneyboy-page-content-container">
           <main className="moneyboy-dynamic-content-layout">
