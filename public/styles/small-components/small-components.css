@@ -1727,7 +1727,7 @@
         right: 90%;
         display: flex;
         min-height: max-content;
-        display: none;
+        /* display: none; */
         right: 30%;
 
         &:has([data-copy-post-link]) {
@@ -1858,6 +1858,33 @@
                                     &:nth-child(1),
                                     &:nth-child(2) {
                                         fill: rgb(0, 0, 0);
+                                    }
+                                }
+                            }
+
+                            &.hide-icon {
+                                svg path {
+
+                                    &:nth-child(3),
+                                    &:nth-child(1) {
+                                        fill: black;
+                                    }
+
+                                    &:nth-child(2) {
+                                        fill: rgb(255, 255, 255);
+                                    }
+                                }
+                            }
+
+                            &.delete-icon {
+                                svg path {
+                                    &:nth-child(3) {
+                                        fill: black;
+                                    }
+
+                                    &:nth-child(4),
+                                    &:nth-child(5) {
+                                        stroke: white;
                                     }
                                 }
                             }
@@ -2051,6 +2078,14 @@
 .hero-type-card-wrapper {
     display: flex;
 
+    &:hover {
+        .hero-type-card-container {
+            .hero-type-card--bg-img {
+                transform: scale(1.03);
+            }
+        }
+    }
+
     .hero-type-card-container {
         width: 100%;
         overflow: hidden;
@@ -2063,6 +2098,7 @@
             position: absolute;
             display: flex;
             inset: 0;
+            transition: var(--transition-fast);
 
             &::before {
                 content: '';
@@ -2387,6 +2423,16 @@
     display: flex;
     width: 100%;
 
+    &:hover {
+        .featured-content-premium-card-container {
+            .featured-content-bg-img {
+                img {
+                    transform: scale(1.035);
+                }
+            }
+        }
+    }
+
     .featured-content-premium-card-container {
         position: relative;
         display: flex;
@@ -2402,6 +2448,7 @@
             display: flex;
 
             img {
+                transition: var(--transition-fast);
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
@@ -2577,6 +2624,14 @@
         border-radius: 27px;
         background: #FFFFFF;
 
+        &:hover {
+            .moneyboy-special-content-banner--img-wrapper {
+                img {
+                    transform: scale(1.035);
+                }
+            }
+        }
+
         .moneyboy-special-content-banner--content {
             display: flex;
             flex-direction: column;
@@ -2630,6 +2685,7 @@
                 height: 100%;
                 inset: 0;
                 object-fit: cover;
+                transition: var(--transition-fast);
             }
 
             .text-overlay {

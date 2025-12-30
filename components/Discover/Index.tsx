@@ -7,6 +7,38 @@ const Dashboard = () => {
   const [adavanceFilter, setAdavanceFilter] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState(false);
   const [featureFilter, setFeatureFilter] = useState(false);
+  const [countryFilter, setCountryFilter] = useState(false);
+  const [cityFilter, setCityFilter] = useState(false);
+  const [bodyTypeFilter, setBodyTypeFilter] = useState(false);
+  const [sexualOrientationFilter, setSexualOrientationFilter] = useState(false);
+  const [ageFilter, setAgeFilter] = useState(false);
+  const [eyeColorFilter, setEyeColorFilter] = useState(false);
+  const [hairColorFilter, setHairColorFilter] = useState(false);
+  const [ethnicityFilter, setEthnicityFilter] = useState(false);
+  const [heightFilter, setHeightFilter] = useState(false);
+  const [styleFilter, setStyleFilter] = useState(false);
+  const [sizeFilter, setSizeFilter] = useState(false);
+  const [popularityFilter, setPopularityFilter] = useState(false);
+
+      useEffect(() => {
+        const likeButtons = document.querySelectorAll("[data-like-button]");
+        
+        const handleClick = (event: Event) => {
+          const button = event.currentTarget as HTMLElement;
+          button.classList.toggle("liked");
+        };
+        
+        likeButtons.forEach(button => {
+          button.addEventListener('click', handleClick);
+        });
+        
+        // Cleanup function
+        return () => {
+          likeButtons.forEach(button => {
+            button.removeEventListener('click', handleClick);
+          });
+        };
+      }, []);
 
   const getData = async () => {
     const get = await getDecryptedSession();
@@ -16,6 +48,7 @@ const Dashboard = () => {
   useEffect(() => {
     getData();
   }, []);
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -82,7 +115,9 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
-                            onClick={() => setCategoryFilter((prev) => !prev)}
+                            onClick={() => setCategoryFilter((prev) => !prev)
+                            }
+
                           >
                             <div className="custom-select-icon-txt">
                               <svg
@@ -441,6 +476,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                             onClick={() => setCountryFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -466,6 +502,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                           {countryFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -556,6 +593,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -570,6 +608,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setCityFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -595,6 +634,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                            {cityFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -685,6 +725,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -699,6 +740,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                             onClick={() => setBodyTypeFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -724,6 +766,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                             {bodyTypeFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -814,6 +857,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                             )}
                         </div>
                       </div>
                     </div>
@@ -828,6 +872,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setSexualOrientationFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -853,6 +898,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                           {sexualOrientationFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -943,6 +989,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -957,6 +1004,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setAgeFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -982,6 +1030,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                           {ageFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1072,6 +1121,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -1086,6 +1136,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setEyeColorFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -1111,6 +1162,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                           {eyeColorFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1201,6 +1253,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -1215,6 +1268,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setHairColorFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -1240,6 +1294,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                             {hairColorFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1330,6 +1385,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                             )}
                         </div>
                       </div>
                     </div>
@@ -1344,6 +1400,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setEthnicityFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -1369,6 +1426,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                           {ethnicityFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1459,6 +1517,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -1473,6 +1532,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                             onClick={() => setHeightFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -1498,6 +1558,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                          {heightFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1588,6 +1649,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1602,6 +1664,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setStyleFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -1627,6 +1690,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                           {styleFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1717,6 +1781,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -1731,6 +1796,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                             onClick={() => setSizeFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -1756,6 +1822,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                          {sizeFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1846,6 +1913,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1860,6 +1928,7 @@ const Dashboard = () => {
                           <div
                             className="custom-select-label-wrapper"
                             data-custom-select-triger
+                            onClick={() => setPopularityFilter((prev) => !prev)}
                           >
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">
@@ -1885,6 +1954,7 @@ const Dashboard = () => {
                               </svg>
                             </div>
                           </div>
+                          {popularityFilter && (
                           <div
                             className="custom-select-options-dropdown-wrapper"
                             data-custom-select-dropdown
@@ -1975,6 +2045,7 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
+                          )}
                         </div>
                       </div>
                     </div>

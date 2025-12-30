@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation"; // Add usePathname
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import "./header.css";
 import { signOut } from "next-auth/react";
@@ -9,12 +10,28 @@ import { signOut } from "next-auth/react";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { session } = useDecryptedSession();
+  const router = useRouter();
+  const pathname = usePathname(); // Get current path
 
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    signOut({ callbackUrl: "/" });
+  };
 
-   const handleLogout = (e: React.MouseEvent) => {
-      e.preventDefault();
-      signOut({ callbackUrl: "/" });
-    };
+  // Handler for notification click
+  const handleNotificationClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push("/notifications");
+  };
+
+  const handleMessage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push("/message");
+  };
+
+  // Check if current page is notifications page
+  const isNotificationsPage = pathname === "/notifications";
+  const isMessagePage = pathname === "/message";
 
   return (
     <>
@@ -80,7 +97,11 @@ const Header = () => {
                     <nav>
                       <ul>
                         <li className="message-btn">
-                          <a href="#" className="icon-link">
+                            <a 
+                            href="#" 
+                            className={`icon-link ${isMessagePage ? 'active' : ''}`} // Add active class conditionally
+                            onClick={handleMessage}
+                          >
                             <svg
                               className="svg-icon"
                               xmlns="http://www.w3.org/2000/svg"
@@ -124,7 +145,11 @@ const Header = () => {
                           </a>
                         </li>
                         <li>
-                          <a href="#" className="icon-link">
+                         <a 
+                            href="#" 
+                            className={`icon-link ${isNotificationsPage ? 'active' : ''}`} // Add active class conditionally
+                            onClick={handleNotificationClick}
+                          >
                             {/* SVG for another icon */}
                             <svg
                               className="svg-icon"
