@@ -2441,7 +2441,7 @@
       padding: 12px;
       border-radius: 25px;
       border: 1.5px solid #f7f7f7;
-      /* display: none; */
+      display: none;
 
       /* display: none; */
       .content-advanced-filters-layout {
