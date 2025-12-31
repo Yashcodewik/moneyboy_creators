@@ -165,7 +165,7 @@ body {
    }
 
    [data-multi-tabs-content-tab] {
-      display: none !important;
+      /* display: none !important; */
 
       /* Default hidden state */
       &[data__active] {

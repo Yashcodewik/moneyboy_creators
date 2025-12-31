@@ -3,12 +3,12 @@ module.exports = {
     root: __dirname,
   },
 
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: "/",
-  //       destination: "/feed",
-  //     },
-  //   ];
-  // },
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        destination: "/feed",
+      },
+    ];
+  },
 };
