@@ -605,7 +605,7 @@
         /* ------------------------------------------------- */
         /* ------------------------------------------------- */
         /* ---------- Hide the DropDown by Default --------- */
-        display: none;
+        /* display: none; */
 
         .custom-select-options-dropdown-container {
             padding: 10px;

@@ -160,7 +160,7 @@
    background: #000000B8;
    z-index: 999;
    backdrop-filter: blur(2px);
-   display: none;
+   /* display: none; */
 
    .menu-content-wrapper {
       width: 340px;
@@ -2441,7 +2441,7 @@
       padding: 12px;
       border-radius: 25px;
       border: 1.5px solid #f7f7f7;
-      display: none;
+      /* display: none; */
 
       /* display: none; */
       .content-advanced-filters-layout {
@@ -3110,7 +3110,7 @@
          }
 
          .msg-chats-layout {
-            display: none;
+            /* display: none; */
          }
       }
 
@@ -3329,7 +3329,7 @@
 
             .msg-chat-room-layout {
                min-height: 100%;
-               display: none;
+               /* display: none; */
 
                &[data-active] {
                   display: grid;

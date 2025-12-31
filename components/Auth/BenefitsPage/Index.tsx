@@ -6,18 +6,25 @@ import { IoArrowBackOutline } from "react-icons/io5";
 
 const BenefitsPage = () => {
   const [activeTab, setActiveTab] = useState("fan");
-  const router=useRouter()
+  const router = useRouter();
   return (
     <div className="container login_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/feed')}><IoArrowBackOutline className="icons"/></button>
+          <button
+            className="btn-txt-gradient btn-outline"
+            onClick={() => router.push("/feed")}
+          >
+            <IoArrowBackOutline className="icons" />
+          </button>
         </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap justify-center">
         <div className="main_cont">
-          <img src="/images/logo.svg" className="logo_wrap" />
+          <Link href="/feed">
+            <img src="/images/logo.svg" className="logo_wrap" alt="logo" />
+          </Link>
           <div
             className="moneyboy-feed-page-cate-buttons card"
             id="posts-tabs-btn-card"
@@ -100,7 +107,9 @@ const BenefitsPage = () => {
               </>
             )}
           </div>
-          <h4 className="account_login">Have an account already? <Link href="/login">Login here</Link></h4>
+          <h4 className="account_login">
+            Have an account already? <Link href="/login">Login here</Link>
+          </h4>
         </div>
       </div>
     </div>

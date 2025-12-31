@@ -27,6 +27,26 @@ const Dashboard = () => {
   useEffect(() => {
     getData();
   }, []);
+
+    useEffect(() => {
+      const likeButtons = document.querySelectorAll("[data-like-button]");
+  
+      const handleClick = (event: Event) => {
+        const button = event.currentTarget as HTMLElement;
+        button.classList.toggle("liked");
+      };
+  
+      likeButtons.forEach((button) => {
+        button.addEventListener("click", handleClick);
+      });
+  
+      // Cleanup function
+      return () => {
+        likeButtons.forEach((button) => {
+          button.removeEventListener("click", handleClick);
+        });
+      };
+    }, []);
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="discovery-page-container">
