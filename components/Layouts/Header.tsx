@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation"; // Add usePathname
+import { useRouter, usePathname } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import "./header.css";
 import { signOut } from "next-auth/react";
@@ -11,14 +11,16 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { session } = useDecryptedSession();
   const router = useRouter();
-  const pathname = usePathname(); // Get current path
+  const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     signOut({ callbackUrl: "/" });
   };
 
-  // Handler for notification click
   const handleNotificationClick = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push("/notifications");
@@ -29,7 +31,30 @@ const Header = () => {
     router.push("/message");
   };
 
-  // Check if current page is notifications page
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!isOpen) return;
+
+      const target = event.target as Node;
+
+      // if click is NOT inside menu panel AND NOT on avatar button
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
   const isNotificationsPage = pathname === "/notifications";
   const isMessagePage = pathname === "/message";
 
@@ -97,9 +122,11 @@ const Header = () => {
                     <nav>
                       <ul>
                         <li className="message-btn">
-                            <a 
-                            href="#" 
-                            className={`icon-link ${isMessagePage ? 'active' : ''}`} // Add active class conditionally
+                          <a
+                            href="#"
+                            className={`icon-link ${
+                              isMessagePage ? "active" : ""
+                            }`} // Add active class conditionally
                             onClick={handleMessage}
                           >
                             <svg
@@ -145,9 +172,11 @@ const Header = () => {
                           </a>
                         </li>
                         <li>
-                         <a 
-                            href="#" 
-                            className={`icon-link ${isNotificationsPage ? 'active' : ''}`} // Add active class conditionally
+                          <a
+                            href="#"
+                            className={`icon-link ${
+                              isNotificationsPage ? "active" : ""
+                            }`} // Add active class conditionally
                             onClick={handleNotificationClick}
                           >
                             {/* SVG for another icon */}
@@ -193,6 +222,7 @@ const Header = () => {
                   <div className="header-profile-avatar">
                     <button
                       data-floating-menu-triger
+                      ref={buttonRef}
                       onClick={() => setIsOpen((prev) => !prev)}
                     >
                       <div className="profile-avatar">
@@ -208,8 +238,14 @@ const Header = () => {
                 </>
               ) : (
                 <div className="header-auth-buttons gap-10">
-                  <Link href="/login" className="btn-txt-gradient btn-grey">{" "} <span>Sign In</span></Link>
-                  <Link href="/benefits" className="btn-txt-gradient">{" "} <span>Sign Up</span></Link>
+                  <Link href="/login" className="btn-txt-gradient btn-grey">
+                    {" "}
+                    <span>Sign In</span>
+                  </Link>
+                  <Link href="/benefits" className="btn-txt-gradient">
+                    {" "}
+                    <span>Sign Up</span>
+                  </Link>
                 </div>
               )}
             </div>
@@ -218,10 +254,23 @@ const Header = () => {
       </header>
 
       {isOpen && (
-        <div className="floating-menu-container" data-floating-menu-main>
-          <div className="menu-content-wrapper">
+        <div
+          className="floating-menu-container"
+          data-floating-menu-main
+          ref={menuRef}
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            className="menu-content-wrapper"
+            ref={menuRef}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="menu-content-container">
-              <div className="menu-close-btn" data-floating-menu-close-btn onClick={() => setIsOpen(false)}>
+              <div
+                className="menu-close-btn"
+                data-floating-menu-close-btn
+                onClick={() => setIsOpen(false)}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="31"
@@ -418,7 +467,26 @@ const Header = () => {
                 <div className="menu-links-container">
                   <div className="links-block">
                     <div className="menu-links-wrapper">
-                      <a href="#" className="menu-link my-profile-link">
+                      <a
+                        href="#"
+                        className="menu-link my-profile-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // setIsOpen(false);
+
+                          console.log("=============", session?.user?.role);
+
+                          if (session?.user?.role === 1) {
+                            console.log("role 1");
+                            router.push("/userprofile");
+                          } else if (session?.user?.role === 2) {
+                            console.log(" role 2");
+                            router.push("/profile");
+                          } else {
+                            router.push("/profile");
+                          }
+                        }}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 25"
@@ -1180,7 +1248,11 @@ const Header = () => {
                           />
                         </svg>
                       </a>
-                      <a href="#" className="menu-link sign-out-link" onClick={handleLogout}>
+                      <a
+                        href="#"
+                        className="menu-link sign-out-link"
+                        onClick={handleLogout}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
