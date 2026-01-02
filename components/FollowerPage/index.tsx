@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import React from 'react'
 
 const FollowersFollowingpage = () => {
@@ -31,7 +32,7 @@ const FollowersFollowingpage = () => {
                   </div>
 
 
-                  <div data-multi-tabs-content-tabdata__active data-identifier="1" >
+                  {/* <div data-multi-tabs-content-tabdata__active data-identifier="1" >
                     <div className="card filters-card-layout-wrapper">
                       <div className="tabs-content-wrapper-layout">
                         <div>
@@ -1511,7 +1512,7 @@ const FollowersFollowingpage = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div data-multi-tabs-content-tab data-identifier="1">
                     <div className="card filters-card-layout-wrapper">
@@ -1560,7 +1561,7 @@ const FollowersFollowingpage = () => {
                                         </svg>
                                       </div>
                                     </div>
-                                    <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown>
+                                    {/* <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown>
                                       <div className="custom-select-options-dropdown-container">
                                         <div className="custom-select-options-lists-container">
                                           <ul className="custom-select-options-list" data-custom-select-options-list>
@@ -1579,7 +1580,7 @@ const FollowersFollowingpage = () => {
                                           </ul>
                                         </div>
                                       </div>
-                                    </div>
+                                    </div> */}
                                   </div>
                                 </div>
 
@@ -1905,6 +1906,8 @@ const FollowersFollowingpage = () => {
 
                 </div>
               </div>
+
+              
 
             
               <aside className="moneyboy-2x-1x-b-layout">
