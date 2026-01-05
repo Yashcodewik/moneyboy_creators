@@ -1,4 +1,5 @@
 "use client";
+import { useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 const LikePage = () => {
@@ -7,6 +8,7 @@ const LikePage = () => {
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("posts");
+   const searchParams = useSearchParams(); 
 
   const [gridLayoutMode, setGridLayoutMode] = useState<{
     videos: "grid" | "list";
@@ -23,6 +25,16 @@ const LikePage = () => {
     console.log("Tab clicked:", tabName);
     setActiveTab(tabName);
   };
+
+    useEffect(() => {
+    if (searchParams) {
+      const tabFromQuery = searchParams.get('tab');
+      console.log("Tab from query:", tabFromQuery); // Debug log
+      if (tabFromQuery && ['posts', 'videos', 'photos'].includes(tabFromQuery)) {
+        setActiveTab(tabFromQuery);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,6 +69,26 @@ const LikePage = () => {
       [tab]: mode,
     }));
   };
+
+      useEffect(() => {
+        const likeButtons = document.querySelectorAll("[data-like-button]");
+    
+        const handleClick = (event: Event) => {
+          const button = event.currentTarget as HTMLElement;
+          button.classList.toggle("liked");
+        };
+    
+        likeButtons.forEach((button) => {
+          button.addEventListener("click", handleClick);
+        });
+    
+        // Cleanup function
+        return () => {
+          likeButtons.forEach((button) => {
+            button.removeEventListener("click", handleClick);
+          });
+        };
+      }, []);
 
   return (
     <div className="moneyboy-2x-1x-layout-container">

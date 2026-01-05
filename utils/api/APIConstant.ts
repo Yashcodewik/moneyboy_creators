@@ -6,3 +6,4 @@ export const API_CREATOR_REGISTER: string = "/auth/register/creator";
 export const API_CREATOR_UPLOAD_KYC = "/auth/creator/upload-kyc";
 export const API_USER_PROFILE = "/auth/get-profile";
 export const API_CREATOR_PROFILE = "/creator/get-profile";
+export const API_LOGOUT: string = "/auth/logout";

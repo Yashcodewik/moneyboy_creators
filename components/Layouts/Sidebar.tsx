@@ -28,6 +28,8 @@ const Sidebar: React.FC = () => {
       "/message": "message",
       "/profile": "profile",
       "/userprofile": "userprofile",
+      "/follower": "follower",
+
     };
 
     const currentPage = Object.keys(pathToPageMap).find(
@@ -663,7 +665,7 @@ const Sidebar: React.FC = () => {
                       </Link>
                     </li>
                   )}
-                  <li>
+                  {/* <li>
                     <Link
                       href="/"
                       className={`active-down-effect`}
@@ -679,7 +681,7 @@ const Sidebar: React.FC = () => {
                         <span>Logout</span>
                       </div>
                     </Link>
-                  </li>
+                  </li> */}
                 </>
               ) : (
                 <>
