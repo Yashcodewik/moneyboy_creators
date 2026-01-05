@@ -976,4 +976,9 @@ body {
     }
   }
 }
+
+
+.rel-user-more-opts-wrapper.active .rel-users-more-opts-popup-wrapper {
+  left: auto;
+}
   

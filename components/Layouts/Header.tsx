@@ -128,12 +128,12 @@ const Header = () => {
           <div className="header-container">
             <div className="header-logo">
               <Link href="/">
-                <Image
+                {/* <Image
                   src="/images/logo/moneyboy-logo.png"
                   alt="MoneyBoy Logo"
-                  width={150}
-                  height={50}
-                />
+                  fill priority
+                /> */}
+                <img src="/images/logo/moneyboy-logo.png" alt="MoneyBoy Social Logo"/>
               </Link>
             </div>
 
