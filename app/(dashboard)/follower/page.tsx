@@ -1,7 +1,7 @@
-import FollowersFollowingpage from "@/components/FollowerPage";
+import FollowersPage from "@/components/FollowerPage";
 
 const Index = () => {
-    return <FollowersFollowingpage />
+    return <FollowersPage />
 };
 
 export default Index;

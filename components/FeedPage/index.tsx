@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-const Feedpage = () => {
+const FeedPage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("feed");
   const router = useRouter();
@@ -34,7 +34,6 @@ const Feedpage = () => {
     setOpenMenuId((prev) => (prev === id ? null : id));
   };
   const handleTabClick = (tabName: string) => {
-    // If user clicks on "discover" when not logged in, redirect to discover page
     if (!isLoggedIn && tabName === "discover") {
       router.push("/discover");
       return;
@@ -53,7 +52,7 @@ const Feedpage = () => {
               data-scroll-zero
             >
               <div
-                className="moneyboy-feed-page-cate-buttons card"
+                className="moneyboy-feed-page-cate-buttons card is-sticky"
                 id="posts-tabs-btn-card"
               >
                 <button
@@ -3211,4 +3210,4 @@ const Feedpage = () => {
   );
 };
 
-export default Feedpage;
+export default FeedPage;

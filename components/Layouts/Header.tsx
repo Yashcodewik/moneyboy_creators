@@ -293,7 +293,7 @@ const Header = () => {
                           src={
                             session?.user?.role === 2
                               ? "/images/profile-avatars/profile-avatar-1.png"
-                              : "/images/profile-avatars/profile-avatar-3.jpg"
+                              : "/images/profile-avatars/profile-avatar-13.jpg"
                           }
                           alt="User Images"
                           width={40}
@@ -361,7 +361,7 @@ const Header = () => {
                             src={
                               session?.user?.role === 2
                                 ? "/images/profile-avatars/profile-avatar-1.png"
-                                : "/images/profile-avatars/profile-avatar-3.jpg"
+                                : "/images/profile-avatars/profile-avatar-13.jpg"
                             }
                             alt="MoneyBoy Social Profile Avatar"
                           />

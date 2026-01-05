@@ -1,7 +1,7 @@
-import Likepage from "@/components/LikePage/Index";
+import LikePage from "@/components/LikePage/Index";
 
 const Index = () => {
-    return <Likepage />
+    return <LikePage />
 };
 
 export default Index;

@@ -3,35 +3,22 @@ import React, { useEffect, useState } from "react";
 
 const WishlistPage = () => {
   const [wishlist, setWishlist] = useState(false);
-  const [alltime, setAllTime] = useState(false);
+  const [allTime, setAllTime] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("moneyboys");
-  const [subactiveTab, setSubActiveTab] = useState<string>("videos");
+  const [subActiveTab, setSubActiveTab] = useState<string>("videos");
+  const [layout, setLayout] = useState<"grid" | "list">("grid");
+  const [likedItems, setLikedItems] = useState<number[]>([]);
 
-  useEffect(() => {
-    const likeButtons = document.querySelectorAll("[data-like-button]");
-
-    const handleClick = (event: Event) => {
-      const button = event.currentTarget as HTMLElement;
-      button.classList.toggle("liked");
-    };
-
-    likeButtons.forEach((button) => {
-      button.addEventListener("click", handleClick);
-    });
-
-    // Cleanup function
-    return () => {
-      likeButtons.forEach((button) => {
-        button.removeEventListener("click", handleClick);
-      });
-    };
-  }, []);
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
-  const handleSubTabClick = (tabName: string) => {
-    setSubActiveTab(tabName);
+
+  const toggleLike = (id: number) => {
+    setLikedItems((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
+
   return (
     <div className="moneyboy-page-content-container">
       <main className="moneyboy-dynamic-content-layout">
@@ -57,13 +44,14 @@ const WishlistPage = () => {
                 </button>
                 <button
                   className={`page-content-type-button active-down-effect ${
-                    activeTab === "savedmedia" ? "active" : ""
+                    activeTab === "savedMedia" ? "active" : ""
                   }`}
-                  onClick={() => handleTabClick("savedmedia")}
+                  onClick={() => handleTabClick("savedMedia")}
                 >
                   Saved Media
                 </button>
               </div>
+
               {activeTab === "moneyboys" && (
                 <div data-active data-identifier="1">
                   <div>
@@ -189,8 +177,10 @@ const WishlistPage = () => {
                                   data-multi-dem-cards-layout-btns
                                 >
                                   <button
-                                    className="creator-content-grid-layout-btn"
-                                    data-active
+                                    className={`creator-content-grid-layout-btn ${
+                                      layout === "grid" ? "active" : "inactive"
+                                    }`}
+                                    onClick={() => setLayout("grid")}
                                   >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
@@ -217,7 +207,12 @@ const WishlistPage = () => {
                                       />
                                     </svg>
                                   </button>
-                                  <button className="creator-content-grid-layout-btn">
+                                  <button
+                                    className={`creator-content-grid-layout-btn ${
+                                      layout === "list" ? "active" : "inactive"
+                                    }`}
+                                    onClick={() => setLayout("list")}
+                                  >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -246,6 +241,9 @@ const WishlistPage = () => {
                           <div
                             className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
                             data-multi-child-grid-layout-wishlist
+                            data-layout-toggle-rows={
+                              layout === "list" ? true : undefined
+                            }
                           >
                             <div className="creator-content-type-container-wrapper">
                               <div
@@ -264,8 +262,12 @@ const WishlistPage = () => {
                                     <div className="user-profile-card__action-btns">
                                       <div className="user-profile-card__like-btn">
                                         <button
-                                          className="like-button"
-                                          data-like-button
+                                          className={`like-button ${
+                                            likedItems.includes(1)
+                                              ? "liked"
+                                              : ""
+                                          }`}
+                                          onClick={() => toggleLike(1)}
                                         >
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -355,8 +357,12 @@ const WishlistPage = () => {
                                     <div className="user-profile-card__action-btns">
                                       <div className="user-profile-card__like-btn">
                                         <button
-                                          className="like-button"
-                                          data-like-button
+                                          className={`like-button ${
+                                            likedItems.includes(2)
+                                              ? "liked"
+                                              : ""
+                                          }`}
+                                          onClick={() => toggleLike(2)}
                                         >
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -445,8 +451,12 @@ const WishlistPage = () => {
                                     <div className="user-profile-card__action-btns">
                                       <div className="user-profile-card__like-btn">
                                         <button
-                                          className="like-button"
-                                          data-like-button
+                                          className={`like-button ${
+                                            likedItems.includes(3)
+                                              ? "liked"
+                                              : ""
+                                          }`}
+                                          onClick={() => toggleLike(3)}
                                         >
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -535,8 +545,12 @@ const WishlistPage = () => {
                                     <div className="user-profile-card__action-btns">
                                       <div className="user-profile-card__like-btn">
                                         <button
-                                          className="like-button"
-                                          data-like-button
+                                          className={`like-button ${
+                                            likedItems.includes(4)
+                                              ? "liked"
+                                              : ""
+                                          }`}
+                                          onClick={() => toggleLike(4)}
                                         >
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -617,7 +631,8 @@ const WishlistPage = () => {
                   </div>
                 </div>
               )}
-              {activeTab === "savedmedia" && (
+
+              {activeTab === "savedMedia" && (
                 <div data-multi-tabs-content-tab data-identifier="1">
                   <div className="card filters-card-layout-wrapper">
                     <div className="tabs-content-wrapper-layout">
@@ -675,7 +690,7 @@ const WishlistPage = () => {
                               <div className="multi-tabs-action-buttons">
                                 <button
                                   className={`multi-tab-switch-btn videos-btn ${
-                                    subactiveTab === "videos" ? "active" : ""
+                                    subActiveTab === "videos" ? "active" : ""
                                   }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("videos")}
@@ -713,7 +728,7 @@ const WishlistPage = () => {
                                 </button>
                                 <button
                                   className={`multi-tab-switch-btn photos-btn ${
-                                    subactiveTab === "photos" ? "active" : ""
+                                    subActiveTab === "photos" ? "active" : ""
                                   }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("photos")}
@@ -787,7 +802,7 @@ const WishlistPage = () => {
                                       </svg>
                                     </div>
                                   </div>
-                                  {alltime && (
+                                  {allTime && (
                                     <div
                                       className="custom-select-options-dropdown-wrapper"
                                       data-custom-select-dropdown
@@ -822,8 +837,10 @@ const WishlistPage = () => {
                                 data-multi-dem-cards-layout-btns
                               >
                                 <button
-                                  className="creator-content-grid-layout-btn"
-                                  data-active
+                                  className={`creator-content-grid-layout-btn ${
+                                    layout === "grid" ? "active" : "inactive"
+                                  }`}
+                                  onClick={() => setLayout("grid")}
                                 >
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -850,7 +867,12 @@ const WishlistPage = () => {
                                     />
                                   </svg>
                                 </button>
-                                <button className="creator-content-grid-layout-btn">
+                                <button
+                                  className={`creator-content-grid-layout-btn ${
+                                    layout === "list" ? "active" : "inactive"
+                                  }`}
+                                  onClick={() => setLayout("list")}
+                                >
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="24"
@@ -878,8 +900,11 @@ const WishlistPage = () => {
                           <div
                             className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
                             data-multi-child-grid-layout-wishlist
+                            data-layout-toggle-rows={
+                              layout === "list" ? true : undefined
+                            }
                           >
-                            {subactiveTab === "videos" && (
+                            {subActiveTab === "videos" && (
                               <div
                                 className="creator-content-type-container-wrapper"
                                 data-multi-tabs-content-tab
@@ -939,8 +964,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(4)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(4)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1045,8 +1074,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(5)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(5)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1151,8 +1184,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(6)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(6)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1257,8 +1294,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(7)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(7)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1311,7 +1352,7 @@ const WishlistPage = () => {
                                 </div>
                               </div>
                             )}
-                            {subactiveTab === "photos" && (
+                            {subActiveTab === "photos" && (
                               <div
                                 className="creator-content-type-container-wrapper"
                                 data-multi-tabs-content-tab
@@ -1370,8 +1411,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(8)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(8)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1476,8 +1521,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(9)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(9)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1582,8 +1631,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(10)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(10)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1688,8 +1741,12 @@ const WishlistPage = () => {
                                       <div className="creator-content-card__stats">
                                         <div className="creator-content-stat-box">
                                           <button
-                                            className="like-button"
-                                            data-like-button=""
+                                            className={`like-button ${
+                                              likedItems.includes(11)
+                                                ? "liked"
+                                                : ""
+                                            }`}
+                                            onClick={() => toggleLike(11)}
                                           >
                                             <svg
                                               xmlns="http://www.w3.org/2000/svg"
@@ -1870,7 +1927,12 @@ const WishlistPage = () => {
                           </div>
                           <div className="profile-card__icon">
                             <div className="profile-card__blur-icon">
-                              <button className="like-button" data-like-button>
+                              <button
+                                className={`like-button ${
+                                  likedItems.includes(12) ? "liked" : ""
+                                }`}
+                                onClick={() => toggleLike(12)}
+                              >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="20"
@@ -1936,7 +1998,12 @@ const WishlistPage = () => {
                           </div>
                           <div className="profile-card__icon">
                             <div className="profile-card__blur-icon">
-                              <button className="like-button" data-like-button>
+                              <button
+                                className={`like-button ${
+                                  likedItems.includes(14) ? "liked" : ""
+                                }`}
+                                onClick={() => toggleLike(14)}
+                              >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="20"
@@ -2002,7 +2069,12 @@ const WishlistPage = () => {
                           </div>
                           <div className="profile-card__icon">
                             <div className="profile-card__blur-icon">
-                              <button className="like-button" data-like-button>
+                              <button
+                                className={`like-button ${
+                                  likedItems.includes(15) ? "liked" : ""
+                                }`}
+                                onClick={() => toggleLike(15)}
+                              >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="20"
@@ -2068,7 +2140,12 @@ const WishlistPage = () => {
                           </div>
                           <div className="profile-card__icon">
                             <div className="profile-card__blur-icon">
-                              <button className="like-button" data-like-button>
+                              <button
+                                className={`like-button ${
+                                  likedItems.includes(15) ? "liked" : ""
+                                }`}
+                                onClick={() => toggleLike(15)}
+                              >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="20"
@@ -2134,7 +2211,12 @@ const WishlistPage = () => {
                           </div>
                           <div className="profile-card__icon">
                             <div className="profile-card__blur-icon">
-                              <button className="like-button" data-like-button>
+                              <button
+                                className={`like-button ${
+                                  likedItems.includes(16) ? "liked" : ""
+                                }`}
+                                onClick={() => toggleLike(16)}
+                              >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="20"
@@ -2200,7 +2282,12 @@ const WishlistPage = () => {
                           </div>
                           <div className="profile-card__icon">
                             <div className="profile-card__blur-icon">
-                              <button className="like-button" data-like-button>
+                              <button
+                                className={`like-button ${
+                                  likedItems.includes(17) ? "liked" : ""
+                                }`}
+                                onClick={() => toggleLike(17)}
+                              >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="20"

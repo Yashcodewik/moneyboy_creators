@@ -1,7 +1,7 @@
-import Feedpage from "@/components/FeedPage";
+import FeedPage from "@/components/FeedPage";
 
 const Index = () => {
-    return <Feedpage />
+    return <FeedPage />;
 };
 
 export default Index;

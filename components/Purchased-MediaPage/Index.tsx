@@ -1,16 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const PurchasedMediaPage: React.FC = () => {
-  const [status, setAllstatus] = useState(false);
-  const [type, setAlltype] = useState(false);
-  const [creator, setAllcreator] = useState(false);
-  const [time, setAlltime] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("favorites");
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const [openDropdown, setOpenDropdown] = useState<
+    "status" | "type" | "creator" | "time" | null
+  >(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
+  };
+
+  const toggleDropdown = (key: "status" | "type" | "creator" | "time") => {
+    setOpenDropdown((prev) => (prev === key ? null : key));
   };
 
   return (
@@ -75,7 +96,10 @@ const PurchasedMediaPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="pm-page-select-filters-wrapper">
+                        <div
+                          className="pm-page-select-filters-wrapper"
+                          ref={dropdownRef}
+                        >
                           <div className="pm-page-select">
                             <div
                               className="custom-select-element"
@@ -85,7 +109,7 @@ const PurchasedMediaPage: React.FC = () => {
                               <div
                                 className="custom-select-label-wrapper"
                                 data-custom-select-triger
-                                onClick={() => setAllstatus((prev) => !prev)}
+                                onClick={() => toggleDropdown("status")}
                               >
                                 <div className="custom-select-icon-txt">
                                   <span className="custom-select-label-txt">
@@ -111,7 +135,7 @@ const PurchasedMediaPage: React.FC = () => {
                                   </svg>
                                 </div>
                               </div>
-                              {status && (
+                              {openDropdown === "status" && (
                                 <div
                                   className="custom-select-options-dropdown-wrapper"
                                   data-custom-select-dropdown
@@ -214,7 +238,7 @@ const PurchasedMediaPage: React.FC = () => {
                               <div
                                 className="custom-select-label-wrapper"
                                 data-custom-select-triger
-                                onClick={() => setAlltype((prev) => !prev)}
+                                onClick={() => toggleDropdown("type")}
                               >
                                 <div className="custom-select-icon-txt">
                                   <span className="custom-select-label-txt">
@@ -240,7 +264,7 @@ const PurchasedMediaPage: React.FC = () => {
                                   </svg>
                                 </div>
                               </div>
-                              {type && (
+                              {openDropdown === "type" && (
                                 <div
                                   className="custom-select-options-dropdown-wrapper"
                                   data-custom-select-dropdown
@@ -343,7 +367,7 @@ const PurchasedMediaPage: React.FC = () => {
                               <div
                                 className="custom-select-label-wrapper"
                                 data-custom-select-triger
-                                onClick={() => setAllcreator((prev) => !prev)}
+                                onClick={() => toggleDropdown("creator")}
                               >
                                 <div className="custom-select-icon-txt">
                                   <span className="custom-select-label-txt">
@@ -369,7 +393,7 @@ const PurchasedMediaPage: React.FC = () => {
                                   </svg>
                                 </div>
                               </div>
-                              {creator && (
+                              {openDropdown === "creator" && (
                                 <div
                                   className="custom-select-options-dropdown-wrapper"
                                   data-custom-select-dropdown
@@ -472,7 +496,7 @@ const PurchasedMediaPage: React.FC = () => {
                               <div
                                 className="custom-select-label-wrapper"
                                 data-custom-select-triger
-                                onClick={() => setAlltime((prev) => !prev)}
+                                onClick={() => toggleDropdown("time")}
                               >
                                 <div className="custom-select-icon-txt">
                                   <span className="custom-select-label-txt">
@@ -498,7 +522,7 @@ const PurchasedMediaPage: React.FC = () => {
                                   </svg>
                                 </div>
                               </div>
-                              {time && (
+                              {openDropdown === "time" && (
                                 <div
                                   className="custom-select-options-dropdown-wrapper"
                                   data-custom-select-dropdown

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 
-const Likepage = () => {
+const LikePage = () => {
   type FilterType = "like" | "video" | "photos" | null;
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -15,25 +15,7 @@ const Likepage = () => {
     videos: "grid",
     photos: "grid",
   });
-  useEffect(() => {
-    const likeButtons = document.querySelectorAll("[data-like-button]");
 
-    const handleClick = (event: Event) => {
-      const button = event.currentTarget as HTMLElement;
-      button.classList.toggle("liked");
-    };
-
-    likeButtons.forEach((button) => {
-      button.addEventListener("click", handleClick);
-    });
-
-    // Cleanup function
-    return () => {
-      likeButtons.forEach((button) => {
-        button.removeEventListener("click", handleClick);
-      });
-    };
-  }, []);
   const toggleMenu = (id: number) => {
     setOpenMenuId((prev) => (prev === id ? null : id));
   };
@@ -66,9 +48,6 @@ const Likepage = () => {
     setActiveFilter((current) => (current === filter ? null : filter));
   };
 
-  const closeAllFilters = () => {
-    setActiveFilter(null);
-  };
   const handleGridLayoutChange = (
     tab: "videos" | "photos",
     mode: "grid" | "list"
@@ -79,27 +58,6 @@ const Likepage = () => {
     }));
   };
 
-  const renderDropdownContent = () => (
-    <div className="custom-select-options-lists-container">
-      <ul
-        className="custom-select-options-list"
-        data-custom-select-options-list
-      >
-        <li className="custom-select-option" onClick={closeAllFilters}>
-          <span>Option 1</span>
-        </li>
-        <li className="custom-select-option" onClick={closeAllFilters}>
-          <span>Option 2</span>
-        </li>
-        <li className="custom-select-option" onClick={closeAllFilters}>
-          <span>Option 3</span>
-        </li>
-        <li className="custom-select-option" onClick={closeAllFilters}>
-          <span>Option 4</span>
-        </li>
-      </ul>
-    </div>
-  );
   return (
     <div className="moneyboy-page-content-container">
       <main className="moneyboy-dynamic-content-layout">
@@ -1257,7 +1215,18 @@ const Likepage = () => {
                                   data-multi-dem-cards-layout-btns
                                 >
                                   {/* data__active */}
+
                                   <button
+                                    className={`creator-content-grid-layout-btn ${
+                                      gridLayoutMode.videos === "grid"
+                                        ? "active"
+                                        : "inactive"
+                                    }`}
+                                    onClick={() =>
+                                      handleGridLayoutChange("videos", "grid")
+                                    }
+                                  >
+                                    {/* <button
                                     {...({
                                       className:
                                         "creator-content-grid-layout-btn",
@@ -1271,7 +1240,7 @@ const Likepage = () => {
                                           ? "true"
                                           : undefined,
                                     } as any)}
-                                  >
+                                  > */}
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -1297,21 +1266,17 @@ const Likepage = () => {
                                       />
                                     </svg>
                                   </button>
-                                  <button
-                                    {...({
-                                      className:
-                                        "creator-content-grid-layout-btn",
-                                      onClick: () =>
-                                        handleGridLayoutChange(
-                                          "videos",
-                                          "list"
-                                        ),
-                                      data__active:
-                                        gridLayoutMode.videos === "list"
-                                          ? "true"
-                                          : undefined,
-                                    } as any)}
+                                   <button
+                                    className={`creator-content-grid-layout-btn ${
+                                      gridLayoutMode.videos === "list"
+                                        ? "active"
+                                        : "inactive"
+                                    }`}
+                                    onClick={() =>
+                                      handleGridLayoutChange("videos", "list")
+                                    }
                                   >
+                                  
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -1337,8 +1302,24 @@ const Likepage = () => {
                               </div>
                             </div>
                           </div>
-                          <div className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${ gridLayoutMode.videos === "list"   ? "list-view-layout"   : ""
-                            } ${ gridLayoutMode.videos === "grid"   ? "grid-view-layout"   : ""}`} data-multi-child-grid-layout-wishlist data-2-cols data-layout-toggle-rows={gridLayoutMode.videos === "list" ? "true" : undefined}>
+                          <div
+                            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${
+                              gridLayoutMode.videos === "list"
+                                ? "list-view-layout"
+                                : ""
+                            } ${
+                              gridLayoutMode.videos === "grid"
+                                ? "grid-view-layout"
+                                : ""
+                            }`}
+                            data-multi-child-grid-layout-wishlist
+                            data-2-cols
+                            data-layout-toggle-rows={
+                              gridLayoutMode.videos === "list"
+                                ? "true"
+                                : undefined
+                            }
+                          >
                             <div className="creator-content-type-container-wrapper">
                               <div className="creator-media-card card">
                                 <div className="creator-media-card__media-wrapper">
@@ -2056,23 +2037,22 @@ const Likepage = () => {
                                     )}
                                   </div>
                                 </div>
-                                <div className="creator-content-grid-layout-options" data-multi-dem-cards-layout-btns>
+                                <div
+                                  className="creator-content-grid-layout-options"
+                                  data-multi-dem-cards-layout-btns
+                                >
                                   {/* data__active */}
-                                  <button
-                                    {...({
-                                      className:
-                                        "creator-content-grid-layout-btn",
-                                      onClick: () =>
-                                        handleGridLayoutChange(
-                                          "photos",
-                                          "grid"
-                                        ),
-                                      data__active:
-                                        gridLayoutMode.photos === "grid"
-                                          ? "true"
-                                          : undefined,
-                                    } as any)}
+                                   <button
+                                    className={`creator-content-grid-layout-btn ${
+                                      gridLayoutMode.photos === "grid"
+                                        ? "active"
+                                        : "inactive"
+                                    }`}
+                                    onClick={() =>
+                                      handleGridLayoutChange("photos", "grid")
+                                    }
                                   >
+                                 
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -2098,8 +2078,24 @@ const Likepage = () => {
                                       />
                                     </svg>
                                   </button>
-                                  <button {...({className: "creator-content-grid-layout-btn", onClick: () => handleGridLayoutChange("photos", "list"), data__active: gridLayoutMode.photos === "list" ? "true" : undefined,} as any)}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                   <button
+                                    className={`creator-content-grid-layout-btn ${
+                                      gridLayoutMode.photos === "list"
+                                        ? "active"
+                                        : "inactive"
+                                    }`}
+                                    onClick={() =>
+                                      handleGridLayoutChange("photos", "list")
+                                    }
+                                  >
+                                
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                    >
                                       <path d="M19.9 13.5H4.1C2.6 13.5 2 14.14 2 15.73V19.77C2 21.36 2.6 22 4.1 22H19.9C21.4 22 22 21.36 22 19.77V15.73C22 14.14 21.4 13.5 19.9 13.5Z" />
                                       <path d="M19.9 2H4.1C2.6 2 2 2.64 2 4.23V8.27C2 9.86 2.6 10.5 4.1 10.5H19.9C21.4 10.5 22 9.86 22 8.27V4.23C22 2.64 21.4 2 19.9 2Z" />
                                     </svg>
@@ -2108,8 +2104,24 @@ const Likepage = () => {
                               </div>
                             </div>
                           </div>
-                          <div className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${gridLayoutMode.photos === "list" ? "list-view-layout" : ""
-                            } ${gridLayoutMode.photos === "grid" ? "grid-view-layout" : ""}`} data-multi-child-grid-layout-wishlist data-2-cols data-layout-toggle-rows={gridLayoutMode.photos === "list" ? "true" : undefined}>
+                          <div
+                            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${
+                              gridLayoutMode.photos === "list"
+                                ? "list-view-layout"
+                                : ""
+                            } ${
+                              gridLayoutMode.photos === "grid"
+                                ? "grid-view-layout"
+                                : ""
+                            }`}
+                            data-multi-child-grid-layout-wishlist
+                            data-2-cols
+                            data-layout-toggle-rows={
+                              gridLayoutMode.photos === "list"
+                                ? "true"
+                                : undefined
+                            }
+                          >
                             <div className="creator-content-type-container-wrapper">
                               <div className="creator-media-card card">
                                 <div className="creator-media-card__media-wrapper">
@@ -3211,4 +3223,4 @@ const Likepage = () => {
   );
 };
 
-export default Likepage;
+export default LikePage;

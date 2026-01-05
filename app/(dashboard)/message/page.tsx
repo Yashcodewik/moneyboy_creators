@@ -1,8 +1,8 @@
 
-import Messagepage from "@/components/Message";
+import MessagePage from "@/components/Message";
 
 const Index = () => {
-    return <Messagepage />
+    return <MessagePage />
 };
 
 export default Index;

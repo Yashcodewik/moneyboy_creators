@@ -22,7 +22,7 @@ const Sidebar: React.FC = () => {
       "/like": "likes",
       "/wishlist": "wishlist",
       "/#": "subscriptions",
-      "/purchasedmedia": "purchasedmedia",
+      "/purchased-media": "purchased-media",
       "/store": "store",
       "/notifications": "notifications",
       "/message": "message",
@@ -77,7 +77,7 @@ const Sidebar: React.FC = () => {
 
         const response = await getApiWithOutQuery({ url: apiUrl });
 
-        console.log("Profile===========", response); 
+        console.log("Profile===========", response);
 
         if (response) {
           let userData;
@@ -127,15 +127,14 @@ const Sidebar: React.FC = () => {
                 <a href="#" className="profile-card__main">
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
-                    
-<img
-  src={
-    session?.user?.role === 2
-      ? "/images/profile-avatars/profile-avatar-1.png"
-      : "/images/profile-avatars/profile-avatar-3.jpg"
-  }
-  alt="MoneyBoy Social Profile Avatar"
-/>
+                      <img
+                        src={
+                          session?.user?.role === 2
+                            ? "/images/profile-avatars/profile-avatar-1.png"
+                            : "/images/profile-avatars/profile-avatar-13.jpg"
+                        }
+                        alt="MoneyBoy Social Profile Avatar"
+                      />
                     </div>
                     <div className="profile-card__settings active-down-effect-2x">
                       <svg
@@ -237,7 +236,10 @@ const Sidebar: React.FC = () => {
                       </div>
                     </div>
                   )}
-                  <div className="profile-card__stats-item followers-stats">
+                  <div
+                    className="profile-card__stats-item followers-stats"
+                    onClick={() => router.push("/follower")}
+                  >
                     <div className="profile-card__stats-num">253</div>
                     <div className="profile-card__stats-label">
                       <svg
@@ -279,7 +281,10 @@ const Sidebar: React.FC = () => {
                       <span>Followers</span>
                     </div>
                   </div>
-                  <div className="profile-card__stats-item following-stats">
+                  <div
+                    className="profile-card__stats-item following-stats"
+                    onClick={() => router.push("/follower")}
+                  >
                     <div className="profile-card__stats-num">1,920</div>
                     <div className="profile-card__stats-label">
                       <svg
@@ -561,10 +566,10 @@ const Sidebar: React.FC = () => {
                     <Link
                       href="/purchasemedia"
                       className={`active-down-effect ${
-                        activePage === "purchasedmedia" ? "active" : ""
+                        activePage === "purchased-media" ? "active" : ""
                       }`}
                       onClick={(e) =>
-                        handleNavClick("purchasedmedia", "/purchasedmedia", e)
+                        handleNavClick("purchased-media", "/purchased-media", e)
                       }
                     >
                       <div>

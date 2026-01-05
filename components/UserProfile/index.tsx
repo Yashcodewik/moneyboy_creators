@@ -104,7 +104,7 @@ const UserProfilepage = () => {
                         <div className="profile-card__avatar-settings">
                           <div className="profile-card__avatar">
                             <img
-                              src="/images/profile-avatars/profile-avatar-3.jpg"
+                              src="/images/profile-avatars/profile-avatar-13.jpg"
                               alt="MoneyBoy Social Profile Avatar"
                             />
                           </div>
