@@ -11,6 +11,7 @@ const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+   const [isOpen, setIsOpen] = useState(false);
   const { session } = useDecryptedSession();
   const pathname = usePathname();
   const router = useRouter();
@@ -119,6 +120,14 @@ const Sidebar: React.FC = () => {
 
     fetchUserProfile();
   }, [session?.isAuthenticated, session?.user?.role]);
+
+    const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
+    e.preventDefault();
+    setIsOpen(false);
+
+    // Navigate to /like with query parameter for the active tab
+    router.push(`/follower?tab=${tab}`);
+  };
   return (
     <div className="moneyboy-global-sidebar-wrapper" id="leftSidebar">
       <aside className="global-sidebar-container">
@@ -240,7 +249,8 @@ const Sidebar: React.FC = () => {
                   )}
                   <div
                     className="profile-card__stats-item followers-stats"
-                    onClick={() => router.push("/follower")}
+                    onClick={(e) => handleTabfollowNavigation(e, "followers")} // Default to posts for users
+                        
                   >
                     <div className="profile-card__stats-num">253</div>
                     <div className="profile-card__stats-label">
@@ -285,7 +295,7 @@ const Sidebar: React.FC = () => {
                   </div>
                   <div
                     className="profile-card__stats-item following-stats"
-                    onClick={() => router.push("/follower")}
+                     onClick={(e) => handleTabfollowNavigation(e, "following")} 
                   >
                     <div className="profile-card__stats-num">1,920</div>
                     <div className="profile-card__stats-label">

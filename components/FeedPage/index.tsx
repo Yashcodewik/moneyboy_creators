@@ -1,12 +1,22 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 const FeedPage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("feed");
+  const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+  const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
   const router = useRouter();
+
+  const setMenuRef = (id: number, element: HTMLDivElement | null) => {
+  menuRefs.current.set(id, element);
+};
+
+const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
+  buttonRefs.current.set(id, element);
+};
 
   // Use NextAuth session
   const { data: session, status } = useSession();
@@ -30,9 +40,12 @@ const FeedPage = () => {
       });
     };
   }, []);
+  // const toggleMenu = (id: number) => {
+  //   setOpenMenuId((prev) => (prev === id ? null : id));
+  // };
   const toggleMenu = (id: number) => {
-    setOpenMenuId((prev) => (prev === id ? null : id));
-  };
+  setOpenMenuId((prev) => (prev === id ? null : id));
+};
   const handleTabClick = (tabName: string) => {
     if (!isLoggedIn && tabName === "discover") {
       router.push("/discover");
@@ -41,46 +54,125 @@ const FeedPage = () => {
     setActiveTab(tabName);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId === null) return;
+  
+      const menuElement = menuRefs.current.get(openMenuId);
+      const buttonElement = buttonRefs.current.get(openMenuId);
+      
+      const target = event.target as Node;
+      
+      // If click is outside both menu and its button, close the menu
+      if (
+        menuElement && 
+        !menuElement.contains(target) && 
+        buttonElement && 
+        !buttonElement.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openMenuId]);
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout">
-          <div className="moneyboy-feed-page-container" data-multiple-tabs-section data-scroll-zero>
-            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-              <button className={`page-content-type-button active-down-effect ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
-              <button className={`page-content-type-button active-down-effect ${activeTab === (isLoggedIn ? "following" : "discover") ? "active" : ""}`} onClick={() => handleTabClick(isLoggedIn ? "following" : "discover")}>{isLoggedIn ? "Following" : "Discover"}</button>
-              <button className={`page-content-type-button active-down-effect ${activeTab === "popular" ? "active" : ""}`}onClick={() => handleTabClick("popular")}>Popular</button>
+          <div
+            className="moneyboy-feed-page-container"
+            data-multiple-tabs-section
+            data-scroll-zero
+          >
+            <div
+              className="moneyboy-feed-page-cate-buttons card"
+              id="posts-tabs-btn-card"
+            >
+              <button
+                className={`page-content-type-button active-down-effect ${
+                  activeTab === "feed" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("feed")}
+              >
+                Feed
+              </button>
+              <button
+                className={`page-content-type-button active-down-effect ${
+                  activeTab === (isLoggedIn ? "following" : "discover")
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  handleTabClick(isLoggedIn ? "following" : "discover")
+                }
+              >
+                {isLoggedIn ? "Following" : "Discover"}
+              </button>
+              <button
+                className={`page-content-type-button active-down-effect ${
+                  activeTab === "popular" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("popular")}
+              >
+                Popular
+              </button>
             </div>
             <div className="moneyboy-posts-wrapper">
               {activeTab === "feed" && (
-                <div className="moneyboy-posts-wrapper" data-multi-tabs-content-tabdata__active>
+                <div
+                  className="moneyboy-posts-wrapper"
+                  data-multi-tabs-content-tabdata__active
+                >
                   <div className="moneyboy-post__container card">
                     <div className="moneyboy-post__header">
                       <a href="#" className="profile-card">
                         <div className="profile-card__main">
                           <div className="profile-card__avatar-settings">
                             <div className="profile-card__avatar">
-                              <img src="/images/profile-avatars/profile-avatar-1.png" alt="MoneyBoy Social Profile Avatar" />
+                              <img
+                                src="/images/profile-avatars/profile-avatar-1.png"
+                                alt="MoneyBoy Social Profile Avatar"
+                              />
                             </div>
                           </div>
                           <div className="profile-card__info">
                             <div className="profile-card__name-badge">
-                              <div className="profile-card__name">Corey Bergson</div>
+                              <div className="profile-card__name">
+                                Corey Bergson
+                              </div>
                               <div className="profile-card__badge">
-                                <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                                <img
+                                  src="/images/logo/profile-badge.png"
+                                  alt="MoneyBoy Social Profile Badge"
+                                />
                               </div>
                             </div>
-                            <div className="profile-card__username">@coreybergson</div>
+                            <div className="profile-card__username">
+                              @coreybergson
+                            </div>
                           </div>
                         </div>
                       </a>
 
                       <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">1 Hour ago</div>
-                        <div className="rel-user-more-opts-wrapper active" data-more-actions-toggle-element >
+                        <div className="moneyboy-post__upload-time">
+                          1 Hour ago
+                        </div>
+                        <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 1 ? "active" : ""
+                          }`}
+                          data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(1, el)}
+                        >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(1)}
+                             ref={(el) => setButtonRef(1, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -362,13 +454,17 @@ const FeedPage = () => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                        <div
-                          className="rel-user-more-opts-wrapper active"
+                         <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 2 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(2, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(2)}
+                            ref={(el) => setButtonRef(2, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -650,13 +746,17 @@ const FeedPage = () => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                        <div
-                          className="rel-user-more-opts-wrapper active"
+                         <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 3 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(3, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(3)}
+                            ref={(el) => setButtonRef(3, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -938,13 +1038,17 @@ const FeedPage = () => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                        <div
-                          className="rel-user-more-opts-wrapper active"
+                         <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 4 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(4, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(4)}
+                            ref={(el) => setButtonRef(4, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1226,13 +1330,17 @@ const FeedPage = () => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                        <div
-                          className="rel-user-more-opts-wrapper active"
+                         <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 5 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(5, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(5)}
+                             ref={(el) => setButtonRef(5, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1514,13 +1622,17 @@ const FeedPage = () => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                        <div
-                          className="rel-user-more-opts-wrapper active"
+                       <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 6 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(6, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(6)}
+                            ref={(el) => setButtonRef(6, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1770,7 +1882,10 @@ const FeedPage = () => {
                 </div>
               )}
               {activeTab === "following" && (
-                <div className="moneyboy-posts-wrapper" data-multi-tabs-content-tab>
+                <div
+                  className="moneyboy-posts-wrapper"
+                  data-multi-tabs-content-tab
+                >
                   <div className="moneyboy-post__container card">
                     <div className="moneyboy-post__header">
                       <a href="#" className="profile-card">
@@ -1806,13 +1921,17 @@ const FeedPage = () => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                        <div
-                          className="rel-user-more-opts-wrapper active"
+                         <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 7 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(7, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(7)}
+                            ref={(el) => setButtonRef(7, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -2060,7 +2179,10 @@ const FeedPage = () => {
                 </div>
               )}
               {activeTab === "popular" && (
-                <div className="moneyboy-posts-wrapper" data-multi-tabs-content-tab>
+                <div
+                  className="moneyboy-posts-wrapper"
+                  data-multi-tabs-content-tab
+                >
                   <div className="moneyboy-post__container card">
                     <div className="moneyboy-post__header">
                       <a href="#" className="profile-card">
@@ -2097,12 +2219,16 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper active"
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 8 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(8, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(8)}
+                            ref={(el) => setButtonRef(8, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -2385,12 +2511,16 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper active"
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 9 ? "active" : ""
+                          }`}
                           data-more-actions-toggle-element
+                           ref={(el) => setMenuRef(9, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(9)}
+                            ref={(el) => setButtonRef(9, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -3125,11 +3255,17 @@ const FeedPage = () => {
             <div className="moneyboy-network-grow-card-wrapper card">
               <a href="#" className="moneyboy-network-grow-card card">
                 <div className="bg-img">
-                  <img src="/images/grow-network-bg-image.png" alt="Grow Network By MoneyBoy Social"/>
+                  <img
+                    src="/images/grow-network-bg-image.png"
+                    alt="Grow Network By MoneyBoy Social"
+                  />
                 </div>
                 <div className="text-logo">
                   <h3>Network</h3>
-                  <img src="/images/logo/moneyboy-logo.png"alt="MoneyBoy Social Logo"/>
+                  <img
+                    src="/images/logo/moneyboy-logo.png"
+                    alt="MoneyBoy Social Logo"
+                  />
                 </div>
               </a>
             </div>

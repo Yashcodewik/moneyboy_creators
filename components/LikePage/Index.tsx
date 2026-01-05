@@ -9,7 +9,15 @@ const LikePage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("posts");
    const searchParams = useSearchParams(); 
+   const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+   const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
+const setMenuRef = (id: number, element: HTMLDivElement | null) => {
+  menuRefs.current.set(id, element);
+};
 
+const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
+  buttonRefs.current.set(id, element);
+};
   const [gridLayoutMode, setGridLayoutMode] = useState<{
     videos: "grid" | "list";
     photos: "grid" | "list";
@@ -89,6 +97,32 @@ const LikePage = () => {
           });
         };
       }, []);
+
+      useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (openMenuId === null) return;
+      
+          const menuElement = menuRefs.current.get(openMenuId);
+          const buttonElement = buttonRefs.current.get(openMenuId);
+          
+          const target = event.target as Node;
+          
+          // If click is outside both menu and its button, close the menu
+          if (
+            menuElement && 
+            !menuElement.contains(target) && 
+            buttonElement && 
+            !buttonElement.contains(target)
+          ) {
+            setOpenMenuId(null);
+          } 
+        };
+      
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, [openMenuId]);
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -278,13 +312,17 @@ const LikePage = () => {
                     <div className="moneyboy-post__upload-time">
                       1 Hour ago
                     </div>
-                    <div
-                      className="rel-user-more-opts-wrapper"
-                      data-more-actions-toggle-element
-                    >
+                      <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 1 ? "active" : ""
+                          }`}
+                          data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(1, el)}
+                        >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(1)}
+                           ref={(el) => setButtonRef(1, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -567,13 +605,17 @@ const LikePage = () => {
                     <div className="moneyboy-post__upload-time">
                       1 Hour ago
                     </div>
-                    <div
-                      className="rel-user-more-opts-wrapper"
-                      data-more-actions-toggle-element
-                    >
+                      <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 2 ? "active" : ""
+                          }`}
+                          data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(2, el)}
+                        >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(2)}
+                         ref={(el) => setButtonRef(2, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -856,13 +898,17 @@ const LikePage = () => {
                     <div className="moneyboy-post__upload-time">
                       1 Hour ago
                     </div>
-                    <div
-                      className="rel-user-more-opts-wrapper"
-                      data-more-actions-toggle-element
-                    >
+                      <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 3 ? "active" : ""
+                          }`}
+                          data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(3, el)}
+                        >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(3)}
+                        ref={(el) => setButtonRef(3, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
