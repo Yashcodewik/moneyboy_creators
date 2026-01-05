@@ -363,7 +363,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
@@ -651,7 +651,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
@@ -939,7 +939,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
@@ -1227,7 +1227,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
@@ -1515,7 +1515,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
@@ -1807,7 +1807,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
@@ -2097,7 +2097,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
@@ -2385,7 +2385,7 @@ const FeedPage = () => {
                           1 Hour ago
                         </div>
                         <div
-                          className="rel-user-more-opts-wrapper"
+                          className="rel-user-more-opts-wrapper active"
                           data-more-actions-toggle-element
                         >
                           <button
