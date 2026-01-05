@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export default function DashboardLayout({children,}: {children: React.ReactNode;}) {const router = useRouter();
 
   return (
-    <div className="moneyboy-layout-container hightunset">
+    <div className="moneyboy-layout-container">
       <Header />
       <div className="container">
         <div className="moneyboy-main-asides-layout-container">
