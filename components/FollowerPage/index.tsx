@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 const FollowersPage = () => {
@@ -10,9 +10,18 @@ const FollowersPage = () => {
   const [selectedOption, setSelectedOption] = useState("All Time");
   const [tab, setTab] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toggleMore = (id: number) => {
     setOpenMoreId((prev) => (prev === id ? null : id));
   };
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "followers") {
+      setFollow("Followers");
+    } else if (tabParam === "following") {
+      setFollow("Following");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -29,6 +38,25 @@ const FollowersPage = () => {
     setSelectedOption(value);
     setTab(false);
   };
+
+  useEffect(() => {
+    const likeButtons = document.querySelectorAll("[data-like-button]");
+
+    const handleClick = (event: Event) => {
+      const button = event.currentTarget as HTMLElement;
+      button.classList.toggle("liked");
+    };
+
+    likeButtons.forEach((button) => {
+      button.addEventListener("click", handleClick);
+    });
+
+    return () => {
+      likeButtons.forEach((button) => {
+        button.removeEventListener("click", handleClick);
+      });
+    };
+  }, []);
 
   return (
     <div className="moneyboy-page-content-container">
