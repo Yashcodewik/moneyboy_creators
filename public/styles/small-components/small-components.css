@@ -1727,7 +1727,7 @@
         right: 90%;
         display: flex;
         min-height: max-content;
-        display: none;
+        /* display: none; */
         right: 30%;
 
         &:has([data-copy-post-link]) {
