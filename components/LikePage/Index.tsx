@@ -10,6 +10,9 @@ const LikePage = () => {
   const [activeTab, setActiveTab] = useState<string>("posts");
    const searchParams = useSearchParams(); 
 
+const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
+  buttonRefs.current.set(id, element);
+};
   const [gridLayoutMode, setGridLayoutMode] = useState<{
     videos: "grid" | "list";
     photos: "grid" | "list";
@@ -278,13 +281,17 @@ const LikePage = () => {
                     <div className="moneyboy-post__upload-time">
                       1 Hour ago
                     </div>
-                    <div
-                      className="rel-user-more-opts-wrapper"
-                      data-more-actions-toggle-element
-                    >
+                      <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 1 ? "active" : ""
+                          }`}
+                          data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(1, el)}
+                        >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(1)}
+                           ref={(el) => setButtonRef(1, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -567,13 +574,17 @@ const LikePage = () => {
                     <div className="moneyboy-post__upload-time">
                       1 Hour ago
                     </div>
-                    <div
-                      className="rel-user-more-opts-wrapper"
-                      data-more-actions-toggle-element
-                    >
+                      <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 2 ? "active" : ""
+                          }`}
+                          data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(2, el)}
+                        >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(2)}
+                         ref={(el) => setButtonRef(2, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -856,13 +867,17 @@ const LikePage = () => {
                     <div className="moneyboy-post__upload-time">
                       1 Hour ago
                     </div>
-                    <div
-                      className="rel-user-more-opts-wrapper"
-                      data-more-actions-toggle-element
-                    >
+                      <div
+                          className={`rel-user-more-opts-wrapper ${
+                            openMenuId === 3 ? "active" : ""
+                          }`}
+                          data-more-actions-toggle-element
+                          ref={(el) => setMenuRef(3, el)}
+                        >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(3)}
+                        ref={(el) => setButtonRef(3, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

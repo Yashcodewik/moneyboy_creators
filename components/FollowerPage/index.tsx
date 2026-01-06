@@ -23,21 +23,710 @@ const FollowersPage = () => {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
-        setOpenMoreId(null);
-      }
+    const [followers, setFollowers] = useState<Follower[]>([]);
+    const [following, setFollowing] = useState<Follower[]>([]);
+    const [creators, setCreators] = useState<Creator[]>([]);
+
+    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+
+    const toggleMore = (id: string) => {
+      setOpenMoreId((prev) => (prev === id ? null : id));
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    useEffect(() => {
+      const tabParam = searchParams.get("tab");
+      if (tabParam === "followers") {
+        setFollow("Followers");
+      } else if (tabParam === "following") {
+        setFollow("Following");
+      }
+    }, [searchParams]);
 
-  const handleTabChange = (value: string) => {
-    setSelectedOption(value);
-    setTab(false);
-  };
+    useEffect(() => {
+      const handleClickOutside = (e: MouseEvent) => {
+        if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+          setOpenMoreId(null);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleTabChange = (value: string) => {
+      setSelectedOption(value);
+      setTab(false);
+    };
+
+    useEffect(() => {
+      const likeButtons = document.querySelectorAll("[data-like-button]");
+
+      const handleClick = (event: Event) => {
+        const button = event.currentTarget as HTMLElement;
+        button.classList.toggle("liked");
+      };
+
+      likeButtons.forEach((button) => {
+        button.addEventListener("click", handleClick);
+      });
+
+      return () => {
+        likeButtons.forEach((button) => {
+          button.removeEventListener("click", handleClick);
+        });
+      };
+    }, []);
+
+    useEffect(() => {
+      fetchCreators();
+      fetchFollowers();
+      fetchFollowing();
+    }, []);
+
+    const fetchCreators = async (pageNo = 1) => {
+      setLoading(true);
+
+      const res = await getApi({
+        url: API_GET_CREATORS,
+        page: pageNo,
+        rowsPerPage: 5,
+      });
+
+      if (res?.success) {
+        setCreators(res.data || []);
+        setPage(pageNo);
+        setTotalPages(res.pagination?.totalPages || 1);
+      }
+
+      setLoading(false);
+    };
+const fetchFollowers = async () => {
+  setLoading(true);
+
+  const res = await getApiWithOutQuery({
+    url: API_GET_FOLLOWERS,
+  });
+
+  if (res?.success) {
+    const followersWithStatus = res.data.map((follower: any) => ({
+      ...follower,
+      isFollowing: false, 
+      isFollowingYou: true, 
+    }));
+    setFollowers(followersWithStatus);
+  }
+
+  setLoading(false);
+};
+
+
+ const fetchFollowing = async () => {
+  setLoading(true);
+
+  const res = await getApiWithOutQuery({
+    url: API_GET_FOLLOWING,
+  });
+
+  if (res?.success) {
+    const followingWithStatus = res.data.map((follow: any) => ({
+      ...follow,
+      isFollowing: true,
+      isFollowingYou: false, 
+    }));
+    setFollowing(followingWithStatus);
+    
+    updateFollowerStatus(followers, followingWithStatus);
+  }
+
+  setLoading(false);
+};
+
+    const updateFollowingStatus = (
+      followersList: Follower[],
+      followingList: Follower[]
+    ) => {
+      const followingIds = new Set(followingList.map((user) => user._id));
+      const updatedFollowers = followersList.map((follower) => ({
+        ...follower,
+        isFollowing: followingIds.has(follower._id),
+      }));
+      setFollowers(updatedFollowers);
+    };
+
+  const updateFollowerStatus = (
+  followersList: Follower[],
+  followingList: Follower[]
+) => {
+  const followerIds = new Set(followersList.map((follower) => follower._id));
+  const updatedFollowing = followingList.map((follow) => ({
+    ...follow,
+    isFollowingYou: followerIds.has(follow._id), 
+  }));
+  setFollowing(updatedFollowing);
+};
+
+    const handleFollowToggle = async (
+      userId: string,
+      isFollowing: boolean,
+      listType: "followers" | "following" | "creators"
+    ) => {
+      let originalFollowingUser: Follower | undefined;
+
+      if (listType === "following") {
+        originalFollowingUser = following.find((user) => user._id === userId);
+      }
+
+if (listType === "followers") {
+  setFollowers(prev =>
+    prev.map(user =>
+      user._id === userId
+        ? {
+            ...user,
+            isFollowing: true,
+            isFollowingYou: true,
+          }
+        : user
+    )
+  );
+        const followerUser = followers.find((u) => u._id === userId);
+        if (followerUser) {
+          setFollowing((prev) => {
+            if (prev.some((u) => u._id === userId)) return prev;
+            return [
+              ...prev,
+              {
+                ...followerUser,
+                isFollowing: true,
+                isFollowingYou: true,
+              },
+            ];
+          });
+        }
+
+        setCreators((prev) =>
+          prev.map((creator) =>
+            creator._id === userId ? { ...creator, isFollowing: true } : creator
+          )
+        );
+ } else if (listType === "following") {
+  if (isFollowing) {
+    const userToUnfollow = following.find((user) => user._id === userId);
+    
+    setFollowing((prev) => prev.filter((user) => user._id !== userId));
+
+    setFollowers(prev =>
+      prev.map(user =>
+        user._id === userId
+          ? {
+              ...user,
+              isFollowing: false,
+              isFollowingYou: user.isFollowingYou,
+            }
+          : user
+      )
+    );
+  }
+
+
+        setCreators((prev) =>
+          prev.map((creator) =>
+            creator._id === userId ? { ...creator, isFollowing: false } : creator
+          )
+        );
+      } else if (listType === "creators") {
+        setCreators((prev) =>
+          prev.map((creator) =>
+            creator._id === userId
+              ? { ...creator, isFollowing: !isFollowing }
+              : creator
+          )
+        );
+        if (!isFollowing) {
+          const creatorToAdd = creators.find((c) => c._id === userId);
+          if (creatorToAdd) {
+            setFollowing((prev) => {
+              if (prev.some((user) => user._id === userId)) return prev;
+              return [
+                ...prev,
+                {
+                  ...creatorToAdd,
+                  isFollowing: true,
+                  isFollowingYou: false,
+                } as Follower,
+              ];
+            });
+          }
+        } else {
+          setFollowing((prev) => prev.filter((user) => user._id !== userId));
+        }
+      }
+
+      const res = await apiPost({
+        url: isFollowing ? API_UNFOLLOW_USER : API_FOLLOW_USER,
+        values: { userId },
+      });
+
+      if (!res?.success) {
+        if (listType === "followers") {
+          setFollowers((prev) =>
+            prev.map((user) =>
+              user._id === userId ? { ...user, isFollowing } : user
+            )
+          );
+          if (isFollowing && originalFollowingUser) {
+            setFollowing((prev) => [...prev, originalFollowingUser]);
+          }
+        } else if (listType === "following") {
+          if (originalFollowingUser) {
+            setFollowing((prev) => [...prev, originalFollowingUser]);
+          }
+        } else if (listType === "creators") {
+          setCreators((prev) =>
+            prev.map((creator) =>
+              creator._id === userId ? { ...creator, isFollowing } : creator
+            )
+          );
+          if (!isFollowing) {
+            setFollowing((prev) => prev.filter((user) => user._id !== userId));
+          } else {
+            if (originalFollowingUser) {
+              setFollowing((prev) => [...prev, originalFollowingUser]);
+            }
+          }
+        }
+
+        // ShowToast(res?.message || "Something went wrong", "error");
+      } else {
+        // ShowToast(res?.message, "success");
+
+      
+        if (listType === "following") {
+          fetchFollowing();
+        }
+      }
+    };
+ const getFollowButtonProps = (user: Follower | Creator) => {
+  const isFollower = "isFollowingYou" in user && user.isFollowingYou;
+  
+  if (user.isFollowing) {
+    return { text: "Following", className: "btn-txt-gradient btn-grey" };
+  } else if (isFollower) {
+    return { text: "Follow Back", className: "btn-txt-gradient" };
+  } else {
+    return { text: "Follow", className: "btn-txt-gradient" };
+  }
+};
+
+    const renderFollowersList = () => {
+      if (loading && followers.length === 0) {
+        return <div className="text-center">Loading followers...</div>;
+      }
+
+      if (followers.length === 0) {
+        return <div className="text-center">No followers yet</div>;
+      }
+
+      return followers.map((follower, index) => {
+        const buttonProps = getFollowButtonProps(follower);
+
+        return (
+          <div className="rel-user-box" key={follower._id}>
+            <div className="rel-user-profile-action">
+              <div className="rel-user-profile">
+                <div className="profile-card">
+                  <a
+                    href={`/profile/${follower.userName}`}
+                    className="profile-card__main"
+                  >
+                    <div className="profile-card__avatar-settings">
+                      <div className="profile-card__avatar">
+                        <img
+                          src="/images/profile-avatars/profile-avatar-6.jpg"
+                          alt={`${follower.firstName}'s profile`}
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-card__info">
+                      <div className="profile-card__name-badge">
+                        <div className="profile-card__name">
+                          {follower.displayName ||
+                            `${follower.firstName} ${follower.lastName}`}
+                        </div>
+                        <div className="profile-card__badge">
+                          <img
+                            src="/images/logo/profile-badge.png"
+                            alt="MoneyBoy Social Profile Badge"
+                          />
+                        </div>
+                      </div>
+                      <div className="profile-card__username">
+                        @{follower.userName}
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+              <div className="rel-user-actions">
+                <div className="rel-user-action-btn">
+                  <button
+                    className={buttonProps.className}
+                    onClick={() =>
+                      handleFollowToggle(
+                        follower._id,
+                        follower.isFollowing,
+                        "followers"
+                      )
+                    }
+                  >
+                    <span>{buttonProps.text}</span>
+                  </button>
+                </div>
+                <div
+                  className="rel-user-more-opts-wrapper"
+                  data-more-actions-toggle-element
+                >
+                  <button
+                    className="rel-user-more-opts-trigger-icon"
+                    onClick={() => toggleMore(follower._id)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="25"
+                      viewBox="0 0 24 25"
+                      fill="none"
+                    >
+                      <path
+                        d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                  </button>
+                  {openMoreId === follower._id && (
+                    <div className="rel-users-more-opts-popup-wrapper">
+                      <div className="rel-users-more-opts-popup-container">
+                        <ul>
+                          <li
+                            onClick={() =>
+                              handleFollowToggle(
+                                follower._id,
+                                follower.isFollowing,
+                                "followers"
+                              )
+                            }
+                          >
+                            <div className="icon share-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M16.4405 8.90002C20.0405 9.21002 21.5105 11.06 21.5105 15.11V15.24C21.5105 19.71 19.7205 21.5 15.2505 21.5H8.74047C4.27047 21.5 2.48047 19.71 2.48047 15.24V15.11C2.48047 11.09 3.93047 9.24002 7.47047 8.91002"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12 15V3.62"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M15.3484 5.85L11.9984 2.5L8.64844 5.85"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Share @{follower.userName}</span>
+                          </li>
+                          <li>
+                            <div className="icon mute-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M22 2L2 22"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Mute</span>
+                          </li>
+                          <li>
+                            <div className="icon remove-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M19.0319 16.94L16.9219 19.05"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M16.9414 16.96L19.0614 19.07"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Remove this follower</span>
+                          </li>
+                          <li>
+                            <div className="icon block-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M20.5 15.5001L15.5 20.5001"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Block @{follower.userName}</span>
+                          </li>
+                          <li>
+                            <div className="icon report-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M5.14844 2V22"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M5.14844 4H16.3484C19.0484 4 19.6484 5.5 17.7484 7.4L16.5484 8.6C15.7484 9.4 15.7484 10.7 16.5484 11.4L17.7484 12.6C19.6484 14.5 18.9484 16 16.3484 16H5.14844"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Report @{follower.userName}</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* {follower.bio && (
+              <div className="rel-user-desc">
+                <p>{follower.bio}</p>
+              </div>
+            )} */}
+          </div>
+        );
+      });
+    };
+
+
+    const renderFollowingList = () => {
+      if (loading && following.length === 0) {
+        return <div className="text-center">Loading following...</div>;
+      }
+
+      if (following.length === 0) {
+        return <div className="text-center">Not following anyone yet</div>;
+      }
+
+      return following.map((follow) => {
+        const buttonProps = getFollowButtonProps(follow);
+
+        return (
+          <div className="rel-user-box" key={follow._id}>
+            <div className="rel-user-profile-action">
+              <div className="rel-user-profile">
+                <div className="profile-card">
+                  <a
+                    href={`/profile/${follow.userName}`}
+                    className="profile-card__main"
+                  >
+                    <div className="profile-card__avatar-settings">
+                      <div className="profile-card__avatar">
+                        <img
+                          src="/images/profile-avatars/profile-avatar-6.jpg"
+                          alt={`${follow.firstName}'s profile`}
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-card__info">
+                      <div className="profile-card__name-badge">
+                        <div className="profile-card__name">
+                          {follow.displayName ||
+                            `${follow.firstName} ${follow.lastName}`}
+                        </div>
+                        {follow.isFollowingYou && (
+                          <div className="profile-card__badge">
+                            <img
+                              src="/images/logo/profile-badge.png"
+                              alt="MoneyBoy Social Profile Badge"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="profile-card__username">
+                        @{follow.userName}
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+              <div className="rel-user-actions">
+                <div className="rel-user-action-btn">
+                  <button
+                    className={buttonProps.className}
+                    onClick={() =>
+                      handleFollowToggle(
+                        follow._id,
+                        follow.isFollowing,
+                        "following"
+                      )
+                    }
+                  >
+                    <span>{buttonProps.text}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {/* {follow.bio && (
+              <div className="rel-user-desc">
+                <p>{follow.bio}</p>
+              </div>
+            )} */}
+          </div>
+        );
+      });
+    };
 
   useEffect(() => {
     const likeButtons = document.querySelectorAll("[data-like-button]");
@@ -123,10 +812,7 @@ const FollowersPage = () => {
             </div>
 
             {follow === "Followers" && (
-              <div
-                data-multi-tabs-content-tabdata__active
-                data-identifier="1"
-              >
+              <div data-multi-tabs-content-tabdata__active data-identifier="1">
                 <div className="card filters-card-layout-wrapper">
                   <div className="tabs-content-wrapper-layout">
                     <div>
@@ -169,10 +855,12 @@ const FollowersPage = () => {
                                   />
                                 </svg>
                               </div>
-
                               <input
                                 type="text"
-                                placeholder="Enter keyword here"
+                                placeholder="Search followers..."
+                                onChange={(e) => {
+                                  
+                                }}
                               />
                             </div>
                           </div>
@@ -226,27 +914,27 @@ const FollowersPage = () => {
                                         >
                                           <li
                                             className="custom-select-option"
-                                            onClick={() => {
-                                              handleTabChange("Option 1");
-                                            }}
+                                            // onClick={() =>
+                                            //   handleTabChange("All Time")
+                                            // }
                                           >
-                                            <span> Option 1</span>
+                                            <span>option 1</span>
                                           </li>
                                           <li
                                             className="custom-select-option"
-                                            onClick={() => {
-                                              handleTabChange("Option 2");
-                                            }}
+                                            // onClick={() =>
+                                            //   handleTabChange("This Month")
+                                            // }
                                           >
-                                            <span> Option 2</span>
+                                            <span>option 2</span>
                                           </li>
                                           <li
                                             className="custom-select-option"
-                                            onClick={() => {
-                                              handleTabChange("Option 3");
-                                            }}
+                                            // onClick={() =>
+                                            //   handleTabChange("This Week")
+                                            // }
                                           >
-                                            <span> Option 3</span>
+                                            <span>option 3</span>
                                           </li>
                                         </ul>
                                       </div>
@@ -257,603 +945,9 @@ const FollowersPage = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="creator-content-cards-wrapper  ">
+                        <div className="creator-content-cards-wrapper">
                           <div className="rel-users-wrapper" ref={moreRef}>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-6.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Zain Schleifer
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @zainschleifer
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button className="btn-txt-gradient">
-                                      <span>Follow Back</span>
-                                    </button>
-                                  </div>
-                                  <div
-                                    className="rel-user-more-opts-wrapper"
-                                    data-more-actions-toggle-element
-                                  >
-                                    <button
-                                      className="rel-user-more-opts-trigger-icon"
-                                      onClick={() => toggleMore(1)}
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="25"
-                                        viewBox="0 0 24 25"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                        ></path>
-                                        <path
-                                          d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                        ></path>
-                                        <path
-                                          d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                        ></path>
-                                      </svg>
-                                    </button>
-                                    {openMoreId === 1 && (
-                                      <div className="rel-users-more-opts-popup-wrapper">
-                                        <div className="rel-users-more-opts-popup-container">
-                                          <ul>
-                                            <li>
-                                              <div className="icon share-icon">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    d="M16.4405 8.90002C20.0405 9.21002 21.5105 11.06 21.5105 15.11V15.24C21.5105 19.71 19.7205 21.5 15.2505 21.5H8.74047C4.27047 21.5 2.48047 19.71 2.48047 15.24V15.11C2.48047 11.09 3.93047 9.24002 7.47047 8.91002"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M12 15V3.62"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M15.3484 5.85L11.9984 2.5L8.64844 5.85"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                </svg>
-                                              </div>
-                                              <span>Share @rubenkenter</span>
-                                            </li>
-                                            <li>
-                                              <div className="icon mute-icon">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M22 2L2 22"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                </svg>
-                                              </div>
-                                              <span> Mute </span>
-                                            </li>
-                                            <li>
-                                              <div className="icon remove-icon">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeMiterlimit="10"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M19.0319 16.94L16.9219 19.05"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeMiterlimit="10"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M16.9414 16.96L19.0614 19.07"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeMiterlimit="10"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                </svg>
-                                              </div>
-                                              <span>
-                                                Remove this follower
-                                              </span>
-                                            </li>
-                                            <li>
-                                              <div className="icon block-icon">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeMiterlimit="10"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M20.5 15.5001L15.5 20.5001"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeMiterlimit="10"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                </svg>
-                                              </div>
-                                              <span>Block @rubenkenter</span>
-                                            </li>
-                                            <li>
-                                              <div className="icon report-icon">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    d="M5.14844 2V22"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeMiterlimit="10"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                  <path
-                                                    d="M5.14844 4H16.3484C19.0484 4 19.6484 5.5 17.7484 7.4L16.5484 8.6C15.7484 9.4 15.7484 10.7 16.5484 11.4L17.7484 12.6C19.6484 14.5 18.9484 16 16.3484 16H5.14844"
-                                                    stroke="none"
-                                                    strokeWidth="1.5"
-                                                    strokeMiterlimit="10"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                </svg>
-                                              </div>
-                                              <span>Report @rubenkenter</span>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="rel-user-desc">
-                                <p>
-                                  Lorem ipsum dolor sit amet, consectetur
-                                  adipiscing elit, sed do eiusmod tempor
-                                  incididunt ut labore et dolore magna aliqua
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-5.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Gustavo Stanton
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @gustavostanton
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button className="btn-txt-gradient btn-grey">
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-3.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Emerson Bator
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @emersonbator
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button className="btn-txt-gradient">
-                                      <span>Follow Back</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="rel-user-desc">
-                                <p>
-                                  Lorem ipsum dolor sit amet, consectetur
-                                  adipiscing elit, sed do
-                                </p>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-7.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Omar Dokidis
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @omardokidis
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button className="btn-txt-gradient btn-grey">
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-2.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Wilson Septimus
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @wilsonseptimus
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button className="btn-txt-gradient">
-                                      <span>Follow Back</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-8.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Ruben Kenter
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @rubenkenter
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button className="btn-txt-gradient">
-                                      <span>Follow Back</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-13.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Dorian F. Gray
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @doriangray
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="rel-user-desc">
-                                <p>
-                                  Lorem ipsum dolor sit amet, consectetur
-                                  adipiscing elit, sed do
-                                </p>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-15.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Pippins McGray
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @pippinsmcGray
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button className="btn-txt-gradient">
-                                      <span>Follow Back</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                            {renderFollowersList()}
                           </div>
                         </div>
                       </div>
@@ -907,10 +1001,9 @@ const FollowersPage = () => {
                                   />
                                 </svg>
                               </div>
-
                               <input
                                 type="text"
-                                placeholder="Enter keyword here"
+                                placeholder="Search following..."
                               />
                             </div>
                           </div>
@@ -950,403 +1043,13 @@ const FollowersPage = () => {
                                     </svg>
                                   </div>
                                 </div>
-                                {/* <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown>
-                                    <div className="custom-select-options-dropdown-container">
-                                      <div className="custom-select-options-lists-container">
-                                        <ul className="custom-select-options-list" data-custom-select-options-list>
-                                          <li className="custom-select-option">
-                                            <span> Option 1</span>
-                                          </li>
-                                          <li className="custom-select-option">
-                                            <span> Option 2</span>
-                                          </li>
-                                          <li className="custom-select-option">
-                                            <span> Option 3</span>
-                                          </li>
-                                          <li className="custom-select-option">
-                                            <span> Option 4</span>
-                                          </li>
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </div> */}
                               </div>
                             </div>
                           </div>
                         </div>
                         <div className="creator-content-cards-wrapper ">
                           <div className="rel-users-wrapper">
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-2.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Wilson Septimus
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @wilsonseptimus
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-8.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Ruben Kenter
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @rubenkenter
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-3.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Emerson Bator
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @emersonbator
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="rel-user-desc">
-                                <p>
-                                  Lorem ipsum dolor sit amet, consectetur
-                                  adipiscing elit, sed do
-                                </p>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-7.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Omar Dokidis
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @omardokidis
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-13.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Dorian F. Gray
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @doriangray
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="rel-user-desc">
-                                <p>
-                                  Lorem ipsum dolor sit amet, consectetur
-                                  adipiscing elit, sed do
-                                </p>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-15.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Pippins McGray
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @pippinsmcGray
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-6.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Zain Schleifer
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @zainschleifer
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="rel-user-desc">
-                                <p>
-                                  Lorem ipsum dolor sit amet, consectetur
-                                  adipiscing elit, sed do eiusmod tempor
-                                  incididunt ut labore et dolore magna aliqua
-                                </p>
-                              </div>
-                            </div>
-                            <div className="rel-user-box">
-                              <div className="rel-user-profile-action">
-                                <div className="rel-user-profile">
-                                  <div className="profile-card">
-                                    <a
-                                      href="#"
-                                      className="profile-card__main"
-                                    >
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-5.jpg"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Gustavo Stanton
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @gustavostanton
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div className="rel-user-actions">
-                                  <div className="rel-user-action-btn">
-                                    <button
-                                      className="btn-txt-gradient btn-grey"
-                                      data-following-btn
-                                    >
-                                      <span>Following</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                            {renderFollowingList()}
                           </div>
                         </div>
                       </div>
@@ -1384,7 +1087,11 @@ const FollowersPage = () => {
                     </svg>
                   </button>
 
-                  <button className="icon-btn hover-scale-icon">
+                  <button
+                    className="icon-btn hover-scale-icon"
+                    disabled={page === 1}
+                    onClick={() => fetchCreators(page - 1)}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -1410,7 +1117,11 @@ const FollowersPage = () => {
                     </svg>
                   </button>
 
-                  <button className="icon-btn hover-scale-icon">
+                  <button
+                    className="icon-btn hover-scale-icon"
+                    disabled={page === totalPages}
+                    onClick={() => fetchCreators(page + 1)}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -1439,211 +1150,70 @@ const FollowersPage = () => {
               </div>
 
               <div className="featured-profiles-wrapper rel-users-wrapper">
-                <div className="rel-user-box">
-                  <div className="rel-user-profile-action">
-                    <div className="rel-user-profile">
-                      <div className="profile-card">
-                        <a href="#" className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-16.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Jamir Lewis
-                              </div>
-                              <div className="profile-card__badge">
+                {creators.map((creator) => (
+                  <div className="rel-user-box" key={creator._id}>
+                    <div className="rel-user-profile-action">
+                      <div className="rel-user-profile">
+                        <div className="profile-card">
+                          <a href="#" className="profile-card__main">
+                            <div className="profile-card__avatar-settings">
+                              <div className="profile-card__avatar">
                                 <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
+                                  src="/images/profile-avatars/profile-avatar-16.jpg"
+                                  alt="MoneyBoy Social Profile Avatar"
                                 />
                               </div>
                             </div>
-                            <div className="profile-card__username">
-                              @jamirlewis
+
+                            <div className="profile-card__info">
+                              <div className="profile-card__name-badge">
+                                <div className="profile-card__name">
+                                  {creator.displayName ||
+                                    `${creator.firstName} ${creator.lastName}`}
+                                </div>
+                                <div className="profile-card__badge">
+                                  <img
+                                    src="/images/logo/profile-badge.png"
+                                    alt="MoneyBoy Social Profile Badge"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="profile-card__username">
+                                @{creator.userName}
+                              </div>
                             </div>
-                          </div>
-                        </a>
+                          </a>
+                        </div>
                       </div>
-                    </div>
-                    <div className="rel-user-actions">
-                      <div className="rel-user-action-btn">
-                        <button className="btn-txt-gradient">
-                          <span>Follow</span>
-                        </button>
+
+                      <div className="rel-user-actions">
+                        <div className="rel-user-action-btn">
+                          <button
+                            className={`btn-txt-gradient ${
+                              creator.isFollowing ? "btn-grey" : ""
+                            }`}
+                            onClick={() =>
+                              handleFollowToggle(
+                                creator._id,
+                                creator.isFollowing,
+                                "creators"
+                              )
+                            }
+                          >
+                            <span>
+                              {creator.isFollowing ? "Following" : "Follow"}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="rel-user-box">
-                  <div className="rel-user-profile-action">
-                    <div className="rel-user-profile">
-                      <div className="profile-card">
-                        <a href="#" className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-17.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Karsyn Snow
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @karsynsnow
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div className="rel-user-actions">
-                      <div className="rel-user-action-btn">
-                        <button className="btn-txt-gradient">
-                          <span>Follow</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rel-user-box">
-                  <div className="rel-user-profile-action">
-                    <div className="rel-user-profile">
-                      <div className="profile-card">
-                        <a href="#" className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-19.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Trenton Shah
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @trentonshah
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div className="rel-user-actions">
-                      <div className="rel-user-action-btn">
-                        <button className="btn-txt-gradient">
-                          <span>Follow</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rel-user-box">
-                  <div className="rel-user-profile-action">
-                    <div className="rel-user-profile">
-                      <div className="profile-card">
-                        <a href="#" className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-20.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Rylee Lowe
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @ryleelowe
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div className="rel-user-actions">
-                      <div className="rel-user-action-btn">
-                        <button className="btn-txt-gradient">
-                          <span>Follow</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rel-user-box">
-                  <div className="rel-user-profile-action">
-                    <div className="rel-user-profile">
-                      <div className="profile-card">
-                        <a href="#" className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-18.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Leila Beard
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @leilabeard
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                    <div className="rel-user-actions">
-                      <div className="rel-user-action-btn">
-                        <button className="btn-txt-gradient">
-                          <span>Follow</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                ))}
+
+                {!loading && creators.length === 0 && (
+                  <p className="text-center">No creators found</p>
+                )}
               </div>
             </div>
 
@@ -1785,8 +1355,7 @@ const FollowersPage = () => {
                       </div>
                       <div className="profile-card__desc">
                         <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit
                         </p>
                       </div>
                     </div>
@@ -1851,8 +1420,7 @@ const FollowersPage = () => {
                       </div>
                       <div className="profile-card__desc">
                         <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit
                         </p>
                       </div>
                     </div>
@@ -1917,8 +1485,7 @@ const FollowersPage = () => {
                       </div>
                       <div className="profile-card__desc">
                         <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit
                         </p>
                       </div>
                     </div>
@@ -1945,9 +1512,7 @@ const FollowersPage = () => {
                         </div>
                         <div className="profile-card__info">
                           <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Omar Dokidis
-                            </div>
+                            <div className="profile-card__name">Omar Dokidis</div>
                             <div className="profile-card__badge">
                               <img
                                 src="/images/logo/profile-badge.png"
@@ -1983,8 +1548,7 @@ const FollowersPage = () => {
                       </div>
                       <div className="profile-card__desc">
                         <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit
                         </p>
                       </div>
                     </div>
@@ -2049,8 +1613,7 @@ const FollowersPage = () => {
                       </div>
                       <div className="profile-card__desc">
                         <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit
                         </p>
                       </div>
                     </div>
@@ -2077,9 +1640,7 @@ const FollowersPage = () => {
                         </div>
                         <div className="profile-card__info">
                           <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Ruben Kenter
-                            </div>
+                            <div className="profile-card__name">Ruben Kenter</div>
                             <div className="profile-card__badge">
                               <img
                                 src="/images/logo/profile-badge.png"
@@ -2115,8 +1676,7 @@ const FollowersPage = () => {
                       </div>
                       <div className="profile-card__desc">
                         <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit
                         </p>
                       </div>
                     </div>
@@ -2145,7 +1705,7 @@ const FollowersPage = () => {
           </div>
         </aside>
       </div>
-  );
-};
+    );
+  };
 
-export default FollowersPage;
+  export default FollowersPage;
