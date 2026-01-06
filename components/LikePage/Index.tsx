@@ -9,11 +9,6 @@ const LikePage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("posts");
    const searchParams = useSearchParams(); 
-   const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
-   const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
-const setMenuRef = (id: number, element: HTMLDivElement | null) => {
-  menuRefs.current.set(id, element);
-};
 
 const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
   buttonRefs.current.set(id, element);
@@ -97,32 +92,6 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
           });
         };
       }, []);
-
-      useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-          if (openMenuId === null) return;
-      
-          const menuElement = menuRefs.current.get(openMenuId);
-          const buttonElement = buttonRefs.current.get(openMenuId);
-          
-          const target = event.target as Node;
-          
-          // If click is outside both menu and its button, close the menu
-          if (
-            menuElement && 
-            !menuElement.contains(target) && 
-            buttonElement && 
-            !buttonElement.contains(target)
-          ) {
-            setOpenMenuId(null);
-          } 
-        };
-      
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
-        };
-      }, [openMenuId]);
 
   return (
     <div className="moneyboy-2x-1x-layout-container">

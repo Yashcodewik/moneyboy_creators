@@ -436,7 +436,7 @@
                     }
 
                     .rel-user-more-opts-wrapper {
-                        &[data-active], .active {
+                        &[data-active] {
                             .rel-user-more-opts-trigger-icon {
                                 svg {
                                     path {}
