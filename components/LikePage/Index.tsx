@@ -8,11 +8,16 @@ const LikePage = () => {
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("posts");
-   const searchParams = useSearchParams(); 
+  const searchParams = useSearchParams();
+  const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+  const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
+  const setMenuRef = (id: number, element: HTMLDivElement | null) => {
+    menuRefs.current.set(id, element);
+  };
 
-const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
-  buttonRefs.current.set(id, element);
-};
+  const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
+    buttonRefs.current.set(id, element);
+  };
   const [gridLayoutMode, setGridLayoutMode] = useState<{
     videos: "grid" | "list";
     photos: "grid" | "list";
@@ -29,11 +34,14 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
     setActiveTab(tabName);
   };
 
-    useEffect(() => {
+  useEffect(() => {
     if (searchParams) {
-      const tabFromQuery = searchParams.get('tab');
+      const tabFromQuery = searchParams.get("tab");
       console.log("Tab from query:", tabFromQuery); // Debug log
-      if (tabFromQuery && ['posts', 'videos', 'photos'].includes(tabFromQuery)) {
+      if (
+        tabFromQuery &&
+        ["posts", "videos", "photos"].includes(tabFromQuery)
+      ) {
         setActiveTab(tabFromQuery);
       }
     }
@@ -73,31 +81,64 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
     }));
   };
 
-      useEffect(() => {
-        const likeButtons = document.querySelectorAll("[data-like-button]");
-    
-        const handleClick = (event: Event) => {
-          const button = event.currentTarget as HTMLElement;
-          button.classList.toggle("liked");
-        };
-    
-        likeButtons.forEach((button) => {
-          button.addEventListener("click", handleClick);
-        });
-    
-        // Cleanup function
-        return () => {
-          likeButtons.forEach((button) => {
-            button.removeEventListener("click", handleClick);
-          });
-        };
-      }, []);
+  useEffect(() => {
+    const likeButtons = document.querySelectorAll("[data-like-button]");
+
+    const handleClick = (event: Event) => {
+      const button = event.currentTarget as HTMLElement;
+      button.classList.toggle("liked");
+    };
+
+    likeButtons.forEach((button) => {
+      button.addEventListener("click", handleClick);
+    });
+
+    // Cleanup function
+    return () => {
+      likeButtons.forEach((button) => {
+        button.removeEventListener("click", handleClick);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId === null) return;
+
+      const menuElement = menuRefs.current.get(openMenuId);
+      const buttonElement = buttonRefs.current.get(openMenuId);
+
+      const target = event.target as Node;
+
+      // If click is outside both menu and its button, close the menu
+      if (
+        menuElement &&
+        !menuElement.contains(target) &&
+        buttonElement &&
+        !buttonElement.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openMenuId]);
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
-        <div className="moneyboy-feed-page-container" data-multiple-tabs-section data-scroll-zero>
-          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+        <div
+          className="moneyboy-feed-page-container"
+          data-multiple-tabs-section
+          data-scroll-zero
+        >
+          <div
+            className="moneyboy-feed-page-cate-buttons card"
+            id="posts-tabs-btn-card"
+          >
             <button
               className={`page-content-type-button active-down-effect ${
                 activeTab === "posts" ? "active" : ""
@@ -169,10 +210,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                           </svg>
                         </div>
 
-                        <input
-                          type="text"
-                          placeholder="Enter keyword here"
-                        />
+                        <input type="text" placeholder="Enter keyword here" />
                       </div>
                     </div>
                     <div className="creater-content-filters-layouts">
@@ -278,20 +316,18 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                   </a>
 
                   <div className="moneyboy-post__upload-more-info">
-                    <div className="moneyboy-post__upload-time">
-                      1 Hour ago
-                    </div>
-                      <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 1 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(1, el)}
-                        >
+                    <div className="moneyboy-post__upload-time">1 Hour ago</div>
+                    <div
+                      className={`rel-user-more-opts-wrapper ${
+                        openMenuId === 1 ? "active" : ""
+                      }`}
+                      data-more-actions-toggle-element
+                      ref={(el) => setMenuRef(1, el)}
+                    >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(1)}
-                           ref={(el) => setButtonRef(1, el)}
+                        ref={(el) => setButtonRef(1, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -350,8 +386,8 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
 
                 <div className="moneyboy-post__desc">
                   <p>
-                    Today, I experienced the most blissful ride outside. The
-                    air is fresh and It ...
+                    Today, I experienced the most blissful ride outside. The air
+                    is fresh and It ...
                     <span className="active-down-effect-2x">more</span>
                   </p>
                 </div>
@@ -571,20 +607,18 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                   </a>
 
                   <div className="moneyboy-post__upload-more-info">
-                    <div className="moneyboy-post__upload-time">
-                      1 Hour ago
-                    </div>
-                      <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 2 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(2, el)}
-                        >
+                    <div className="moneyboy-post__upload-time">1 Hour ago</div>
+                    <div
+                      className={`rel-user-more-opts-wrapper ${
+                        openMenuId === 2 ? "active" : ""
+                      }`}
+                      data-more-actions-toggle-element
+                      ref={(el) => setMenuRef(2, el)}
+                    >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(2)}
-                         ref={(el) => setButtonRef(2, el)}
+                        ref={(el) => setButtonRef(2, el)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -643,8 +677,8 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
 
                 <div className="moneyboy-post__desc">
                   <p>
-                    Today, I experienced the most blissful ride outside. The
-                    air is fresh and It ...
+                    Today, I experienced the most blissful ride outside. The air
+                    is fresh and It ...
                     <span className="active-down-effect-2x">more</span>
                   </p>
                 </div>
@@ -864,16 +898,14 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                   </a>
 
                   <div className="moneyboy-post__upload-more-info">
-                    <div className="moneyboy-post__upload-time">
-                      1 Hour ago
-                    </div>
-                      <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 3 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(3, el)}
-                        >
+                    <div className="moneyboy-post__upload-time">1 Hour ago</div>
+                    <div
+                      className={`rel-user-more-opts-wrapper ${
+                        openMenuId === 3 ? "active" : ""
+                      }`}
+                      data-more-actions-toggle-element
+                      ref={(el) => setMenuRef(3, el)}
+                    >
                       <button
                         className="rel-user-more-opts-trigger-icon"
                         onClick={() => toggleMenu(3)}
@@ -937,8 +969,8 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
 
                 <div className="moneyboy-post__desc">
                   <p>
-                    Today, I experienced the most blissful ride outside. The
-                    air is fresh and It ...
+                    Today, I experienced the most blissful ride outside. The air
+                    is fresh and It ...
                     <span className="active-down-effect-2x">more</span>
                   </p>
                 </div>
@@ -1304,7 +1336,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                   />
                                 </svg>
                               </button>
-                                <button
+                              <button
                                 className={`creator-content-grid-layout-btn ${
                                   gridLayoutMode.videos === "list"
                                     ? "active"
@@ -1314,7 +1346,6 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                   handleGridLayoutChange("videos", "list")
                                 }
                               >
-                              
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"
@@ -1353,9 +1384,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         data-multi-child-grid-layout-wishlist
                         data-2-cols
                         data-layout-toggle-rows={
-                          gridLayoutMode.videos === "list"
-                            ? "true"
-                            : undefined
+                          gridLayoutMode.videos === "list" ? "true" : undefined
                         }
                       >
                         <div className="creator-content-type-container-wrapper">
@@ -1428,10 +1457,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -1574,10 +1600,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -1720,10 +1743,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -1866,10 +1886,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -2017,9 +2034,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                 <div
                                   className="custom-select-label-wrapper"
                                   data-custom-select-triger
-                                  onClick={() =>
-                                    handleFilterClick("photos")
-                                  }
+                                  onClick={() => handleFilterClick("photos")}
                                 >
                                   <div className="custom-select-icon-txt">
                                     <span className="custom-select-label-txt">
@@ -2080,7 +2095,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                               data-multi-dem-cards-layout-btns
                             >
                               {/* data__active */}
-                                <button
+                              <button
                                 className={`creator-content-grid-layout-btn ${
                                   gridLayoutMode.photos === "grid"
                                     ? "active"
@@ -2090,7 +2105,6 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                   handleGridLayoutChange("photos", "grid")
                                 }
                               >
-                              
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"
@@ -2116,7 +2130,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                   />
                                 </svg>
                               </button>
-                                <button
+                              <button
                                 className={`creator-content-grid-layout-btn ${
                                   gridLayoutMode.photos === "list"
                                     ? "active"
@@ -2126,7 +2140,6 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                   handleGridLayoutChange("photos", "list")
                                 }
                               >
-                            
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"
@@ -2155,9 +2168,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         data-multi-child-grid-layout-wishlist
                         data-2-cols
                         data-layout-toggle-rows={
-                          gridLayoutMode.photos === "list"
-                            ? "true"
-                            : undefined
+                          gridLayoutMode.photos === "list" ? "true" : undefined
                         }
                       >
                         <div className="creator-content-type-container-wrapper">
@@ -2229,10 +2240,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -2375,10 +2383,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -2521,10 +2526,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -2667,10 +2669,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                                       </a>
                                     </li>
                                     <li>
-                                      <a
-                                        href="#"
-                                        className="post-comment-btn"
-                                      >
+                                      <a href="#" className="post-comment-btn">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="24"
@@ -2896,8 +2895,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                     </div>
                     <div className="profile-card__desc">
                       <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing
-                        elit
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
                       </p>
                     </div>
                   </div>
@@ -2962,8 +2960,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                     </div>
                     <div className="profile-card__desc">
                       <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing
-                        elit
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
                       </p>
                     </div>
                   </div>
@@ -3028,8 +3025,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                     </div>
                     <div className="profile-card__desc">
                       <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing
-                        elit
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
                       </p>
                     </div>
                   </div>
@@ -3056,9 +3052,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                       </div>
                       <div className="profile-card__info">
                         <div className="profile-card__name-badge">
-                          <div className="profile-card__name">
-                            Omar Dokidis
-                          </div>
+                          <div className="profile-card__name">Omar Dokidis</div>
                           <div className="profile-card__badge">
                             <img
                               src="/images/logo/profile-badge.png"
@@ -3094,8 +3088,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                     </div>
                     <div className="profile-card__desc">
                       <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing
-                        elit
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
                       </p>
                     </div>
                   </div>
@@ -3160,8 +3153,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                     </div>
                     <div className="profile-card__desc">
                       <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing
-                        elit
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
                       </p>
                     </div>
                   </div>
@@ -3188,9 +3180,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                       </div>
                       <div className="profile-card__info">
                         <div className="profile-card__name-badge">
-                          <div className="profile-card__name">
-                            Ruben Kenter
-                          </div>
+                          <div className="profile-card__name">Ruben Kenter</div>
                           <div className="profile-card__badge">
                             <img
                               src="/images/logo/profile-badge.png"
@@ -3226,8 +3216,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                     </div>
                     <div className="profile-card__desc">
                       <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing
-                        elit
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
                       </p>
                     </div>
                   </div>
