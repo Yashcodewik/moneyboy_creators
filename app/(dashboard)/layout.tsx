@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export default function DashboardLayout({children,}: {children: React.ReactNode;}) {const router = useRouter();
 
   return (
+    <>
     <div className="moneyboy-layout-container">
       <Header />
       <div className="container">
@@ -20,5 +21,7 @@ export default function DashboardLayout({children,}: {children: React.ReactNode;
         </div>
       </div>
     </div>
+    <div className="mobile-popup-overlay"></div>
+    </>
   );
 }

@@ -977,8 +977,31 @@ body {
   }
 }
 
+.rel-user-more-opts-wrapper.active {
+  .rel-users-more-opts-popup-wrapper {
+    left: auto;
+    @media (max-width: 620px) {
+      display: block;
+      overflow: hidden;
+      left: 0;
+      bottom: 25px;
+      width: 100%;
+      z-index: 1000;
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+  }
+}
 
-.rel-user-more-opts-wrapper.active .rel-users-more-opts-popup-wrapper {
-  left: auto;
+.mobile-popup-overlay.active {
+  pointer-events: auto;
+  opacity: 1;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.4);
+  height: 100%;
+  width: 100%;
+  left: 0px;
+  top: 0px;
+  position: fixed;
 }
   
