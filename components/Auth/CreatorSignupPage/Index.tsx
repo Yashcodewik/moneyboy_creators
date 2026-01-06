@@ -11,7 +11,20 @@ import {
   API_CREATOR_UPLOAD_KYC,
 } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
-import {ageGroupOptions, bodyTypeOptions, countryOptions, ethnicityOptions, eyeColorOptions, hairColorOptions, heightOptions, popularityOptions, sexualOrientationOptions, sizeOptions, styleOptions,} from "@/components/helper/creatorOptions";
+import {
+  ageGroupOptions,
+  bodyTypeOptions,
+  countryOptions,
+  ethnicityOptions,
+  eyeColorOptions,
+  genderOptions,
+  hairColorOptions,
+  heightOptions,
+  popularityOptions,
+  sexualOrientationOptions,
+  sizeOptions,
+  styleOptions,
+} from "@/components/helper/creatorOptions";
 import OtpModal from "@/components/OtpModal";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -220,11 +233,13 @@ const CreatorSignupPage = () => {
       setOtpOpen(false);
 
       // redirect to feed
-      router.push("/dashboard");
+      router.push("/Discover");
     } catch (err: any) {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
   };
+
+  
 
   return (
     <div className="bg-off-white">
@@ -402,19 +417,13 @@ const CreatorSignupPage = () => {
                       )}
                   </div>
                   <div>
-                    <div className="label-input">
-                      <div className="input-placeholder-icon">
-                        <i className="icons groupUser svg-icon"></i>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Male"
-                        value={formik.values.gender}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        name="gender"
-                      />
-                    </div>
+                    <CustomSelect
+                      label="Select Gender *"
+                      icon={<i className="icons groupUser svg-icon"></i>}
+                      options={genderOptions}
+                      value={formik.values.gender}
+                      onChange={(val) => formik.setFieldValue("gender", val)}
+                    />
                     {formik.touched.gender && formik.errors.gender && (
                       <span className="error-message">
                         {formik.errors.gender}
@@ -427,12 +436,20 @@ const CreatorSignupPage = () => {
                         <i className="icons bookmarkIcon svg-icon"></i>
                       </div>
                       <input
-                        type="text"
-                        placeholder="Date of Birth (DD/MM/YYYY) *"
+                        type="date"
                         value={formik.values.dob}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         name="dob"
+                        max={(() => {
+                          const today = new Date();
+                          const minAgeDate = new Date(
+                            today.getFullYear() - 18,
+                            today.getMonth(),
+                            today.getDate()
+                          );
+                          return minAgeDate.toISOString().split("T")[0];
+                        })()}
                       />
                     </div>
                     {formik.touched.dob && formik.errors.dob && (
@@ -618,7 +635,11 @@ const CreatorSignupPage = () => {
                     )}
                   </div>
                   <div>
-                    <CustomSelect label="All Sizes" icon={<svg className="icons expanddiagonal svg-icon size-18"></svg>}
+                    <CustomSelect
+                      label="All Sizes"
+                      icon={
+                        <svg className="icons expanddiagonal svg-icon size-18"></svg>
+                      }
                       options={sizeOptions}
                       value={formik.values.size}
                       onChange={(val) => formik.setFieldValue("size", val)}
@@ -659,27 +680,45 @@ const CreatorSignupPage = () => {
                   <div className="label-input one file-upload-wrapper">
                     <div className="input-placeholder-icon">
                       <svg className="icons idshape size-45"></svg>
-                      <div className="imgicons"><TbCamera size="16" /></div>
+                      <div className="imgicons">
+                        <TbCamera size="16" />
+                      </div>
                     </div>
-                    <p>Your government issued ID card, National ID card, Passport or Driving license *</p>
-                    <input type="file" className="real-file-input" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, "id")}/>
+                    <p>
+                      Your government issued ID card, National ID card, Passport
+                      or Driving license *
+                    </p>
+                    <input
+                      type="file"
+                      className="real-file-input"
+                      accept="image/*,.pdf"
+                      onChange={(e) => handleFileChange(e, "id")}
+                    />
                   </div>
                   {idPreview && (
                     <div className="label-input file-upload-wrapper preview-wrapper">
                       {idPreview === "pdf" ? (
                         <div className="input-placeholder-icon">
-                          <FaFilePdf className="icons" color="#E5741F"/>
+                          <FaFilePdf className="icons" color="#E5741F" />
                         </div>
-                        ) : (
+                      ) : (
                         <div className="input-placeholder-icon">
                           <img src={idPreview} className="preview-img" />
                         </div>
-                        )}
-                        <p>PDF Uploaded</p>
-                        <div className="right_box">
-                          <Link href="#" className="icons"><FiEdit /></Link>
-                          <Link href="#" className="icons" onClick={() => handleRemoveFile("id")}><FaTrash /></Link>
-                        </div>
+                      )}
+                      <p>PDF Uploaded</p>
+                      <div className="right_box">
+                        <Link href="#" className="icons">
+                          <FiEdit />
+                        </Link>
+                        <Link
+                          href="#"
+                          className="icons"
+                          onClick={() => handleRemoveFile("id")}
+                        >
+                          <FaTrash />
+                        </Link>
+                      </div>
                     </div>
                   )}
                   <div className="label-input one file-upload-wrapper">
@@ -714,7 +753,6 @@ const CreatorSignupPage = () => {
                         </div>
                       </div>
                     )}
-
                   </div>
                 </div>
               </div>

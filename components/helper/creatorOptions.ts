@@ -1,23 +1,10 @@
 
-// Country options
-export const countryOptions = [
-  { label: "India", value: "India" },
-  { label: "USA", value: "USA" },
-  { label: "UK", value: "UK" },
-  { label: "Canada", value: "Canada" },
-  { label: "Australia", value: "Australia" },
-  { label: "Germany", value: "Germany" },
-  { label: "France", value: "France" },
-  { label: "Japan", value: "Japan" },
-  { label: "Brazil", value: "Brazil" },
-  { label: "Mexico", value: "Mexico" },
-  { label: "Spain", value: "Spain" },
-  { label: "Italy", value: "Italy" },
-  { label: "Russia", value: "Russia" },
-  { label: "China", value: "China" },
-  { label: "South Korea", value: "South Korea" },
-];
+import countriesData from '../data/countries.json';
 
+export const countryOptions = countriesData.map(country => ({
+  label: country.label,
+  value: country.value
+}));
 // Body Type options
 export const bodyTypeOptions = [
   { label: "Slim", value: "Slim" },
@@ -148,7 +135,6 @@ export const genderOptions = [
   { label: "Transgender", value: "Transgender" },
   { label: "Genderqueer", value: "Genderqueer" },
   { label: "Other", value: "Other" },
-  { label: "Prefer not to say", value: "Prefer not to say" },
 ];
 
 // All options combined for easy import

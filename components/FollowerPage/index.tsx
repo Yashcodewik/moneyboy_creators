@@ -1,27 +1,46 @@
-"use client";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+  "use client";
+  import {
+    API_FOLLOW_USER,
+    API_GET_CREATORS,
+    API_GET_FOLLOWERS,
+    API_GET_FOLLOWING,
+    API_UNFOLLOW_USER,
+  } from "@/utils/api/APIConstant";
+  import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
+  import Link from "next/link";
+  import { useRouter, useSearchParams } from "next/navigation";
+  import React, { useEffect, useRef, useState } from "react";
+  import ShowToast from "../common/ShowToast";
 
-const FollowersPage = () => {
-  const [follow, setFollow] = useState<"Following" | "Followers">("Followers");
-  const [openMoreId, setOpenMoreId] = useState<number | null>(null);
-  const moreRef = useRef<HTMLDivElement | null>(null);
-  const [selectedOption, setSelectedOption] = useState("All Time");
-  const [tab, setTab] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const toggleMore = (id: number) => {
-    setOpenMoreId((prev) => (prev === id ? null : id));
-  };
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam === "followers") {
-      setFollow("Followers");
-    } else if (tabParam === "following") {
-      setFollow("Following");
-    }
-  }, [searchParams]);
+  interface Creator {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    displayName?: string;
+    userName: string;
+    bio?: string;
+    isFollowing: boolean;
+  }
+
+  interface Follower {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    displayName?: string;
+    userName: string;
+    bio?: string;
+    isFollowing: boolean;
+    isFollowingYou: boolean;
+  }
+
+  const FollowersPage = () => {
+    const [follow, setFollow] = useState<"Following" | "Followers">("Followers");
+    const [openMoreId, setOpenMoreId] = useState<string | null>(null);
+    const moreRef = useRef<HTMLDivElement | null>(null);
+    const [selectedOption, setSelectedOption] = useState("All Time");
+    const [tab, setTab] = useState(false);
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
     const [followers, setFollowers] = useState<Follower[]>([]);
     const [following, setFollowing] = useState<Follower[]>([]);
@@ -728,26 +747,7 @@ if (listType === "followers") {
       });
     };
 
-  useEffect(() => {
-    const likeButtons = document.querySelectorAll("[data-like-button]");
-
-    const handleClick = (event: Event) => {
-      const button = event.currentTarget as HTMLElement;
-      button.classList.toggle("liked");
-    };
-
-    likeButtons.forEach((button) => {
-      button.addEventListener("click", handleClick);
-    });
-
-    return () => {
-      likeButtons.forEach((button) => {
-        button.removeEventListener("click", handleClick);
-      });
-    };
-  }, []);
-
-  return (
+    return (
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout">
           <div
