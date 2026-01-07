@@ -32,6 +32,26 @@
   filter: brightness(0) invert(1);
 }
 
+/* Filled icons Start */
+/* .icons {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  color: #FECE26;
+  background-color: currentColor
+}
+.icons.arrowLeft {
+  mask-image: url("");
+  -webkit-mask-image: url("");
+} */
+/* Filled icons Endd */
+
 .icons.arrowLeft {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M9.57 5.93L3.5 12L9.57 18.07' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M20.5 12H3.67' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
