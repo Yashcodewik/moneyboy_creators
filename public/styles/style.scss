@@ -1212,7 +1212,8 @@ body {
     button {
       &:hover {
         .icons {
-          filter: brightness(0) invert(1);
+          // filter: brightness(0) invert(1);
+          filter: brightness(0) saturate(100%) invert(70%) sepia(50%) saturate(1030%) hue-rotate(6deg) brightness(100%) contrast(100%);
         }
       }
     }
