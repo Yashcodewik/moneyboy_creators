@@ -1209,6 +1209,13 @@ body {
 
 .common-cntwrap {
   .moneyboy-feed-page-cate-buttons {
+    button {
+      &:hover {
+        .icons {
+          filter: brightness(0) invert(1);
+        }
+      }
+    }
     .page-content-type-button {
       max-width: 30%;
     }
