@@ -744,16 +744,22 @@ const Sidebar: React.FC = () => {
                   <a href="#">Contact</a>
                 </li>
                 <li>
-                  <a href="#">Help &amp; Support</a>
+                  <a href="/help">Help &amp; Support</a>
                 </li>
                 <li>
-                  <a href="#">Terms of Service</a>
+                  <a href="/terms">Terms of Service</a>
                 </li>
                 <li>
-                  <a href="#">Privacy</a>
+                  <a href="/privacy">Privacy</a>
                 </li>
                 <li>
-                  <a href="#">DMCA</a>
+                  <a href="/dmca">DMCA</a>
+                </li>
+                <li>
+                  <a href="/refund">Refund</a>
+                </li>
+                <li>
+                  <a href="/usc">USC</a>
                 </li>
               </ul>
             </nav>

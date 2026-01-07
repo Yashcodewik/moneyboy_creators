@@ -5,6 +5,7 @@
 body {
   background: #F4F4F4;
 }
+
 /* loader Start */
 .loader {
   width: 26px;
@@ -173,6 +174,9 @@ body {
 /* Custome class Start  */
 .mb-0 {
   margin-bottom: 0px !important;
+}
+.mb-5 {
+  margin-bottom: 5px !important;
 }
 .mb-10 {
   margin-bottom: 15px !important;
@@ -1114,7 +1118,7 @@ body {
       align-items: center;
       gap: 10px;
       color: var(--color-text-active);
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 500;
       font-style: normal;
       line-height: 100%;
@@ -1127,9 +1131,9 @@ body {
     }
     p {
       color: #505050;
-      font-size: 16px;
+      font-size: 15px;
       line-height: 20px;
-      font-weight: 400;
+      font-weight: 500;
       font-style: normal;
       letter-spacing: 0px;
       font-family: var(--font-family-base);
@@ -1159,9 +1163,9 @@ body {
       li {
         position: relative;
         color: #505050;
-        font-size: 16px;
+        font-size: 15px;
         line-height: 20px;
-        font-weight: 400;
+        font-weight: 500;
         font-style: normal;
         letter-spacing: 0px;
         font-family: var(--font-family-base);
@@ -1182,6 +1186,7 @@ body {
       flex-wrap: wrap;
       button {
         max-width: 50%;
+        font-family: var(--font-family-heading);
       }
     }
     &.ageverify-modal {
@@ -1199,5 +1204,153 @@ body {
   &.show {
     display: flex;
     opacity: 1;
+  }
+}
+
+.common-cntwrap {
+  .moneyboy-feed-page-cate-buttons {
+    .page-content-type-button {
+      max-width: 30%;
+    }
+  }
+  .main_contwrap {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px 15px;
+    h3 {
+      color: var(--color-text-active);
+      font-style: normal;
+      font-size: 21px;
+      line-height: 100%;
+      font-weight: 400;
+      letter-spacing: 0px;
+      text-transform: capitalize;
+      font-family: var(--font-family-heading);
+      span {
+        font-family: var(--font-family-base);
+      }
+    }
+    h5 {
+      color: #505050;
+      font-style: normal;
+      font-size: 16px;
+      line-height: 100%;
+      font-weight: 700;
+      letter-spacing: 0px;
+      text-transform: capitalize;
+      font-family: var(--font-family-base);
+    }
+    p {
+      color: #505050;
+      font-size: 16px;
+      line-height: 20px;
+      font-weight: 500;
+      font-style: normal;
+      letter-spacing: 0px;
+      font-family: var(--font-family-base);
+      span.block {
+        display: block;
+      }
+    }
+    ul {
+      margin: 8px 0;
+      padding-left: 0;
+      &.m-0 {
+        margin: 0px;
+      }
+      &.li-ps0 {
+        li {
+          padding-left: 0px;
+        }
+      }
+      li {
+        position: relative;
+        list-style: none;
+        padding-left: 35px;
+        color: #505050;
+        font-size: 16px;
+        line-height: 20px;
+        font-weight: 500;
+        font-family: var(--font-family-base);
+        margin-bottom: 10px;
+        &:last-child {
+          margin-bottom: 0;
+        }
+        b {
+          font-weight: 700;
+        }
+      }
+      &.points {
+        li::before {
+          content: "";
+          position: absolute;
+          left: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: linear-gradient(103.7deg, #fece26 4.76%, #e5741f 118.16%);
+        }
+      }
+      &.number {
+        padding-left: 35px;
+        list-style-type: devanagari;
+        li {
+          list-style: inherit;
+          padding-left: 0;
+          padding-left: 0px;
+        }
+      }
+    }
+  }
+  /* ========== Tablet (768px – 1024px) ========== */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .moneyboy-feed-page-cate-buttons {
+      .page-content-type-button {
+        max-width: 45%;
+      }
+    }
+    .main_contwrap {
+      gap: 18px;
+      padding: 18px 14px;
+      h3 {
+        font-size: 22px;
+      }
+      p {
+        font-size: 15px;
+        line-height: 19px;
+      }
+    }
+  }
+  /* ========== Mobile (max-width: 767px) ========== */
+  @media (max-width: 767px) {
+    .moneyboy-feed-page-cate-buttons {
+      .page-content-type-button {
+        max-width: 100%;
+        width: 100%;
+      }
+    }
+    .main_contwrap {
+      gap: 16px;
+      padding: 20px;
+      h3 {
+        font-size: 20px;
+        line-height: 1.2;
+      }
+      p {
+        font-size: 14px;
+        line-height: 18px;
+      }
+      ul {
+        li {
+          padding-inline-start: 32px;
+          &::before {
+            left: 10px;
+          }
+        }
+      }
+    }
   }
 }

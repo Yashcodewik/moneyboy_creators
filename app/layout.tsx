@@ -11,7 +11,7 @@ import "../public/styles/pages/discover-page/layout.css";
 import "../public/styles/main-responsive.css";
 import "../public/styles/pages/discover-page/responsive.css";
 import "../public/styles/icons.css";
-import "../public/styles/style.css";
+import "../public/styles/style.scss";
 import Footer from "@/components/Layouts/Footer";
 import AuthProviders from "@/libs/authProviders";
 import { getServerSession } from "next-auth/next";

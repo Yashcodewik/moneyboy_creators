@@ -1,11 +1,11 @@
-import HelpPage from "@/components/HelpPage";
+import RefundPage from "@/components/RefundPage/index";
 import Header from "@/components/Layouts/Header";
 
 const Index = () => {
   return (
     <div className="moneyboy-layout-container">
       <Header />
-      <HelpPage />
+      <RefundPage />
     </div>
   );
 };
