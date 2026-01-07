@@ -8,6 +8,13 @@
   background-clip: unset !important;
   transition: color 0.2s ease, transform 0.2s ease;
 }
+/* .icons:hover {
+  transform: scale(1.1);
+}
+
+.icons:active {
+  transform: scale(0.95);
+} */
 .icons.size-18 {
   width: 45px;
   height: 45px;
@@ -111,4 +118,9 @@
 }
 .icons.wishlist {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M22.4266 2.66669H9.57327C6.73327 2.66669 4.42661 4.98669 4.42661 7.81335V26.6C4.42661 29 6.14661 30.0134 8.25327 28.8534L14.7599 25.24C15.4533 24.8534 16.5733 24.8534 17.2533 25.24L23.7599 28.8534C25.8666 30.0267 27.5866 29.0134 27.5866 26.6V7.81335C27.5733 4.98669 25.2666 2.66669 22.4266 2.66669Z' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12.3333 12.0667C14.7067 12.9334 17.2933 12.9334 19.6667 12.0667' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.icons.close {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1.17 23.83L22.83 2.17M22.83 23.83L1.17 2.17' stroke='currentColor' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1.17 23.83L22.83 2.17M22.83 23.83L1.17 2.17' stroke='currentColor' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
 }
