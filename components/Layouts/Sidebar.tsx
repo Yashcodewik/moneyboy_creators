@@ -211,7 +211,7 @@ const Sidebar: React.FC = () => {
                   <div className="profile-card__stats">
                     {session?.user?.role === 2 && (
                       <div className="profile-card__stats-item posts-stats">
-                        <div className="profile-card__stats-num">2,880</div>
+                        <div className="profile-card__stats-num">0</div>
                         <div className="profile-card__stats-label">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

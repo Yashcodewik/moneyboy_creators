@@ -782,7 +782,7 @@ const handleFollowingSearch = (value: string) => {
       }
 
       if (following.length === 0) {
-        return <div className="text-center">Not following anyone yet</div>;
+        return <div className="nodeta">Not following anyone yet</div>;
       }
 
       return following.map((follow) => {
