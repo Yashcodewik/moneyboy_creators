@@ -8,6 +8,11 @@ import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_CREATOR_PROFILE, API_FOLLOWER_COUNT, API_USER_PROFILE } from "@/utils/api/APIConstant";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import { fetchFollowerCounts } from "../redux/other/followActions";
+import { FiAtSign, FiImage, FiMic, FiVideo } from "react-icons/fi";
+import { FaXTwitter } from "react-icons/fa6";
+import { PiTextAaBold } from "react-icons/pi";
+import { CgClose } from "react-icons/cg";
+import { HiMenuAlt2 } from "react-icons/hi";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
