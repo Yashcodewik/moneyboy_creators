@@ -88,7 +88,6 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = user.accessToken;
       }
 
-      console.log("JWT callback returning token:", token);
       return token;
     },
 
