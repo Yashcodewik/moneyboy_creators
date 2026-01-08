@@ -5,24 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_CREATOR_PROFILE, API_USER_PROFILE } from "@/utils/api/APIConstant";
-import { CgClose } from "react-icons/cg";
-import { PiTextAaBold } from "react-icons/pi";
-import {
-  FiImage,
-  FiVideo,
-  FiType,
-  FiMic,
-  FiMenu,
-  FiAtSign,
-} from "react-icons/fi";
-import { HiMenuAlt2 } from "react-icons/hi";
-import { FaXTwitter } from "react-icons/fa6";
-import { TbCamera } from "react-icons/tb";
-import { MdUpload } from "react-icons/md";
-import { IoSearch } from "react-icons/io5";
-import { BsThreeDotsVertical } from "react-icons/bs";
-
+import { API_CREATOR_PROFILE, API_FOLLOWER_COUNT, API_USER_PROFILE } from "@/utils/api/APIConstant";
+import { useAppDispatch, useAppSelector } from "../redux/store";
+import { fetchFollowerCounts } from "../redux/other/followActions";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
@@ -30,8 +15,16 @@ const Sidebar: React.FC = () => {
   const [profileLoading, setProfileLoading] = useState(true);
    const [isOpen, setIsOpen] = useState(false);
   const { session } = useDecryptedSession();
+    const dispatch = useAppDispatch();
+  const { counts, loading: countsLoading } = useAppSelector((state) => state.follow);
+  const followerCount = counts.followerCount;
+  const followingCount = counts.followingCount;
+  
   const pathname = usePathname();
   const router = useRouter();
+
+
+  
 
   useEffect(() => {
     const pathToPageMap: Record<string, string> = {
@@ -80,71 +73,73 @@ const Sidebar: React.FC = () => {
     signOut({ callbackUrl: "/" });
   };
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!session?.isAuthenticated) {
-        setProfileLoading(false);
-        return;
+useEffect(() => {
+  const fetchAllData = async () => {
+    if (!session?.isAuthenticated) {
+      setProfileLoading(false);
+      // Don't reset counts to 0 here - let Redux handle it
+      return;
+    }
+
+    // Fetch user profile
+    try {
+      setProfileLoading(true);
+      let apiUrl = API_USER_PROFILE;
+
+      if (session?.user?.role === 2) {
+        apiUrl = API_CREATOR_PROFILE;
       }
 
-      try {
-        setProfileLoading(true);
-        let apiUrl = API_USER_PROFILE;
+      const profileResponse = await getApiWithOutQuery({ url: apiUrl });
 
+      if (profileResponse) {
+        let userData;
         if (session?.user?.role === 2) {
-          apiUrl = API_CREATOR_PROFILE;
-        }
-
-        const response = await getApiWithOutQuery({ url: apiUrl });
-
-        console.log("Profile===========", response);
-
-        if (response) {
-          let userData;
-
-          if (session?.user?.role === 2) {
-            if (response.user) {
-              userData = {
-                displayName: response.user.displayName,
-                username: response.user.userName,
-                firstName: response.user.firstName,
-                lastName: response.user.lastName,
-                email: response.user.email,
-              };
-            }
-          } else {
-            if (response.success && response.data) {
-              userData = {
-                displayName: response.data.displayName,
-                username: response.data.userName,
-                firstName: response.data.firstName,
-                lastName: response.data.lastName,
-                email: response.data.email,
-              };
-            }
+          if (profileResponse.user) {
+            userData = {
+              displayName: profileResponse.user.displayName,
+              username: profileResponse.user.userName,
+              firstName: profileResponse.user.firstName,
+              lastName: profileResponse.user.lastName,
+              email: profileResponse.user.email,
+            };
           }
-
-          if (userData) {
-            setUserProfile(userData);
+        } else {
+          if (profileResponse.success && profileResponse.data) {
+            userData = {
+              displayName: profileResponse.data.displayName,
+              username: profileResponse.data.userName,
+              firstName: profileResponse.data.firstName,
+              lastName: profileResponse.data.lastName,
+              email: profileResponse.data.email,
+            };
           }
         }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setProfileLoading(false);
+        if (userData) setUserProfile(userData);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
 
-    fetchUserProfile();
-  }, [session?.isAuthenticated, session?.user?.role]);
+    // Fetch follower counts FROM REDUX
+    dispatch(fetchFollowerCounts());
+  };
+
+  fetchAllData();
+}, [session?.isAuthenticated, session?.user?.role, dispatch]);
 
     const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);
 
-    // Navigate to /like with query parameter for the active tab
+
     router.push(`/follower?tab=${tab}`);
   };
+
+
+
   return (
     <>
       <div className="moneyboy-global-sidebar-wrapper" id="leftSidebar">
@@ -389,7 +384,14 @@ const Sidebar: React.FC = () => {
                     }`}
                     onClick={(e) => handleNavClick("feed", "/feed", e)}
                   >
-                    <div>
+                     <div className="profile-card__stats-num">
+    {countsLoading ? (
+      <span className="loading-dots">...</span>
+    ) : (
+      followerCount.toLocaleString()
+    )}
+  </div>
+                    <div className="profile-card__stats-label">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="32"
@@ -426,7 +428,14 @@ const Sidebar: React.FC = () => {
                     }`}
                     onClick={(e) => handleNavClick("discover", "/discover", e)}
                   >
-                    <div>
+                      <div className="profile-card__stats-num">
+    {countsLoading ? (
+      <span className="loading-dots">...</span>
+    ) : (
+      followingCount.toLocaleString()
+    )}
+  </div>
+                    <div className="profile-card__stats-label">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="32"
@@ -812,35 +821,19 @@ const Sidebar: React.FC = () => {
               <ul>
                 {/* Mobile Navigation - Home (Feed) */}
                 <li>
-                  <Link
-                    href="#"
-                    className={activePage === "feed" ? "active" : ""}
-                    onClick={(e) => handleMobileNavClick("feed", "/feed", e)}
-                  >
-                    <div>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 32 32"
-                        fill="none"
-                      >
-                        <path
-                          d="M13.4266 3.76005L4.18661 11.16C3.14661 11.9867 2.47995 13.7334 2.70661 15.0401L4.47995 25.6534C4.79995 27.5467 6.61327 29.08 8.53327 29.08H23.4666C25.3733 29.08 27.1999 27.5334 27.5199 25.6534L29.2933 15.0401C29.5066 13.7334 28.84 11.9867 27.8133 11.16L18.5733 3.77339C17.1466 2.62673 14.84 2.62671 13.4266 3.76005Z"
-                          stroke="none"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M16.0001 20.6667C17.841 20.6667 19.3334 19.1743 19.3334 17.3333C19.3334 15.4924 17.841 14 16.0001 14C14.1591 14 12.6667 15.4924 12.6667 17.3333C12.6667 19.1743 14.1591 20.6667 16.0001 20.6667Z"
-                          stroke="none"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span> Home </span>
-                    </div>
-                  </Link>
+                  <a href="#">Home</a>
+                </li>
+                <li>
+                  <a href="#">Creator</a>
+                </li>
+                <li>
+                  <a href="/contact-us">Contact</a>
+                </li>
+                <li>
+                  <a href="/help">Help &amp; Support</a>
+                </li>
+                <li>
+                  <a href="/terms">Terms of Service</a>
                 </li>
 
                 {/* Mobile Navigation - Search */}

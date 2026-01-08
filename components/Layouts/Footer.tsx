@@ -8,12 +8,12 @@ const Footer = () => {
       <div className="container footer_main">
       <ul className="ft_links">
         <li><Link href="/login">Login</Link></li>
-        <li><Link href="/signup">Signup</Link></li>
-        <li><Link href="#">Help & Support</Link></li>
-        <li><Link href="#">Terms of Service</Link></li>
-        <li><Link href="#">U.S.C 2257</Link></li>
-        <li><Link href="#">Privacy</Link></li>
-        <li><Link href="#">DMCA</Link></li>
+        <li><Link href="/benefits">Signup</Link></li>
+        <li><Link href="/help">Help & Support</Link></li>
+        <li><Link href="/terms">Terms of Service</Link></li>
+        <li><Link href="/usc">U.S.C 2257</Link></li>
+        <li><Link href="/privacy">Privacy</Link></li>
+        <li><Link href="/dmca">DMCA</Link></li>
       </ul>
       <div className="ftright">
         <Link href="#" className="footer-logo"><Image src="/images/debit-cards-logo/dmca-logo.svg" alt="DMCA Logo" width={50} height={18}/></Link>

@@ -1,9 +1,8 @@
+import countriesData from "../data/countries.json";
 
-import countriesData from '../data/countries.json';
-
-export const countryOptions = countriesData.map(country => ({
+export const countryOptions = countriesData.map((country) => ({
   label: country.label,
-  value: country.value
+  value: country.value,
 }));
 // Body Type options
 export const bodyTypeOptions = [
@@ -137,9 +136,67 @@ export const genderOptions = [
   { label: "Other", value: "Other" },
 ];
 
+export const categoryOptions = [
+  { label: "All Categories", value: "all" },
+  { label: "Fashion", value: "fashion" },
+  { label: "Fitness", value: "fitness" },
+  { label: "Lifestyle", value: "lifestyle" },
+  { label: "Travel", value: "travel" },
+  { label: "Food", value: "food" },
+  { label: "Beauty", value: "beauty" },
+  { label: "Gaming", value: "gaming" },
+  { label: "Tech", value: "tech" },
+  { label: "Music", value: "music" },
+  { label: "Art", value: "art" },
+  { label: "Education", value: "education" },
+  { label: "Business", value: "business" },
+  { label: "Other", value: "other" },
+];
+
+// Feature/Status options
+export const featureOptions = [
+  { label: "Featured", value: "featured" },
+  { label: "New", value: "new" },
+  { label: "Popular", value: "popular" },
+  { label: "Trending", value: "trending" },
+  { label: "Verified", value: "verified" },
+  { label: "Premium", value: "premium" },
+  { label: "Rising Star", value: "rising_star" },
+  { label: "Veteran", value: "veteran" },
+];
+
+// City options (you might want to load these from a separate JSON file)
+// For now, here are some common global cities
+export const cityOptions = [
+  { label: "All Cities", value: "all" },
+  { label: "New York", value: "new_york" },
+  { label: "Los Angeles", value: "los_angeles" },
+  { label: "Chicago", value: "chicago" },
+  { label: "London", value: "london" },
+  { label: "Paris", value: "paris" },
+  { label: "Tokyo", value: "tokyo" },
+  { label: "Singapore", value: "singapore" },
+  { label: "Sydney", value: "sydney" },
+  { label: "Dubai", value: "dubai" },
+  { label: "Toronto", value: "toronto" },
+  { label: "Miami", value: "miami" },
+  { label: "Las Vegas", value: "las_vegas" },
+  { label: "Berlin", value: "berlin" },
+  { label: "Amsterdam", value: "amsterdam" },
+  { label: "Hong Kong", value: "hong_kong" },
+  { label: "Bangkok", value: "bangkok" },
+  { label: "Mumbai", value: "mumbai" },
+  { label: "Shanghai", value: "shanghai" },
+  { label: "São Paulo", value: "sao_paulo" },
+  { label: "Other", value: "other" },
+];
+
 // All options combined for easy import
 export const creatorFormOptions = {
   countryOptions,
+  categoryOptions,
+  featureOptions,
+  cityOptions,
   bodyTypeOptions,
   sexualOrientationOptions,
   ageGroupOptions,
@@ -154,12 +211,18 @@ export const creatorFormOptions = {
 };
 
 // Helper functions
-export const getLabelFromValue = (value: string, options: Array<{label: string, value: string}>): string => {
-  const option = options.find(opt => opt.value === value);
+export const getLabelFromValue = (
+  value: string,
+  options: Array<{ label: string; value: string }>
+): string => {
+  const option = options.find((opt) => opt.value === value);
   return option ? option.label : value;
 };
 
-export const getValueFromLabel = (label: string, options: Array<{label: string, value: string}>): string => {
-  const option = options.find(opt => opt.label === label);
+export const getValueFromLabel = (
+  label: string,
+  options: Array<{ label: string; value: string }>
+): string => {
+  const option = options.find((opt) => opt.label === label);
   return option ? option.value : label;
 };

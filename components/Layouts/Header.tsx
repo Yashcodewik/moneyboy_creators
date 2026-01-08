@@ -77,14 +77,12 @@ const Header = () => {
 
         const response = await getApiWithOutQuery({ url: apiUrl });
 
-        console.log("Profile API Response:", response); // Debug log
+        console.log("Profile API Response:", response);
 
         if (response) {
-          // Handle different response structures
           let userData;
 
           if (session?.user?.role === 2) {
-            // Creator profile: response has { user, creator } objects
             if (response.user) {
               userData = {
                 displayName: response.user.displayName,
@@ -95,7 +93,6 @@ const Header = () => {
               };
             }
           } else {
-            // User profile: response has { success, message, data } structure
             if (response.success && response.data) {
               userData = {
                 displayName: response.data.displayName,
@@ -120,19 +117,16 @@ const Header = () => {
 
     fetchUserProfile();
   }, [session?.isAuthenticated, session?.user?.role]);
-  // In Header component, update handleTabNavigation function:
   const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);
 
-    // Navigate to /like with query parameter for the active tab
     router.push(`/like?tab=${tab}`);
   };
   const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);
 
-    // Navigate to /like with query parameter for the active tab
     router.push(`/follower?tab=${tab}`);
   };
   return (
