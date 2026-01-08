@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Featuredboys from '../Featuredboys';
 import CustomSelect from '../CustomSelect';
+import Link from "next/link";
 
 const SubscriptionsPage = () => {
   const [time, setTime] = useState("all");
@@ -10,14 +11,14 @@ const SubscriptionsPage = () => {
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className="page-content-type-button active-down-effect active">Moneyboys</button>
-            <button className="page-content-type-button active-down-effect"> Saved Media</button>
+            <button className="page-content-type-button active-down-effect active">Subscribers</button>
+            <button className="page-content-type-button active-down-effect"> Subscriptions</button>
           </div>
             <div className="tabs-content-wrapper-layout">
               <div data-multi-dem-cards-layout>
                 <div className="creator-content-filter-grid-container">
                   <div className="card filters-card-wrapper">
-                  <div className="search-features-grid-btns has-multi-tabs-btns one-row-content-wrapper">
+                   <div className="search-features-grid-btns has-multi-tabs-btns one-row-content-wrapper">
                     <div className="creator-content-search-input">
                       <div className="label-input">
                         <div className="input-placeholder-icon">
@@ -62,78 +63,25 @@ const SubscriptionsPage = () => {
 
                     <div className="creater-content-filters-layouts">
                       <div className="creator-content-select-filter">
-                      <CustomSelect
-                        label="All Time"
-                        value={time}
-                        onChange={(val) => {setTime(val); console.log("Selected:", val);}}
-                        className="bg-white p-sm size-sm"
-                        options={[
-                          { label: "All Time", value: "all" },
-                          { label: "Today", value: "today" },
-                          { label: "Last 7 Days", value: "7days" },
-                          { label: "Last 30 Days", value: "30days" },
-                        ]}
-                      />
                         <div className="custom-select-element bg-white p-sm size-sm">
-                          <div
-                            className="custom-select-label-wrapper"
-                            data-custom-select-triger
-                          >
+                          <div className="custom-select-label-wrapper">
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">All Time</span>
                             </div>
                             <div className="custom-select-chevron">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="25"
-                                height="24"
-                                viewBox="0 0 25 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
+                              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                                <path d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
                             </div>
                           </div>
-
-                          <div
-                            className="custom-select-options-dropdown-wrapper"
-                            data-custom-select-dropdown
-                            style={{
-                              translate: "none",
-                              rotate: "none",
-                              scale: "none",
-                              overflow: "hidden",
-                              display: "none",
-                              opacity: 0,
-                              transform: "translate(0px, -10px)",
-                              height: "0px",
-                            }}
-                          >
+                          <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown style={{translate: "none", rotate: "none", scale: "none", overflow: "hidden", display: "none", opacity: 0, transform: "translate(0px, -10px)", height: "0px",}}>
                             <div className="custom-select-options-dropdown-container">
                               <div className="custom-select-options-lists-container">
-                                <ul
-                                  className="custom-select-options-list"
-                                  data-custom-select-options-list
-                                >
-                                  <li className="custom-select-option">
-                                    <span> Option 1</span>
-                                  </li>
-                                  <li className="custom-select-option">
-                                    <span> Option 2</span>
-                                  </li>
-                                  <li className="custom-select-option">
-                                    <span> Option 3</span>
-                                  </li>
-                                  <li className="custom-select-option">
-                                    <span> Option 4</span>
-                                  </li>
+                                <ul className="custom-select-options-list" data-custom-select-options-list>
+                                  <li className="custom-select-option"><span> Option 1</span></li>
+                                  <li className="custom-select-option"><span> Option 2</span></li>
+                                  <li className="custom-select-option"><span> Option 3</span></li>
+                                  <li className="custom-select-option"><span> Option 4</span></li>
                                 </ul>
                               </div>
                             </div>
@@ -141,7 +89,191 @@ const SubscriptionsPage = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                   </div>
+                   <div className="creator-content-cards-wrapper subscriptions_containt">
+                     <div className="rel-users-wrapper">
+                      <div className="user-subbox">
+                        <div className="rel-user-profile">
+                          <div className="profile-card">
+                            <Link href="#" className="profile-card__main">
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  <img src="images/profile-avatars/profile-avatar-6.jpg" alt="MoneyBoy Social Profile Avatar" />
+                                </div>
+                              </div>
+                              <div className="profile-card__info">
+                                <div className="profile-card__name-badge">
+                                  <div className="profile-card__name">Zain Schleifer</div>
+                                  <div className="profile-card__badge">
+                                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                                  </div>
+                                </div>
+                                <div className="profile-card__username">
+                                  <ul>
+                                    <li className="yrly">Yearly</li>
+                                    <li className="stip">Stipe</li>
+                                    <li className="active">Active</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </Link>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="rel-user-action-btn">
+                          <button className="btn-danger">Cancel</button>
+                        </div>
+                      </div>
+                      <div className="user-subbox">
+                        <div className="rel-user-profile">
+                          <div className="profile-card">
+                            <Link href="#" className="profile-card__main">
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  <img src="/images/profile-avatars/profile-avatar-5.jpg" alt="MoneyBoy Social Profile Avatar" />
+                                </div>
+                              </div>
+                              <div className="profile-card__info">
+                                <div className="profile-card__name-badge">
+                                  <div className="profile-card__name">Gustavo Stanton</div>
+                                  <div className="profile-card__badge">
+                                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                                  </div>
+                                </div>
+                                <div className="profile-card__username">
+                                  <ul>
+                                    <li className="yrly">Yearly</li>
+                                    <li className="cbill">CCbill</li>
+                                    <li className="active">Active</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </Link>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="rel-user-action-btn">
+                          <button className="btn-danger">Cancel</button>
+                        </div>
+                      </div>
+                      <div className="user-subbox">
+                        <div className="rel-user-profile">
+                          <div className="profile-card">
+                            <Link href="#" className="profile-card__main">
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  <img src="/images/profile-avatars/profile-avatar-3.jpg" alt="MoneyBoy Social Profile Avatar" />
+                                </div>
+                              </div>
+                              <div className="profile-card__info">
+                                <div className="profile-card__name-badge">
+                                  <div className="profile-card__name">Emerson Bator</div>
+                                  <div className="profile-card__badge">
+                                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                                  </div>
+                                </div>
+                                <div className="profile-card__username">
+                                  <ul>
+                                    <li className="yrly">Yearly</li>
+                                    <li className="stip">Stipe</li>
+                                    <li className="active">Active</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </Link>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="rel-user-action-btn">
+                          <button className="btn-danger">Cancel</button>
+                        </div>
+                      </div>
+                      <div className="user-subbox">
+                        <div className="rel-user-profile">
+                          <div className="profile-card">
+                            <Link href="#" className="profile-card__main">
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  <img src="/images/profile-avatars/profile-avatar-7.jpg" alt="MoneyBoy Social Profile Avatar" />
+                                </div>
+                              </div>
+                              <div className="profile-card__info">
+                                <div className="profile-card__name-badge">
+                                  <div className="profile-card__name">Omar Dokidis</div>
+                                  <div className="profile-card__badge">
+                                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                                  </div>
+                                </div>
+                                <div className="profile-card__username">
+                                  <ul>
+                                    <li className="yrly">Yearly</li>
+                                    <li className="stip">Stipe</li>
+                                    <li className="saspnd">Suspended</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </Link>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="date_wrap">
+                          <svg className="icons calendarNote"/>
+                          <div className="containt">
+                            <span>Start Date</span>
+                            <p>Apr 25, 2025</p>
+                          </div>
+                        </div>
+                        <div className="rel-user-action-btn">
+                          <button className="btn-txt-gradient"><span>Activate</span></button>
+                        </div>
+                      </div>
+                     </div>
+                   </div>
 
                   </div>
                 </div>

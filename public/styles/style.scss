@@ -32,6 +32,45 @@ body {
   }
 }
 
+// Button Start
+.btn-danger {
+  cursor: pointer;
+  font-family: var(--font-family-heading);
+  letter-spacing: 0.25px;
+  color: #fff;
+  background-color: #CD3F3F;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 17px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 14px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 4px 4px #00000012;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  will-change: transform;
+  &:hover {
+    background-color: #B83636;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px #0000001a;
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 6px #00000014;
+  }
+  &:disabled,
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+
 .radio_wrap {color: #444444;display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; font-size: 14px;}
 .radio_wrap input[type="radio"] {appearance: none; border: 1.5px solid #f59e0b; border-radius: 50%; width: 20px; height: 20px; position: relative; min-height: 20px; padding: 0px;}
 .radio_wrap input[type="radio"]:checked {background: linear-gradient(103.7deg, #FECE26 4.76%, #E5741F 118.16%);border: transparent;}
@@ -142,8 +181,6 @@ body {
     }
   }
 }
-
-
 
 /* Custome Class Start  */
 .hightunset {}
@@ -1899,6 +1936,121 @@ body {
           &::before {
             left: 10px;
           }
+        }
+      }
+    }
+  }
+}
+
+.subscriptions_containt {
+  margin-top: 10px;
+  .rel-users-wrapper {
+    gap: 10px;
+  }
+  .user-subbox {
+    background: #f4f4f4;
+    border-radius: 18px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    display: flex;
+    .profile-card {
+      padding: 0px;
+      .profile-card__avatar {
+        width: 48px;
+        &::before {
+          content: '';
+          display: block;
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          border: 2px solid #FFFFFF7A;
+        }
+      }
+      .profile-card__info {
+        .profile-card__name {
+          font-size: 14px;
+          line-height: 18px;
+        }
+      }
+      .profile-card__username {
+        ul {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          justify-content: space-between;
+          li {
+             padding: 4px;
+             padding: 4px 5px;
+             border-radius: 6px;
+             color: #000;
+             font-weight: 500;
+             font-size: 9px;
+             line-height: 10px;
+             &.yrly {
+              color: #E5741F;
+              background: #e5741f26;
+             }
+             &.stip {
+              color: #635BFF;
+              background: #635BFF26;
+             }
+             &.active {
+              color: #22C55E;
+              background: #22C55E26;
+             }
+             &.cbill {
+              color: #FECE26;
+              background-color: #FECE2626;
+             }
+             &.saspnd {
+              color: #D03F3F;
+              background-color: #D03F3F26;
+             }
+          }
+        }
+      }
+    }
+    .date_wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      .containt {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+      .icons {
+        width: 18px;
+        height: 18px;
+      }
+      span {
+        color: #505050;
+        font-weight: 500;
+        font-style: normal;
+        font-size: 9px;
+        line-height: 9px;
+        letter-spacing: 0px;
+        margin-bottom: 0px;
+      }
+      p {
+        color: #444444;
+        font-weight: 600;
+        font-style: normal;
+        font-size: 10px;
+        line-height: 14px;
+        letter-spacing: 0px;
+        margin-bottom: 0px;
+      }
+    }
+    .rel-user-action-btn {
+      button {
+        padding: 10px 0px 10px;
+        min-width: 76px;
+        max-width: 76px;
+        &:hover {
+          transform: translateY(-1px);
         }
       }
     }
