@@ -2049,6 +2049,11 @@ body {
         padding: 10px 0px 10px;
         min-width: 76px;
         max-width: 76px;
+        border-radius: 10px;
+        font-size: 11px;
+        span {
+          font-size: 11px;
+        }
         &:hover {
           transform: translateY(-1px);
         }
