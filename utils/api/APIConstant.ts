@@ -10,6 +10,7 @@ export const API_LOGOUT: string = "/auth/logout";
 export const API_GET_CREATORS = "/social/creators";
 export const API_FOLLOW_USER = "/social/follow";
 export const API_UNFOLLOW_USER = "/social/unfollow";
-
 export const  API_GET_FOLLOWERS="/social/followers"
 export const API_GET_FOLLOWING="/social/following"
+export const API_FOLLOWER_COUNT = "/social/counts";
+

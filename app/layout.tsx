@@ -14,10 +14,12 @@ import "../public/styles/icons.css";
 import "../public/styles/style.scss";
 import Footer from "@/components/Layouts/Footer";
 import AuthProviders from "@/libs/authProviders";
+ // ADD THIS IMPORT
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/auth";
 import Link from "next/link";
 import { CgClose } from "react-icons/cg";
+import ReduxProvider from "@/components/redux/ReduxProvider";
 
 export const metadata: Metadata = {
   title: "Moneyboy Creators",
@@ -71,25 +73,27 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}>
-        <AuthProviders session={session}>
-          {children}
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-            <div className="modal-wrap ageverify-modal">
-              <button className="close-btn"><CgClose size={22}/></button>
-              <h3 className="title">Age Verification Required <img src="/images/18plus-Icon.svg" className="icons"/></h3>
-              <p>This website contains content intended for mature audiences. By entering, you confirm that:</p>
-              <ul className="points">
-                <li>You are at least <b>18 years old</b> (or the age of majority in your region).</li>
-                <li>You are legally permitted to view this content.</li>
-                <li>You agree to our [<Link href="#">Terms & Conditions</Link>] and confirm your visit is voluntary.</li>
-              </ul>
-              <div className="actions">
-               <button className="premium-btn active-down-effect"><span>I Agree, Enter Now</span></button>
-               <button className="cate-back-btn active-down-effect">I Do Not Agree, Leave Site</button>
+        <ReduxProvider> 
+          <AuthProviders session={session}>
+            {children}
+            <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+              <div className="modal-wrap ageverify-modal">
+                <button className="close-btn"><CgClose size={22}/></button>
+                <h3 className="title">Age Verification Required <img src="/images/18plus-Icon.svg" className="icons"/></h3>
+                <p>This website contains content intended for mature audiences. By entering, you confirm that:</p>
+                <ul className="points">
+                  <li>You are at least <b>18 years old</b> (or the age of majority in your region).</li>
+                  <li>You are legally permitted to view this content.</li>
+                  <li>You agree to our [<Link href="#">Terms & Conditions</Link>] and confirm your visit is voluntary.</li>
+                </ul>
+                <div className="actions">
+                 <button className="premium-btn active-down-effect"><span>I Agree, Enter Now</span></button>
+                 <button className="cate-back-btn active-down-effect">I Do Not Agree, Leave Site</button>
+                </div>
               </div>
             </div>
-          </div>
-        </AuthProviders>
+          </AuthProviders>
+        </ReduxProvider> 
       </body>
     </html>
   );

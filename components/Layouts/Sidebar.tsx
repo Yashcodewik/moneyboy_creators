@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_CREATOR_PROFILE, API_USER_PROFILE } from "@/utils/api/APIConstant";
+import { API_CREATOR_PROFILE, API_FOLLOWER_COUNT, API_USER_PROFILE } from "@/utils/api/APIConstant";
+import { useAppDispatch, useAppSelector } from "../redux/store";
+import { fetchFollowerCounts } from "../redux/other/followActions";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
@@ -13,8 +15,16 @@ const Sidebar: React.FC = () => {
   const [profileLoading, setProfileLoading] = useState(true);
    const [isOpen, setIsOpen] = useState(false);
   const { session } = useDecryptedSession();
+    const dispatch = useAppDispatch();
+  const { counts, loading: countsLoading } = useAppSelector((state) => state.follow);
+  const followerCount = counts.followerCount;
+  const followingCount = counts.followingCount;
+  
   const pathname = usePathname();
   const router = useRouter();
+
+
+  
 
   useEffect(() => {
     const pathToPageMap: Record<string, string> = {
@@ -63,71 +73,73 @@ const Sidebar: React.FC = () => {
     signOut({ callbackUrl: "/" });
   };
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!session?.isAuthenticated) {
-        setProfileLoading(false);
-        return;
+useEffect(() => {
+  const fetchAllData = async () => {
+    if (!session?.isAuthenticated) {
+      setProfileLoading(false);
+      // Don't reset counts to 0 here - let Redux handle it
+      return;
+    }
+
+    // Fetch user profile
+    try {
+      setProfileLoading(true);
+      let apiUrl = API_USER_PROFILE;
+
+      if (session?.user?.role === 2) {
+        apiUrl = API_CREATOR_PROFILE;
       }
 
-      try {
-        setProfileLoading(true);
-        let apiUrl = API_USER_PROFILE;
+      const profileResponse = await getApiWithOutQuery({ url: apiUrl });
 
+      if (profileResponse) {
+        let userData;
         if (session?.user?.role === 2) {
-          apiUrl = API_CREATOR_PROFILE;
-        }
-
-        const response = await getApiWithOutQuery({ url: apiUrl });
-
-        console.log("Profile===========", response);
-
-        if (response) {
-          let userData;
-
-          if (session?.user?.role === 2) {
-            if (response.user) {
-              userData = {
-                displayName: response.user.displayName,
-                username: response.user.userName,
-                firstName: response.user.firstName,
-                lastName: response.user.lastName,
-                email: response.user.email,
-              };
-            }
-          } else {
-            if (response.success && response.data) {
-              userData = {
-                displayName: response.data.displayName,
-                username: response.data.userName,
-                firstName: response.data.firstName,
-                lastName: response.data.lastName,
-                email: response.data.email,
-              };
-            }
+          if (profileResponse.user) {
+            userData = {
+              displayName: profileResponse.user.displayName,
+              username: profileResponse.user.userName,
+              firstName: profileResponse.user.firstName,
+              lastName: profileResponse.user.lastName,
+              email: profileResponse.user.email,
+            };
           }
-
-          if (userData) {
-            setUserProfile(userData);
+        } else {
+          if (profileResponse.success && profileResponse.data) {
+            userData = {
+              displayName: profileResponse.data.displayName,
+              username: profileResponse.data.userName,
+              firstName: profileResponse.data.firstName,
+              lastName: profileResponse.data.lastName,
+              email: profileResponse.data.email,
+            };
           }
         }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setProfileLoading(false);
+        if (userData) setUserProfile(userData);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
 
-    fetchUserProfile();
-  }, [session?.isAuthenticated, session?.user?.role]);
+    // Fetch follower counts FROM REDUX
+    dispatch(fetchFollowerCounts());
+  };
+
+  fetchAllData();
+}, [session?.isAuthenticated, session?.user?.role, dispatch]);
 
     const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);
 
-    // Navigate to /like with query parameter for the active tab
+
     router.push(`/follower?tab=${tab}`);
   };
+
+
+
   return (
     <div className="moneyboy-global-sidebar-wrapper" id="leftSidebar">
       <aside className="global-sidebar-container">
@@ -252,7 +264,13 @@ const Sidebar: React.FC = () => {
                     onClick={(e) => handleTabfollowNavigation(e, "followers")} // Default to posts for users
                         
                   >
-                    <div className="profile-card__stats-num">253</div>
+                     <div className="profile-card__stats-num">
+    {countsLoading ? (
+      <span className="loading-dots">...</span>
+    ) : (
+      followerCount.toLocaleString()
+    )}
+  </div>
                     <div className="profile-card__stats-label">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -297,7 +315,13 @@ const Sidebar: React.FC = () => {
                     className="profile-card__stats-item following-stats"
                      onClick={(e) => handleTabfollowNavigation(e, "following")} 
                   >
-                    <div className="profile-card__stats-num">1,920</div>
+                      <div className="profile-card__stats-num">
+    {countsLoading ? (
+      <span className="loading-dots">...</span>
+    ) : (
+      followingCount.toLocaleString()
+    )}
+  </div>
                     <div className="profile-card__stats-label">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -741,7 +765,7 @@ const Sidebar: React.FC = () => {
                   <a href="#">Creator</a>
                 </li>
                 <li>
-                  <a href="#">Contact</a>
+                  <a href="/contact-us">Contact</a>
                 </li>
                 <li>
                   <a href="/help">Help &amp; Support</a>

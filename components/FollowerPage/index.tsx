@@ -1,214 +1,296 @@
-  "use client";
-  import {
-    API_FOLLOW_USER,
-    API_GET_CREATORS,
-    API_GET_FOLLOWERS,
-    API_GET_FOLLOWING,
-    API_UNFOLLOW_USER,
-  } from "@/utils/api/APIConstant";
-  import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
-  import Link from "next/link";
-  import { useRouter, useSearchParams } from "next/navigation";
-  import React, { useEffect, useRef, useState } from "react";
-  import ShowToast from "../common/ShowToast";
+"use client";
+import {
+  API_FOLLOW_USER,
+  API_GET_CREATORS,
+  API_GET_FOLLOWERS,
+  API_GET_FOLLOWING,
+  API_UNFOLLOW_USER,
+} from "@/utils/api/APIConstant";
+import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { useAppDispatch } from "../redux/store";
+import { fetchFollowerCounts, followUserAction, unfollowUserAction } from "../redux/other/followActions";
 
-  interface Creator {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    displayName?: string;
-    userName: string;
-    bio?: string;
-    isFollowing: boolean;
-  }
+interface Creator {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  displayName?: string;
+  userName: string;
+  bio?: string;
+  isFollowing: boolean;
+}
 
-  interface Follower {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    displayName?: string;
-    userName: string;
-    bio?: string;
-    isFollowing: boolean;
-    isFollowingYou: boolean;
-  }
+interface Follower {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  displayName?: string;
+  userName: string;
+  bio?: string;
+  isFollowing: boolean;
+  isFollowingYou: boolean;
+}
 
-  const FollowersPage = () => {
-    const [follow, setFollow] = useState<"Following" | "Followers">("Followers");
-    const [openMoreId, setOpenMoreId] = useState<string | null>(null);
-    const moreRef = useRef<HTMLDivElement | null>(null);
-    const [selectedOption, setSelectedOption] = useState("All Time");
-    const [tab, setTab] = useState(false);
-    const router = useRouter();
-    const searchParams = useSearchParams();
+const FollowersPage = () => {
+  const [follow, setFollow] = useState<"Following" | "Followers">("Followers");
+  const [openMoreId, setOpenMoreId] = useState<string | null>(null);
+  const moreRef = useRef<HTMLDivElement | null>(null);
+  const [selectedOption, setSelectedOption] = useState("All Time");
+  const [tab, setTab] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-    const [followers, setFollowers] = useState<Follower[]>([]);
-    const [following, setFollowing] = useState<Follower[]>([]);
-    const [creators, setCreators] = useState<Creator[]>([]);
+  const [followers, setFollowers] = useState<Follower[]>([]);
+  const [following, setFollowing] = useState<Follower[]>([]);
+  const [creators, setCreators] = useState<Creator[]>([]);
 
-    const [loading, setLoading] = useState(false);
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const dispatch = useAppDispatch();
+  const [searchQuery, setSearchQuery] = useState("");
+const [followersPage, setFollowersPage] = useState(1);
+const [followingPage, setFollowingPage] = useState(1);
+const [followersTotalPages, setFollowersTotalPages] = useState(1);
+const [followingTotalPages, setFollowingTotalPages] = useState(1);
+const [followersTotal, setFollowersTotal] = useState(0);
+const [followingTotal, setFollowingTotal] = useState(0);
+const [followersSearchQuery, setFollowersSearchQuery] = useState("");
+const [followingSearchQuery, setFollowingSearchQuery] = useState("");
+const followersSearchTimeout = useRef<NodeJS.Timeout | null>(null);
+const followingSearchTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    const toggleMore = (id: string) => {
-      setOpenMoreId((prev) => (prev === id ? null : id));
-    };
 
-    useEffect(() => {
-      const tabParam = searchParams.get("tab");
-      if (tabParam === "followers") {
-        setFollow("Followers");
-      } else if (tabParam === "following") {
-        setFollow("Following");
+  const toggleMore = (id: string) => {
+    setOpenMoreId((prev) => (prev === id ? null : id));
+  };
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "followers") {
+      setFollow("Followers");
+    } else if (tabParam === "following") {
+      setFollow("Following");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setOpenMoreId(null);
       }
-    }, [searchParams]);
-
-    useEffect(() => {
-      const handleClickOutside = (e: MouseEvent) => {
-        if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
-          setOpenMoreId(null);
-        }
-      };
-
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleTabChange = (value: string) => {
-      setSelectedOption(value);
-      setTab(false);
     };
 
-    useEffect(() => {
-      const likeButtons = document.querySelectorAll("[data-like-button]");
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-      const handleClick = (event: Event) => {
-        const button = event.currentTarget as HTMLElement;
-        button.classList.toggle("liked");
-      };
+  const handleTabChange = (value: string) => {
+    setSelectedOption(value);
+    setTab(false);
+  };
 
+  useEffect(() => {
+    const likeButtons = document.querySelectorAll("[data-like-button]");
+
+    const handleClick = (event: Event) => {
+      const button = event.currentTarget as HTMLElement;
+      button.classList.toggle("liked");
+    };
+
+    likeButtons.forEach((button) => {
+      button.addEventListener("click", handleClick);
+    });
+
+    return () => {
       likeButtons.forEach((button) => {
-        button.addEventListener("click", handleClick);
+        button.removeEventListener("click", handleClick);
       });
+    };
+  }, []);
 
-      return () => {
-        likeButtons.forEach((button) => {
-          button.removeEventListener("click", handleClick);
-        });
-      };
-    }, []);
-
-    useEffect(() => {
-      fetchCreators();
-      fetchFollowers();
-      fetchFollowing();
-    }, []);
-
-    const fetchCreators = async (pageNo = 1) => {
+  useEffect(() => {
+    const fetchAllData = async () => {
       setLoading(true);
-
-      const res = await getApi({
-        url: API_GET_CREATORS,
-        page: pageNo,
-        rowsPerPage: 5,
-      });
-
-      if (res?.success) {
-        setCreators(res.data || []);
-        setPage(pageNo);
-        setTotalPages(res.pagination?.totalPages || 1);
+      try {
+        await Promise.all([
+          fetchCreators(),
+          fetchFollowers(),
+          fetchFollowing()
+        ]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
-const fetchFollowers = async () => {
-  setLoading(true);
-
-  const res = await getApiWithOutQuery({
-    url: API_GET_FOLLOWERS,
-  });
-
-  if (res?.success) {
-    const followersWithStatus = res.data.map((follower: any) => ({
-      ...follower,
-      isFollowing: false, 
-      isFollowingYou: true, 
-    }));
-    setFollowers(followersWithStatus);
-  }
-
-  setLoading(false);
-};
-
-
- const fetchFollowing = async () => {
-  setLoading(true);
-
-  const res = await getApiWithOutQuery({
-    url: API_GET_FOLLOWING,
-  });
-
-  if (res?.success) {
-    const followingWithStatus = res.data.map((follow: any) => ({
-      ...follow,
-      isFollowing: true,
-      isFollowingYou: false, 
-    }));
-    setFollowing(followingWithStatus);
     
-    updateFollowerStatus(followers, followingWithStatus);
+    fetchAllData();
+  }, []);
+
+  const fetchCreators = async (pageNo = 1) => {
+    setLoading(true);
+
+    const res = await getApi({
+      url: API_GET_CREATORS,
+      page: pageNo,
+      rowsPerPage: 5,
+    });
+
+    if (res?.success) {
+      setCreators(res.data || []);
+      setPage(pageNo);
+      setTotalPages(res.pagination?.totalPages || 1);
+    }
+
+    setLoading(false);
+  };
+
+const fetchFollowers = async (pageNo = 1, search = "") => {
+  setLoading(true);
+  try {
+    const res = await getApi({
+      url: API_GET_FOLLOWERS,
+      page: pageNo,
+      rowsPerPage: 10,
+      searchText: search,
+    });
+    
+    if (res?.success) {
+      const followersWithStatus = res.data.map((follower: any) => ({
+        ...follower,
+        isFollowingYou: true,
+      }));
+      setFollowers(followersWithStatus);
+      setFollowersPage(pageNo);
+      setFollowersTotalPages(res.meta?.totalPages || 1);
+      setFollowersTotal(res.meta?.total || 0);
+    }
+  } catch (error) {
+    console.error("Error fetching followers:", error);
+    // ShowToast("Failed to load followers", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
+ const fetchFollowing = async (pageNo = 1, search = "") => {
+  setLoading(true);
+  try {
+    const res = await getApi({
+      url: API_GET_FOLLOWING,
+      page: pageNo,
+      rowsPerPage: 10,
+      searchText: search,
+    });
+    
+    if (res?.success) {
+      const followingWithStatus = res.data.map((follow: any) => ({
+        ...follow,
+        isFollowing: true,
+      }));
+      setFollowing(followingWithStatus);
+      setFollowingPage(pageNo);
+      setFollowingTotalPages(res.meta?.totalPages || 1);
+      setFollowingTotal(res.meta?.total || 0);
+    }
+  } catch (error) {
+    console.error("Error fetching following:", error);
+    // ShowToast("Failed to load following", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Add this function
+const handleFollowersSearch = (value: string) => {
+  setFollowersSearchQuery(value);
+
+  if (followersSearchTimeout.current) {
+    clearTimeout(followersSearchTimeout.current);
   }
 
-  setLoading(false);
+  followersSearchTimeout.current = setTimeout(() => {
+    fetchFollowers(1, value);
+  }, 500);
 };
 
-    const updateFollowingStatus = (
-      followersList: Follower[],
-      followingList: Follower[]
-    ) => {
-      const followingIds = new Set(followingList.map((user) => user._id));
-      const updatedFollowers = followersList.map((follower) => ({
-        ...follower,
-        isFollowing: followingIds.has(follower._id),
-      }));
-      setFollowers(updatedFollowers);
-    };
+const handleFollowingSearch = (value: string) => {
+  setFollowingSearchQuery(value);
 
-  const updateFollowerStatus = (
-  followersList: Follower[],
-  followingList: Follower[]
-) => {
-  const followerIds = new Set(followersList.map((follower) => follower._id));
-  const updatedFollowing = followingList.map((follow) => ({
-    ...follow,
-    isFollowingYou: followerIds.has(follow._id), 
-  }));
-  setFollowing(updatedFollowing);
+  if (followingSearchTimeout.current) {
+    clearTimeout(followingSearchTimeout.current);
+  }
+
+  followingSearchTimeout.current = setTimeout(() => {
+    fetchFollowing(1, value);
+  }, 500);
 };
 
-    const handleFollowToggle = async (
-      userId: string,
-      isFollowing: boolean,
-      listType: "followers" | "following" | "creators"
-    ) => {
-      let originalFollowingUser: Follower | undefined;
 
-      if (listType === "following") {
-        originalFollowingUser = following.find((user) => user._id === userId);
-      }
+  const syncRelationships = () => {
+    if (followers.length === 0 || following.length === 0) return;
+    
+    const followingIds = new Set(following.map(user => user._id));
+    const followerIds = new Set(followers.map(user => user._id));
+    
+    const updatedFollowers = followers.map(follower => ({
+      ...follower,
+      isFollowing: followingIds.has(follower._id) 
+    }));
+    
+    const updatedFollowing = following.map(follow => ({
+      ...follow,
+      isFollowingYou: followerIds.has(follow._id) 
+    }));
+    
+    setFollowers(updatedFollowers);
+    setFollowing(updatedFollowing);
+  };
 
-if (listType === "followers") {
-  setFollowers(prev =>
-    prev.map(user =>
-      user._id === userId
-        ? {
-            ...user,
-            isFollowing: true,
-            isFollowingYou: true,
-          }
-        : user
-    )
-  );
+  const handleFollowToggle = async (
+    userId: string,
+    isFollowing: boolean,
+    listType: "followers" | "following" | "creators"
+  ) => {
+    let originalFollowingUser: Follower | undefined;
+
+    if (listType === "following") {
+      originalFollowingUser = following.find((user) => user._id === userId);
+    }
+
+    if (listType === "followers") {
+      if (isFollowing) {
+        setFollowers(prev =>
+          prev.map(user =>
+            user._id === userId
+              ? {
+                  ...user,
+                  isFollowing: false, 
+                  isFollowingYou: true,
+                }
+              : user
+          )
+        );
+        
+        setFollowing(prev => prev.filter(user => user._id !== userId));
+
+      } else {
+        setFollowers(prev =>
+          prev.map(user =>
+            user._id === userId
+              ? {
+                  ...user,
+                  isFollowing: true,
+                  isFollowingYou: true,
+                }
+              : user
+          )
+        );
+        
         const followerUser = followers.find((u) => u._id === userId);
         if (followerUser) {
           setFollowing((prev) => {
@@ -223,120 +305,145 @@ if (listType === "followers") {
             ];
           });
         }
+      }
 
-        setCreators((prev) =>
-          prev.map((creator) =>
-            creator._id === userId ? { ...creator, isFollowing: true } : creator
+      setCreators((prev) =>
+        prev.map((creator) =>
+          creator._id === userId ? { ...creator, isFollowing: !isFollowing } : creator
+        )
+      );
+      
+    } else if (listType === "following") {
+      if (isFollowing) {
+        const userToUnfollow = following.find((user) => user._id === userId);
+        
+        setFollowing((prev) => prev.filter((user) => user._id !== userId));
+
+        setFollowers(prev =>
+          prev.map(user =>
+            user._id === userId
+              ? {
+                  ...user,
+                  isFollowing: false,
+                  isFollowingYou: user.isFollowingYou,
+                }
+              : user
           )
         );
- } else if (listType === "following") {
-  if (isFollowing) {
-    const userToUnfollow = following.find((user) => user._id === userId);
-    
-    setFollowing((prev) => prev.filter((user) => user._id !== userId));
+      }
 
-    setFollowers(prev =>
-      prev.map(user =>
-        user._id === userId
-          ? {
-              ...user,
-              isFollowing: false,
-              isFollowingYou: user.isFollowingYou,
-            }
-          : user
-      )
-    );
-  }
+      setCreators((prev) =>
+        prev.map((creator) =>
+          creator._id === userId ? { ...creator, isFollowing: false } : creator
+        )
+      );
+    } else if (listType === "creators") {
+      setCreators((prev) =>
+        prev.map((creator) =>
+          creator._id === userId
+            ? { ...creator, isFollowing: !isFollowing }
+            : creator
+        )
+      );
+      
+      if (!isFollowing) {
+        const creatorToAdd = creators.find((c) => c._id === userId);
+        if (creatorToAdd) {
+          setFollowing((prev) => {
+            if (prev.some((user) => user._id === userId)) return prev;
+            return [
+              ...prev,
+              {
+                ...creatorToAdd,
+                isFollowing: true,
+                isFollowingYou: false,
+              } as Follower,
+            ];
+          });
+        }
+      } else {
+        setFollowing((prev) => prev.filter((user) => user._id !== userId));
+      }
+    }
 
-
-        setCreators((prev) =>
-          prev.map((creator) =>
-            creator._id === userId ? { ...creator, isFollowing: false } : creator
-          )
-        );
+    try {
+      if (isFollowing) {
+        await dispatch(unfollowUserAction(userId)).unwrap();
+      } else {
+        await dispatch(followUserAction(userId)).unwrap();
+      }
+      
+      dispatch(fetchFollowerCounts());
+      
+      // ShowToast("Success", "success");
+    } catch (err: any) {
+      if (listType === "followers") {
+        if (isFollowing) {
+          setFollowers(prev =>
+            prev.map(user =>
+              user._id === userId
+                ? {
+                    ...user,
+                    isFollowing: true, 
+                    isFollowingYou: true,
+                  }
+                : user
+            )
+          );
+        } else {
+          setFollowers(prev =>
+            prev.map(user =>
+              user._id === userId
+                ? {
+                    ...user,
+                    isFollowing: false, 
+                    isFollowingYou: true,
+                  }
+                : user
+            )
+          );
+        }
+      } else if (listType === "following") {
+        if (originalFollowingUser) {
+          setFollowing((prev) => [...prev, originalFollowingUser]);
+        }
       } else if (listType === "creators") {
         setCreators((prev) =>
           prev.map((creator) =>
-            creator._id === userId
-              ? { ...creator, isFollowing: !isFollowing }
-              : creator
+            creator._id === userId ? { ...creator, isFollowing } : creator
           )
         );
-        if (!isFollowing) {
-          const creatorToAdd = creators.find((c) => c._id === userId);
-          if (creatorToAdd) {
-            setFollowing((prev) => {
-              if (prev.some((user) => user._id === userId)) return prev;
-              return [
-                ...prev,
-                {
-                  ...creatorToAdd,
-                  isFollowing: true,
-                  isFollowingYou: false,
-                } as Follower,
-              ];
-            });
-          }
-        } else {
-          setFollowing((prev) => prev.filter((user) => user._id !== userId));
-        }
       }
 
-      const res = await apiPost({
-        url: isFollowing ? API_UNFOLLOW_USER : API_FOLLOW_USER,
-        values: { userId },
-      });
+      // ShowToast(err?.response?.data?.error || "Something went wrong", "error");
+    }
+  };
 
-      if (!res?.success) {
-        if (listType === "followers") {
-          setFollowers((prev) =>
-            prev.map((user) =>
-              user._id === userId ? { ...user, isFollowing } : user
-            )
-          );
-          if (isFollowing && originalFollowingUser) {
-            setFollowing((prev) => [...prev, originalFollowingUser]);
-          }
-        } else if (listType === "following") {
-          if (originalFollowingUser) {
-            setFollowing((prev) => [...prev, originalFollowingUser]);
-          }
-        } else if (listType === "creators") {
-          setCreators((prev) =>
-            prev.map((creator) =>
-              creator._id === userId ? { ...creator, isFollowing } : creator
-            )
-          );
-          if (!isFollowing) {
-            setFollowing((prev) => prev.filter((user) => user._id !== userId));
-          } else {
-            if (originalFollowingUser) {
-              setFollowing((prev) => [...prev, originalFollowingUser]);
-            }
-          }
-        }
+  useEffect(() => {
+    if (followers.length > 0 && following.length > 0) {
+      syncRelationships();
+    }
+  }, [followers.length, following.length]);
 
-        // ShowToast(res?.message || "Something went wrong", "error");
-      } else {
-        // ShowToast(res?.message, "success");
-
-      
-        if (listType === "following") {
-          fetchFollowing();
-        }
-      }
+  const getFollowButtonProps = (user: Follower | Creator) => {
+    if (user.isFollowing) {
+      return {
+        text: "Following",
+        className: "btn-txt-gradient btn-grey",
+      };
+    }
+    if ("isFollowingYou" in user && user.isFollowingYou && !user.isFollowing) {
+      return {
+        text: "Follow Back",
+        className: "btn-txt-gradient",
+      };
+    }
+    return {
+      text: "Follow",
+      className: "btn-txt-gradient",
     };
- const getFollowButtonProps = (user: Follower | Creator) => {
-  const isFollower = "isFollowingYou" in user && user.isFollowingYou;
-  
-  if (user.isFollowing) {
-    return { text: "Following", className: "btn-txt-gradient btn-grey" };
-  } else if (isFollower) {
-    return { text: "Follow Back", className: "btn-txt-gradient" };
-  } else {
-    return { text: "Follow", className: "btn-txt-gradient" };
-  }
-};
+  };
+
 
     const renderFollowersList = () => {
       if (loading && followers.length === 0) {
@@ -855,13 +962,15 @@ if (listType === "followers") {
                                   />
                                 </svg>
                               </div>
-                              <input
-                                type="text"
-                                placeholder="Search followers..."
-                                onChange={(e) => {
-                                  
-                                }}
-                              />
+  <input
+    type="text"
+    placeholder="Search followers..."
+    value={followersSearchQuery}
+    onChange={(e) => {
+      setFollowersSearchQuery(e.target.value);
+      handleFollowersSearch(e.target.value);
+    }}
+  />
                             </div>
                           </div>
 
@@ -1001,11 +1110,15 @@ if (listType === "followers") {
                                   />
                                 </svg>
                               </div>
-                              <input
-                                type="text"
-                                placeholder="Search following..."
-                              />
-                            </div>
+  <input
+    type="text"
+    placeholder="Search following..."
+    value={followingSearchQuery}
+    onChange={(e) => {
+      setFollowingSearchQuery(e.target.value);
+      handleFollowingSearch(e.target.value);
+    }}
+  />                      </div>
                           </div>
 
                           <div className="creater-content-filters-layouts">

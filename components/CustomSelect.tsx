@@ -70,7 +70,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         onClick={() => setOpen((prev) => !prev)}
       >
         <div className="custom-select-icon-txt">
-          {icon ? icon : <svg className="icons calendarClock svg-icon"></svg>}
+          {icon && icon}
           <span className="custom-select-label-txt">
             {selectedOption ? selectedOption.label : label}
           </span>

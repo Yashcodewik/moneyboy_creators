@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import ShowToast from "../common/ShowToast";
-import { API_USER_PROFILE } from "@/utils/api/APIConstant";
+import { API_FOLLOWER_COUNT, API_USER_PROFILE } from "@/utils/api/APIConstant";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 
 interface UserProfile {
@@ -16,6 +16,8 @@ interface UserProfile {
   followingCount: number;
   bio: string;
   isFollowing?: boolean;
+   followers?: number;
+  following?: number;
 }
 const UserProfilepage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -26,8 +28,10 @@ const UserProfilepage = () => {
   const [error, setError] = useState<string | null>(null);
 const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
 const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
-
-// Helper function to set refs
+const [followerStats, setFollowerStats] = useState({
+  followerCount: 0,
+  followingCount: 0
+});
 const setMenuRef = (id: number, element: HTMLDivElement | null) => {
   menuRefs.current.set(id, element);
 };
@@ -47,7 +51,6 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
       button.addEventListener("click", handleClick);
     });
 
-    // Cleanup function
     return () => {
       likeButtons.forEach((button) => {
         button.removeEventListener("click", handleClick);
@@ -62,37 +65,38 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
     setActiveTab(tabName);
   };
 
-  // Fetch user profile data
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+const fetchUserProfile = async () => {
+  try {
+    setLoading(true);
+    setError(null);
 
-        // Call the API
-        const response = await getApiWithOutQuery({
-          url: API_USER_PROFILE,
-        });
+    const response = await getApiWithOutQuery({
+      url: API_USER_PROFILE,
+    });
 
-        if (response && response.success) {
-          setUserProfile(response.data);
-        } else {
-          setError(response?.message || "Failed to load profile");
-          ShowToast(response?.message || "Failed to load profile", "error");
-        }
-      } catch (err: any) {
-        setError("An error occurred while fetching profile");
-        ShowToast("An error occurred while fetching profile", "error");
-        console.error("Error fetching user profile:", err);
-      } finally {
-        setLoading(false);
+    if (response && response.success) {
+      setUserProfile(response.data);
+      
+      if (response.data.followerStats) {
+        setFollowerStats(response.data.followerStats);
       }
-    };
+    } else {
+      setError(response?.message || "Failed to load profile");
+      ShowToast(response?.message || "Failed to load profile", "error");
+    }
+  } catch (err: any) {
+    setError("An error occurred while fetching profile");
+    ShowToast("An error occurred while fetching profile", "error");
+    console.error("Error fetching user profile:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchUserProfile();
   }, []);
 
-  // Add this useEffect to handle click outside
 useEffect(() => {
   const handleClickOutside = (event: MouseEvent) => {
     if (openMenuId === null) return;
@@ -102,7 +106,6 @@ useEffect(() => {
     
     const target = event.target as Node;
     
-    // If click is outside both menu and its button, close the menu
     if (
       menuElement && 
       !menuElement.contains(target) && 
@@ -118,6 +121,27 @@ useEffect(() => {
     document.removeEventListener("mousedown", handleClickOutside);
   };
 }, [openMenuId]);
+
+useEffect(() => {
+  const fetchFollowerCounts = async () => {
+    try {
+      const response = await getApiWithOutQuery({
+        url: API_FOLLOWER_COUNT, 
+      });
+
+      if (response && response.success) {
+        setFollowerStats({
+          followerCount: response.data.followerCount,
+          followingCount: response.data.followingCount
+        });
+      }
+    } catch (err: any) {
+      console.error("Error fetching follower counts:", err);
+    }
+  };
+
+  fetchFollowerCounts();
+}, []);
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
@@ -291,7 +315,7 @@ useEffect(() => {
                 <div className="creator-profile-stats-link">
                   <div className="profile-card__stats">
                     <div className="profile-card__stats-item followers-stats">
-                      <div className="profile-card__stats-num"> 253 </div>
+                      <div className="profile-card__stats-num"> {followerStats.followerCount} </div>
                       <div className="profile-card__stats-label">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -333,7 +357,7 @@ useEffect(() => {
                       </div>
                     </div>
                     <div className="profile-card__stats-item following-stats">
-                      <div className="profile-card__stats-num">1,920</div>
+                      <div className="profile-card__stats-num">{followerStats.followingCount}</div>
                       <div className="profile-card__stats-label">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
