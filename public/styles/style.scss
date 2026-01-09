@@ -320,7 +320,7 @@ body {
 
 /* Custome class Start  */
 .mt-0 {
-  margin-top: 0px !important;
+  margin-top: 0px;
 }
 .mb-0 {
   margin-bottom: 0px !important;
@@ -2379,10 +2379,119 @@ body {
           }
         }
       }
+      .date_box {
+        &.mobail_show {
+          display: none;
+        }
+      }
     }
   }
   /* ========== Mobile (max-width: 767px) ========== */
   @media (max-width: 767px) {
-    
+    .rel-user-box {
+      .rel-user-profile-action {
+        gap: 5px;
+        flex-wrap: wrap;
+        .rel-user-profile {
+          .profile-card {
+            .profile-card__avatar {
+              width: 65px !important;
+            }
+            .profile-card__info {
+              .profile-card__name {
+                font-size: 16px;
+                line-height: 20px;
+              }
+            }
+            .profile-card__username {
+              margin-top: 2px;
+              &.tphead {
+                font-size: 11px;
+                line-height: 13px;
+              }
+              .badge {
+                font-size: 10px;
+                line-height: 12px;
+              } 
+            }
+          }
+        }
+      }
+      .date_box {
+        width: 100%;
+        justify-content: space-between;
+        .date_wrap {
+          .icons {
+            width: 20px;
+            height: 20px;
+          }
+          span {
+            font-size: 10px;
+            line-height: 10px;
+          }
+          p {
+            font-size: 12px;
+            line-height: 16px;
+          }
+        }
+      }
+      .rel-user-desc {
+        p {
+          color: #00000099;
+          font-weight: 500;
+          font-size: 13px;
+          line-height: 17px;
+          -webkit-line-clamp: 3;
+          &.heading {
+            color: #505050;
+            font-size: 11px;
+            line-height: 15px;
+          }
+        }
+        .rel-user-actions {
+          flex-shrink: 0;
+          button {
+            min-width: 86px;
+            max-width: 86px;
+            font-size: 12px;
+            span {
+              font-size: 12px;
+            }
+          }
+        }
+      }
+      &.hist-box {
+        .rel-user-profile-action {
+          .rel-user-profile {
+            .profile-card {
+              .profile-card__avatar {
+                border-radius: 8px;
+                width: 36px !important;
+              }
+              .profile-card__info {
+                .profile-card__badge {
+                  width: unset !important;
+                  min-width: unset !important;
+                  .badge {
+                    text-overflow: unset !important;
+                    overflow: unset !important;
+                    max-width: unset !important;
+                  }
+                }
+              }
+            }
+          }
+        }
+        .date_box {
+          &.mobail_show {
+            width: fit-content;
+            display: block;
+          }
+          .mobail_hide {
+            display: none;
+          }
+        }
+      }
+    }
   }
 }

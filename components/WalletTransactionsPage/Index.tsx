@@ -249,8 +249,17 @@ const WalletTransactionsPage = () => {
                               </Link>
                             </div>
                           </div>
-                          <div className="date_box">
+                          <div className="date_box mobail_show">
                             <div className="date_wrap">
+                              <svg className="icons archiveBox"/>
+                              <div className="containt">
+                                <span>Product Type</span>
+                                <p>Digital</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="date_box">
+                            <div className="date_wrap mobail_hide">
                               <svg className="icons archiveBox"/>
                               <div className="containt">
                                 <span>Product Type</span>
