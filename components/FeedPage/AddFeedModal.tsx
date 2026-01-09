@@ -18,6 +18,10 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       aria-labelledby="age-modal-title"
     >
       <div className="modal-wrap post-modal">
+        <div className="modal_head">
+          <h3>Poll Post</h3>
+          <button className="close-btn"><CgClose size={22}/></button>
+        </div>
         <div className="input-wrap">
           <div className="label-input textarea one">
             <textarea

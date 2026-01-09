@@ -13,8 +13,6 @@ import {
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import { fetchFollowerCounts } from "../redux/other/followActions";
 import AddFeedModal from "../FeedPage/AddFeedModal";
-import { CgClose } from "react-icons/cg";
-import { IoSearch } from "react-icons/io5";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
@@ -762,31 +760,28 @@ const Sidebar: React.FC = () => {
               <nav>
                 <ul>
                   <li>
-                    <a href="#">Home</a>
-                  </li>
-                  <li>
-                    <a href="#">Creator</a>
+                    <a href="/feed">Home</a>
                   </li>
                   <li>
                     <a href="/contact-us">Contact</a>
                   </li>
                   <li>
-                    <a href="/help">Help &amp; Support</a>
+                    <a href="/help">Help & Support</a>
                   </li>
                   <li>
                     <a href="/terms">Terms of Service</a>
                   </li>
                   <li>
+                    <a href="/usc">U.S.C. 2257</a>
+                  </li>
+                  <li>
                     <a href="/privacy">Privacy</a>
                   </li>
                   <li>
+                    <a href="/refund">Refund & Cancellation Policy</a>
+                  </li>
+                  <li>
                     <a href="/dmca">DMCA</a>
-                  </li>
-                  <li>
-                    <a href="/refund">Refund</a>
-                  </li>
-                  <li>
-                    <a href="/usc">USC</a>
                   </li>
                 </ul>
               </nav>
