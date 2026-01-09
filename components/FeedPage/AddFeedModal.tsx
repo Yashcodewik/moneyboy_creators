@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRef, useState } from "react";
@@ -173,11 +174,17 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       aria-modal="true"
       onClick={onClose}
     >
-      <div className="modal-wrap post-modal">
+      <div
+        className="modal-wrap post-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal_head">
           <h3>Poll Post</h3>
-          <button className="close-btn"><CgClose size={22}/></button>
+          <button className="close-btn" onClick={onClose}>
+            <CgClose size={22} />
+          </button>
         </div>
+
         <div className="input-wrap">
           <div className="label-input textarea one">
             <textarea
