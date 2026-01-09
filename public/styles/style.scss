@@ -355,6 +355,10 @@ body {
 .gap-10 {
   gap: 10px;
 }
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+}
 
 /* Login Page Start */
 .login_wrap {
@@ -2541,6 +2545,26 @@ body {
       &:hover {
         transform: translateY(-1px);
         box-shadow: 0 6px 10px #0000001a;
+      }
+    }
+  }
+  &.addfunds {
+    img.w-max {
+      width: max-content;
+    }
+    img.cardicon {
+      max-width: 50%;
+    }
+    h3 {
+      font-size: 16px;
+      line-height: 100%;
+      font-weight: 400;
+    }
+    .grid {
+      gap: 10px;
+      display: grid;
+      &.grid-2 {
+        grid-template-columns: 1fr 1fr;
       }
     }
   }
