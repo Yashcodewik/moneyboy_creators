@@ -432,7 +432,7 @@ const fetchFollowerCounts = async (userId: string) => {
                     <div className="profile-card__stats">
                       <div className="profile-card__stats-item posts-stats">
                          {/* {followerStats.postCount?.toLocaleString() || "2,880"}  */}
-                        <div className="profile-card__stats-num">2,880</div>
+                        <div className="profile-card__stats-num">0</div>
                         <div className="profile-card__stats-label">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
