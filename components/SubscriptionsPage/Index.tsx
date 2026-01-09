@@ -282,7 +282,6 @@ const SubscriptionsPage = () => {
                       </div>
                      </div>
                    </div>
-
                   </div>
                 </div>
               </div>

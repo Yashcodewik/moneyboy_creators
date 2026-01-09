@@ -9,7 +9,7 @@ const WalletTransactionsPage = () => {
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-          {/* <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             <button className="page-content-type-button active-down-effect active">Wallet Transactions</button>
             <button className="page-content-type-button active-down-effect"> Order History</button>
             <button className="page-content-type-button active-down-effect"> Payment History</button>
@@ -206,7 +206,7 @@ const WalletTransactionsPage = () => {
                 </div>
               </div>
             </div>
-          </div> */}
+          </div>
           {/* ===================================== */}
           {/* ========== Payment History ========== */}
           {/* ===================================== */}
