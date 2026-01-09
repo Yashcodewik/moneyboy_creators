@@ -13,4 +13,6 @@ export const API_UNFOLLOW_USER = "/social/unfollow";
 export const  API_GET_FOLLOWERS="/social/followers"
 export const API_GET_FOLLOWING="/social/following"
 export const API_FOLLOWER_COUNT = "/social/counts";
-
+export const API_CREATE_POST = "/post/create";
+export const API_SEARCH_TAG_USERS = "/post/tag/search";
+export const API_TAG_USERS_TO_POST = "/post/tag";
