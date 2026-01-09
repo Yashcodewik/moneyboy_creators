@@ -447,11 +447,11 @@ const handleFollowingSearch = (value: string) => {
 
     const renderFollowersList = () => {
       if (loading && followers.length === 0) {
-        return <div className="text-center">Loading followers...</div>;
+        return <div className="nodeta">Loading followers...</div>;
       }
 
       if (followers.length === 0) {
-        return <div className="text-center">No followers yet</div>;
+        return <div className="nodeta">No followers yet</div>;
       }
 
       return followers.map((follower, index) => {
