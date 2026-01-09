@@ -119,18 +119,20 @@ const SubscriptionsPage = () => {
                             </Link>
                           </div>
                         </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                        <div className="date_box">
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
@@ -164,18 +166,20 @@ const SubscriptionsPage = () => {
                             </Link>
                           </div>
                         </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                        <div className="date_box">
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
@@ -209,18 +213,20 @@ const SubscriptionsPage = () => {
                             </Link>
                           </div>
                         </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                        <div className="date_box">
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
@@ -254,18 +260,20 @@ const SubscriptionsPage = () => {
                             </Link>
                           </div>
                         </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                        <div className="date_box">
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="date_wrap">
-                          <svg className="icons calendarNote"/>
-                          <div className="containt">
-                            <span>Start Date</span>
-                            <p>Apr 25, 2025</p>
+                          <div className="date_wrap">
+                            <svg className="icons calendarNote"/>
+                            <div className="containt">
+                              <span>Start Date</span>
+                              <p>Apr 25, 2025</p>
+                            </div>
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
