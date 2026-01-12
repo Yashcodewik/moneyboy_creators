@@ -9,10 +9,10 @@ const SubscriptionsPage = () => {
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-        <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
+        <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap" data-scroll-zero data-multiple-tabs-section data-identifier="1">
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className="page-content-type-button active-down-effect active">Subscribers</button>
-            <button className="page-content-type-button active-down-effect"> Subscriptions</button>
+            <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft hwhite"></span></button>
+            <button className="page-content-type-button active-down-effect max-50 active">Subscribers</button>
           </div>
             <div className="tabs-content-wrapper-layout">
               <div data-multi-dem-cards-layout>
@@ -62,11 +62,72 @@ const SubscriptionsPage = () => {
                     </div>
 
                     <div className="creater-content-filters-layouts">
-                      <div className="creator-content-select-filter">
+                      <div className="creator-content-select-filter group_select">
+                        {/* <CustomSelect searchable={false}
+                          label="All Time"
+                          className="custom-select-sm"
+                          value={time}
+                          onChange={setTime}
+                          options={[
+                            { label: "Option 1", value: "1" },
+                            { label: "Option 2", value: "2" },
+                            { label: "Option 3", value: "3" },
+                            { label: "Option 4", value: "4" },
+                          ]}
+                        /> */}
+
+                        <div className="custom-select-element bg-white p-sm size-sm">
+                          <div className="custom-select-label-wrapper">
+                            <div className="custom-select-icon-txt">
+                              <span className="custom-select-label-txt">All Status</span>
+                            </div>
+                            <div className="custom-select-chevron">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                                <path d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </div>
+                          </div>
+                          <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown style={{translate: "none", rotate: "none", scale: "none", overflow: "hidden", display: "none", opacity: 0, transform: "translate(0px, -10px)", height: "0px",}}>
+                            <div className="custom-select-options-dropdown-container">
+                              <div className="custom-select-options-lists-container">
+                                <ul className="custom-select-options-list" data-custom-select-options-list>
+                                  <li className="custom-select-option"><span> Option 1</span></li>
+                                  <li className="custom-select-option"><span> Option 2</span></li>
+                                  <li className="custom-select-option"><span> Option 3</span></li>
+                                  <li className="custom-select-option"><span> Option 4</span></li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         <div className="custom-select-element bg-white p-sm size-sm">
                           <div className="custom-select-label-wrapper">
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">All Time</span>
+                            </div>
+                            <div className="custom-select-chevron">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                                <path d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </div>
+                          </div>
+                          <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown style={{translate: "none", rotate: "none", scale: "none", overflow: "hidden", display: "none", opacity: 0, transform: "translate(0px, -10px)", height: "0px",}}>
+                            <div className="custom-select-options-dropdown-container">
+                              <div className="custom-select-options-lists-container">
+                                <ul className="custom-select-options-list" data-custom-select-options-list>
+                                  <li className="custom-select-option"><span> Option 1</span></li>
+                                  <li className="custom-select-option"><span> Option 2</span></li>
+                                  <li className="custom-select-option"><span> Option 3</span></li>
+                                  <li className="custom-select-option"><span> Option 4</span></li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="custom-select-element bg-white p-sm size-sm">
+                          <div className="custom-select-label-wrapper">
+                            <div className="custom-select-icon-txt">
+                              <span className="custom-select-label-txt">All Creators</span>
                             </div>
                             <div className="custom-select-chevron">
                               <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
@@ -111,7 +172,7 @@ const SubscriptionsPage = () => {
                                 <div className="profile-card__username">
                                   <ul>
                                     <li className="yrly">Yearly</li>
-                                    <li className="stip">Stipe</li>
+                                    {/* <li className="stip">Stipe</li> */}
                                     <li className="active">Active</li>
                                   </ul>
                                 </div>
@@ -136,7 +197,7 @@ const SubscriptionsPage = () => {
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
-                          <button className="btn-danger">Cancel</button>
+                        <button className="btn-txt-gradient"><span>Message</span></button>
                         </div>
                       </div>
                       <div className="user-subbox">
@@ -158,7 +219,7 @@ const SubscriptionsPage = () => {
                                 <div className="profile-card__username">
                                   <ul>
                                     <li className="yrly">Yearly</li>
-                                    <li className="cbill">CCbill</li>
+                                    {/* <li className="cbill">CCbill</li> */}
                                     <li className="active">Active</li>
                                   </ul>
                                 </div>
@@ -183,7 +244,7 @@ const SubscriptionsPage = () => {
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
-                          <button className="btn-danger">Cancel</button>
+                          <button className="btn-txt-gradient"><span>Message</span></button>
                         </div>
                       </div>
                       <div className="user-subbox">
@@ -205,7 +266,7 @@ const SubscriptionsPage = () => {
                                 <div className="profile-card__username">
                                   <ul>
                                     <li className="yrly">Yearly</li>
-                                    <li className="stip">Stipe</li>
+                                    {/* <li className="stip">Stipe</li> */}
                                     <li className="active">Active</li>
                                   </ul>
                                 </div>
@@ -230,7 +291,7 @@ const SubscriptionsPage = () => {
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
-                          <button className="btn-danger">Cancel</button>
+                          <button className="btn-txt-gradient"><span>Message</span></button>
                         </div>
                       </div>
                       <div className="user-subbox">
@@ -252,7 +313,7 @@ const SubscriptionsPage = () => {
                                 <div className="profile-card__username">
                                   <ul>
                                     <li className="yrly">Yearly</li>
-                                    <li className="stip">Stipe</li>
+                                    {/* <li className="stip">Stipe</li> */}
                                     <li className="saspnd">Suspended</li>
                                   </ul>
                                 </div>
@@ -277,7 +338,7 @@ const SubscriptionsPage = () => {
                           </div>
                         </div>
                         <div className="rel-user-action-btn">
-                          <button className="btn-txt-gradient"><span>Activate</span></button>
+                          <button className="btn-txt-gradient"><span>Message</span></button>
                         </div>
                       </div>
                      </div>

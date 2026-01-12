@@ -1826,6 +1826,9 @@ body {
     }
     .page-content-type-button {
       max-width: 30%;
+      &.max-50 {
+        max-width: 50%;
+      }
     }
   }
   .main_contwrap {
@@ -1942,7 +1945,7 @@ body {
   /* ========== Mobile (max-width: 767px) ========== */
   @media (max-width: 767px) {
     .moneyboy-feed-page-cate-buttons {
-      .page-content-type-button {
+      .page-content-type-button, .max-50 {
         max-width: 100%;
         width: 100%;
       }
@@ -2091,7 +2094,7 @@ body {
           display: flex;
           gap: 4px;
           align-items: center;
-          justify-content: space-between;
+          justify-content: start;
           li {
              padding: 4px;
              padding: 4px 5px;
@@ -3039,6 +3042,13 @@ body {
 }
 
 .moneyboy-feed-page-cate-buttons {
+  .cate-back-btn {
+    &:hover {
+      .icons.hwhite {
+        filter: brightness(0) invert(1);
+      }
+    }
+  }
   &.show_mobail {
     display: none;
   }
@@ -3056,5 +3066,17 @@ body {
     .hide_mobail {
       display: none !important;
     }
+  }
+}
+
+.group_select {
+  gap: 3px;
+  .custom-select-label-txt {
+    font-size: 11px !important;
+    max-width: 55px;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
