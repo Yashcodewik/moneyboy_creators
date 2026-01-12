@@ -72,6 +72,42 @@ body {
     transform: none;
   }
 }
+.btn-gray {
+  cursor: pointer;
+  font-family: var(--font-family-heading);
+  letter-spacing: 0.25px;
+  color: #333;
+  background-color: #d1d1d1;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 17px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 14px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.07);
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover:not(:disabled):not(.disabled) {
+    background-color: #bfbfbf;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.12);
+  }
+  &:active:not(:disabled):not(.disabled) {
+    transform: translateY(0);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+  &:disabled,
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background-color: #d1d1d1;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
 
 
 .nodeta {
@@ -367,6 +403,9 @@ body {
 .img-fluid {
   max-width: 100%;
   height: auto;
+}
+.block {
+  display: block;
 }
 
 /* Login Page Start */
@@ -2522,6 +2561,15 @@ body {
   padding: 8px;
   border-radius: 18px;
   background-color: #F4F4F4;
+  &.p-0 {
+    padding: 0px;
+  }
+  &.p-14 {
+    padding: 14px;
+  }
+  &.bg-white {
+    background-color: white;
+  }
   .history_wrap {
     border: 1px solid #EBEBEB;
     outline: 1px solid #EBEBEB;
@@ -2532,6 +2580,9 @@ body {
     line-height: 16px;
     font-weight: 500;
     margin-bottom: 8px;
+    &.font-light {
+      font-weight: 400;
+    }
   }
   .label-input {
     input, textarea {
@@ -2577,6 +2628,79 @@ body {
       display: grid;
       &.grid-2 {
         grid-template-columns: 1fr 1fr;
+      }
+    }
+    .curntblc_wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .icons.currencyCircle {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+      }
+      p {
+        color: #505050;
+        font-size: 14px;
+        line-height: 18px;
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+      h3 {
+        color: #444444;
+        font-weight: 600;
+        font-size: 20px;
+        line-height: 24px;
+        font-family: var(--font-family-base);
+      }
+    }
+    .note_wrap {
+      padding: 14px;
+      border-radius: 18px;
+      background-color: #FFFBE7;
+      border: 1px solid #F2E9BD;
+      p {
+        color: #505050;
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 18px;
+        margin-bottom: 12px;
+        &:last-child {
+          margin-bottom: 0px;
+        }
+      }
+    }
+    .custom-select-element {
+      .custom-select-label-wrapper {
+        padding: 10px 12px;
+      }
+    }
+    .couponcode_wraping, .total_wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+      background: #FFF;
+      padding: 10px;
+      border-radius: 12px;
+      &.bg-gray {
+        background-color: #F4F4F4;
+      }
+      &.px-0 {
+        padding: 0px;
+      }
+      p {
+        color: #444444;
+        font-weight: 500;
+        font-size: 15px;
+        line-height: 100%;
+        text-transform: capitalize;
+        b {
+          font-weight: 600;
+        }
+      }
+      button {
+        flex-shrink: 0;
       }
     }
   }
@@ -2857,18 +2981,20 @@ body {
       align-items: center;
       justify-content: space-between;
       h5 {
+        color: #444444;
         font-weight: 400;
-        font-size: 18px;
+        font-size: 16px;
         line-height: 100%;
         margin-bottom: 5px;
       }
       p {
         color: #505050;
-        font-size: 16px;
+        font-size: 14px;
         line-height: 20px;
         font-weight: 500;
       }
       button {
+        flex-shrink: 0;
         padding: 14px 22px;
         border-radius: 14px;
         font-weight: 400;
@@ -2880,16 +3006,16 @@ body {
       padding: 7px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       h5 {
         font-weight: 400;
-        font-size: 18px;
+        font-size: 16px;
         line-height: 100%;
-        margin-bottom: 5px;
+        margin-bottom: 0px;
       }
       p {
         color: #505050;
-        font-size: 16px;
+        font-size: 14px;
         line-height: 20px;
         font-weight: 500;
       }
