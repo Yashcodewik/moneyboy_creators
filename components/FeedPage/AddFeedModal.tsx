@@ -45,9 +45,11 @@ const PostSchema = Yup.object({
     then: (s) => s.required().positive(),
     otherwise: (s) => s.notRequired(),
   }),
-  scheduledAt: Yup.string().when("isScheduled", {
-    is: true,
-    then: (s) => s.required(),
+  isScheduled: Yup.boolean(),
+  scheduledAt: Yup.string().when(["isScheduled", "accessType"], {
+    is: (isScheduled: boolean, accessType: string) => 
+      isScheduled && (accessType === "pay_per_view" || accessType === "subscriber"),
+    then: (s) => s.required("Schedule date is required"),
     otherwise: (s) => s.notRequired(),
   }),
 });
@@ -57,7 +59,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const [activeTool, setActiveTool] = useState<
     "image" | "video" | "poll" | null
   >(null);
-  const [isScheduled, setIsScheduled] = useState(true);
+  const [isScheduled, setIsScheduled] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -104,7 +106,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       text: "",
       accessType: "free",
       price: "",
-      isScheduled: true,
+     isScheduled: false, 
       scheduledAt: "",
     },
     validationSchema: PostSchema,
@@ -202,46 +204,55 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           )}
         </div>
 
-        <div className="select_wrap">
-          <label className="radio_wrap">
-            <input
-              type="radio"
-              name="access"
-              checked={accessType === "subscriber"}
-              onChange={() => {
-                setAccessType("subscriber");
-                formik.setFieldValue("accessType", "subscriber");
-              }}
-            />
-            Only for Subscribers
-          </label>
+     <div className="select_wrap">
+  <label className="radio_wrap">
+    <input
+      type="radio"
+      name="access"
+      checked={accessType === "subscriber"}
+      onChange={() => {
+        setAccessType("subscriber");
+        setIsScheduled(false); // Reset to false when switching
+        formik.setFieldValue("accessType", "subscriber");
+        formik.setFieldValue("isScheduled", false);
+        formik.setFieldValue("scheduledAt", "");
+      }}
+    />
+    Only for Subscribers
+  </label>
 
-          <label className="radio_wrap">
-            <input
-              type="radio"
-              name="access"
-              checked={accessType === "pay_per_view"}
-              onChange={() => {
-                setAccessType("pay_per_view");
-                formik.setFieldValue("accessType", "pay_per_view");
-              }}
-            />
-            Pay per View
-          </label>
+  <label className="radio_wrap">
+    <input
+      type="radio"
+      name="access"
+      checked={accessType === "pay_per_view"}
+      onChange={() => {
+        setAccessType("pay_per_view");
+        setIsScheduled(false); // Reset to false when switching
+        formik.setFieldValue("accessType", "pay_per_view");
+        formik.setFieldValue("isScheduled", false);
+        formik.setFieldValue("scheduledAt", "");
+      }}
+    />
+    Pay per View
+  </label>
 
-          <label className="radio_wrap">
-            <input
-              type="radio"
-              name="access"
-              checked={accessType === "free"}
-              onChange={() => {
-                setAccessType("free");
-                formik.setFieldValue("accessType", "free");
-              }}
-            />
-            Free for Everyone
-          </label>
-        </div>
+  <label className="radio_wrap">
+    <input
+      type="radio"
+      name="access"
+      checked={accessType === "free"}
+      onChange={() => {
+        setAccessType("free");
+        setIsScheduled(false); // Ensure it's false for free
+        formik.setFieldValue("accessType", "free");
+        formik.setFieldValue("isScheduled", false);
+        formik.setFieldValue("scheduledAt", "");
+      }}
+    />
+    Free for Everyone
+  </label>
+</div>
 
         {accessType === "pay_per_view" && (
           <div>
@@ -260,52 +271,59 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           </div>
         )}
 
-        {(accessType === "pay_per_view" || accessType === "subscriber") && (
-          <div className="flex items-center gap-10">
-            <div>
-              <label>Schedule?</label>
-              <div className="toggleGroup">
-                <input
-                  type="checkbox"
-                  id="on-off-switch"
-                  className="checkbox"
-                  checked={isScheduled}
-                  onChange={() => {
-                    setIsScheduled(!isScheduled);
-                    formik.setFieldValue("isScheduled", !isScheduled);
-                  }}
-                />
-                <label htmlFor="on-off-switch" className="label"></label>
-                <div className="onoffswitch" aria-hidden="true">
-                  <div className="onoffswitchLabel">
-                    <div className="onoffswitchInner"></div>
-                    <div className="onoffswitchSwitch"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+{/* Only show scheduling for paid posts (pay_per_view or subscriber) */}
+{(accessType === "pay_per_view" || accessType === "subscriber") && (
+  <div className="flex items-center gap-10">
+    <div>
+      <label>Schedule?</label>
+  <div className="toggleGroup">
+  <input
+    type="checkbox"
+    id="on-off-switch"
+    className="checkbox"
+    checked={isScheduled}
+    onChange={() => {
+      const newIsScheduled = !isScheduled;
+      setIsScheduled(newIsScheduled);
+      formik.setFieldValue("isScheduled", newIsScheduled);
+      
+      // Clear scheduledAt when turning off scheduling
+      if (!newIsScheduled) {
+        formik.setFieldValue("scheduledAt", "");
+      }
+    }}
+  />
+        <label htmlFor="on-off-switch" className="label"></label>
+        <div className="onoffswitch" aria-hidden="true">
+          <div className="onoffswitchLabel">
+            <div className="onoffswitchInner"></div>
+            <div className="onoffswitchSwitch"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            {isScheduled && (
-              <div className="mw-fit w-full">
-                <label>Schedule at</label>
-                <input
-                  className="form-input"
-                  type="date"
-                  value={formik.values.scheduledAt}
-                  onChange={(e) =>
-                    formik.setFieldValue("scheduledAt", e.target.value)
-                  }
-                  onBlur={formik.handleBlur}
-                />
-                {formik.touched.scheduledAt && formik.errors.scheduledAt && (
-                  <div className="error-message">
-                    {formik.errors.scheduledAt}
-                  </div>
-                )}
-              </div>
-            )}
+    {isScheduled && (
+      <div className="mw-fit w-full">
+        <label>Schedule at</label>
+        <input
+          className="form-input"
+          type="date"
+          value={formik.values.scheduledAt}
+          onChange={(e) =>
+            formik.setFieldValue("scheduledAt", e.target.value)
+          }
+          onBlur={formik.handleBlur}
+        />
+        {formik.touched.scheduledAt && formik.errors.scheduledAt && (
+          <div className="error-message">
+            {formik.errors.scheduledAt}
           </div>
         )}
+      </div>
+    )}
+  </div>
+)}
 
         <div
           className="upload-wrapper"
