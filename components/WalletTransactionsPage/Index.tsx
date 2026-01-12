@@ -297,7 +297,7 @@ const WalletTransactionsPage = () => {
                         </div>
                       </div>
 
-                      {/* <div className="rel-user-box">
+                      <div className="rel-user-box">
                         <div className="rel-user-profile-action">
                           <div className="rel-user-profile">
                             <div className="profile-card">
@@ -352,7 +352,7 @@ const WalletTransactionsPage = () => {
                             <button className="btn-txt-gradient" type="button"><span>View</span> </button>
                           </div>
                         </div>
-                      </div> */}
+                      </div>
                     </div>
                   </div>
                 </div>
