@@ -3,7 +3,6 @@ import React from 'react'
 import Featuredboys from '../Featuredboys';
 import Link from 'next/link';
 import CustomSelect from '../CustomSelect';
-import { BsBank2 } from "react-icons/bs";
 
 const AddFundsPage = () => {
   return (
@@ -101,7 +100,6 @@ const AddFundsPage = () => {
             </div>
         </div>
       </div>
-
       <Featuredboys />
     </div>
   )
