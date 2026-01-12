@@ -11,12 +11,12 @@ const FeedPage = () => {
   const router = useRouter();
 
   const setMenuRef = (id: number, element: HTMLDivElement | null) => {
-  menuRefs.current.set(id, element);
-};
+    menuRefs.current.set(id, element);
+  };
 
-const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
-  buttonRefs.current.set(id, element);
-};
+  const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
+    buttonRefs.current.set(id, element);
+  };
 
   // Use NextAuth session
   const { data: session, status } = useSession();
@@ -44,8 +44,8 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
   //   setOpenMenuId((prev) => (prev === id ? null : id));
   // };
   const toggleMenu = (id: number) => {
-  setOpenMenuId((prev) => (prev === id ? null : id));
-};
+    setOpenMenuId((prev) => (prev === id ? null : id));
+  };
   const handleTabClick = (tabName: string) => {
     if (!isLoggedIn && tabName === "discover") {
       router.push("/discover");
@@ -57,23 +57,23 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (openMenuId === null) return;
-  
+
       const menuElement = menuRefs.current.get(openMenuId);
       const buttonElement = buttonRefs.current.get(openMenuId);
-      
+
       const target = event.target as Node;
-      
+
       // If click is outside both menu and its button, close the menu
       if (
-        menuElement && 
-        !menuElement.contains(target) && 
-        buttonElement && 
+        menuElement &&
+        !menuElement.contains(target) &&
+        buttonElement &&
         !buttonElement.contains(target)
       ) {
         setOpenMenuId(null);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -172,7 +172,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(1)}
-                             ref={(el) => setButtonRef(1, el)}
+                            ref={(el) => setButtonRef(1, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -454,7 +454,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                         <div
+                        <div
                           className={`rel-user-more-opts-wrapper ${
                             openMenuId === 2 ? "active" : ""
                           }`}
@@ -746,7 +746,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                         <div
+                        <div
                           className={`rel-user-more-opts-wrapper ${
                             openMenuId === 3 ? "active" : ""
                           }`}
@@ -1038,7 +1038,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                         <div
+                        <div
                           className={`rel-user-more-opts-wrapper ${
                             openMenuId === 4 ? "active" : ""
                           }`}
@@ -1330,7 +1330,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                         <div
+                        <div
                           className={`rel-user-more-opts-wrapper ${
                             openMenuId === 5 ? "active" : ""
                           }`}
@@ -1340,7 +1340,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                           <button
                             className="rel-user-more-opts-trigger-icon"
                             onClick={() => toggleMenu(5)}
-                             ref={(el) => setButtonRef(5, el)}
+                            ref={(el) => setButtonRef(5, el)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1622,7 +1622,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                       <div
+                        <div
                           className={`rel-user-more-opts-wrapper ${
                             openMenuId === 6 ? "active" : ""
                           }`}
@@ -1921,7 +1921,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                         <div className="moneyboy-post__upload-time">
                           1 Hour ago
                         </div>
-                         <div
+                        <div
                           className={`rel-user-more-opts-wrapper ${
                             openMenuId === 7 ? "active" : ""
                           }`}
@@ -2515,7 +2515,7 @@ const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
                             openMenuId === 9 ? "active" : ""
                           }`}
                           data-more-actions-toggle-element
-                           ref={(el) => setMenuRef(9, el)}
+                          ref={(el) => setMenuRef(9, el)}
                         >
                           <button
                             className="rel-user-more-opts-trigger-icon"

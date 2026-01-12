@@ -10,7 +10,9 @@ type CustomSelectProps = {
   placeholder?: string;
   className?: string;
   icon?: React.ReactNode;
+  searchable?: boolean;
 };
+
 const CustomSelect: React.FC<CustomSelectProps> = ({
   label = "Select",
   options,
@@ -19,6 +21,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   placeholder = "Search here",
   className = "",
   icon,
+  searchable = true,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -32,6 +35,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       setInternalValue(value);
     }
   }, [value]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -42,14 +46,17 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const selectedOption = options.find((opt) => opt.value === internalValue);
 
-  const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOptions = searchable
+    ? options.filter((opt) =>
+        opt.label.toLowerCase().includes(search.toLowerCase())
+      )
+    : options;
 
   const handleSelect = (val: string) => {
     setInternalValue(val);
@@ -70,7 +77,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         onClick={() => setOpen((prev) => !prev)}
       >
         <div className="custom-select-icon-txt">
-          {icon ? icon : <svg className="icons calendarClock svg-icon"></svg>}
+          {icon && icon}
           <span className="custom-select-label-txt">
             {selectedOption ? selectedOption.label : label}
           </span>
@@ -79,6 +86,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           <svg className="icons chevronDown svg-icon"></svg>
         </div>
       </div>
+
       {/* Dropdown */}
       {open && (
         <div
@@ -86,20 +94,24 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           style={{ display: open ? "unset" : "none" }}
         >
           <div className="custom-select-options-dropdown-container">
+
             {/* Search */}
-            <div className="custom-select-options-search">
-              <div className="label-input">
-                <div className="input-placeholder-icon">
-                  <svg className="icons searchAdd svg-icon"></svg>
+            {searchable && (
+              <div className="custom-select-options-search">
+                <div className="label-input">
+                  <div className="input-placeholder-icon">
+                    <svg className="icons searchAdd svg-icon"></svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={placeholder}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder={placeholder}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
               </div>
-            </div>
+            )}
+
             {/* Options */}
             <div className="custom-select-options-lists-container">
               <ul
@@ -122,6 +134,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                 )}
               </ul>
             </div>
+
           </div>
         </div>
       )}

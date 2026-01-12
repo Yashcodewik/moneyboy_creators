@@ -5,31 +5,28 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_CREATOR_PROFILE, API_USER_PROFILE } from "@/utils/api/APIConstant";
-import { CgClose } from "react-icons/cg";
-import { PiTextAaBold } from "react-icons/pi";
 import {
-  FiImage,
-  FiVideo,
-  FiType,
-  FiMic,
-  FiMenu,
-  FiAtSign,
-} from "react-icons/fi";
-import { HiMenuAlt2 } from "react-icons/hi";
-import { FaXTwitter } from "react-icons/fa6";
-import { TbCamera } from "react-icons/tb";
-import { MdUpload } from "react-icons/md";
-import { IoSearch } from "react-icons/io5";
-import { BsThreeDotsVertical } from "react-icons/bs";
-
+  API_CREATOR_PROFILE,
+  API_FOLLOWER_COUNT,
+  API_USER_PROFILE,
+} from "@/utils/api/APIConstant";
+import { useAppDispatch, useAppSelector } from "../redux/store";
+import { fetchFollowerCounts } from "../redux/other/followActions";
+import AddFeedModal from "../FeedPage/AddFeedModal";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-   const [isOpen, setIsOpen] = useState(false);
+  const [feedShow, setAddFeedShow] = useState(false);
   const { session } = useDecryptedSession();
+  const dispatch = useAppDispatch();
+  const { counts, loading: countsLoading } = useAppSelector(
+    (state) => state.follow
+  );
+  const followerCount = counts.followerCount;
+  const followingCount = counts.followingCount;
+
   const pathname = usePathname();
   const router = useRouter();
 
@@ -39,7 +36,7 @@ const Sidebar: React.FC = () => {
       "/feed": "feed",
       "/like": "likes",
       "/wishlist": "wishlist",
-      "/#": "subscriptions",
+      "/subscriptions": "subscriptions",
       "/purchased-media": "purchased-media",
       "/store": "store",
       "/notifications": "notifications",
@@ -47,7 +44,6 @@ const Sidebar: React.FC = () => {
       "/profile": "profile",
       "/userprofile": "userprofile",
       "/follower": "follower",
-
     };
 
     const currentPage = Object.keys(pathToPageMap).find(
@@ -75,13 +71,8 @@ const Sidebar: React.FC = () => {
     router.push(href);
   };
 
-  const handleLogout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    signOut({ callbackUrl: "/" });
-  };
-
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchAllData = async () => {
       if (!session?.isAuthenticated) {
         setProfileLoading(false);
         return;
@@ -95,56 +86,51 @@ const Sidebar: React.FC = () => {
           apiUrl = API_CREATOR_PROFILE;
         }
 
-        const response = await getApiWithOutQuery({ url: apiUrl });
+        const profileResponse = await getApiWithOutQuery({ url: apiUrl });
 
-        console.log("Profile===========", response);
-
-        if (response) {
+        if (profileResponse) {
           let userData;
-
           if (session?.user?.role === 2) {
-            if (response.user) {
+            if (profileResponse.user) {
               userData = {
-                displayName: response.user.displayName,
-                username: response.user.userName,
-                firstName: response.user.firstName,
-                lastName: response.user.lastName,
-                email: response.user.email,
+                displayName: profileResponse.user.displayName,
+                username: profileResponse.user.userName,
+                firstName: profileResponse.user.firstName,
+                lastName: profileResponse.user.lastName,
+                email: profileResponse.user.email,
               };
             }
           } else {
-            if (response.success && response.data) {
+            if (profileResponse.success && profileResponse.data) {
               userData = {
-                displayName: response.data.displayName,
-                username: response.data.userName,
-                firstName: response.data.firstName,
-                lastName: response.data.lastName,
-                email: response.data.email,
+                displayName: profileResponse.data.displayName,
+                username: profileResponse.data.userName,
+                firstName: profileResponse.data.firstName,
+                lastName: profileResponse.data.lastName,
+                email: profileResponse.data.email,
               };
             }
           }
-
-          if (userData) {
-            setUserProfile(userData);
-          }
+          if (userData) setUserProfile(userData);
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
         setProfileLoading(false);
       }
+
+      // Fetch follower counts FROM REDUX
+      dispatch(fetchFollowerCounts());
     };
 
-    fetchUserProfile();
-  }, [session?.isAuthenticated, session?.user?.role]);
+    fetchAllData();
+  }, [session?.isAuthenticated, session?.user?.role, dispatch]);
 
-    const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
+  const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
-    setIsOpen(false);
-
-    // Navigate to /like with query parameter for the active tab
     router.push(`/follower?tab=${tab}`);
   };
+
   return (
     <>
       <div className="moneyboy-global-sidebar-wrapper" id="leftSidebar">
@@ -223,7 +209,7 @@ const Sidebar: React.FC = () => {
                   <div className="profile-card__stats">
                     {session?.user?.role === 2 && (
                       <div className="profile-card__stats-item posts-stats">
-                        <div className="profile-card__stats-num">2,880</div>
+                        <div className="profile-card__stats-num">0</div>
                         <div className="profile-card__stats-label">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -268,9 +254,14 @@ const Sidebar: React.FC = () => {
                     <div
                       className="profile-card__stats-item followers-stats"
                       onClick={(e) => handleTabfollowNavigation(e, "followers")} // Default to posts for users
-                          
                     >
-                      <div className="profile-card__stats-num">253</div>
+                      <div className="profile-card__stats-num">
+                        {countsLoading ? (
+                          <span className="loading-dots">...</span>
+                        ) : (
+                          followerCount.toLocaleString()
+                        )}
+                      </div>
                       <div className="profile-card__stats-label">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -313,9 +304,15 @@ const Sidebar: React.FC = () => {
                     </div>
                     <div
                       className="profile-card__stats-item following-stats"
-                      onClick={(e) => handleTabfollowNavigation(e, "following")} 
+                      onClick={(e) => handleTabfollowNavigation(e, "following")}
                     >
-                      <div className="profile-card__stats-num">1,920</div>
+                      <div className="profile-card__stats-num">
+                        {countsLoading ? (
+                          <span className="loading-dots">...</span>
+                        ) : (
+                          followingCount.toLocaleString()
+                        )}
+                      </div>
                       <div className="profile-card__stats-label">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -347,7 +344,11 @@ const Sidebar: React.FC = () => {
               </div>
               {session?.user?.role === 2 && (
                 <div className="sidebar-post-button card active-down-effect">
-                  <a href="#" className="btn-primary">
+                  <a
+                    href="#"
+                    className="btn-primary"
+                    onClick={() => setAddFeedShow(true)}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -539,7 +540,9 @@ const Sidebar: React.FC = () => {
                         className={`active-down-effect ${
                           activePage === "subscriptions" ? "active" : ""
                         }`}
-                        onClick={(e) => handleNavClick("subscriptions", "/#", e)}
+                        onClick={(e) =>
+                          handleNavClick("subscriptions", "/subscriptions", e)
+                        }
                       >
                         <div>
                           <svg
@@ -599,7 +602,11 @@ const Sidebar: React.FC = () => {
                           activePage === "purchased-media" ? "active" : ""
                         }`}
                         onClick={(e) =>
-                          handleNavClick("purchased-media", "/purchased-media", e)
+                          handleNavClick(
+                            "purchased-media",
+                            "/purchased-media",
+                            e
+                          )
                         }
                       >
                         <div>
@@ -694,22 +701,22 @@ const Sidebar: React.FC = () => {
                       </li>
                     )}
                     {/* <li>
-                      <Link
-                        href="/"
-                        className={`active-down-effect`}
-                        onClick={handleLogout}
-                      >
-                        <div>
-                          <img
-                            src="/images/icons/logout.svg"
-                            alt="Login Icon"
-                            width="22"
-                            height="22"
-                          />
-                          <span>Logout</span>
-                        </div>
-                      </Link>
-                    </li> */}
+                    <Link
+                      href="/"
+                      className={`active-down-effect`}
+                      onClick={handleLogout}
+                    >
+                      <div>
+                        <img
+                          src="/images/icons/logout.svg"
+                          alt="Login Icon"
+                          width="22"
+                          height="22"
+                        />
+                        <span>Logout</span>
+                      </div>
+                    </Link>
+                  </li> */}
                   </>
                 ) : (
                   <>
@@ -753,31 +760,28 @@ const Sidebar: React.FC = () => {
               <nav>
                 <ul>
                   <li>
-                    <a href="#">Home</a>
+                    <a href="/feed">Home</a>
                   </li>
                   <li>
-                    <a href="#">Creator</a>
+                    <a href="/contact-us">Contact</a>
                   </li>
                   <li>
-                    <a href="#">Contact</a>
-                  </li>
-                  <li>
-                    <a href="/help">Help &amp; Support</a>
+                    <a href="/help">Help & Support</a>
                   </li>
                   <li>
                     <a href="/terms">Terms of Service</a>
                   </li>
                   <li>
+                    <a href="/usc">U.S.C. 2257</a>
+                  </li>
+                  <li>
                     <a href="/privacy">Privacy</a>
                   </li>
                   <li>
+                    <a href="/refund">Refund & Cancellation Policy</a>
+                  </li>
+                  <li>
                     <a href="/dmca">DMCA</a>
-                  </li>
-                  <li>
-                    <a href="/refund">Refund</a>
-                  </li>
-                  <li>
-                    <a href="/usc">USC</a>
                   </li>
                 </ul>
               </nav>
@@ -848,7 +852,9 @@ const Sidebar: React.FC = () => {
                   <Link
                     href="#"
                     className={activePage === "search" ? "active" : ""}
-                    onClick={(e) => handleMobileNavClick("search", "/search", e)}
+                    onClick={(e) =>
+                      handleMobileNavClick("search", "/search", e)
+                    }
                   >
                     <div>
                       <svg
@@ -1042,82 +1048,7 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-        <div className="modal-wrap post-modal">
-          <div className="modal_head">
-            <h3>Poll Post</h3>
-            <button className="close-btn"><CgClose size={22}/></button>
-          </div>
-          <div className="input-wrap">
-            <div className="label-input textarea one">
-              <textarea rows={4} placeholder="Compose new post..." name="Compose new post..."/>
-            </div>
-            <span className="right">0/300</span>
-          </div>
-          <div className="select_wrap">
-            <label className="radio_wrap"><input type="radio" name="access" /> Only for Subscribers</label>
-            <label className="radio_wrap"><input type="radio" name="access" /> Pay per View</label>
-            <label className="radio_wrap"><input type="radio" name="access" checked /> Free for Everyone</label>
-          </div>
-          <div className="">
-            <label>Price</label>
-            <input className="form-input" type="text" placeholder="10.99 *" name="firstName"/>
-          </div>
-          <div className="flex items-center gap-10">
-            <div>
-              <label>Schedule?</label>
-              <div className="toggleGroup">
-                <input type="checkbox" id="on-off-switch" className="checkbox" defaultChecked/>
-                <label htmlFor="on-off-switch" className="label"></label>
-                <div className="onoffswitch" aria-hidden="true">
-                  <div className="onoffswitchLabel"> <div className="onoffswitchInner"></div> <div className="onoffswitchSwitch"></div></div>
-                </div>
-              </div>
-            </div>
-            <div className="mw-fit w-full">
-              <label>Schedule at</label>
-              <input className="form-input" type="date" placeholder="10.99 *" name="firstName"/>
-            </div>
-          </div>
-          {/* <div className="upload-wrapper">
-            <div className="img_wrap">
-              <svg className="icons idshape size-45"></svg>
-              <div className="imgicons"><TbCamera size="16" /></div>
-            </div>
-            <button className="btn-primary active-down-effect"><div className="imgicons"><TbCamera size="16" /></div><span>Add thumbnail</span></button>
-          </div> */}
-          {/* <div className="flex items-center gap-10">
-            <button className="btn-grey btnicons gap-10"><div className="imgicons"><FiVideo size="16" /></div><span>Start recording</span></button>
-            <button className="btn-grey btnicons gap-10"><div className="imgicons"><MdUpload size="16" /></div><span>Upload video</span></button>
-          </div>
-          <div className="upload-wrapper">
-            <button className="btn-primary active-down-effect"><div className="imgicons"><TbCamera size="16" /></div><span>Add thumbnail</span></button>
-          </div> */}
-          {/* <div className="duration_wraping">
-           <div className="">
-            <label className="orange">Poll Duration - 7 days</label>
-            <input className="form-input" type="text" placeholder="Question" name="firstName" disabled/>
-           </div>
-            <label className="pollanw selected">Poll Duration - 7 days</label>
-            <label className="pollanw">Poll Duration - 7 days</label>
-            <Link href="#" className="clear">Clear Polls</Link>
-          </div> */}
-          <div className="actions">
-            <button className="cate-back-btn active-down-effect btn_icons"><FiImage size={20} /></button>
-            <button className="cate-back-btn active-down-effect btn_icons"><FiVideo size={20} /></button>
-            <button className="cate-back-btn active-down-effect btn_icons"><PiTextAaBold size={20}/></button>
-            <button className="cate-back-btn active-down-effect btn_icons"><FiMic size={20} /></button>
-            <button className="cate-back-btn active-down-effect btn_icons"><HiMenuAlt2 size={20} /></button>
-            <button className="cate-back-btn active-down-effect btn_icons"><FiAtSign size={20} /></button>
-            <div className="right">
-              <button className="cate-back-btn active-down-effect btn_icons"><FaXTwitter size={20} /></button>
-              <button className="premium-btn active-down-effect"><span>Post</span></button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+       {/* <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap creators-modal">
           <button className="close-btn"><CgClose size={22}/></button>
            <h3>Tag other creators</h3>
@@ -1151,7 +1082,7 @@ const Sidebar: React.FC = () => {
             <div className="moneyboy-post__upload-more-info">
               <div className="rel-user-more-opts-wrapper">
                 <button className="rel-user-more-opts-trigger-icon">
-                  <BsThreeDotsVertical color="#505050"/>
+                  <BsThreeDotsVertical color="#505050"/> 
                 </button>
               </div>
             </div>
@@ -1161,7 +1092,8 @@ const Sidebar: React.FC = () => {
             <button className="cate-back-btn active-down-effect close">Close</button>
           </div>
         </div>
-      </div> */}
+      </div>  */}
+      {feedShow && <AddFeedModal show={feedShow} onClose={()=>setAddFeedShow(false)} />}
     </>
   );
 };

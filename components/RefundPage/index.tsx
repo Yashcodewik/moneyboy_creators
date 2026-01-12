@@ -1,7 +1,9 @@
 "use client";
+import { useRouter } from 'next/navigation';
 import React from 'react'
 
 const RefundPage = () => {
+   const router = useRouter();
   return (
     <div className="container">
       <div className="moneyboy-main-asides-layout-container">
@@ -9,10 +11,10 @@ const RefundPage = () => {
       <main className="moneyboy-dynamic-content-layout">
             <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
               <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-                <button className="cate-back-btn active-down-effect">
+                <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}>
                   <span className="icons arrowLeft"></span>
                 </button>
-                <button className="page-content-type-button active-down-effect active">Refund Policy</button>
+                <button className="page-content-type-button active-down-effect active">Refund & Cancellation Policy</button>
               </div>
               <div className="card main_contwrap">
                 <h3>Refund & Cancellation Policy</h3>

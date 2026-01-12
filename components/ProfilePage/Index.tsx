@@ -1,8 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_CREATOR_PROFILE } from "@/utils/api/APIConstant";
+import { API_CREATOR_PROFILE, API_FOLLOWER_COUNT } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
+import { fetchFollowerCounts } from "../redux/other/followActions";
 interface User {
   _id: string;
   firstName: string;
@@ -33,6 +34,12 @@ interface CreatorDetails {
   updatedAt: string;
   __v: number;
 }
+interface FollowerStats {
+  followerCount: number;
+  followingCount: number;
+  postCount?: number;
+  followerStats?: FollowerStats;
+}
 
 interface ApiCreatorProfileResponse {
   user: User;
@@ -47,40 +54,71 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [layoutTab, setLayoutTab] = useState("grid");
+  const [followerStats, setFollowerStats] = useState<FollowerStats>({
+  followerCount: 0,
+  followingCount: 0,
+  postCount: 0
+});
 
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+useEffect(() => {
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await getApiWithOutQuery({
-          url: API_CREATOR_PROFILE,
-        });
+      const response = await getApiWithOutQuery({
+        url: API_CREATOR_PROFILE,
+      });
 
-        console.log("==============", response);
+      console.log("==============", response);
 
-        if (response && response.user && response.creator) {
-          setProfile(response);
+      if (response && response.user && response.creator) {
+        setProfile(response);
+        
+        // If follower stats are included in the response
+        if (response.followerStats) {
+          setFollowerStats(response.followerStats);
         } else {
-          setError("Failed to load profile - Invalid response structure");
-          console.error("Invalid response structure:", response);
+          // If not, fetch them separately
+          await fetchFollowerCounts(response.user._id);
         }
-      } catch (err: any) {
-        setError("An error occurred while fetching profile");
-        console.error("Error fetching user profile:", err);
-      } finally {
-        setLoading(false);
+      } else {
+        setError("Failed to load profile - Invalid response structure");
+        console.error("Invalid response structure:", response);
       }
-    };
+    } catch (err: any) {
+      setError("An error occurred while fetching profile");
+      console.error("Error fetching user profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUserProfile();
-  }, []);
+  fetchUserProfile();
+}, []);
 
+const fetchFollowerCounts = async (userId: string) => {
+  try {
+    const response = await getApiWithOutQuery({
+      url:API_FOLLOWER_COUNT, // Assuming you need to pass userId
+      // or just use API_FOLLOWER_COUNT if it uses the logged-in user
+    });
+
+    if (response && response.success) {
+      setFollowerStats({
+        followerCount: response.data.followerCount || 0,
+        followingCount: response.data.followingCount || 0,
+        postCount: response.data.postCount || 0 // if available
+      });
+    }
+  } catch (err: any) {
+    console.error("Error fetching follower counts:", err);
+  }
+};
   const toggleLike = (id: number) => {
   setLikedItems((prev) =>
     prev.includes(id)
@@ -393,7 +431,8 @@ const ProfilePage = () => {
                   <div className="creator-profile-stats-link">
                     <div className="profile-card__stats">
                       <div className="profile-card__stats-item posts-stats">
-                        <div className="profile-card__stats-num">2,880</div>
+                         {/* {followerStats.postCount?.toLocaleString() || "2,880"}  */}
+                        <div className="profile-card__stats-num">0</div>
                         <div className="profile-card__stats-label">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -435,7 +474,7 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__stats-item followers-stats">
-                        <div className="profile-card__stats-num"> 253 </div>
+                        <div className="profile-card__stats-num">  {followerStats.followerCount.toLocaleString() || "253"}  </div>
                         <div className="profile-card__stats-label">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -477,7 +516,7 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__stats-item following-stats">
-                        <div className="profile-card__stats-num">1,920</div>
+                        <div className="profile-card__stats-num">{followerStats.followingCount.toLocaleString() || "1,920"} </div>
                         <div className="profile-card__stats-label">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

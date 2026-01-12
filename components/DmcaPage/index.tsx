@@ -1,7 +1,9 @@
 "use client";
+import {  useRouter } from 'next/navigation';
 import React from 'react'
 
 const HelpPage = () => {
+  const router = useRouter();
   return (
     <div className="container">
       <div className="moneyboy-main-asides-layout-container">
@@ -9,7 +11,7 @@ const HelpPage = () => {
       <main className="moneyboy-dynamic-content-layout">
             <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
               <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-                <button className="cate-back-btn active-down-effect">
+                <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}>
                   <span className="icons arrowLeft"></span>
                 </button>
                 <button className="page-content-type-button active-down-effect active">DMCA</button>
@@ -25,7 +27,7 @@ const HelpPage = () => {
                 <p>A copy of this policy is available upon written request.</p>
                 <ul>
                   <li><b>Email:</b> support@moneyboy.com</li>
-                  <li><b>Subject line:</b> DMCA Notice – [Your Name / Company]</li>
+                  <li><b>Subject line:</b> DMCA Notice – DNA Global Media BV</li>
                 </ul>
                 <p>Your notice must include the following information as required by 17 U.S.C. §512(c)(3):</p>
                 <ul className="number">
