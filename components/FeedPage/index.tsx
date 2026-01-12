@@ -46,7 +46,7 @@ const FeedPage = () => {
   };
 
   // Use NextAuth session
-  const { data: session, status } = useSession();
+  const { data: session, status }:any = useSession();
   const isLoggedIn = status === "authenticated";
   // useEffect(() => {
   //   const likeButtons = document.querySelectorAll("[data-like-button]");
@@ -105,10 +105,14 @@ const FeedPage = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openMenuId]);
+
+  console.log("========",session)
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
-      const res = await getApiWithOutQuery({ url: API_GET_POSTS });
+      const res = await apiPost({ url: API_GET_POSTS , values:{
+        userId : session?.user?.id || ""
+      }});
 
       if (Array.isArray(res)) {
         setPosts(res);
@@ -278,8 +282,10 @@ const FeedPage = () => {
     const fetchPopularPosts = async () => {
       setPopularLoading(true);
 
-      const res = await getApiWithOutQuery({
-        url: API_GET_POPULAR_POSTS,
+      const res = await apiPost({
+        url: API_GET_POPULAR_POSTS,values:{
+           userId : session?.user?.id || ""
+        }
       });
 
       if (Array.isArray(res)) {
@@ -294,26 +300,7 @@ const FeedPage = () => {
     fetchPopularPosts();
   }, [activeTab]);
 
-    const handleCopyLink = (postId: string) => {
-    if (typeof window === "undefined") return;
-    
-    const shareLink = `${window.location.origin}/post/${postId}`;
-    
-const handleCopyLink = async (postId: string) => {
-  if (typeof window === "undefined") return;
 
-  const shareLink = `${window.location.origin}/post/${postId}`;
-
-  try {
-    await navigator.clipboard.writeText(shareLink);
-    ShowToast("Link copied to clipboard!", "success");
-  } catch (error) {
-    console.error("Failed to copy link:", error);
-    ShowToast("Failed to copy link", "error");
-  }
-};
-
-  };
 
   return (
     <>
