@@ -597,45 +597,58 @@ const Header = () => {
                         </svg>
                         <span>My Profile</span>
                       </a>
-                      <a href="#" className="menu-link edit-profile-link">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 25"
-                          fill="none"
-                        >
-                          <path
-                            d="M12 12.1429C14.7614 12.1429 17 9.90428 17 7.14285C17 4.38143 14.7614 2.14285 12 2.14285C9.23858 2.14285 7 4.38143 7 7.14285C7 9.90428 9.23858 12.1429 12 12.1429Z"
-                            stroke="none"
-                            strokeWidth="none"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M3.41016 22.1429C3.41016 18.2729 7.26018 15.1429 12.0002 15.1429C13.0402 15.1429 14.0402 15.2928 14.9702 15.5728"
-                            stroke="none"
-                            strokeWidth="none"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M19.2101 15.8829L15.67 19.4229C15.53 19.5629 15.4 19.8229 15.37 20.0129L15.18 21.3629C15.11 21.8529 15.45 22.1929 15.94 22.1229L17.29 21.9329C17.48 21.9029 17.75 21.7729 17.88 21.6329L21.42 18.0929C22.03 17.4829 22.32 16.7729 21.42 15.8729C20.53 14.9829 19.8201 15.2729 19.2101 15.8829Z"
-                            stroke="none"
-                            strokeWidth="none"
-                            strokeMiterlimit="10"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M18.7002 16.3929C19.0002 17.4729 19.8402 18.3128 20.9202 18.6128"
-                            stroke="none"
-                            strokeWidth="none"
-                            strokeMiterlimit="10"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span>Edit Profile</span>
-                      </a>
+                <a 
+  href="#" 
+  className="menu-link edit-profile-link"
+  onClick={(e) => {
+    e.preventDefault();
+    setIsOpen(false);
+    
+    if (session?.user?.role === 1) {
+      router.push("/user-edit-profile");
+    } else if (session?.user?.role === 2) {
+      router.push("/edit-profile");
+    }
+  }}
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 25"
+    fill="none"
+  >
+    <path
+      d="M12 12.1429C14.7614 12.1429 17 9.90428 17 7.14285C17 4.38143 14.7614 2.14285 12 2.14285C9.23858 2.14285 7 4.38143 7 7.14285C7 9.90428 9.23858 12.1429 12 12.1429Z"
+      stroke="none"
+      strokeWidth="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3.41016 22.1429C3.41016 18.2729 7.26018 15.1429 12.0002 15.1429C13.0402 15.1429 14.0402 15.2928 14.9702 15.5728"
+      stroke="none"
+      strokeWidth="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M19.2101 15.8829L15.67 19.4229C15.53 19.5629 15.4 19.8229 15.37 20.0129L15.18 21.3629C15.11 21.8529 15.45 22.1929 15.94 22.1229L17.29 21.9329C17.48 21.9029 17.75 21.7729 17.88 21.6329L21.42 18.0929C22.03 17.4829 22.32 16.7729 21.42 15.8729C20.53 14.9829 19.8201 15.2729 19.2101 15.8829Z"
+      stroke="none"
+      strokeWidth="none"
+      strokeMiterlimit="10"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M18.7002 16.3929C19.0002 17.4729 19.8402 18.3128 20.9202 18.6128"
+      stroke="none"
+      strokeWidth="none"
+      strokeMiterlimit="10"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+  <span>Edit Profile</span>
+</a>
                       <a href="#" className="menu-link blacklist-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
