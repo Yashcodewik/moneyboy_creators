@@ -44,6 +44,8 @@ const Sidebar: React.FC = () => {
       "/profile": "profile",
       "/userprofile": "userprofile",
       "/follower": "follower",
+      "/edit-profile": "edit-profile",
+      "/user-edit-profile": "user-edit-profile",
     };
 
     const currentPage = Object.keys(pathToPageMap).find(

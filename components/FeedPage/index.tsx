@@ -28,6 +28,13 @@ const FeedPage = () => {
   const [followingLoading, setFollowingLoading] = useState<boolean>(false);
   const [popularPosts, setPopularPosts] = useState<any[]>([]);
   const [popularLoading, setPopularLoading] = useState(false);
+  const [expandedPosts, setExpandedPosts] = useState<
+    Record<string, Record<string, boolean>>
+  >({
+    feed: {},
+    following: {},
+    popular: {},
+  });
 
   const updatePostInList = (
     list: any[],
@@ -46,33 +53,33 @@ const FeedPage = () => {
   };
 
   // Use NextAuth session
-  const { data: session, status }:any = useSession();
+  const { data: session, status }: any = useSession();
   const isLoggedIn = status === "authenticated";
-  // useEffect(() => {
-  //   const likeButtons = document.querySelectorAll("[data-like-button]");
+  useEffect(() => {
+    const likeButtons = document.querySelectorAll("[data-like-button]");
 
-  //   const handleClick = (event: Event) => {
-  //     const button = event.currentTarget as HTMLElement;
-  //     button.classList.toggle("liked");
-  //   };
+    const handleClick = (event: Event) => {
+      const button = event.currentTarget as HTMLElement;
+      button.classList.toggle("liked");
+    };
 
-  //   likeButtons.forEach((button) => {
-  //     button.addEventListener("click", handleClick);
-  //   });
+    likeButtons.forEach((button) => {
+      button.addEventListener("click", handleClick);
+    });
 
-  //   // Cleanup function
-  //   return () => {
-  //     likeButtons.forEach((button) => {
-  //       button.removeEventListener("click", handleClick);
-  //     });
-  //   };
-  // }, []);
-  // const toggleMenu = (id: number) => {
-  //   setOpenMenuId((prev) => (prev === id ? null : id));
-  // };
+    // Cleanup function
+    return () => {
+      likeButtons.forEach((button) => {
+        button.removeEventListener("click", handleClick);
+      });
+    };
+  }, []);
   const toggleMenu = (id: number) => {
     setOpenMenuId((prev) => (prev === id ? null : id));
   };
+  // const toggleMenu = (id: number) => {
+  //   setOpenMenuId((prev) => (prev === id ? null : id));
+  // };
   const handleTabClick = (tabName: string) => {
     if (!isLoggedIn && tabName === "discover") {
       router.push("/discover");
@@ -106,13 +113,16 @@ const FeedPage = () => {
     };
   }, [openMenuId]);
 
-  console.log("========",session)
+  console.log("========", session);
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
-      const res = await apiPost({ url: API_GET_POSTS , values:{
-        userId : session?.user?.id || ""
-      }});
+      const res = await apiPost({
+        url: API_GET_POSTS,
+        values: {
+          userId: session?.user?.id || "",
+        },
+      });
 
       if (Array.isArray(res)) {
         setPosts(res);
@@ -283,9 +293,10 @@ const FeedPage = () => {
       setPopularLoading(true);
 
       const res = await apiPost({
-        url: API_GET_POPULAR_POSTS,values:{
-           userId : session?.user?.id || ""
-        }
+        url: API_GET_POPULAR_POSTS,
+        values: {
+          userId: session?.user?.id || "",
+        },
       });
 
       if (Array.isArray(res)) {
@@ -300,8 +311,44 @@ const FeedPage = () => {
     fetchPopularPosts();
   }, [activeTab]);
 
+  // Helper function to get media files from post
+  const getMediaFiles = (post: any) => {
+    if (!post.media) return [];
 
+    // If media is an array
+    if (Array.isArray(post.media) && post.media.length > 0) {
+      return post.media[0]?.mediaFiles || [];
+    }
 
+    // If media is an object (legacy format)
+    if (post.media.mediaFiles && Array.isArray(post.media.mediaFiles)) {
+      return post.media.mediaFiles;
+    }
+
+    return [];
+  };
+
+  // Helper function to get media type
+  const getMediaType = (post: any) => {
+    if (!post.media) return "photo";
+
+    if (Array.isArray(post.media) && post.media.length > 0) {
+      return post.media[0]?.type || "photo";
+    }
+
+    return post.media?.type || "photo";
+  };
+
+  const toggleExpand = (postId: string, tab: string) => {
+    setExpandedPosts((prev) => ({
+      ...prev,
+      [tab]: {
+        ...prev[tab],
+        [postId]: !prev[tab]?.[postId],
+      },
+    }));
+  };
+  
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -465,10 +512,30 @@ const FeedPage = () => {
 
                       <div className="moneyboy-post__desc">
                         <p>
-                          {post.text ||
-                            "Today, I experienced the most blissful ride outside. The air is fresh and It ..."}
-                          {post.text && post.text.length > 100 && (
-                            <span className="active-down-effect-2x">more</span>
+                          {post.text ? (
+                            <>
+                              {expandedPosts.feed[post._id]
+                                ? post.text
+                                : post.text.length > 150
+                                ? `${post.text.substring(0, 150)}...`
+                                : post.text}
+                              {post.text.length > 150 && (
+                                <span
+                                  className="active-down-effect-2x"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    toggleExpand(post._id, "feed"); // Changed to include tab
+                                  }}
+                                >
+                                  {expandedPosts.feed[post._id]
+                                    ? "less"
+                                    : "more"}{" "}
+                                  {/* Changed */}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            "Today, I experienced the most blissful ride outside. The air is fresh and It ..."
                           )}
                         </p>
                       </div>
@@ -481,16 +548,90 @@ const FeedPage = () => {
                               alt="MoneyBoy Post Image"
                             />
                           </div>
-                        ) : post.media?.mediaFiles &&
-                          post.media.mediaFiles.length > 0 ? (
-                          <div className="moneyboy-post__img">
-                            <img
-                              src={post.media.mediaFiles[0]}
-                              alt="MoneyBoy Post Image"
-                            />
-                          </div>
-                        ) : null}
+                        ) : (
+                          (() => {
+                            // Get media files from the new array structure
+                            const getMediaFiles = () => {
+                              if (!post.media) return [];
 
+                              // If media is an array (new format)
+                              if (
+                                Array.isArray(post.media) &&
+                                post.media.length > 0
+                              ) {
+                                return post.media[0]?.mediaFiles || [];
+                              }
+
+                              // If media is an object (old format)
+                              if (
+                                post.media.mediaFiles &&
+                                Array.isArray(post.media.mediaFiles)
+                              ) {
+                                return post.media.mediaFiles;
+                              }
+
+                              return [];
+                            };
+
+                            // Get media type
+                            const getMediaType = () => {
+                              if (!post.media) return "photo";
+
+                              if (
+                                Array.isArray(post.media) &&
+                                post.media.length > 0
+                              ) {
+                                return post.media[0]?.type || "photo";
+                              }
+
+                              return post.media?.type || "photo";
+                            };
+
+                            const mediaFiles = getMediaFiles();
+                            const mediaType = getMediaType();
+
+                            if (mediaFiles.length > 0) {
+                              if (mediaType === "video") {
+                                return (
+                                  <div className="moneyboy-post__video">
+                                    {/* <video
+                                      controls
+                                      preload="metadata"
+                                      playsInline
+                                      className="post-video-player"
+                                    >
+                                      <source
+                                        src={mediaFiles[0]}
+                                        type="video/mp4"
+                                      />
+                                      Your browser does not support the video
+                                      tag.
+                                    </video> */}
+                                    <video
+                                      src={mediaFiles[0]}
+                                      autoPlay
+                                      muted
+                                      loop
+                                      playsInline
+                                      preload="metadata"
+                                      className="post-video-player"
+                                    />
+                                  </div>
+                                );
+                              } else {
+                                return (
+                                  <div className="moneyboy-post__img">
+                                    <img
+                                      src={mediaFiles[0]}
+                                      alt="MoneyBoy Post Image"
+                                    />
+                                  </div>
+                                );
+                              }
+                            }
+                            return null;
+                          })()
+                        )}
                         <div className="moneyboy-post__actions">
                           <ul>
                             <li>
@@ -801,8 +942,31 @@ const FeedPage = () => {
 
                         <div className="moneyboy-post__desc">
                           <p>
-                            {post.text}
-                            <span className="active-down-effect-2x">more</span>
+                            {post.text ? (
+                              <>
+                                {expandedPosts.following[post._id]
+                                  ? post.text
+                                  : post.text.length > 150
+                                  ? `${post.text.substring(0, 150)}...`
+                                  : post.text}
+                                {post.text.length > 150 && (
+                                  <span
+                                    className="active-down-effect-2x"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      toggleExpand(post._id, "following"); // Changed to include tab
+                                    }}
+                                  >
+                                    {expandedPosts.following[post._id]
+                                      ? "less"
+                                      : "more"}{" "}
+                                    {/* Changed */}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              "Today, I experienced the most blissful ride outside. The air is fresh and It ..."
+                            )}
                           </p>
                         </div>
 
@@ -814,15 +978,90 @@ const FeedPage = () => {
                                 alt="MoneyBoy Post Image"
                               />
                             </div>
-                          ) : post.media?.mediaFiles &&
-                            post.media.mediaFiles.length > 0 ? (
-                            <div className="moneyboy-post__img">
-                              <img
-                                src={post.media.mediaFiles[0]}
-                                alt="MoneyBoy Post Image"
-                              />
-                            </div>
-                          ) : null}
+                          ) : (
+                            (() => {
+                              // Get media files from the new array structure
+                              const getMediaFiles = () => {
+                                if (!post.media) return [];
+
+                                // If media is an array (new format)
+                                if (
+                                  Array.isArray(post.media) &&
+                                  post.media.length > 0
+                                ) {
+                                  return post.media[0]?.mediaFiles || [];
+                                }
+
+                                // If media is an object (old format)
+                                if (
+                                  post.media.mediaFiles &&
+                                  Array.isArray(post.media.mediaFiles)
+                                ) {
+                                  return post.media.mediaFiles;
+                                }
+
+                                return [];
+                              };
+
+                              // Get media type
+                              const getMediaType = () => {
+                                if (!post.media) return "photo";
+
+                                if (
+                                  Array.isArray(post.media) &&
+                                  post.media.length > 0
+                                ) {
+                                  return post.media[0]?.type || "photo";
+                                }
+
+                                return post.media?.type || "photo";
+                              };
+
+                              const mediaFiles = getMediaFiles();
+                              const mediaType = getMediaType();
+
+                              if (mediaFiles.length > 0) {
+                                if (mediaType === "video") {
+                                  return (
+                                    <div className="moneyboy-post__video">
+                                      {/* <video
+                                      controls
+                                      preload="metadata"
+                                      playsInline
+                                      className="post-video-player"
+                                    >
+                                      <source
+                                        src={mediaFiles[0]}
+                                        type="video/mp4"
+                                      />
+                                      Your browser does not support the video
+                                      tag.
+                                    </video> */}
+                                      <video
+                                        src={mediaFiles[0]}
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                        preload="metadata"
+                                        className="post-video-player"
+                                      />
+                                    </div>
+                                  );
+                                } else {
+                                  return (
+                                    <div className="moneyboy-post__img">
+                                      <img
+                                        src={mediaFiles[0]}
+                                        alt="MoneyBoy Post Image"
+                                      />
+                                    </div>
+                                  );
+                                }
+                              }
+                              return null;
+                            })()
+                          )}
 
                           <div className="moneyboy-post__actions">
                             <ul>
@@ -1134,10 +1373,30 @@ const FeedPage = () => {
                       {/* DESCRIPTION */}
                       <div className="moneyboy-post__desc">
                         <p>
-                          {post.text ||
-                            "Today, I experienced the most blissful ride outside. The air is fresh and It ..."}
-                          {post.text && post.text.length > 100 && (
-                            <span className="active-down-effect-2x">more</span>
+                          {post.text ? (
+                            <>
+                              {expandedPosts.popular[post._id]
+                                ? post.text
+                                : post.text.length > 150
+                                ? `${post.text.substring(0, 150)}...`
+                                : post.text}
+                              {post.text.length > 150 && (
+                                <span
+                                  className="active-down-effect-2x"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    toggleExpand(post._id, "popular"); // Changed to include tab
+                                  }}
+                                >
+                                  {expandedPosts.popular[post._id]
+                                    ? "less"
+                                    : "more"}{" "}
+                                  {/* Changed */}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            "Today, I experienced the most blissful ride outside. The air is fresh and It ..."
                           )}
                         </p>
                       </div>
@@ -1151,15 +1410,90 @@ const FeedPage = () => {
                               alt="MoneyBoy Post Image"
                             />
                           </div>
-                        ) : post.media?.mediaFiles &&
-                          post.media.mediaFiles.length > 0 ? (
-                          <div className="moneyboy-post__img">
-                            <img
-                              src={post.media.mediaFiles[0]}
-                              alt="MoneyBoy Post Image"
-                            />
-                          </div>
-                        ) : null}
+                        ) : (
+                          (() => {
+                            // Get media files from the new array structure
+                            const getMediaFiles = () => {
+                              if (!post.media) return [];
+
+                              // If media is an array (new format)
+                              if (
+                                Array.isArray(post.media) &&
+                                post.media.length > 0
+                              ) {
+                                return post.media[0]?.mediaFiles || [];
+                              }
+
+                              // If media is an object (old format)
+                              if (
+                                post.media.mediaFiles &&
+                                Array.isArray(post.media.mediaFiles)
+                              ) {
+                                return post.media.mediaFiles;
+                              }
+
+                              return [];
+                            };
+
+                            // Get media type
+                            const getMediaType = () => {
+                              if (!post.media) return "photo";
+
+                              if (
+                                Array.isArray(post.media) &&
+                                post.media.length > 0
+                              ) {
+                                return post.media[0]?.type || "photo";
+                              }
+
+                              return post.media?.type || "photo";
+                            };
+
+                            const mediaFiles = getMediaFiles();
+                            const mediaType = getMediaType();
+
+                            if (mediaFiles.length > 0) {
+                              if (mediaType === "video") {
+                                return (
+                                  <div className="moneyboy-post__video">
+                                    {/* <video
+                                      controls
+                                      preload="metadata"
+                                      playsInline
+                                      className="post-video-player"
+                                    >
+                                      <source
+                                        src={mediaFiles[0]}
+                                        type="video/mp4"
+                                      />
+                                      Your browser does not support the video
+                                      tag.
+                                    </video> */}
+                                    <video
+                                      src={mediaFiles[0]}
+                                      autoPlay
+                                      muted
+                                      loop
+                                      playsInline
+                                      preload="metadata"
+                                      className="post-video-player"
+                                    />
+                                  </div>
+                                );
+                              } else {
+                                return (
+                                  <div className="moneyboy-post__img">
+                                    <img
+                                      src={mediaFiles[0]}
+                                      alt="MoneyBoy Post Image"
+                                    />
+                                  </div>
+                                );
+                              }
+                            }
+                            return null;
+                          })()
+                        )}
 
                         {/* ACTIONS */}
                         <div className="moneyboy-post__actions">
@@ -1325,18 +1659,15 @@ const FeedPage = () => {
                                   width="24"
                                   height="24"
                                   viewBox="0 0 24 24"
-                                  fill="none"
+                                  fill={post.isSaved ? "white" : "none"}
+                                  stroke="white"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
                                 >
                                   <path
                                     d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                    stroke="white"
+                                    stroke={post.isSaved ? "none" : "white"}
                                     strokeWidth="1.5"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
