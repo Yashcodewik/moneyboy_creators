@@ -19,9 +19,9 @@ const UserEditProfilePage = () => {
             className="moneyboy-feed-page-cate-buttons card"
             id="posts-tabs-btn-card"
           >
-            <button className="cate-back-btn active-down-effect">
+            {/* <button className="cate-back-btn active-down-effect">
               <span className="icons arrowLeft hwhite"></span>
-            </button>
+            </button> */}
             <button
               className={`page-content-type-button active-down-effect ${
                 tab === 0 ? "active" : ""

@@ -35,6 +35,26 @@ body {
   }
 }
 
+.link-gradint {
+  span {
+    position: relative;
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -1px;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(103.7deg, #fece26 4.76%, #e5741f 118.16%);
+      background-size: 200% 100%;
+      animation: move 2s linear infinite;
+    }
+  }
+  &.rounded {
+    border-radius: 30px;
+  }
+}
+
 // Button Start
 .btn-danger {
   cursor: pointer;
@@ -107,8 +127,6 @@ body {
     transform: none;
   }
 }
-
-
 
 .nodeta {
   text-align: center;
@@ -399,6 +417,9 @@ body {
 }
 .gap-10 {
   gap: 10px;
+}
+.gap-15 {
+  gap: 15px;
 }
 .img-fluid {
   max-width: 100%;
@@ -1708,6 +1729,52 @@ body {
         }
       }
     }
+    &.blacklist {
+      max-width: 550px;
+      gap: 15px;
+      display: flex;
+      flex-direction: column;
+      .close-btn {
+        top: 20px;
+        right: 20px;
+        position: absolute;
+      }
+      h3 {
+        font-size: 42px;
+        line-height: 100%;
+        font-weight: 400;
+        font-style: normal;
+        letter-spacing: 0px;
+        text-transform: capitalize;
+      }
+      .containt_wrap {
+        label {
+          color: #000;
+          font-size: 13px;
+          line-height: 18px;
+          font-weight: 500;
+          margin-bottom: 5px;
+          display: inline-block;
+        }
+        textarea {resize: none;}
+        textarea, input {
+          padding: 12px;
+          background-color: #FFF;
+        }
+        .custom-select-element {
+          background-color: #FFF;
+          .custom-select-label-wrapper {
+            padding: 12px;
+          }
+        }
+      }
+      .actions {
+        button {
+          max-width: max-content;
+          padding: 14px 30px;
+        }
+      }
+    }
   }
   &.show {
     display: flex;
@@ -1841,6 +1908,35 @@ body {
         .creators-footer {
           button, a {
             font-size: 18px;
+          }
+        }
+      }
+      &.blacklist {
+        padding: 20px;
+        h3 {
+          font-size: 32px;
+        }
+        .containt_wrap {
+          label {
+            font-size: 12px;
+            line-height: 16px;
+          }
+          textarea, input {
+            padding: 10px;
+          }
+          .custom-select-element {
+            .custom-select-label-wrapper {
+              padding: 10px;
+            }
+          }
+        }
+        .actions {
+          gap: 10px;
+          justify-content: space-between;
+          button {
+            width: 100%;
+            max-width: 48%;
+            padding: 14px 8px;
           }
         }
       }
@@ -2443,6 +2539,27 @@ body {
         }
       }
     }
+    &.blacklist_box {
+      .rel-user-profile-action {
+        .date_box {
+          .date_wrap {
+            align-items: start;
+            p {
+              color: #5050509E;
+            }
+          }
+        }
+        .rel-user-actions {
+          button {
+            border-radius: 11px;
+            padding: 9px 22px;
+          }
+        }
+      }
+      .rel-user-desc {
+        border-radius: 16px;
+      }
+    }
   }
   /* ========== Mobile (max-width: 767px) ========== */
   @media (max-width: 767px) {
@@ -2546,6 +2663,18 @@ body {
             display: block;
           }
           .mobail_hide {
+            display: none;
+          }
+        }
+      }
+      &.blacklist_box {
+        .rel-user-profile-action {
+          .date_box {
+            max-width: max-content;
+            .date_wrap {
+            }
+          }
+          .rel-user-actions {
             display: none;
           }
         }
@@ -2701,6 +2830,28 @@ body {
       }
       button {
         flex-shrink: 0;
+      }
+    }
+  }
+  &.bank_pay_wrap {
+    .label-input {
+      .input-placeholder-icon {
+        z-index: 6;
+      }
+      input, textarea {
+        padding: 12px;
+        padding-inline-start: 35px;
+        background-color: #FFF;
+        border: 1.5px solid #ebebeb;
+        outline: 1.5px solid #ebebeb;
+      }
+    }
+    .custom-select-element {
+      background-color: #FFF;
+      border: 1.5px solid #ebebeb;
+      outline: 1.5px solid #ebebeb;
+      .custom-select-label-wrapper {
+        padding: 12px;
       }
     }
   }
@@ -3204,5 +3355,117 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+.moneyboy-comment-wrap {
+  padding: 0px;
+  gap: 9px;
+  display: flex;
+  align-items: stretch;
+  flex-direction: row;
+  background-color: transparent;
+  .comment-wrap {
+    flex-grow: 1;
+    display: flex;
+    height: 100%;
+    .label-input {
+      position: relative;
+      width: 100%;
+      display: flex;
+      .input-placeholder-icon {
+        left: auto;
+        right: 10px;
+        .svg-icon {
+          width: 30px;
+          height: 30px;
+        }
+      }
+      textarea {
+        padding: 10px;
+        width: 100%;
+        height: 100%;
+        resize: none;
+        overflow: hidden;
+        background-color: #FFF;
+      }
+    }
+  }
+  button {
+    width: 75px;
+    height: auto;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  @media (max-width: 560px) {
+    .comment-wrap {
+      .label-input {
+        height: 100%;
+        .input-placeholder-icon {
+          left: auto;
+          right: 10px;
+          .svg-icon {
+            width: 26px;
+            height: 26px;
+          }
+        }
+      }
+    }
+    button {
+      width: 55px;
+      max-height: max-content;
+      svg {
+        width: 22px;
+        height: 22px;
+      }
+    }
+  }
+}
+
+.like-deslike-wrap {
+  ul {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    gap: 12px;
+    li {
+      a {
+        display: flex;
+        align-items: center;
+        transition: var(--transition-fast);
+        opacity: .8;
+        gap: 8px;
+        svg {
+          width: 26px;
+          height: 26px;
+          transition: var(--transition-fast);
+          transition: all .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        span {
+          color: #00000099;
+          font-size: 15px;
+          line-height: 19px;
+          font-weight: 500;
+          letter-spacing: 0;
+          transition: var(--transition-fast);
+          font-family: var(--font-family-base);
+        }
+      }
+      &:hover, &:active, &.active {
+        opacity: 1;
+        a {
+          svg {
+            transform: scale(1.10);
+            path {
+              // stroke: var(--like-color);
+              fill: var(--like-color);
+            }
+          }
+        }
+      }
+    }
   }
 }

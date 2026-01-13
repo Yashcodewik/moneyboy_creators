@@ -11,7 +11,7 @@ const SubscriptionsPage = () => {
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap" data-scroll-zero data-multiple-tabs-section data-identifier="1">
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft hwhite"></span></button>
+            {/* <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft hwhite"></span></button> */}
             <button className="page-content-type-button active-down-effect max-50 active">Subscribers</button>
           </div>
           <div className="tabs-content-wrapper-layout">

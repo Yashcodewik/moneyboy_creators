@@ -33,9 +33,9 @@ const EditProfilePage = () => {
               className="moneyboy-feed-page-cate-buttons card"
               id="posts-tabs-btn-card"
             >
-              <button className="cate-back-btn active-down-effect hide_mobail">
+              {/* <button className="cate-back-btn active-down-effect hide_mobail">
                 <span className="icons arrowLeft"></span>
-              </button>
+              </button> */}
               <button
                 className={`page-content-type-button active-down-effect ${
                   tab === 0 ? "active" : ""

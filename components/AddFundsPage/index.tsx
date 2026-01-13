@@ -1,16 +1,9 @@
 "use client";
-<<<<<<< HEAD
-import React from 'react'
-import Featuredboys from '../Featuredboys';
-import Link from 'next/link';
-import CustomSelect from '../CustomSelect';
-=======
 import React, { useState } from "react";
 import Featuredboys from "../Featuredboys";
 import Link from "next/link";
 import CustomSelect from "../CustomSelect";
 import { BsBank2 } from "react-icons/bs";
->>>>>>> 4f921539060d250c4b72efa5ba6a73f8acae164e
 
 const AddFundsPage = () => {
   const [tab, setTab] = useState(1);
@@ -28,9 +21,9 @@ const AddFundsPage = () => {
             className="moneyboy-feed-page-cate-buttons card"
             id="posts-tabs-btn-card"
           >
-            <button className="cate-back-btn active-down-effect">
+            {/* <button className="cate-back-btn active-down-effect">
               <span className="icons arrowLeft"></span>
-            </button>
+            </button> */}
             <button
               className={`page-content-type-button active-down-effect ${
                 tab === 1 ? "active" : ""
@@ -128,13 +121,13 @@ const AddFundsPage = () => {
                           <div className="label-input">
                             <input type="number" placeholder="Enter Amount" />
                           </div>
-                          <label className="font-light">
+                        </div>
+                          <label className="font-light mb-0">
                             Minimum top up amount $10{" "}
                             <span className="block">
                               Maximum top up wallet amount $1000
                             </span>
                           </label>
-                        </div>
                         <div>
                           <label>Choose Payment Method*</label>
                           <CustomSelect
