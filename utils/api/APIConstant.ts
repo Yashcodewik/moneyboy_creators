@@ -23,3 +23,7 @@ export const API_UNLIKE_POST = "/post/unlike";
 export const API_SAVE_POST = "/post/save";
 export const API_UNSAVE_POST = "/post/unsave";
 export const API_GET_POPULAR_POSTS = "/post/popular";
+export const API_UPDATE_USER_PROFILE = "/auth/update-profile";
+export const API_CHANGE_PASSWORD = "/auth/change-password";
+export const API_TOGGLE_ACCOUNT = "/auth/toggle-account";
+

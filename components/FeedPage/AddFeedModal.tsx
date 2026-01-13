@@ -69,7 +69,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const [tagSearch, setTagSearch] = useState("");
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
   const [selectedTagUsers, setSelectedTagUsers] = useState<TagUser[]>([]);
-
+ const [isSubmitting, setIsSubmitting] = useState(false);
   const MEDIA_TYPE_MAP: Record<string, string> = {
     image: "photo",
     video: "video",
@@ -101,16 +101,23 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
     });
   };
 
-  const formik = useFormik({
-    initialValues: {
-      text: "",
-      accessType: "free",
-      price: "",
-     isScheduled: false, 
-      scheduledAt: "",
-    },
-    validationSchema: PostSchema,
-    onSubmit: async (values) => {
+const formik = useFormik({
+  initialValues: {
+    text: "",
+    accessType: "free",
+    price: "",
+    isScheduled: false,
+    scheduledAt: "",
+  },
+  validationSchema: PostSchema,
+  onSubmit: async (values) => {
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    // Set loading state
+    setIsSubmitting(true);
+    
+    try {
       const formData = new FormData();
 
       formData.append("text", values.text);
@@ -166,8 +173,15 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       } else {
         ShowToast(res?.message || "Something went wrong", "error");
       }
-    },
-  });
+    } catch (error) {
+      ShowToast("An error occurred while creating post", "error");
+      console.error("Post creation error:", error);
+    } finally {
+      // Re-enable the button
+      setIsSubmitting(false);
+    }
+  },
+});
 
   return (
     <div
@@ -438,17 +452,20 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             <FiAtSign size={20} />
           </button>
 
-          <div className="right">
-            <button className="cate-back-btn active-down-effect btn_icons">
-              <FaXTwitter size={20} />
-            </button>
-            <button
-              className="premium-btn active-down-effect"
-              onClick={() => formik.handleSubmit()}
-            >
-              <span>Post</span>
-            </button>
-          </div>
+       <div className="right">
+    <button className="cate-back-btn active-down-effect btn_icons">
+      <FaXTwitter size={20} />
+    </button>
+    <button
+      className={`premium-btn active-down-effect ${isSubmitting ? 'disabled' : ''}`}
+      onClick={() => formik.handleSubmit()}
+      disabled={isSubmitting}
+    >
+      <span>
+        {isSubmitting ? 'Posting...' : 'Post'}
+      </span>
+    </button>
+  </div>
         </div>
       </div>
 
