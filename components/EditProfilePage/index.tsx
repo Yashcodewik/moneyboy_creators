@@ -1,13 +1,159 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import { TbCamera } from "react-icons/tb";
 import { GoDotFill } from "react-icons/go";
+import {
+  apiPost,
+  apiPostWithMultiForm,
+  getApiWithOutQuery,
+} from "@/utils/endpoints/common";
+import {
+  API_CHANGE_CREATOR_PASSWORD,
+  API_CREATOR_PROFILE,
+  API_TOGGLE_CREATOR_ACCOUNT,
+  API_UPDATE_CREATOR_PROFILE,
+} from "@/utils/api/APIConstant";
+import { creatorFormOptions } from "../helper/creatorOptions";
+import ShowToast from "../common/ShowToast";
+
+export enum UserStatus {
+  ACTIVE = 0,
+  NOT_VERIFIED = 1,
+  SELF_DEACTIVATED = 2,
+  ADMIN_DEACTIVATED = 3,
+  DELETED = 4,
+  VERIFIED = 5,
+}
+const ALLOWED_PROFILE_FIELDS = [
+  // user fields
+  "firstName",
+  "lastName",
+  "displayName",
+  "userName",
+
+  // creator fields
+  "gender",
+  "dob",
+  "country",
+  "city",
+  "bio",
+  "bodyType",
+  "sexualOrientation",
+  "age",
+  "eyeColor",
+  "hairColor",
+  "ethnicity",
+  "height",
+  "style",
+  "size",
+  "popularity",
+];
 
 const EditProfilePage = () => {
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [tab, setTab] = useState(0);
+  const [profile, setProfile] = useState<any>(null);
+  const [formData, setFormData] = useState<any>({});
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [passwordData, setPasswordData] = useState({
+    password: "",
+    confirmPassword: "",
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const res = await getApiWithOutQuery({ url: API_CREATOR_PROFILE });
+
+      if (res?.user && res?.creator) {
+        const merged = { ...res.user, ...res.creator };
+
+        const filtered: any = {};
+        ALLOWED_PROFILE_FIELDS.forEach((key) => {
+          if (merged[key] !== undefined) {
+            filtered[key] = merged[key];
+          }
+        });
+
+        setProfile(merged); // full profile for UI (images, etc.)
+        setFormData(filtered); // only editable fields
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleUpdateProfile = async () => {
+    const payload = new FormData();
+
+    ALLOWED_PROFILE_FIELDS.forEach((key) => {
+      if (formData[key] !== undefined && formData[key] !== null) {
+        payload.append(key, formData[key]);
+      }
+    });
+
+    if (profileFile) payload.append("profile", profileFile);
+    if (coverFile) payload.append("coverImage", coverFile);
+
+    const res = await apiPostWithMultiForm({
+      url: API_UPDATE_CREATOR_PROFILE,
+      values: payload,
+    });
+
+    if (res?.success) {
+      ShowToast("Profile updated successfully", "success");
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!passwordData.password || !passwordData.confirmPassword) {
+      ShowToast("Please fill all password fields", "error");
+      return;
+    }
+
+    if (passwordData.password !== passwordData.confirmPassword) {
+      ShowToast("Password and confirm password do not match", "error");
+      return;
+    }
+
+    const res = await apiPost({
+      url: API_CHANGE_CREATOR_PASSWORD,
+      values: passwordData,
+    });
+
+    if (res?.success) {
+      ShowToast(res.message || "Password updated successfully", "success");
+      setPasswordData({
+        password: "",
+        confirmPassword: "",
+      });
+    } else {
+      ShowToast(res?.message || "Failed to update password", "error");
+    }
+  };
+  const handleToggleAccount = async () => {
+    try {
+      const res = await apiPost({
+        url: API_TOGGLE_CREATOR_ACCOUNT,
+        values: {}, // no body needed
+      });
+
+      if (res?.success) {
+        ShowToast(res.message, "success");
+
+        // Update local userProfile status
+        setUserProfile((prev: any) => ({
+          ...prev,
+          status: res.status, // update status returned from API
+        }));
+      }
+    } catch (error: any) {
+      ShowToast(error?.message || "Failed to toggle account", "error");
+    }
+  };
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -65,17 +211,36 @@ const EditProfilePage = () => {
             <div className="creator-profile-page-container">
               <div className="creator-profile-front-content-container">
                 {/* ========== Basic information ========== */}
-                {tab === 0 && (
+                {tab === 0 && profile && (
                   <div className="creator-profile-card-container card">
                     <div className="creator-profile-banner">
                       <img
-                        src="/images/profile-banners/profile-banner-2.jpg"
+                        src={
+                          coverFile
+                            ? URL.createObjectURL(coverFile)
+                            : profile.coverImage ||
+                              "/images/profile-banners/profile-banner-2.jpg"
+                        }
                         alt="Creator Profile Banner Image"
                       />
-                      <div className="imgicons">
-                        <TbCamera size="16" />
-                      </div>
+
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        id="coverUpload"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            setCoverFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+
+                      <label htmlFor="coverUpload" className="imgicons">
+                        <TbCamera size={16} />
+                      </label>
                     </div>
+
                     <div className="creator-profile-info-container">
                       <div className="profile-card">
                         <div className="profile-info-buttons">
@@ -83,189 +248,328 @@ const EditProfilePage = () => {
                             <div className="profile-card__avatar-settings">
                               <div className="profile-card__avatar">
                                 <img
-                                  src="/images/profile-avatars/profile-avatar-1.png"
+                                  src={
+                                    profileFile
+                                      ? URL.createObjectURL(profileFile)
+                                      : profile.profile ||
+                                        "/images/profile-avatars/profile-avatar-1.png"
+                                  }
                                   alt="MoneyBoy Social Profile Avatar"
                                 />
-                                <div className="imgicons">
-                                  <TbCamera size="16" />
-                                </div>
+
+                                <input
+                                  type="file"
+                                  hidden
+                                  accept="image/*"
+                                  id="profileUpload"
+                                  onChange={(e) => {
+                                    if (e.target.files?.[0]) {
+                                      setProfileFile(e.target.files[0]);
+                                    }
+                                  }}
+                                />
+
+                                <label
+                                  htmlFor="profileUpload"
+                                  className="imgicons"
+                                >
+                                  <TbCamera size={16} />
+                                </label>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
+
                       <div className="creator-subscriptions-container">
                         <div className="form_grid">
+                          {/* First Name */}
                           <div className="label-input">
                             <div className="input-placeholder-icon">
                               <i className="icons user svg-icon"></i>
                             </div>
-                            <input type="text" placeholder="First Name *" />
+                            <input
+                              type="text"
+                              placeholder="First Name *"
+                              value={formData.firstName || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  firstName: e.target.value,
+                                })
+                              }
+                            />
                           </div>
+
+                          {/* Last Name */}
                           <div className="label-input">
                             <div className="input-placeholder-icon">
                               <i className="icons user svg-icon"></i>
                             </div>
-                            <input type="text" placeholder="Last name *" />
+                            <input
+                              type="text"
+                              placeholder="Last Name *"
+                              value={formData.lastName || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  lastName: e.target.value,
+                                })
+                              }
+                            />
                           </div>
+
+                          {/* Display Name */}
                           <div className="label-input">
                             <div className="input-placeholder-icon">
                               <i className="icons user2 svg-icon"></i>
                             </div>
-                            <input type="text" placeholder="Display name *" />
+                            <input
+                              type="text"
+                              placeholder="Display Name *"
+                              value={formData.displayName || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  displayName: e.target.value,
+                                })
+                              }
+                            />
                           </div>
+
+                          {/* Username */}
                           <div className="label-input">
                             <div className="input-placeholder-icon">
                               <i className="icons profile-check svg-icon"></i>
                             </div>
-                            <input type="text" placeholder="User name *" />
+                            <input
+                              type="text"
+                              placeholder="Username *"
+                              value={formData.userName || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  userName: e.target.value,
+                                })
+                              }
+                            />
                           </div>
+
+                          {/* Gender */}
                           <CustomSelect
                             label="Select Your Gender"
                             icon={<svg className="icons groupUser svg-icon" />}
-                            options={[
-                              { label: "Male", value: "Male" },
-                              { label: "Female", value: "Female" },
-                              { label: "Non-binary", value: "Non-binary" },
-                            ]}
+                            options={creatorFormOptions.genderOptions}
+                            value={formData.gender || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, gender: val })
+                            }
                           />
+
+                          {/* Date of Birth */}
                           <div className="label-input">
                             <div className="input-placeholder-icon">
                               <i className="icons bookmarkIcon svg-icon"></i>
                             </div>
                             <input
-                              type="text"
+                              type="date"
                               placeholder="Date of Birth (DD/MM/YYYY) *"
+                              value={formData.dob || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  dob: e.target.value,
+                                })
+                              }
                             />
                           </div>
+
+                          {/* Country */}
                           <CustomSelect
-                            label="United States of America *"
+                            label="Select Country"
                             icon={
                               <img
                                 src="/images/united_flag.png"
                                 className="svg-icon"
                               />
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.countryOptions}
+                            value={formData.country || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, country: val })
+                            }
                           />
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
+
+                          {/* City */}
+                          <CustomSelect
+                            label="Select City"
+                            icon={
                               <svg className="icons locationIcon svg-icon"></svg>
-                            </div>
-                            <input type="text" placeholder="City *" />
-                          </div>
+                            }
+                            options={creatorFormOptions.cityOptions}
+                            value={formData.city || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, city: val })
+                            }
+                          />
+
+                          {/* Bio */}
                           <div className="label-input textarea one">
                             <div className="input-placeholder-icon">
                               <svg className="icons messageUser svg-icon"></svg>
                             </div>
-                            <textarea rows={4} placeholder="Bio"></textarea>
+                            <textarea
+                              rows={4}
+                              placeholder="Bio"
+                              value={formData.bio || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  bio: e.target.value,
+                                })
+                              }
+                            ></textarea>
                           </div>
+
+                          {/* Body Type */}
                           <CustomSelect
                             label="All Body Types"
                             icon={<svg className="icons handbody svg-icon" />}
-                            options={[
-                              { label: "All Body Types", value: "all" },
-                              { label: "18-24", value: "18-24" },
-                              { label: "25-34", value: "25-34" },
-                              { label: "35-44", value: "35-44" },
-                              { label: "45+", value: "45plus" },
-                            ]}
+                            options={creatorFormOptions.bodyTypeOptions}
+                            value={formData.bodyType || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, bodyType: val })
+                            }
                           />
+
+                          {/* Sexual Orientation */}
                           <CustomSelect
-                            label="All Sexual Orientation *"
+                            label="All Sexual Orientations"
                             icon={
                               <svg className="icons timeIcon svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={
+                              creatorFormOptions.sexualOrientationOptions
+                            }
+                            value={formData.sexualOrientation || ""}
+                            onChange={(val) =>
+                              setFormData({
+                                ...formData,
+                                sexualOrientation: val,
+                              })
+                            }
                           />
+
+                          {/* Age Group */}
                           <CustomSelect
                             label="All Ages"
                             icon={
                               <svg className="icons calendarClock svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.ageGroupOptions}
+                            value={formData.age || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, age: val })
+                            }
                           />
+
+                          {/* Eye Color */}
                           <CustomSelect
                             label="All Eye Colors"
                             icon={
                               <svg className="icons cameraEye svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.eyeColorOptions}
+                            value={formData.eyeColor || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, eyeColor: val })
+                            }
                           />
+
+                          {/* Hair Color */}
                           <CustomSelect
                             label="All Hair Colors"
                             icon={
                               <svg className="icons paintDrop svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.hairColorOptions}
+                            value={formData.hairColor || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, hairColor: val })
+                            }
                           />
+
+                          {/* Ethnicity */}
                           <CustomSelect
                             label="All Ethnicities"
                             icon={
                               <svg className="icons multiUser svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.ethnicityOptions}
+                            value={formData.ethnicity || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, ethnicity: val })
+                            }
                           />
+
+                          {/* Height */}
                           <CustomSelect
                             label="All Heights"
                             icon={
                               <svg className="icons uploadDownload svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.heightOptions}
+                            value={formData.height || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, height: val })
+                            }
                           />
+
+                          {/* Style */}
                           <CustomSelect
                             label="All Styles"
                             icon={
                               <svg className="icons documentHeart svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.styleOptions}
+                            value={formData.style || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, style: val })
+                            }
                           />
+
+                          {/* Size */}
                           <CustomSelect
                             label="All Sizes"
                             icon={
                               <svg className="icons expanddiagonal svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.sizeOptions}
+                            value={formData.size || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, size: val })
+                            }
                           />
+
+                          {/* Popularity */}
                           <CustomSelect
                             label="All Popularity"
                             icon={
                               <svg className="icons zigzagchart svg-icon"></svg>
                             }
-                            options={[
-                              { label: "options 1", value: "options 2" },
-                              { label: "options 2", value: "options 2" },
-                            ]}
+                            options={creatorFormOptions.popularityOptions}
+                            value={formData.popularity || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, popularity: val })
+                            }
                           />
+
+                          {/* Update Button */}
                           <div className="btm_btn one">
-                            <button className="premium-btn active-down-effect">
+                            <button
+                              className="premium-btn active-down-effect"
+                              onClick={handleUpdateProfile}
+                            >
                               <span>Update Profile</span>
                             </button>
                           </div>
@@ -387,9 +691,14 @@ const EditProfilePage = () => {
                             </div>
                             <input
                               type="text"
-                              placeholder="coreybergson@email.com"
+                              value={profile?.email || ""}
+                              readOnly
                             />
-                            <span className="righttext">Verified</span>
+                            <span className="righttext">
+                              {profile?.status === 5
+                                ? "Verified"
+                                : "Unverified"}
+                            </span>
                           </div>
                           <div className="label-input password">
                             <div className="input-placeholder-icon">
@@ -398,6 +707,13 @@ const EditProfilePage = () => {
                             <input
                               type={showPass ? "text" : "password"}
                               placeholder="Password *"
+                              value={passwordData.password}
+                              onChange={(e) =>
+                                setPasswordData({
+                                  ...passwordData,
+                                  password: e.target.value,
+                                })
+                              }
                             />
                             <span
                               onClick={() => setShowPass(!showPass)}
@@ -417,6 +733,13 @@ const EditProfilePage = () => {
                             <input
                               type={showConfirmPass ? "text" : "password"}
                               placeholder="Confirm password*"
+                              value={passwordData.confirmPassword}
+                              onChange={(e) =>
+                                setPasswordData({
+                                  ...passwordData,
+                                  confirmPassword: e.target.value,
+                                })
+                              }
                             />
                             <span
                               onClick={() =>
@@ -433,7 +756,10 @@ const EditProfilePage = () => {
                           </div>
                         </div>
                         <div className="btm_btn">
-                          <button className="premium-btn active-down-effect">
+                          <button
+                            className="premium-btn active-down-effect"
+                            onClick={handleChangePassword}
+                          >
                             <span>Save Changes</span>
                           </button>
                         </div>
@@ -446,8 +772,18 @@ const EditProfilePage = () => {
                               Hides the profile temporarily (Does not delete it)
                             </p>
                           </div>
-                          <button className="btn-danger">
-                            Deactivate account
+                          <button
+                            className={`btn-danger ${
+                              userProfile?.status ===
+                              UserStatus.SELF_DEACTIVATED
+                                ? "reactivate-btn"
+                                : ""
+                            }`}
+                            onClick={handleToggleAccount}
+                          >
+                            {userProfile?.status === UserStatus.SELF_DEACTIVATED
+                              ? "Reactivate account"
+                              : "Deactivate account"}
                           </button>
                         </div>
                       </div>

@@ -20,12 +20,12 @@ import { countryOptions, genderOptions } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
 
 export enum UserStatus {
-  ACTIVE = 0,              
-  NOT_VERIFIED = 1,        
-  SELF_DEACTIVATED = 2,    
-  ADMIN_DEACTIVATED = 3,   
-  DELETED = 4,     
-  VERIFIED = 5,        
+  ACTIVE = 0,
+  NOT_VERIFIED = 1,
+  SELF_DEACTIVATED = 2,
+  ADMIN_DEACTIVATED = 3,
+  DELETED = 4,
+  VERIFIED = 5,
 }
 const UserEditProfilePage = () => {
   const [showPass, setShowPass] = useState(false);
@@ -126,25 +126,25 @@ const UserEditProfilePage = () => {
   };
 
   const handleToggleAccount = async () => {
-  try {
-    const res = await apiPost({
-      url: API_TOGGLE_ACCOUNT,
-      values: {}, // no body needed
-    });
+    try {
+      const res = await apiPost({
+        url: API_TOGGLE_ACCOUNT,
+        values: {}, // no body needed
+      });
 
-    if (res?.success) {
-      ShowToast(res.message, "success");
+      if (res?.success) {
+        ShowToast(res.message, "success");
 
-      // Update local userProfile status
-      setUserProfile((prev: any) => ({
-        ...prev,
-        status: res.status, // update status returned from API
-      }));
+        // Update local userProfile status
+        setUserProfile((prev: any) => ({
+          ...prev,
+          status: res.status, // update status returned from API
+        }));
+      }
+    } catch (error: any) {
+      ShowToast(error?.message || "Failed to toggle account", "error");
     }
-  } catch (error: any) {
-    ShowToast(error?.message || "Failed to toggle account", "error");
-  }
-};
+  };
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
@@ -509,15 +509,18 @@ const UserEditProfilePage = () => {
                             Hides the profile temporarily (Does not delete it)
                           </p>
                         </div>
-                     <button
-  className={`btn-danger ${userProfile?.status ===  UserStatus.SELF_DEACTIVATED ? 'reactivate-btn' : ''}`}
-  onClick={handleToggleAccount}
->
-  {userProfile?.status === UserStatus.SELF_DEACTIVATED
-    ? "Reactivate account"
-    : "Deactivate account"}
-</button>
-
+                        <button
+                          className={`btn-danger ${
+                            userProfile?.status === UserStatus.SELF_DEACTIVATED
+                              ? "reactivate-btn"
+                              : ""
+                          }`}
+                          onClick={handleToggleAccount}
+                        >
+                          {userProfile?.status === UserStatus.SELF_DEACTIVATED
+                            ? "Reactivate account"
+                            : "Deactivate account"}
+                        </button>
                       </div>
                     </div>
                   </div>
