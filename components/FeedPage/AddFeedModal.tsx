@@ -430,7 +430,7 @@ const formik = useFormik({
             <FiVideo size={20} />
           </button>
 
-          <button className="cate-back-btn active-down-effect btn_icons">
+          {/* <button className="cate-back-btn active-down-effect btn_icons">
             <PiTextAaBold size={20} />
           </button>
 
@@ -443,7 +443,7 @@ const formik = useFormik({
             onClick={() => setActiveTool("poll")}
           >
             <HiMenuAlt2 size={20} />
-          </button>
+          </button> */}
 
           <button
             className="cate-back-btn active-down-effect btn_icons"

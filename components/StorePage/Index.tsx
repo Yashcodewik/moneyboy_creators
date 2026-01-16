@@ -22,7 +22,7 @@ const StorePage = () => {
                     alt="Store Header BG Image"
                   />
                 </div>
-                <button className="cate-back-btn active-down-effect">
+                {/* <button className="cate-back-btn active-down-effect">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -47,7 +47,7 @@ const StorePage = () => {
                       strokeLinejoin="round"
                     ></path>
                   </svg>
-                </button>
+                </button> */}
                 <div className="store-page-header-content-wrapper">
                   <div className="store-page-header--profile">
                     <div className="profile-card">

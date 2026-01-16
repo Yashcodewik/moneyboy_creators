@@ -64,6 +64,7 @@ const followersSearchTimeout = useRef<NodeJS.Timeout | null>(null);
 const followingSearchTimeout = useRef<NodeJS.Timeout | null>(null);
 
 
+
   const toggleMore = (id: string) => {
     setOpenMoreId((prev) => (prev === id ? null : id));
   };
@@ -1445,7 +1446,7 @@ const handleFollowingSearch = (value: string) => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1463,7 +1464,7 @@ const handleFollowingSearch = (value: string) => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1510,7 +1511,7 @@ const handleFollowingSearch = (value: string) => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1528,7 +1529,7 @@ const handleFollowingSearch = (value: string) => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1575,7 +1576,7 @@ const handleFollowingSearch = (value: string) => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1593,7 +1594,7 @@ const handleFollowingSearch = (value: string) => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1638,7 +1639,7 @@ const handleFollowingSearch = (value: string) => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1656,7 +1657,7 @@ const handleFollowingSearch = (value: string) => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1703,7 +1704,7 @@ const handleFollowingSearch = (value: string) => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1721,7 +1722,7 @@ const handleFollowingSearch = (value: string) => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1766,7 +1767,7 @@ const handleFollowingSearch = (value: string) => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1784,7 +1785,7 @@ const handleFollowingSearch = (value: string) => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">

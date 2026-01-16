@@ -462,7 +462,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -480,7 +480,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">
@@ -550,7 +550,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -568,7 +568,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">
@@ -638,7 +638,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -656,7 +656,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">
@@ -726,7 +726,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -744,7 +744,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">
@@ -814,7 +814,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -832,7 +832,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">
@@ -902,7 +902,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -920,7 +920,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">
@@ -990,7 +990,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1008,7 +1008,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">
@@ -1078,7 +1078,7 @@ const Dashboard = () => {
 
                     <div className="user-profile-content-overlay-container">
                       <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
+                        {/* <div className="user-profile-card__like-btn">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1096,7 +1096,7 @@ const Dashboard = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="user-profile-card__info-container">

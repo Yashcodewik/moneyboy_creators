@@ -279,7 +279,7 @@ const fetchFollowerCounts = async (userId: string) => {
                             </svg>
                           </a>
                         </li>
-                        <li>
+                        {/* <li>
                           <a href="#" className="like-btn">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -294,10 +294,10 @@ const fetchFollowerCounts = async (userId: string) => {
                                 strokeWidth="1.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                              />
+                              />  
                             </svg>
                           </a>
-                        </li>
+                        </li> */}
                         <li>
                           <a href="#" className="message-btn">
                             <svg

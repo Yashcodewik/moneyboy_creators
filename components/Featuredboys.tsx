@@ -120,7 +120,7 @@ const Featuredboys = () => {
                       </div>
                     </div>
                     <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
+                      {/* <div className="profile-card__blur-icon">
                         <button className="like-button" data-like-button>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +138,7 @@ const Featuredboys = () => {
                             />
                           </svg>
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="profile-card__desc">
@@ -186,7 +186,7 @@ const Featuredboys = () => {
                       </div>
                     </div>
                     <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
+                      {/* <div className="profile-card__blur-icon">
                         <button className="like-button" data-like-button>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -204,7 +204,7 @@ const Featuredboys = () => {
                             />
                           </svg>
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="profile-card__desc">
@@ -252,7 +252,7 @@ const Featuredboys = () => {
                       </div>
                     </div>
                     <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
+                      {/* <div className="profile-card__blur-icon">
                         <button className="like-button" data-like-button>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -270,7 +270,7 @@ const Featuredboys = () => {
                             />
                           </svg>
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="profile-card__desc">
@@ -318,7 +318,7 @@ const Featuredboys = () => {
                       </div>
                     </div>
                     <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
+                      {/* <div className="profile-card__blur-icon">
                         <button className="like-button" data-like-button>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -336,7 +336,7 @@ const Featuredboys = () => {
                             />
                           </svg>
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="profile-card__desc">
@@ -384,7 +384,7 @@ const Featuredboys = () => {
                       </div>
                     </div>
                     <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
+                      {/* <div className="profile-card__blur-icon">
                         <button className="like-button" data-like-button>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -402,7 +402,7 @@ const Featuredboys = () => {
                             />
                           </svg>
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="profile-card__desc">
@@ -450,7 +450,7 @@ const Featuredboys = () => {
                       </div>
                     </div>
                     <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
+                      {/* <div className="profile-card__blur-icon">
                         <button className="like-button" data-like-button>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -468,7 +468,7 @@ const Featuredboys = () => {
                             />
                           </svg>
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="profile-card__desc">

@@ -13,6 +13,8 @@ import {
 } from "@/utils/api/APIConstant";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import ShowToast from "../common/ShowToast";
+import InfiniteScroll from "react-infinite-scroll-component";
+import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 
 const FeedPage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -28,6 +30,18 @@ const FeedPage = () => {
   const [followingLoading, setFollowingLoading] = useState<boolean>(false);
   const [popularPosts, setPopularPosts] = useState<any[]>([]);
   const [popularLoading, setPopularLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(4);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hasFetchedRef = useRef(false);
+  const [followingPage, setFollowingPage] = useState(1);
+  const [followingHasMore, setFollowingHasMore] = useState(true);
+  const [followingLoadingMore, setFollowingLoadingMore] = useState(false);
+  const [popularPage, setPopularPage] = useState(1);
+  const [popularHasMore, setPopularHasMore] = useState(true);
+  const [popularLoadingMore, setPopularLoadingMore] = useState(false);
+
   const [expandedPosts, setExpandedPosts] = useState<
     Record<string, Record<string, boolean>>
   >({
@@ -114,25 +128,41 @@ const FeedPage = () => {
   }, [openMenuId]);
 
   console.log("========", session);
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      const res = await apiPost({
-        url: API_GET_POSTS,
-        values: {
-          userId: session?.user?.id || "",
-        },
+  const fetchPosts = async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+
+    console.log("FETCHING PAGE:", page);
+
+    const res = await apiPost({
+      url: API_GET_POSTS,
+      values: {
+        userId: session?.user?.id || "",
+        page,
+        limit,
+      },
+    });
+
+    if (Array.isArray(res) && res.length > 0) {
+      setPosts((prev) => {
+        const ids = new Set(prev.map((p) => p._id));
+        const unique = res.filter((p) => !ids.has(p._id));
+        return [...prev, ...unique];
       });
 
-      if (Array.isArray(res)) {
-        setPosts(res);
-      } else {
-        setPosts([]);
-      }
+      setPage((prev) => prev + 1);
+    } else {
+      setHasMore(false);
+    }
 
-      setLoading(false);
-    };
+    setLoadingMore(false);
+  };
 
+  useEffect(() => {
+    if (hasFetchedRef.current) return;
+
+    hasFetchedRef.current = true;
     fetchPosts();
   }, []);
 
@@ -263,50 +293,74 @@ const FeedPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (activeTab !== "following") return;
-    if (!isLoggedIn) return;
+  const fetchFollowingPosts = async () => {
+    if (followingLoadingMore || !followingHasMore) return;
 
-    const fetchFollowingPosts = async () => {
-      setFollowingLoading(true);
+    setFollowingLoadingMore(true);
 
-      const res = await getApiWithOutQuery({
-        url: API_GET_FOLLOWING_POSTS,
+    const res = await getApiWithOutQuery({
+      url: `${API_GET_FOLLOWING_POSTS}?page=${followingPage}&limit=${limit}`,
+    });
+
+    if (res?.success && Array.isArray(res.posts)) {
+      setFollowingPosts((prev) => {
+        const ids = new Set(prev.map((p: any) => p._id));
+        const unique = res.posts.filter((p: any) => !ids.has(p._id));
+        return [...prev, ...unique];
       });
 
-      if (res?.success && Array.isArray(res.posts)) {
-        setFollowingPosts(res.posts);
-      } else {
-        setFollowingPosts([]);
-      }
+      setFollowingPage((prev) => prev + 1);
+      setFollowingHasMore(res.pagination?.hasNextPage);
+    } else {
+      setFollowingHasMore(false);
+    }
 
-      setFollowingLoading(false);
-    };
+    setFollowingLoadingMore(false);
+  };
+  useEffect(() => {
+    if (activeTab !== "following" || !isLoggedIn) return;
+
+    setFollowingPosts([]);
+    setFollowingPage(1);
+    setFollowingHasMore(true);
 
     fetchFollowingPosts();
   }, [activeTab, isLoggedIn]);
 
+  const fetchPopularPosts = async () => {
+    if (popularLoadingMore || !popularHasMore) return;
+
+    setPopularLoadingMore(true);
+
+    const res = await apiPost({
+      url: API_GET_POPULAR_POSTS,
+      values: {
+        userId: session?.user?.id || "",
+        page: popularPage,
+        limit,
+      },
+    });
+
+    if (Array.isArray(res) && res.length > 0) {
+      setPopularPosts((prev) => {
+        const ids = new Set(prev.map((p) => p._id));
+        const unique = res.filter((p) => !ids.has(p._id));
+        return [...prev, ...unique];
+      });
+
+      setPopularPage((prev) => prev + 1);
+    } else {
+      setPopularHasMore(false);
+    }
+
+    setPopularLoadingMore(false);
+  };
   useEffect(() => {
     if (activeTab !== "popular") return;
 
-    const fetchPopularPosts = async () => {
-      setPopularLoading(true);
-
-      const res = await apiPost({
-        url: API_GET_POPULAR_POSTS,
-        values: {
-          userId: session?.user?.id || "",
-        },
-      });
-
-      if (Array.isArray(res)) {
-        setPopularPosts(res);
-      } else {
-        setPopularPosts([]);
-      }
-
-      setPopularLoading(false);
-    };
+    setPopularPosts([]);
+    setPopularPage(1);
+    setPopularHasMore(true);
 
     fetchPopularPosts();
   }, [activeTab]);
@@ -348,7 +402,7 @@ const FeedPage = () => {
       },
     }));
   };
-  
+
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -394,450 +448,21 @@ const FeedPage = () => {
             <div className="moneyboy-posts-wrapper">
               {activeTab === "feed" && (
                 <div
+                  id="feedScrollableDiv"
                   className="moneyboy-posts-wrapper"
+                  style={{
+                    height: "100vh",
+                    overflow: "auto",
+                  }}
                   data-multi-tabs-content-tabdata__active
                 >
-                  {posts.map((post, index) => (
-                    <div
-                      key={post._id || index}
-                      className="moneyboy-post__container card"
-                    >
-                      <div className="moneyboy-post__header">
-                        <a href="#" className="profile-card">
-                          <div className="profile-card__main">
-                            <div className="profile-card__avatar-settings">
-                              <div className="profile-card__avatar">
-                                <img
-                                  src={
-                                    post.creatorInfo?.profile ||
-                                    "/images/profile-avatars/profile-avatar-1.png"
-                                  }
-                                  alt="MoneyBoy Social Profile Avatar"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__info">
-                              <div className="profile-card__name-badge">
-                                <div className="profile-card__name">
-                                  {post.creatorInfo?.userName || "User"}
-                                </div>
-                                <div className="profile-card__badge">
-                                  <img
-                                    src="/images/logo/profile-badge.png"
-                                    alt="MoneyBoy Social Profile Badge"
-                                  />
-                                </div>
-                              </div>
-                              <div className="profile-card__username">
-                                @{post.creatorInfo?.displayName || "username"}
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-
-                        <div className="moneyboy-post__upload-more-info">
-                          <div className="moneyboy-post__upload-time">
-                            {post.createdAt
-                              ? getTimeAgo(post.createdAt)
-                              : "1 Hour ago"}
-                          </div>
-                          <div
-                            className={`rel-user-more-opts-wrapper ${
-                              openMenuId === index + 1 ? "active" : ""
-                            }`}
-                            data-more-actions-toggle-element
-                            ref={(el) => setMenuRef(index + 1, el)}
-                          >
-                            <button
-                              className="rel-user-more-opts-trigger-icon"
-                              onClick={() => toggleMenu(index + 1)}
-                              ref={(el) => setButtonRef(index + 1, el)}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="25"
-                                viewBox="0 0 24 25"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                ></path>
-                                <path
-                                  d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                ></path>
-                                <path
-                                  d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                ></path>
-                              </svg>
-                            </button>
-                            {openMenuId === index + 1 && (
-                              <div className="rel-users-more-opts-popup-wrapper">
-                                <div className="rel-users-more-opts-popup-container">
-                                  <ul>
-                                    <li
-                                      data-copy-post-link={`post-link-${post._id}`}
-                                    >
-                                      <div className="icon copy-link-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          strokeWidth="1.5"
-                                          stroke="currentColor"
-                                          className="size-6"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                          ></path>
-                                        </svg>
-                                      </div>
-                                      <span>Copy Link</span>
-                                    </li>
-                                  </ul>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="moneyboy-post__desc">
-                        <p>
-                          {post.text ? (
-                            <>
-                              {expandedPosts.feed[post._id]
-                                ? post.text
-                                : post.text.length > 150
-                                ? `${post.text.substring(0, 150)}...`
-                                : post.text}
-                              {post.text.length > 150 && (
-                                <span
-                                  className="active-down-effect-2x"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    toggleExpand(post._id, "feed"); // Changed to include tab
-                                  }}
-                                >
-                                  {expandedPosts.feed[post._id]
-                                    ? "less"
-                                    : "more"}{" "}
-                                  {/* Changed */}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            "Today, I experienced the most blissful ride outside. The air is fresh and It ..."
-                          )}
-                        </p>
-                      </div>
-
-                      <div className="moneyboy-post__media">
-                        {post.thumbnail ? (
-                          <div className="moneyboy-post__img">
-                            <img
-                              src={post.thumbnail}
-                              alt="MoneyBoy Post Image"
-                            />
-                          </div>
-                        ) : (
-                          (() => {
-                            // Get media files from the new array structure
-                            const getMediaFiles = () => {
-                              if (!post.media) return [];
-
-                              // If media is an array (new format)
-                              if (
-                                Array.isArray(post.media) &&
-                                post.media.length > 0
-                              ) {
-                                return post.media[0]?.mediaFiles || [];
-                              }
-
-                              // If media is an object (old format)
-                              if (
-                                post.media.mediaFiles &&
-                                Array.isArray(post.media.mediaFiles)
-                              ) {
-                                return post.media.mediaFiles;
-                              }
-
-                              return [];
-                            };
-
-                            // Get media type
-                            const getMediaType = () => {
-                              if (!post.media) return "photo";
-
-                              if (
-                                Array.isArray(post.media) &&
-                                post.media.length > 0
-                              ) {
-                                return post.media[0]?.type || "photo";
-                              }
-
-                              return post.media?.type || "photo";
-                            };
-
-                            const mediaFiles = getMediaFiles();
-                            const mediaType = getMediaType();
-
-                            if (mediaFiles.length > 0) {
-                              if (mediaType === "video") {
-                                return (
-                                  <div className="moneyboy-post__video">
-                                    {/* <video
-                                      controls
-                                      preload="metadata"
-                                      playsInline
-                                      className="post-video-player"
-                                    >
-                                      <source
-                                        src={mediaFiles[0]}
-                                        type="video/mp4"
-                                      />
-                                      Your browser does not support the video
-                                      tag.
-                                    </video> */}
-                                    <video
-                                      src={mediaFiles[0]}
-                                      autoPlay
-                                      muted
-                                      loop
-                                      playsInline
-                                      preload="metadata"
-                                      className="post-video-player"
-                                    />
-                                  </div>
-                                );
-                              } else {
-                                return (
-                                  <div className="moneyboy-post__img">
-                                    <img
-                                      src={mediaFiles[0]}
-                                      alt="MoneyBoy Post Image"
-                                    />
-                                  </div>
-                                );
-                              }
-                            }
-                            return null;
-                          })()
-                        )}
-                        <div className="moneyboy-post__actions">
-                          <ul>
-                            <li>
-                              <a href="#">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M10 12.85V13.59"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    className="dollar-sign"
-                                    d="M10 6.40997V7.18997"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>Send Tip</span>
-                              </a>
-                            </li>
-
-                            <li>
-                              <a
-                                href="#"
-                                className={`post-like-btn ${
-                                  post.isLiked ? "active" : ""
-                                }`}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleLike(post._id);
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill={post.isLiked ? "red" : "none"}
-                                >
-                                  <path
-                                    d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                    stroke={post.isLiked ? "red" : "white"}
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>{post.likeCount || 0}</span>
-                              </a>
-                            </li>
-                            <li>
-                              <a href="#">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeMiterlimit="10"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M7 8H17"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M7 13H13"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>{post.commentCount || 0}</span>
-                              </a>
-                            </li>
-                          </ul>
-                          <ul>
-                            <li>
-                              <a href="#">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M5.15002 2V22"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeMiterlimit="10"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeMiterlimit="10"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </a>
-                            </li>
-
-                            <li>
-                              <a
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleSave(post._id);
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill={post.isSaved ? "white" : "none"}
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path
-                                    d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </a>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {activeTab === "following" && (
-                <div
-                  className="moneyboy-posts-wrapper"
-                  data-multi-tabs-content-tab
-                >
-                  {followingPosts.map((post, index) => {
-                    const menuId = index + 1000;
-
-                    return (
+                  <InfiniteScrollWrapper
+                    dataLength={posts.length}
+                    fetchMore={fetchPosts}
+                    hasMore={hasMore}
+                    scrollableTarget="feedScrollableDiv"
+                  >
+                    {posts.map((post, index) => (
                       <div
                         key={post._id || index}
                         className="moneyboy-post__container card"
@@ -856,7 +481,6 @@ const FeedPage = () => {
                                   />
                                 </div>
                               </div>
-
                               <div className="profile-card__info">
                                 <div className="profile-card__name-badge">
                                   <div className="profile-card__name">
@@ -882,17 +506,17 @@ const FeedPage = () => {
                                 ? getTimeAgo(post.createdAt)
                                 : "1 Hour ago"}
                             </div>
-
                             <div
                               className={`rel-user-more-opts-wrapper ${
-                                openMenuId === menuId ? "active" : ""
+                                openMenuId === index + 1 ? "active" : ""
                               }`}
-                              ref={(el) => setMenuRef(menuId, el)}
+                              data-more-actions-toggle-element
+                              ref={(el) => setMenuRef(index + 1, el)}
                             >
                               <button
                                 className="rel-user-more-opts-trigger-icon"
-                                onClick={() => toggleMenu(menuId)}
-                                ref={(el) => setButtonRef(menuId, el)}
+                                onClick={() => toggleMenu(index + 1)}
+                                ref={(el) => setButtonRef(index + 1, el)}
                               >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
@@ -901,13 +525,24 @@ const FeedPage = () => {
                                   viewBox="0 0 24 25"
                                   fill="none"
                                 >
-                                  <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
-                                  <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
-                                  <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
+                                  <path
+                                    d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                  ></path>
+                                  <path
+                                    d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                  ></path>
+                                  <path
+                                    d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                  ></path>
                                 </svg>
                               </button>
-
-                              {openMenuId === menuId && (
+                              {openMenuId === index + 1 && (
                                 <div className="rel-users-more-opts-popup-wrapper">
                                   <div className="rel-users-more-opts-popup-container">
                                     <ul>
@@ -927,7 +562,7 @@ const FeedPage = () => {
                                               strokeLinecap="round"
                                               strokeLinejoin="round"
                                               d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                            />
+                                            ></path>
                                           </svg>
                                         </div>
                                         <span>Copy Link</span>
@@ -944,7 +579,7 @@ const FeedPage = () => {
                           <p>
                             {post.text ? (
                               <>
-                                {expandedPosts.following[post._id]
+                                {expandedPosts.feed[post._id]
                                   ? post.text
                                   : post.text.length > 150
                                   ? `${post.text.substring(0, 150)}...`
@@ -954,10 +589,10 @@ const FeedPage = () => {
                                     className="active-down-effect-2x"
                                     onClick={(e) => {
                                       e.preventDefault();
-                                      toggleExpand(post._id, "following"); // Changed to include tab
+                                      toggleExpand(post._id, "feed"); // Changed to include tab
                                     }}
                                   >
-                                    {expandedPosts.following[post._id]
+                                    {expandedPosts.feed[post._id]
                                       ? "less"
                                       : "more"}{" "}
                                     {/* Changed */}
@@ -1062,7 +697,6 @@ const FeedPage = () => {
                               return null;
                             })()
                           )}
-
                           <div className="moneyboy-post__actions">
                             <ul>
                               <li>
@@ -1257,206 +891,219 @@ const FeedPage = () => {
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </InfiniteScrollWrapper>
                 </div>
               )}
-
-              {activeTab === "popular" && (
+              {activeTab === "following" && (
                 <div
+                  id="feedScrollableDiv"
+                  style={{
+                    height: "100vh",
+                    overflow: "auto",
+                  }}
                   className="moneyboy-posts-wrapper"
                   data-multi-tabs-content-tab
                 >
-                  {popularPosts.map((post, index) => (
-                    <div
-                      key={post._id || index}
-                      className="moneyboy-post__container card"
-                    >
-                      {/* HEADER */}
-                      <div className="moneyboy-post__header">
-                        <a href="#" className="profile-card">
-                          <div className="profile-card__main">
-                            <div className="profile-card__avatar-settings">
-                              <div className="profile-card__avatar">
+                  <InfiniteScrollWrapper
+                    dataLength={followingPosts.length}
+                    fetchMore={fetchFollowingPosts}
+                    hasMore={followingHasMore}
+                    scrollableTarget="feedScrollableDiv"
+                  >
+                    {followingPosts.map((post, index) => {
+                      const menuId = index + 1000;
+
+                      return (
+                        <div
+                          key={post._id || index}
+                          className="moneyboy-post__container card"
+                        >
+                          <div className="moneyboy-post__header">
+                            <a href="#" className="profile-card">
+                              <div className="profile-card__main">
+                                <div className="profile-card__avatar-settings">
+                                  <div className="profile-card__avatar">
+                                    <img
+                                      src={
+                                        post.creatorInfo?.profile ||
+                                        "/images/profile-avatars/profile-avatar-1.png"
+                                      }
+                                      alt="MoneyBoy Social Profile Avatar"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="profile-card__info">
+                                  <div className="profile-card__name-badge">
+                                    <div className="profile-card__name">
+                                      {post.creatorInfo?.userName || "User"}
+                                    </div>
+                                    <div className="profile-card__badge">
+                                      <img
+                                        src="/images/logo/profile-badge.png"
+                                        alt="MoneyBoy Social Profile Badge"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="profile-card__username">
+                                    @
+                                    {post.creatorInfo?.displayName ||
+                                      "username"}
+                                  </div>
+                                </div>
+                              </div>
+                            </a>
+
+                            <div className="moneyboy-post__upload-more-info">
+                              <div className="moneyboy-post__upload-time">
+                                {post.createdAt
+                                  ? getTimeAgo(post.createdAt)
+                                  : "1 Hour ago"}
+                              </div>
+
+                              <div
+                                className={`rel-user-more-opts-wrapper ${
+                                  openMenuId === menuId ? "active" : ""
+                                }`}
+                                ref={(el) => setMenuRef(menuId, el)}
+                              >
+                                <button
+                                  className="rel-user-more-opts-trigger-icon"
+                                  onClick={() => toggleMenu(menuId)}
+                                  ref={(el) => setButtonRef(menuId, el)}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="25"
+                                    viewBox="0 0 24 25"
+                                    fill="none"
+                                  >
+                                    <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
+                                    <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
+                                    <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
+                                  </svg>
+                                </button>
+
+                                {openMenuId === menuId && (
+                                  <div className="rel-users-more-opts-popup-wrapper">
+                                    <div className="rel-users-more-opts-popup-container">
+                                      <ul>
+                                        <li
+                                          data-copy-post-link={`post-link-${post._id}`}
+                                        >
+                                          <div className="icon copy-link-icon">
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              strokeWidth="1.5"
+                                              stroke="currentColor"
+                                              className="size-6"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
+                                              />
+                                            </svg>
+                                          </div>
+                                          <span>Copy Link</span>
+                                        </li>
+                                      </ul>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="moneyboy-post__desc">
+                            <p>
+                              {post.text ? (
+                                <>
+                                  {expandedPosts.following[post._id]
+                                    ? post.text
+                                    : post.text.length > 150
+                                    ? `${post.text.substring(0, 150)}...`
+                                    : post.text}
+                                  {post.text.length > 150 && (
+                                    <span
+                                      className="active-down-effect-2x"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        toggleExpand(post._id, "following"); // Changed to include tab
+                                      }}
+                                    >
+                                      {expandedPosts.following[post._id]
+                                        ? "less"
+                                        : "more"}{" "}
+                                      {/* Changed */}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                "Today, I experienced the most blissful ride outside. The air is fresh and It ..."
+                              )}
+                            </p>
+                          </div>
+
+                          <div className="moneyboy-post__media">
+                            {post.thumbnail ? (
+                              <div className="moneyboy-post__img">
                                 <img
-                                  src={
-                                    post.creatorInfo?.profile ||
-                                    "/images/profile-avatars/profile-avatar-1.png"
-                                  }
-                                  alt="MoneyBoy Social Profile Avatar"
+                                  src={post.thumbnail}
+                                  alt="MoneyBoy Post Image"
                                 />
                               </div>
-                            </div>
-                            <div className="profile-card__info">
-                              <div className="profile-card__name-badge">
-                                <div className="profile-card__name">
-                                  {post.creatorInfo?.userName || "User"}
-                                </div>
-                                <div className="profile-card__badge">
-                                  <img
-                                    src="/images/logo/profile-badge.png"
-                                    alt="MoneyBoy Social Profile Badge"
-                                  />
-                                </div>
-                              </div>
-                              <div className="profile-card__username">
-                                @{post.creatorInfo?.displayName || "username"}
-                              </div>
-                            </div>
-                          </div>
-                        </a>
+                            ) : (
+                              (() => {
+                                // Get media files from the new array structure
+                                const getMediaFiles = () => {
+                                  if (!post.media) return [];
 
-                        <div className="moneyboy-post__upload-more-info">
-                          <div className="moneyboy-post__upload-time">
-                            {post.createdAt
-                              ? getTimeAgo(post.createdAt)
-                              : "1 Hour ago"}
-                          </div>
+                                  // If media is an array (new format)
+                                  if (
+                                    Array.isArray(post.media) &&
+                                    post.media.length > 0
+                                  ) {
+                                    return post.media[0]?.mediaFiles || [];
+                                  }
 
-                          <div
-                            className={`rel-user-more-opts-wrapper ${
-                              openMenuId === index ? "active" : ""
-                            }`}
-                            data-more-actions-toggle-element
-                            ref={(el) => setMenuRef(index, el)}
-                          >
-                            <button
-                              className="rel-user-more-opts-trigger-icon"
-                              onClick={() => toggleMenu(index)}
-                              ref={(el) => setButtonRef(index, el)}
-                            >
-                              {/* SVG UNCHANGED */}
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="25"
-                                viewBox="0 0 24 25"
-                                fill="none"
-                              >
-                                <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
-                                <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
-                                <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
-                              </svg>
-                            </button>
+                                  // If media is an object (old format)
+                                  if (
+                                    post.media.mediaFiles &&
+                                    Array.isArray(post.media.mediaFiles)
+                                  ) {
+                                    return post.media.mediaFiles;
+                                  }
 
-                            {openMenuId === index && (
-                              <div className="rel-users-more-opts-popup-wrapper">
-                                <div className="rel-users-more-opts-popup-container">
-                                  <ul>
-                                    <li>
-                                      <div className="icon copy-link-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          strokeWidth="1.5"
-                                          stroke="currentColor"
-                                          className="size-6"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                          ></path>
-                                        </svg>
-                                      </div>
-                                      <span>Copy Link</span>
-                                    </li>
-                                  </ul>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                                  return [];
+                                };
 
-                      {/* DESCRIPTION */}
-                      <div className="moneyboy-post__desc">
-                        <p>
-                          {post.text ? (
-                            <>
-                              {expandedPosts.popular[post._id]
-                                ? post.text
-                                : post.text.length > 150
-                                ? `${post.text.substring(0, 150)}...`
-                                : post.text}
-                              {post.text.length > 150 && (
-                                <span
-                                  className="active-down-effect-2x"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    toggleExpand(post._id, "popular"); // Changed to include tab
-                                  }}
-                                >
-                                  {expandedPosts.popular[post._id]
-                                    ? "less"
-                                    : "more"}{" "}
-                                  {/* Changed */}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            "Today, I experienced the most blissful ride outside. The air is fresh and It ..."
-                          )}
-                        </p>
-                      </div>
+                                // Get media type
+                                const getMediaType = () => {
+                                  if (!post.media) return "photo";
 
-                      {/* MEDIA */}
-                      <div className="moneyboy-post__media">
-                        {post.thumbnail ? (
-                          <div className="moneyboy-post__img">
-                            <img
-                              src={post.thumbnail}
-                              alt="MoneyBoy Post Image"
-                            />
-                          </div>
-                        ) : (
-                          (() => {
-                            // Get media files from the new array structure
-                            const getMediaFiles = () => {
-                              if (!post.media) return [];
+                                  if (
+                                    Array.isArray(post.media) &&
+                                    post.media.length > 0
+                                  ) {
+                                    return post.media[0]?.type || "photo";
+                                  }
 
-                              // If media is an array (new format)
-                              if (
-                                Array.isArray(post.media) &&
-                                post.media.length > 0
-                              ) {
-                                return post.media[0]?.mediaFiles || [];
-                              }
+                                  return post.media?.type || "photo";
+                                };
 
-                              // If media is an object (old format)
-                              if (
-                                post.media.mediaFiles &&
-                                Array.isArray(post.media.mediaFiles)
-                              ) {
-                                return post.media.mediaFiles;
-                              }
+                                const mediaFiles = getMediaFiles();
+                                const mediaType = getMediaType();
 
-                              return [];
-                            };
-
-                            // Get media type
-                            const getMediaType = () => {
-                              if (!post.media) return "photo";
-
-                              if (
-                                Array.isArray(post.media) &&
-                                post.media.length > 0
-                              ) {
-                                return post.media[0]?.type || "photo";
-                              }
-
-                              return post.media?.type || "photo";
-                            };
-
-                            const mediaFiles = getMediaFiles();
-                            const mediaType = getMediaType();
-
-                            if (mediaFiles.length > 0) {
-                              if (mediaType === "video") {
-                                return (
-                                  <div className="moneyboy-post__video">
-                                    {/* <video
+                                if (mediaFiles.length > 0) {
+                                  if (mediaType === "video") {
+                                    return (
+                                      <div className="moneyboy-post__video">
+                                        {/* <video
                                       controls
                                       preload="metadata"
                                       playsInline
@@ -1469,224 +1116,669 @@ const FeedPage = () => {
                                       Your browser does not support the video
                                       tag.
                                     </video> */}
-                                    <video
-                                      src={mediaFiles[0]}
-                                      autoPlay
-                                      muted
-                                      loop
-                                      playsInline
-                                      preload="metadata"
-                                      className="post-video-player"
-                                    />
+                                        <video
+                                          src={mediaFiles[0]}
+                                          autoPlay
+                                          muted
+                                          loop
+                                          playsInline
+                                          preload="metadata"
+                                          className="post-video-player"
+                                        />
+                                      </div>
+                                    );
+                                  } else {
+                                    return (
+                                      <div className="moneyboy-post__img">
+                                        <img
+                                          src={mediaFiles[0]}
+                                          alt="MoneyBoy Post Image"
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                }
+                                return null;
+                              })()
+                            )}
+
+                            <div className="moneyboy-post__actions">
+                              <ul>
+                                <li>
+                                  <a href="#">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                    >
+                                      <path
+                                        d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M10 12.85V13.59"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        className="dollar-sign"
+                                        d="M10 6.40997V7.18997"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                    <span>Send Tip</span>
+                                  </a>
+                                </li>
+
+                                <li>
+                                  <a
+                                    href="#"
+                                    className={`post-like-btn ${
+                                      post.isLiked ? "active" : ""
+                                    }`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleLike(post._id);
+                                    }}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill={post.isLiked ? "red" : "none"}
+                                    >
+                                      <path
+                                        d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
+                                        stroke={post.isLiked ? "red" : "white"}
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                    <span>{post.likeCount || 0}</span>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="#">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                    >
+                                      <path
+                                        d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeMiterlimit="10"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M7 8H17"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M7 13H13"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                    <span>{post.commentCount || 0}</span>
+                                  </a>
+                                </li>
+                              </ul>
+                              <ul>
+                                <li>
+                                  <a href="#">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                    >
+                                      <path
+                                        d="M5.15002 2V22"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeMiterlimit="10"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeMiterlimit="10"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  </a>
+                                </li>
+
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleSave(post._id);
+                                    }}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill={post.isSaved ? "white" : "none"}
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <path
+                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </InfiniteScrollWrapper>
+                </div>
+              )}
+
+              {activeTab === "popular" && (
+                <div
+                  id="feedScrollableDiv"
+                  style={{
+                    height: "100vh",
+                    overflow: "auto",
+                  }}
+                  className="moneyboy-posts-wrapper"
+                  data-multi-tabs-content-tab
+                >
+                  <InfiniteScrollWrapper
+                    dataLength={popularPosts.length}
+                    fetchMore={fetchPopularPosts}
+                    hasMore={popularHasMore}
+                    scrollableTarget="feedScrollableDiv"
+                  >
+                    {popularPosts.map((post, index) => (
+                      <div
+                        key={post._id || index}
+                        className="moneyboy-post__container card"
+                      >
+                        {/* HEADER */}
+                        <div className="moneyboy-post__header">
+                          <a href="#" className="profile-card">
+                            <div className="profile-card__main">
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  <img
+                                    src={
+                                      post.creatorInfo?.profile ||
+                                      "/images/profile-avatars/profile-avatar-1.png"
+                                    }
+                                    alt="MoneyBoy Social Profile Avatar"
+                                  />
+                                </div>
+                              </div>
+                              <div className="profile-card__info">
+                                <div className="profile-card__name-badge">
+                                  <div className="profile-card__name">
+                                    {post.creatorInfo?.userName || "User"}
                                   </div>
-                                );
-                              } else {
-                                return (
-                                  <div className="moneyboy-post__img">
+                                  <div className="profile-card__badge">
                                     <img
-                                      src={mediaFiles[0]}
-                                      alt="MoneyBoy Post Image"
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
                                     />
                                   </div>
-                                );
+                                </div>
+                                <div className="profile-card__username">
+                                  @{post.creatorInfo?.displayName || "username"}
+                                </div>
+                              </div>
+                            </div>
+                          </a>
+
+                          <div className="moneyboy-post__upload-more-info">
+                            <div className="moneyboy-post__upload-time">
+                              {post.createdAt
+                                ? getTimeAgo(post.createdAt)
+                                : "1 Hour ago"}
+                            </div>
+
+                            <div
+                              className={`rel-user-more-opts-wrapper ${
+                                openMenuId === index ? "active" : ""
+                              }`}
+                              data-more-actions-toggle-element
+                              ref={(el) => setMenuRef(index, el)}
+                            >
+                              <button
+                                className="rel-user-more-opts-trigger-icon"
+                                onClick={() => toggleMenu(index)}
+                                ref={(el) => setButtonRef(index, el)}
+                              >
+                                {/* SVG UNCHANGED */}
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="25"
+                                  viewBox="0 0 24 25"
+                                  fill="none"
+                                >
+                                  <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
+                                  <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
+                                  <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
+                                </svg>
+                              </button>
+
+                              {openMenuId === index && (
+                                <div className="rel-users-more-opts-popup-wrapper">
+                                  <div className="rel-users-more-opts-popup-container">
+                                    <ul>
+                                      <li>
+                                        <div className="icon copy-link-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth="1.5"
+                                            stroke="currentColor"
+                                            className="size-6"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
+                                            ></path>
+                                          </svg>
+                                        </div>
+                                        <span>Copy Link</span>
+                                      </li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* DESCRIPTION */}
+                        <div className="moneyboy-post__desc">
+                          <p>
+                            {post.text ? (
+                              <>
+                                {expandedPosts.popular[post._id]
+                                  ? post.text
+                                  : post.text.length > 150
+                                  ? `${post.text.substring(0, 150)}...`
+                                  : post.text}
+                                {post.text.length > 150 && (
+                                  <span
+                                    className="active-down-effect-2x"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      toggleExpand(post._id, "popular"); // Changed to include tab
+                                    }}
+                                  >
+                                    {expandedPosts.popular[post._id]
+                                      ? "less"
+                                      : "more"}{" "}
+                                    {/* Changed */}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              "Today, I experienced the most blissful ride outside. The air is fresh and It ..."
+                            )}
+                          </p>
+                        </div>
+
+                        {/* MEDIA */}
+                        <div className="moneyboy-post__media">
+                          {post.thumbnail ? (
+                            <div className="moneyboy-post__img">
+                              <img
+                                src={post.thumbnail}
+                                alt="MoneyBoy Post Image"
+                              />
+                            </div>
+                          ) : (
+                            (() => {
+                              // Get media files from the new array structure
+                              const getMediaFiles = () => {
+                                if (!post.media) return [];
+
+                                // If media is an array (new format)
+                                if (
+                                  Array.isArray(post.media) &&
+                                  post.media.length > 0
+                                ) {
+                                  return post.media[0]?.mediaFiles || [];
+                                }
+
+                                // If media is an object (old format)
+                                if (
+                                  post.media.mediaFiles &&
+                                  Array.isArray(post.media.mediaFiles)
+                                ) {
+                                  return post.media.mediaFiles;
+                                }
+
+                                return [];
+                              };
+
+                              // Get media type
+                              const getMediaType = () => {
+                                if (!post.media) return "photo";
+
+                                if (
+                                  Array.isArray(post.media) &&
+                                  post.media.length > 0
+                                ) {
+                                  return post.media[0]?.type || "photo";
+                                }
+
+                                return post.media?.type || "photo";
+                              };
+
+                              const mediaFiles = getMediaFiles();
+                              const mediaType = getMediaType();
+
+                              if (mediaFiles.length > 0) {
+                                if (mediaType === "video") {
+                                  return (
+                                    <div className="moneyboy-post__video">
+                                      {/* <video
+                                      controls
+                                      preload="metadata"
+                                      playsInline
+                                      className="post-video-player"
+                                    >
+                                      <source
+                                        src={mediaFiles[0]}
+                                        type="video/mp4"
+                                      />
+                                      Your browser does not support the video
+                                      tag.
+                                    </video> */}
+                                      <video
+                                        src={mediaFiles[0]}
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                        preload="metadata"
+                                        className="post-video-player"
+                                      />
+                                    </div>
+                                  );
+                                } else {
+                                  return (
+                                    <div className="moneyboy-post__img">
+                                      <img
+                                        src={mediaFiles[0]}
+                                        alt="MoneyBoy Post Image"
+                                      />
+                                    </div>
+                                  );
+                                }
                               }
-                            }
-                            return null;
-                          })()
-                        )}
+                              return null;
+                            })()
+                          )}
 
-                        {/* ACTIONS */}
-                        <div className="moneyboy-post__actions">
-                          <ul>
-                            <li>
-                              <a href="#">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M10 12.85V13.59"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    className="dollar-sign"
-                                    d="M10 6.40997V7.18997"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>Send Tip</span>
-                              </a>
-                            </li>
+                          {/* ACTIONS */}
+                          <div className="moneyboy-post__actions">
+                            <ul>
+                              <li>
+                                <a href="#">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M10 12.85V13.59"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      className="dollar-sign"
+                                      d="M10 6.40997V7.18997"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                  <span>Send Tip</span>
+                                </a>
+                              </li>
 
-                            <li>
-                              <a
-                                href="#"
-                                className={`post-like-btn ${
-                                  post.isLiked ? "active" : ""
-                                }`}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleLike(post._id);
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
+                              <li>
+                                <a
+                                  href="#"
+                                  className={`post-like-btn ${
+                                    post.isLiked ? "active" : ""
+                                  }`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleLike(post._id);
+                                  }}
                                 >
-                                  <path
-                                    d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>{post.likeCount || 0}</span>
-                              </a>
-                            </li>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                  <span>{post.likeCount || 0}</span>
+                                </a>
+                              </li>
 
-                            <li>
-                              <a href="#">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeMiterlimit="10"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M7 8H17"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M7 13H13"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>{post.commentCount || 0}</span>
-                              </a>
-                            </li>
-                          </ul>
+                              <li>
+                                <a href="#">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeMiterlimit="10"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M7 8H17"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M7 13H13"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                  <span>{post.commentCount || 0}</span>
+                                </a>
+                              </li>
+                            </ul>
 
-                          <ul>
-                            <li>
-                              <a href="#">
-                                {" "}
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M5.15002 2V22"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeMiterlimit="10"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                    stroke="white"
-                                    strokeWidth="1.5"
-                                    strokeMiterlimit="10"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </a>
-                            </li>
+                            <ul>
+                              <li>
+                                <a href="#">
+                                  {" "}
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M5.15002 2V22"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeMiterlimit="10"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeMiterlimit="10"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </a>
+                              </li>
 
-                            <li>
-                              <a
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleSave(post._id);
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill={post.isSaved ? "white" : "none"}
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
+                              <li>
+                                <a
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleSave(post._id);
+                                  }}
                                 >
-                                  <path
-                                    d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                    stroke={post.isSaved ? "none" : "white"}
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill={post.isSaved ? "white" : "none"}
                                     stroke="white"
                                     strokeWidth="1.5"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </a>
-                            </li>
-                          </ul>
+                                  >
+                                    <path
+                                      d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                      stroke={post.isSaved ? "none" : "white"}
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </InfiniteScrollWrapper>
                 </div>
               )}
             </div>
@@ -1809,7 +1901,7 @@ const FeedPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1827,7 +1919,7 @@ const FeedPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1875,7 +1967,7 @@ const FeedPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1893,7 +1985,7 @@ const FeedPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1941,7 +2033,7 @@ const FeedPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1959,7 +2051,7 @@ const FeedPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -2007,7 +2099,7 @@ const FeedPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -2025,7 +2117,7 @@ const FeedPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -2073,7 +2165,7 @@ const FeedPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -2091,7 +2183,7 @@ const FeedPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -2139,7 +2231,7 @@ const FeedPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button className="like-button" data-like-button>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -2157,7 +2249,7 @@ const FeedPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
