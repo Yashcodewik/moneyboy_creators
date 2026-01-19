@@ -431,7 +431,7 @@ const SubscriptionsPage = () => {
                             </div>
                           </div>
                           <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Cancel</span></button>
+                            <button className="btn-danger"><span>Cancel</span></button>
                           </div>
                         </div>
                         <div className="user-subbox">
@@ -478,7 +478,7 @@ const SubscriptionsPage = () => {
                             </div>
                           </div>
                           <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Cancel</span></button>
+                            <button className="btn-danger"><span>Cancel</span></button>
                           </div>
                         </div>
                         <div className="user-subbox">
@@ -525,7 +525,7 @@ const SubscriptionsPage = () => {
                             </div>
                           </div>
                           <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Cancel</span></button>
+                            <button className="btn-danger"><span>Cancel</span></button>
                           </div>
                         </div>
                         <div className="user-subbox">
