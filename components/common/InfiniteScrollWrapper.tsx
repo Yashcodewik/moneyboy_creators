@@ -1,36 +1,30 @@
 "use client";
-
 import InfiniteScroll from "react-infinite-scroll-component";
 
-interface InfiniteScrollWrapperProps {
+interface Props {
   dataLength: number;
   fetchMore: () => void;
   hasMore: boolean;
-  scrollableTarget: string;
   children: React.ReactNode;
   loader?: React.ReactNode;
 }
 
-const InfiniteScrollWrapper = ({
+export default function InfiniteScrollWrapper({
   dataLength,
   fetchMore,
   hasMore,
-  scrollableTarget,
   children,
-  loader = <div className="text-center py-4">Loading...</div>,
-}: InfiniteScrollWrapperProps) => {
+  loader = <div className="nodeta">Loading...</div>,
+}: Props) {
   return (
     <InfiniteScroll
       dataLength={dataLength}
       next={fetchMore}
       hasMore={hasMore}
       loader={loader}
-      scrollableTarget={scrollableTarget}
-      scrollThreshold={0.9}
+      scrollThreshold={0.85}
     >
       {children}
     </InfiniteScroll>
   );
-};
-
-export default InfiniteScrollWrapper;
+}
