@@ -141,7 +141,10 @@ const Header = () => {
                   alt="MoneyBoy Logo"
                   fill priority
                 /> */}
-                <img src="/images/logo/moneyboy-logo.png" alt="MoneyBoy Social Logo"/>
+                <img
+                  src="/images/logo/moneyboy-logo.png"
+                  alt="MoneyBoy Social Logo"
+                />
               </Link>
             </div>
 
@@ -543,7 +546,7 @@ const Header = () => {
                           </svg>
                         </div>
                         <div className="menu-profile-stats-txt">
-                          <div className="stats-label"> Subscribers </div>
+                          <div className="stats-label"> Subscriptions </div>
                           <div className="stats-value">
                             <span> 10K </span>
                           </div>
@@ -597,58 +600,109 @@ const Header = () => {
                         </svg>
                         <span>My Profile</span>
                       </a>
-                <a 
-  href="#" 
-  className="menu-link edit-profile-link"
-  onClick={(e) => {
-    e.preventDefault();
-    setIsOpen(false);
-    
-    if (session?.user?.role === 1) {
-      router.push("/user-edit-profile");
-    } else if (session?.user?.role === 2) {
-      router.push("/edit-profile");
-    }
-  }}
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 25"
-    fill="none"
+                      <a
+                        href="#"
+                        className="menu-link edit-profile-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsOpen(false);
+
+                          if (session?.user?.role === 1) {
+                            router.push("/user-edit-profile");
+                          } else if (session?.user?.role === 2) {
+                            router.push("/creator-edit-profile");
+                          }
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 25"
+                          fill="none"
+                        >
+                          <path
+                            d="M12 12.1429C14.7614 12.1429 17 9.90428 17 7.14285C17 4.38143 14.7614 2.14285 12 2.14285C9.23858 2.14285 7 4.38143 7 7.14285C7 9.90428 9.23858 12.1429 12 12.1429Z"
+                            stroke="none"
+                            strokeWidth="none"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M3.41016 22.1429C3.41016 18.2729 7.26018 15.1429 12.0002 15.1429C13.0402 15.1429 14.0402 15.2928 14.9702 15.5728"
+                            stroke="none"
+                            strokeWidth="none"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M19.2101 15.8829L15.67 19.4229C15.53 19.5629 15.4 19.8229 15.37 20.0129L15.18 21.3629C15.11 21.8529 15.45 22.1929 15.94 22.1229L17.29 21.9329C17.48 21.9029 17.75 21.7729 17.88 21.6329L21.42 18.0929C22.03 17.4829 22.32 16.7729 21.42 15.8729C20.53 14.9829 19.8201 15.2729 19.2101 15.8829Z"
+                            stroke="none"
+                            strokeWidth="none"
+                            strokeMiterlimit="10"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M18.7002 16.3929C19.0002 17.4729 19.8402 18.3128 20.9202 18.6128"
+                            stroke="none"
+                            strokeWidth="none"
+                            strokeMiterlimit="10"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Edit Profile</span>
+                      </a>
+{session?.user?.role === 2 && (
+  <a 
+    href="/subscriptions" 
+    className="menu-link blacklist-link"
+    onClick={(e) => {
+      e.preventDefault();
+      setIsOpen(false);
+      router.push("/subscriptions?tab=subscriptions");
+    }}
   >
-    <path
-      d="M12 12.1429C14.7614 12.1429 17 9.90428 17 7.14285C17 4.38143 14.7614 2.14285 12 2.14285C9.23858 2.14285 7 4.38143 7 7.14285C7 9.90428 9.23858 12.1429 12 12.1429Z"
-      stroke="none"
-      strokeWidth="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M3.41016 22.1429C3.41016 18.2729 7.26018 15.1429 12.0002 15.1429C13.0402 15.1429 14.0402 15.2928 14.9702 15.5728"
-      stroke="none"
-      strokeWidth="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M19.2101 15.8829L15.67 19.4229C15.53 19.5629 15.4 19.8229 15.37 20.0129L15.18 21.3629C15.11 21.8529 15.45 22.1929 15.94 22.1229L17.29 21.9329C17.48 21.9029 17.75 21.7729 17.88 21.6329L21.42 18.0929C22.03 17.4829 22.32 16.7729 21.42 15.8729C20.53 14.9829 19.8201 15.2729 19.2101 15.8829Z"
-      stroke="none"
-      strokeWidth="none"
-      strokeMiterlimit="10"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M18.7002 16.3929C19.0002 17.4729 19.8402 18.3128 20.9202 18.6128"
-      stroke="none"
-      strokeWidth="none"
-      strokeMiterlimit="10"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-  <span>Edit Profile</span>
-</a>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="25"
+      viewBox="0 0 24 25"
+      fill="none"
+    >
+      <path
+        d="M12 12.1429C14.7614 12.1429 17 9.90428 17 7.14285C17 4.38143 14.7614 2.14285 12 2.14285C9.23858 2.14285 7 4.38143 7 7.14285C7 9.90428 9.23858 12.1429 12 12.1429Z"
+        stroke="none"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.41016 22.1429C3.41016 18.2729 7.26015 15.1429 12.0002 15.1429C12.9602 15.1429 13.8902 15.2728 14.7602 15.5128"
+        stroke="none"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 18.1429C22 18.4629 21.96 18.7728 21.88 19.0728C21.79 19.4728 21.63 19.8629 21.42 20.2029C20.73 21.3629 19.46 22.1429 18 22.1429C16.97 22.1429 16.04 21.7528 15.34 21.1128C15.04 20.8528 14.78 20.5429 14.58 20.2029C14.21 19.6029 14 18.8929 14 18.1429C14 17.0629 14.43 16.0729 15.13 15.3529C15.86 14.6029 16.88 14.1429 18 14.1429C19.18 14.1429 20.25 14.6529 20.97 15.4729C21.61 16.1829 22 17.1229 22 18.1429Z"
+        stroke="none"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15.5 15.6429L20.5 20.1429"
+        stroke="none"
+        strokeWidth="1.5"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+    <span>Subscriptions</span>
+  </a>
+)}
                       <a href="#" className="menu-link blacklist-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1012,13 +1066,13 @@ const Header = () => {
                           <span>Photos</span>
                         </a>
                       )}
-                        <a
-                          href="/follower"
-                          className="menu-link like-link"
-                          onClick={(e) => handleTabfollowNavigation(e, "followers")} // Default to posts for users
-                        >
-
-                     
+                      <a
+                        href="/follower"
+                        className="menu-link like-link"
+                        onClick={(e) =>
+                          handleTabfollowNavigation(e, "followers")
+                        } // Default to posts for users
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -1057,11 +1111,13 @@ const Header = () => {
                         </svg>
                         <span>Followers</span>
                       </a>
-                        <a
-                          href="/follower"
-                          className="menu-link like-link"
-                          onClick={(e) => handleTabfollowNavigation(e, "following")} 
-                        >
+                      <a
+                        href="/follower"
+                        className="menu-link like-link"
+                        onClick={(e) =>
+                          handleTabfollowNavigation(e, "following")
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"

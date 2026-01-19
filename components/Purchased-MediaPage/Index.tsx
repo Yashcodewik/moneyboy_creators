@@ -16,6 +16,7 @@ import {
   timeOptions,
   typeOptions,
 } from "../helper/creatorOptions";
+import { FaStar } from "react-icons/fa6";
 
 const PurchasedMediaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("favorites");
@@ -328,7 +329,7 @@ const PurchasedMediaPage: React.FC = () => {
                       <FaThumbsDown />
                     </Link>
                     <Link href="#" className="favorite">
-                      <FaHeart /> <span>Favorite</span>
+                      <FaStar /> <span>Favorite</span>
                     </Link>
                     <Link href="#">
                       {" "}

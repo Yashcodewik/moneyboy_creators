@@ -1924,7 +1924,7 @@ const WishlistPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button
                               className={`like-button ${
                                 likedItems.includes(12) ? "liked" : ""
@@ -1947,7 +1947,7 @@ const WishlistPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -1995,7 +1995,7 @@ const WishlistPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button
                               className={`like-button ${
                                 likedItems.includes(14) ? "liked" : ""
@@ -2018,7 +2018,7 @@ const WishlistPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -2066,7 +2066,7 @@ const WishlistPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button
                               className={`like-button ${
                                 likedItems.includes(15) ? "liked" : ""
@@ -2089,7 +2089,7 @@ const WishlistPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -2137,7 +2137,7 @@ const WishlistPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button
                               className={`like-button ${
                                 likedItems.includes(15) ? "liked" : ""
@@ -2160,7 +2160,7 @@ const WishlistPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -2208,7 +2208,7 @@ const WishlistPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button
                               className={`like-button ${
                                 likedItems.includes(16) ? "liked" : ""
@@ -2231,7 +2231,7 @@ const WishlistPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">
@@ -2279,7 +2279,7 @@ const WishlistPage = () => {
                           </div>
                         </div>
                         <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
+                          {/* <div className="profile-card__blur-icon">
                             <button
                               className={`like-button ${
                                 likedItems.includes(17) ? "liked" : ""
@@ -2302,7 +2302,7 @@ const WishlistPage = () => {
                                 />
                               </svg>
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="profile-card__desc">

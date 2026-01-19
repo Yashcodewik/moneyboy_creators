@@ -1398,7 +1398,7 @@ const LikePage = () => {
                               </div>
 
                               <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
+                                {/* <div className="creator-media-card__stats">
                                   <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
@@ -1431,7 +1431,7 @@ const LikePage = () => {
                                     </svg>
                                     <span> 13 </span>
                                   </div>
-                                </div>
+                                </div> */}
                               </div>
                               <div className="creator-media-card__stats-overlay">
                                 <div className="creator-media-card__post-stats">
@@ -1542,7 +1542,7 @@ const LikePage = () => {
                               </div>
                               <div className="creator-media-card__overlay">
                                 <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
+                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -1573,7 +1573,7 @@ const LikePage = () => {
                                       ></path>
                                     </svg>
                                     <span> 13 </span>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                               <div className="creator-media-card__stats-overlay">
@@ -1685,7 +1685,7 @@ const LikePage = () => {
                               </div>
                               <div className="creator-media-card__overlay">
                                 <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
+                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -1716,7 +1716,7 @@ const LikePage = () => {
                                       ></path>
                                     </svg>
                                     <span> 13 </span>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                               <div className="creator-media-card__stats-overlay">
@@ -1828,7 +1828,7 @@ const LikePage = () => {
                               </div>
                               <div className="creator-media-card__overlay">
                                 <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
+                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -1859,7 +1859,7 @@ const LikePage = () => {
                                       ></path>
                                     </svg>
                                     <span> 13 </span>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                               <div className="creator-media-card__stats-overlay">
@@ -2182,7 +2182,7 @@ const LikePage = () => {
                               </div>
                               <div className="creator-media-card__overlay">
                                 <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
+                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -2213,7 +2213,7 @@ const LikePage = () => {
                                       ></path>
                                     </svg>
                                     <span> 13 </span>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                               <div className="creator-media-card__stats-overlay">
@@ -2325,7 +2325,7 @@ const LikePage = () => {
                               </div>
                               <div className="creator-media-card__overlay">
                                 <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
+                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -2356,7 +2356,7 @@ const LikePage = () => {
                                       ></path>
                                     </svg>
                                     <span> 13 </span>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                               <div className="creator-media-card__stats-overlay">
@@ -2468,7 +2468,7 @@ const LikePage = () => {
                               </div>
                               <div className="creator-media-card__overlay">
                                 <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
+                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -2499,7 +2499,7 @@ const LikePage = () => {
                                       ></path>
                                     </svg>
                                     <span> 13 </span>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                               <div className="creator-media-card__stats-overlay">
@@ -2611,7 +2611,7 @@ const LikePage = () => {
                               </div>
                               <div className="creator-media-card__overlay">
                                 <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
+                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -2642,7 +2642,7 @@ const LikePage = () => {
                                       ></path>
                                     </svg>
                                     <span> 13 </span>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                               <div className="creator-media-card__stats-overlay">
@@ -2872,7 +2872,7 @@ const LikePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__icon">
-                        <div className="profile-card__blur-icon">
+                        {/* <div className="profile-card__blur-icon">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -2890,7 +2890,7 @@ const LikePage = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <div className="profile-card__desc">
@@ -2937,7 +2937,7 @@ const LikePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__icon">
-                        <div className="profile-card__blur-icon">
+                        {/* <div className="profile-card__blur-icon">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -2955,7 +2955,7 @@ const LikePage = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <div className="profile-card__desc">
@@ -3002,7 +3002,7 @@ const LikePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__icon">
-                        <div className="profile-card__blur-icon">
+                        {/* <div className="profile-card__blur-icon">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -3020,7 +3020,7 @@ const LikePage = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <div className="profile-card__desc">
@@ -3065,7 +3065,7 @@ const LikePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__icon">
-                        <div className="profile-card__blur-icon">
+                        {/* <div className="profile-card__blur-icon">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -3083,7 +3083,7 @@ const LikePage = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <div className="profile-card__desc">
@@ -3130,7 +3130,7 @@ const LikePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__icon">
-                        <div className="profile-card__blur-icon">
+                        {/* <div className="profile-card__blur-icon">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -3148,7 +3148,7 @@ const LikePage = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <div className="profile-card__desc">
@@ -3193,7 +3193,7 @@ const LikePage = () => {
                         </div>
                       </div>
                       <div className="profile-card__icon">
-                        <div className="profile-card__blur-icon">
+                        {/* <div className="profile-card__blur-icon">
                           <button className="like-button" data-like-button>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -3211,7 +3211,7 @@ const LikePage = () => {
                               />
                             </svg>
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <div className="profile-card__desc">
