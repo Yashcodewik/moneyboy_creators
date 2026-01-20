@@ -222,7 +222,6 @@ export const timeOptions = [
   { label: "This Month", value: "this_month" },
   { label: "All Time", value: "all_time" },
 ];
-
 // Helper functions
 export const getLabelFromValue = (
   value: string,
