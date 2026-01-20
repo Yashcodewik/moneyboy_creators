@@ -3572,7 +3572,19 @@ body {
       }
     }
   }
+  .moneyboy-post__desc {
+    position: relative;
+    .post-text {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.5;
+      max-height: calc(1.5em * 3);
+      &.expanded {
+        -webkit-line-clamp: 5;
+        max-height: none;
+      }
+    }
+  }
 }
-
-
-
