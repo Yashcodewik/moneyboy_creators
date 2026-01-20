@@ -339,7 +339,7 @@ const formik = useFormik({
   </div>
 )}
 
-        <div
+        {/* <div
           className="upload-wrapper"
           onClick={() => thumbnailInputRef.current?.click()}
         >
@@ -363,7 +363,7 @@ const formik = useFormik({
             </div>
             <span>Add thumbnail</span>
           </button>
-        </div>
+        </div> */}
 
         <input type="file" ref={thumbnailInputRef} hidden accept="image/*" />
 
@@ -445,14 +445,14 @@ const formik = useFormik({
             <HiMenuAlt2 size={20} />
           </button> */}
 
+
+       <div className="right">
           <button
             className="cate-back-btn active-down-effect btn_icons"
             // onClick={() => setShowTagModal(true)}
           >
             <FiAtSign size={20} />
           </button>
-
-       <div className="right">
     <button className="cate-back-btn active-down-effect btn_icons">
       <FaXTwitter size={20} />
     </button>
