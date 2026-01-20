@@ -168,9 +168,9 @@ const Dashboard = () => {
                             label="All Categories"
                             options={categoryOptions}
                             value={filterValues.category || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("category", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("category", value)
+                            // }
                             icon={
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -219,9 +219,9 @@ const Dashboard = () => {
                             label="Featured"
                             options={featureOptions}
                             value={filterValues.feature || "featured"}
-                            onChange={(value) =>
-                              handleFilterChange("feature", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("feature", value)
+                            // }
                             icon={
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -293,9 +293,9 @@ const Dashboard = () => {
                             label="All Countries"
                             options={countryOptions}
                             value={filterValues.country || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("country", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("country", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -306,9 +306,9 @@ const Dashboard = () => {
                             label="All Cities"
                             options={cityOptions}
                             value={filterValues.city || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("city", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("city", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -319,9 +319,9 @@ const Dashboard = () => {
                             label="All Body Types"
                             options={bodyTypeOptions}
                             value={filterValues.bodyType || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("bodyType", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("bodyType", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -332,9 +332,9 @@ const Dashboard = () => {
                             label="All Sexual Orientations"
                             options={sexualOrientationOptions}
                             value={filterValues.sexualOrientation || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("sexualOrientation", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("sexualOrientation", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -345,9 +345,9 @@ const Dashboard = () => {
                             label="All Ages"
                             options={ageGroupOptions}
                             value={filterValues.age || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("age", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("age", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -358,9 +358,9 @@ const Dashboard = () => {
                             label="All Eye Colors"
                             options={eyeColorOptions}
                             value={filterValues.eyeColor || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("eyeColor", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("eyeColor", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -370,9 +370,9 @@ const Dashboard = () => {
                             label="All Hair Colors"
                             options={hairColorOptions}
                             value={filterValues.hairColor || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("hairColor", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("hairColor", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -383,9 +383,9 @@ const Dashboard = () => {
                             label="All Ethnicities"
                             options={ethnicityOptions}
                             value={filterValues.ethnicity || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("ethnicity", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("ethnicity", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -396,9 +396,9 @@ const Dashboard = () => {
                             label="All Heights"
                             options={heightOptions}
                             value={filterValues.height || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("height", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("height", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -409,9 +409,9 @@ const Dashboard = () => {
                             label="All Styles"
                             options={styleOptions}
                             value={filterValues.style || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("style", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("style", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -421,9 +421,9 @@ const Dashboard = () => {
                             label="All Sizes"
                             options={sizeOptions}
                             value={filterValues.size || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("size", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("size", value)
+                            // }
                           />
                         </div>
                       </div>
@@ -434,9 +434,9 @@ const Dashboard = () => {
                             label="All Popularity"
                             options={popularityOptions}
                             value={filterValues.popularity || "all"}
-                            onChange={(value) =>
-                              handleFilterChange("popularity", value)
-                            }
+                            // onChange={(value) =>
+                            //   handleFilterChange("popularity", value)
+                            // }
                           />
                         </div>
                       </div>

@@ -119,7 +119,7 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Status"
                           options={statusOptions}
                           value={status}
-                          onChange={(val) => setStatus(val)}
+                          // onChange={(val) => setStatus(val)}
                           placeholder="Search status"
                         />
                       </div>
@@ -129,7 +129,7 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Types"
                           options={typeOptions}
                           value={type}
-                          onChange={(val) => setType(val)}
+                          // onChange={(val) => setType(val)}
                           placeholder="Search type"
                         />
                       </div>
@@ -267,7 +267,7 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Time"
                           options={timeOptions}
                           value={time}
-                          onChange={(val) => setTime(val)}
+                          // onChange={(val) => setTime(val)}
                           placeholder="Search time"
                         />
                       </div>
