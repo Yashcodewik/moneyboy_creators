@@ -70,7 +70,7 @@ const WhatMoneyBoy = () => {
               </ul>
               <p>MoneyBoy.com is not a generic social network, and it is not a chaotic marketplace. It is a specialized platform designed to connect demand and supply in the male digital content space, in a clear, elegant, and sustainable way.</p>
               <ul className="points link_points">
-                <li>Learn how MoneyBoy works (FAQ) <Link href="/how-it-works">/how-it-works </Link></li>
+                <li>Learn how MoneyBoy works (FAQ) <Link href="/help/how-it-works">/how-it-works </Link></li>
               </ul>
             </div>
           </div>

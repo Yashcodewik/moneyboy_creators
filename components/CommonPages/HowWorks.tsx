@@ -119,7 +119,7 @@ const HowWorks = () => {
               <p>MoneyBoy.com offers a focused alternative to generic platforms, providing clarity for users and professional tools for creators.</p>
               <p><b>Interested in becoming a creator on MoneyBoy?</b> Learn how to publish and monetize digital content on the platform</p>
               <ul className="points link_points">
-                <li>Learn how MoneyBoy works (FAQ) <Link href="#">/for-cretors </Link></li>
+                <li>Learn how MoneyBoy works (FAQ) <Link href="/help/for-cretors">/for-cretors </Link></li>
               </ul>
             </div>
           </div>

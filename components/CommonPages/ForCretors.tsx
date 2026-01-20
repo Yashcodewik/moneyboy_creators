@@ -15,7 +15,7 @@ const ForCretors = () => {
               <button className="cate-back-btn active-down-effect" onClick={() => router.back()}>
                 <span className="icons arrowLeft"></span>
               </button>
-              <button className="page-content-type-button active-down-effect active"> For Cretors</button>
+              <button className="page-content-type-button active-down-effect active"> For Creators</button>
             </div>
             <div className="card main_contwrap">
               <h3>For Creators on MoneyBoy.com</h3>
@@ -86,7 +86,7 @@ const ForCretors = () => {
               <p>MoneyBoy is not designed for creators looking for chaotic feeds or generic exposure. It is built for those who value <b>focus and quality</b>.</p>
               <p><b>Interested in becoming a creator on MoneyBoy? </b> You can learn how the platform works or create your profile directly.</p>
               <ul className="points link_points">
-                <li>Learn how MoneyBoy works <Link href="/how-it-works">/how-it-works </Link></li>
+                <li>Learn how MoneyBoy works <Link href="/help/how-it-works">/how-it-works </Link></li>
                 <li>Create your profile on MoneyBoy <Link href="/signup">signup → </Link></li>
               </ul>
             </div>
