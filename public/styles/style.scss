@@ -3529,5 +3529,50 @@ body {
 //     scrollbar-width: none;
 //   }
 // }
-.infinite-scroll-component {scrollbar-width: none;}
+.infinite-scroll-component {scrollbar-width: none;overflow: visible !important;}
 .infinite-scroll-component::-webkit-scrollbar {display: none;}
+
+.post_swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.moneyboy-post__container.card {
+  .post_swiper {
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    .swiper-button-prev, .swiper-button-next {
+      background-color: #010405;
+      border-radius: 30px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-fast);
+      box-shadow: var(--card-shadow);
+      svg {
+        width: 18px;
+        height: 18px;
+        path {
+          fill: #fece26;
+        }
+      }
+      &:hover {
+        background: linear-gradient(93.25deg, #e5741f -49.57%, #fece26 98.1%);
+        svg {
+          path {
+            fill: #010405;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
