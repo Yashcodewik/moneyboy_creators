@@ -26,6 +26,8 @@ interface Creator {
   userName: string;
   bio?: string;
   isFollowing: boolean;
+  profileImage: string;
+  coverImage: string;
 }
 
 interface Follower {
@@ -1296,8 +1298,17 @@ const FollowersPage = () => {
                           <div className="profile-card__avatar-settings">
                             <div className="profile-card__avatar">
                               <img
-                                src="/images/profile-avatars/profile-avatar-16.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
+                                src={
+                                  creator.profileImage &&
+                                  creator.profileImage.trim() !== ""
+                                    ? creator.profileImage
+                                    : "/images/profile-avatars/profile-avatar-16.jpg"
+                                }
+                                alt={`${creator.displayName} profile avatar`}
+                                onError={(e) => {
+                                  e.currentTarget.src =
+                                    "/images/profile-avatars/profile-avatar-16.jpg";
+                                }}
                               />
                             </div>
                           </div>
@@ -1368,9 +1379,7 @@ const FollowersPage = () => {
             </div>
           </div>
 
-         <Featuredboys/>
-
-
+          <Featuredboys />
         </div>
       </aside>
     </div>
