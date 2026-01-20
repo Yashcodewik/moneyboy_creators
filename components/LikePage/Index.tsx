@@ -334,7 +334,7 @@ const LikePage = () => {
                           value={time}
                           searchable={false}
                           onChange={(val) => {
-                            setTime(val);
+                            setTime(val as string);
                             fetchLikedPosts(1);
                           }}
                         />

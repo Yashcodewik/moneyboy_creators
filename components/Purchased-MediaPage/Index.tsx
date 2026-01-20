@@ -28,6 +28,10 @@ const PurchasedMediaPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<
     "status" | "type" | "creator" | "time" | null
   >(null);
+  const [showVideo, setShowVideo] = useState<boolean>(false);
+  const toggleVideo = () => {
+    setShowVideo(!showVideo);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -119,7 +123,7 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Status"
                           options={statusOptions}
                           value={status}
-                          onChange={(val) => setStatus(val)}
+                          // onChange={(val) => setStatus(val)}
                           placeholder="Search status"
                         />
                       </div>
@@ -129,7 +133,7 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Types"
                           options={typeOptions}
                           value={type}
-                          onChange={(val) => setType(val)}
+                          // onChange={(val) => setType(val)}
                           placeholder="Search type"
                         />
                       </div>
@@ -267,7 +271,7 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Time"
                           options={timeOptions}
                           value={time}
-                          onChange={(val) => setTime(val)}
+                          // onChange={(val) => setTime(val)}
                           placeholder="Search time"
                         />
                       </div>
@@ -276,72 +280,76 @@ const PurchasedMediaPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            <div className="video_wrap">
-              <iframe
-                className="video_fream"
-                src="https://www.youtube.com/embed/VIDEO_ID"
-                title="Video player"
-                frameBorder="0"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-              />
-              <div className="pm-page-card-footer vdocard-footer">
-                <div className="profile-card">
-                  <Link href="#" className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-6.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">Zain Schleifer</div>
-                        <div className="profile-card__badge">
+            {showVideo && (
+              <div className="video_wrap">
+                <iframe
+                  className="video_fream"
+                  src="https://www.youtube.com/embed/VIDEO_ID"
+                  title="Video player"
+                  frameBorder="0"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+                <div className="pm-page-card-footer vdocard-footer">
+                  <div className="profile-card">
+                    <Link href="#" className="profile-card__main">
+                      <div className="profile-card__avatar-settings">
+                        <div className="profile-card__avatar">
                           <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
+                            src="/images/profile-avatars/profile-avatar-6.jpg"
+                            alt="MoneyBoy Social Profile Avatar"
                           />
                         </div>
                       </div>
-                      <div className="profile-card__username">
-                        @zainschleifer
+                      <div className="profile-card__info">
+                        <div className="profile-card__name-badge">
+                          <div className="profile-card__name">
+                            Zain Schleifer
+                          </div>
+                          <div className="profile-card__badge">
+                            <img
+                              src="/images/logo/profile-badge.png"
+                              alt="MoneyBoy Social Profile Badge"
+                            />
+                          </div>
+                        </div>
+                        <div className="profile-card__username">
+                          @zainschleifer
+                        </div>
                       </div>
+                    </Link>
+                  </div>
+                  <div className="meta-bar">
+                    <div className="meta-item view">
+                      <FaEye /> <span>12K</span>
                     </div>
-                  </Link>
-                </div>
-                <div className="meta-bar">
-                  <div className="meta-item view">
-                    <FaEye /> <span>12K</span>
-                  </div>
-                  <div className="meta-item">
-                    <span>4 days ago</span>
-                  </div>
-                  <div className="meta-actions">
-                    <Link href="#">
-                      <FaThumbsUp /> <span>71</span>
-                    </Link>
-                    <Link href="#">
-                      {" "}
-                      <FaThumbsDown />
-                    </Link>
-                    <Link href="#" className="favorite">
-                      <FaStar /> <span>Favorite</span>
-                    </Link>
-                    <Link href="#">
-                      {" "}
-                      <FaCommentAlt /> <span>4</span>{" "}
-                    </Link>
-                    <Link href="#">
-                      <FaFlag />
-                    </Link>
+                    <div className="meta-item">
+                      <span>4 days ago</span>
+                    </div>
+                    <div className="meta-actions">
+                      <Link href="#">
+                        <FaThumbsUp /> <span>71</span>
+                      </Link>
+                      <Link href="#">
+                        {" "}
+                        <FaThumbsDown />
+                      </Link>
+                      <Link href="#" className="favorite">
+                        <FaStar color="#e5741f" />
+                        {/* <span>Favorite</span> */}
+                      </Link>
+                      <Link href="#">
+                        {" "}
+                        <FaCommentAlt /> <span>4</span>{" "}
+                      </Link>
+                      <Link href="#">
+                        <FaFlag />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
             <div className="pm-page-hero-wrapper">
               <div className="pm-page-hero-container ">
                 <div className="hero-type-card-wrapper ">
@@ -451,7 +459,11 @@ const PurchasedMediaPage: React.FC = () => {
                           reflex decide the next champion.
                         </p>
                       </div>
-                      <a href="#" className="btn-txt-gradient btn-outline">
+                      <a
+                        href="#"
+                        className="btn-txt-gradient btn-outline"
+                        onClick={toggleVideo}
+                      >
                         <span>Watch Now</span>
                       </a>
                     </div>
