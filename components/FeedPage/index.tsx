@@ -295,7 +295,7 @@ const FeedPage = () => {
           )}
         </div>
       </div>
-      <Featuredboys />
+      <Featuredboys/>
     </div>
   );
 };

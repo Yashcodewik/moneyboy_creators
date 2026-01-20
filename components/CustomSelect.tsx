@@ -5,12 +5,13 @@ type Option = { label: string; value: string };
 type CustomSelectProps = {
   label?: string;
   options: Option[];
-  value?: string | null;
-  onChange?: (value: string) => void;
+  value?: string | string[] | null;
+  onChange?: (value: string | string[]) => void;
   placeholder?: string;
   className?: string;
   icon?: React.ReactNode;
   searchable?: boolean;
+  multiple?: boolean; 
 };
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -22,35 +23,38 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   className = "",
   icon,
   searchable = true,
+  multiple = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [internalValue, setInternalValue] = useState<string | null>(
-    value ?? null
+  const [internalValue, setInternalValue] = useState<string | string[] | null>(
+    value ?? (multiple ? [] : null)
   );
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
+ 
   useEffect(() => {
     if (value !== undefined) {
       setInternalValue(value);
     }
   }, [value]);
 
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(e.target as Node)
-      ) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedOption = options.find((opt) => opt.value === internalValue);
+ 
+  const selectedOption = Array.isArray(internalValue)
+    ? options.filter((opt) => internalValue.includes(opt.value))
+    : options.find((opt) => opt.value === internalValue);
+
 
   const filteredOptions = searchable
     ? options.filter((opt) =>
@@ -58,10 +62,21 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       )
     : options;
 
+
   const handleSelect = (val: string) => {
-    setInternalValue(val);
-    onChange?.(val);
-    setOpen(false);
+    if (multiple) {
+      const current = Array.isArray(internalValue) ? internalValue : [];
+      const updated = current.includes(val)
+        ? current.filter((v) => v !== val)
+        : [...current, val];
+
+      setInternalValue(updated);
+      onChange?.(updated);
+    } else {
+      setInternalValue(val);
+      onChange?.(val);
+      setOpen(false);
+    }
   };
 
   return (
@@ -69,8 +84,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       ref={wrapperRef}
       className={`custom-select-element ${className}`}
       data-custom-select-element=""
-      data-custom-select-value={internalValue ?? ""}
+      data-custom-select-value={internalValue ? internalValue.toString() : ""}
     >
+     
       <div
         className="custom-select-label-wrapper"
         data-custom-select-triger=""
@@ -79,7 +95,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         <div className="custom-select-icon-txt">
           {icon && icon}
           <span className="custom-select-label-txt">
-            {selectedOption ? selectedOption.label : label}
+            {Array.isArray(selectedOption)
+              ? selectedOption.length
+                ? selectedOption.map((o) => o.label).join(", ")
+                : label
+              : selectedOption
+              ? selectedOption.label
+              : label}
           </span>
         </div>
         <div className="custom-select-chevron">
@@ -94,8 +116,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           style={{ display: open ? "unset" : "none" }}
         >
           <div className="custom-select-options-dropdown-container">
-
-            {/* Search */}
+            
             {searchable && (
               <div className="custom-select-options-search">
                 <div className="label-input">
@@ -112,7 +133,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
               </div>
             )}
 
-            {/* Options */}
+        
             <div className="custom-select-options-lists-container">
               <ul
                 className="custom-select-options-list"
@@ -121,7 +142,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                 {filteredOptions.map((opt) => (
                   <li
                     key={opt.value}
-                    className="custom-select-option"
+                    className={`custom-select-option ${
+                      multiple &&
+                      Array.isArray(internalValue) &&
+                      internalValue.includes(opt.value)
+                        ? "selected"
+                        : ""
+                    }`}
                     onClick={() => handleSelect(opt.value)}
                   >
                     <span>{opt.label}</span>
@@ -134,7 +161,6 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                 )}
               </ul>
             </div>
-
           </div>
         </div>
       )}

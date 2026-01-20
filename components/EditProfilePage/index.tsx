@@ -9,13 +9,18 @@ import {
   getApiWithOutQuery,
 } from "@/utils/endpoints/common";
 import {
+  API_BLOCK_COUNTRIES,
   API_CHANGE_CREATOR_PASSWORD,
+  API_CREATE_UPDATE_SUBSCRIPTION,
   API_CREATOR_PROFILE,
+  API_GET_MY_SUBSCRIPTION,
   API_TOGGLE_CREATOR_ACCOUNT,
   API_UPDATE_CREATOR_PROFILE,
 } from "@/utils/api/APIConstant";
-import { creatorFormOptions } from "../helper/creatorOptions";
+import { countryOptions, creatorFormOptions } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -59,9 +64,17 @@ const EditProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [blockedCountry, setBlockedCountry] = useState<string | null>(null);
+  const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
   const [passwordData, setPasswordData] = useState({
     password: "",
     confirmPassword: "",
+  });
+  const [subscription, setSubscription] = useState({
+    monthlyPrice: "",
+    yearlyPrice: "",
+    ppvVideoPrice: "",
+    ppvPhotoPrice: "",
   });
 
   useEffect(() => {
@@ -78,8 +91,8 @@ const EditProfilePage = () => {
           }
         });
 
-        setProfile(merged); // full profile for UI (images, etc.)
-        setFormData(filtered); // only editable fields
+        setProfile(merged);
+        setFormData(filtered);
       }
     };
 
@@ -138,22 +151,97 @@ const EditProfilePage = () => {
     try {
       const res = await apiPost({
         url: API_TOGGLE_CREATOR_ACCOUNT,
-        values: {}, // no body needed
+        values: {},
       });
 
       if (res?.success) {
         ShowToast(res.message, "success");
 
-        // Update local userProfile status
         setUserProfile((prev: any) => ({
           ...prev,
-          status: res.status, // update status returned from API
+          status: res.status,
         }));
       }
     } catch (error: any) {
       ShowToast(error?.message || "Failed to toggle account", "error");
     }
   };
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      const res = await getApiWithOutQuery({
+        url: API_GET_MY_SUBSCRIPTION,
+      });
+
+      if (res?.success && res?.data) {
+        setSubscription({
+          monthlyPrice: res.data.monthlyPrice ?? "",
+          yearlyPrice: res.data.yearlyPrice ?? "",
+          ppvVideoPrice: res.data.ppvVideoPrice ?? "",
+          ppvPhotoPrice: res.data.ppvPhotoPrice ?? "",
+        });
+      }
+    };
+
+    if (tab === 1) {
+      fetchSubscription();
+    }
+  }, [tab]);
+
+  const subscriptionFormik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      monthlyPrice: subscription.monthlyPrice,
+      yearlyPrice: subscription.yearlyPrice,
+      ppvVideoPrice: subscription.ppvVideoPrice,
+      ppvPhotoPrice: subscription.ppvPhotoPrice,
+    },
+    validationSchema: Yup.object({
+      monthlyPrice: Yup.number()
+        .required("Monthly price is required")
+        .min(1, "Must be greater than 0"),
+
+      yearlyPrice: Yup.number()
+        .required("Yearly price is required")
+        .min(1, "Must be greater than 0"),
+    }),
+    onSubmit: async (values) => {
+      const res = await apiPost({
+        url: API_CREATE_UPDATE_SUBSCRIPTION,
+        values: {
+          monthlyPrice: Number(values.monthlyPrice),
+          yearlyPrice: Number(values.yearlyPrice),
+          ppvVideoPrice: Number(values.ppvVideoPrice),
+          ppvPhotoPrice: Number(values.ppvPhotoPrice),
+        },
+      });
+
+      if (res?.success) {
+        ShowToast("Subscription updated successfully", "success");
+      } else {
+        ShowToast(res?.message || "Failed to update subscription", "error");
+      }
+    },
+  });
+
+  const handleSaveBlockedCountries = async () => {
+    if (!blockedCountries.length) {
+      ShowToast("Please select at least one country", "error");
+      return;
+    }
+
+    const res = await apiPost({
+      url: API_BLOCK_COUNTRIES,
+       values: { countryNames: blockedCountries },  
+    });
+
+    if (res?.success) {
+      ShowToast("Blocked countries updated successfully", "success");
+    } else {
+      ShowToast(res?.message || "Failed to update blocked countries", "error");
+    }
+  };
+
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -236,7 +324,11 @@ const EditProfilePage = () => {
                         }}
                       />
 
-                      <label htmlFor="coverUpload" className="imgicons"  style={{ cursor: "pointer" }}>
+                      <label
+                        htmlFor="coverUpload"
+                        className="imgicons"
+                        style={{ cursor: "pointer" }}
+                      >
                         <TbCamera size={16} />
                       </label>
                     </div>
@@ -272,7 +364,7 @@ const EditProfilePage = () => {
                                 <label
                                   htmlFor="profileUpload"
                                   className="imgicons"
-                                   style={{ cursor: "pointer" }}
+                                  style={{ cursor: "pointer" }}
                                 >
                                   <TbCamera size={16} />
                                 </label>
@@ -581,104 +673,96 @@ const EditProfilePage = () => {
                 )}
                 {/* ========== Pricing settings ========== */}
                 {tab === 1 && (
-                  <div className="creator-profile-card-container">
-                    <div className="card filters-card-wrapper">
-                      <div className="creator-content-cards-wrapper pricing_account_wrap">
-                        <div className="subtop_cont">
-                          <h3>Subscription</h3>
-                          <button className="btn-primary">
-                            <GoDotFill size={20} />{" "}
-                            <span>Paid Subscriptions</span>
-                          </button>
-                        </div>
-                        <div className="accordion">
-                          <div className="accordion_head">
-                            <div className="head_cont">
-                              <span>
-                                Monthly Subscription Price
-                                <span className="star">*</span>
-                              </span>
-                              <p>9.99</p>
+                  <form onSubmit={subscriptionFormik.handleSubmit}>
+                    <div className="creator-profile-card-container">
+                      <div className="card filters-card-wrapper">
+                        <div className="creator-content-cards-wrapper pricing_account_wrap">
+                          <div className="subtop_cont">
+                            <h3>Subscription</h3>
+                            <button className="btn-primary">
+                              <GoDotFill size={20} />{" "}
+                              <span>Paid Subscriptions</span>
+                            </button>
+                          </div>
+                          <div className="form_grid">
+                            <div className="one">
+                              <label>Monthly Subscription Price*</label>
+                              <div className="label-input">
+                                <input
+                                  type="number"
+                                  name="monthlyPrice"
+                                  value={subscriptionFormik.values.monthlyPrice}
+                                  onChange={subscriptionFormik.handleChange}
+                                  onBlur={subscriptionFormik.handleBlur}
+                                />
+                              </div>
+                              {subscriptionFormik.touched.monthlyPrice &&
+                                subscriptionFormik.errors.monthlyPrice && (
+                                  <span className="error-message">
+                                    {subscriptionFormik.errors.monthlyPrice}
+                                  </span>
+                                )}
                             </div>
-                            <svg className="icons chevronDownRounded" />
-                          </div>
-                          <div className="accordion_body">
-                            Lorem Ipsum is simply dummy text of the printing and
-                            typesetting industry. Lorem Ipsum has been the
-                            industry's standard dummy text ever since the 1500s,
-                            when an unknown printer took a galley of type and
-                            scrambled it to make a type specimen book.
-                          </div>
-                        </div>
-                        <p className="worn_text">
-                          User can <b>9 Days</b> of free subscription before
-                          subscribe to a subscription.
-                        </p>
-                        <div className="accordion">
-                          <div className="accordion_head">
-                            <div className="head_cont">
-                              <span>
-                                Yearly Subscription Price
-                                <span className="star">*</span>
-                              </span>
-                              <p>9.99</p>
+
+                            <div className="one">
+                              <label>Yearly Subscription Price*</label>
+                              <div className="label-input">
+                                <input
+                                  type="number"
+                                  name="yearlyPrice"
+                                  value={subscriptionFormik.values.yearlyPrice}
+                                  onChange={subscriptionFormik.handleChange}
+                                  onBlur={subscriptionFormik.handleBlur}
+                                />
+                              </div>
+                              {subscriptionFormik.touched.yearlyPrice &&
+                                subscriptionFormik.errors.yearlyPrice && (
+                                  <span className="error-message">
+                                    {subscriptionFormik.errors.yearlyPrice}
+                                  </span>
+                                )}
                             </div>
-                            <svg className="icons chevronDownRounded" />
-                          </div>
-                          <div className="accordion_body">
-                            Lorem Ipsum is simply dummy text of the printing and
-                            typesetting industry. Lorem Ipsum has been the
-                            industry's standard dummy text ever since the 1500s,
-                            when an unknown printer took a galley of type and
-                            scrambled it to make a type specimen book.
-                          </div>
-                        </div>
-                        <div className="accordion">
-                          <div className="accordion_head">
-                            <div className="head_cont">
-                              <span>
-                                PPV Request - Custom video
-                                <span className="star">*</span>
-                              </span>
-                              <p>9.99</p>
+
+                            <div className="one">
+                              <label>PPV Request - Custom video</label>
+                              <div className="label-input">
+                                <input
+                                  type="number"
+                                  name="ppvVideoPrice"
+                                  value={
+                                    subscriptionFormik.values.ppvVideoPrice
+                                  }
+                                  onChange={subscriptionFormik.handleChange}
+                                />
+                              </div>
                             </div>
-                            <svg className="icons chevronDownRounded" />
-                          </div>
-                          <div className="accordion_body">
-                            Lorem Ipsum is simply dummy text of the printing and
-                            typesetting industry. Lorem Ipsum has been the
-                            industry's standard dummy text ever since the 1500s,
-                            when an unknown printer took a galley of type and
-                            scrambled it to make a type specimen book.
-                          </div>
-                        </div>
-                        <div className="accordion">
-                          <div className="accordion_head">
-                            <div className="head_cont">
-                              <span>
-                                PPV Request - Custom Photo
-                                <span className="star">*</span>
-                              </span>
-                              <p>9.99</p>
+
+                            <div className="one">
+                              <label>PPV Request - Custom Photo</label>
+                              <div className="label-input">
+                                <input
+                                  type="number"
+                                  name="ppvPhotoPrice"
+                                  value={
+                                    subscriptionFormik.values.ppvPhotoPrice
+                                  }
+                                  onChange={subscriptionFormik.handleChange}
+                                />
+                              </div>
                             </div>
-                            <svg className="icons chevronDownRounded" />
                           </div>
-                          <div className="accordion_body">
-                            Lorem Ipsum is simply dummy text of the printing and
-                            typesetting industry. Lorem Ipsum has been the
-                            industry's standard dummy text ever since the 1500s,
-                            when an unknown printer took a galley of type and
-                            scrambled it to make a type specimen book.
+                          <div className="btm_btn">
+                            <button
+                              type="submit"
+                              className="premium-btn active-down-effect"
+                            >
+                              <span>Save Changes</span>
+                            </button>
                           </div>
-                        </div>
-                        <div className="btm_btn">
-                          <button className="premium-btn active-down-effect">
-                            <span>Save Changes</span>
-                          </button>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </form>
                 )}
                 {/* ========== Account and security ========== */}
                 {tab === 2 && (
@@ -795,16 +879,23 @@ const EditProfilePage = () => {
                           <div className="form_grid">
                             <div className="one">
                               <CustomSelect
-                                label="Select"
-                                options={[
-                                  { label: "options 1", value: "options 2" },
-                                  { label: "options 2", value: "options 2" },
-                                ]}
+                                label="Select Countries"
+                                options={countryOptions}
+                                value={blockedCountries}
+                                onChange={(value) =>
+                                  setBlockedCountries(value as string[])
+                                }
+                                multiple
+                                searchable
                               />
                             </div>
                           </div>
                           <div className="btm_btn">
-                            <button className="premium-btn active-down-effect">
+                            <button
+                              type="button"
+                              className="premium-btn active-down-effect"
+                              onClick={handleSaveBlockedCountries}
+                            >
                               <span>Save Changes</span>
                             </button>
                           </div>

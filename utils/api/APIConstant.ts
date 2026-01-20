@@ -30,3 +30,6 @@ export const API_TOGGLE_ACCOUNT = "/auth/toggle-account";
 export const API_TOGGLE_CREATOR_ACCOUNT = "/creator/toggle-account";
 export const API_UPDATE_CREATOR_PROFILE = "/creator/update-profile";
 export const API_GET_LIKED_POSTS = "/post/liked";
+export const API_CREATE_UPDATE_SUBSCRIPTION = "/subscription/create";
+export const API_GET_MY_SUBSCRIPTION = "/subscription/me";
+export const API_BLOCK_COUNTRIES: string = "/creator/block-countries";
