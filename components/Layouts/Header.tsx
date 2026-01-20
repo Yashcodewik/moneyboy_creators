@@ -90,6 +90,7 @@ const Header = () => {
                 firstName: response.user.firstName,
                 lastName: response.user.lastName,
                 email: response.user.email,
+                profile: response.user.profile,
               };
             }
           } else {
@@ -100,6 +101,7 @@ const Header = () => {
                 firstName: response.data.firstName,
                 lastName: response.data.lastName,
                 email: response.data.email,
+                profile: response.data.profile,
               };
             }
           }
@@ -302,9 +304,10 @@ const Header = () => {
                       <div className="profile-avatar">
                         <Image
                           src={
-                            session?.user?.role === 2
+                            userProfile?.profile ||
+                            (session?.user?.role === 2
                               ? "/images/profile-avatars/profile-avatar-1.png"
-                              : "/images/profile-avatars/profile-avatar-13.jpg"
+                              : "/images/profile-avatars/profile-avatar-13.jpg")
                           }
                           alt="User Images"
                           width={40}
@@ -370,9 +373,10 @@ const Header = () => {
                         <div className="profile-card__avatar">
                           <img
                             src={
-                              session?.user?.role === 2
+                              userProfile?.profile ||
+                              (session?.user?.role === 2
                                 ? "/images/profile-avatars/profile-avatar-1.png"
-                                : "/images/profile-avatars/profile-avatar-13.jpg"
+                                : "/images/profile-avatars/profile-avatar-13.jpg")
                             }
                             alt="MoneyBoy Social Profile Avatar"
                           />
@@ -652,58 +656,58 @@ const Header = () => {
                         </svg>
                         <span>Edit Profile</span>
                       </a>
-{session?.user?.role === 2 && (
-  <a 
-    href="/subscriptions" 
-    className="menu-link blacklist-link"
-    onClick={(e) => {
-      e.preventDefault();
-      setIsOpen(false);
-      router.push("/subscriptions?tab=subscriptions");
-    }}
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="25"
-      viewBox="0 0 24 25"
-      fill="none"
-    >
-      <path
-        d="M12 12.1429C14.7614 12.1429 17 9.90428 17 7.14285C17 4.38143 14.7614 2.14285 12 2.14285C9.23858 2.14285 7 4.38143 7 7.14285C7 9.90428 9.23858 12.1429 12 12.1429Z"
-        stroke="none"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M3.41016 22.1429C3.41016 18.2729 7.26015 15.1429 12.0002 15.1429C12.9602 15.1429 13.8902 15.2728 14.7602 15.5128"
-        stroke="none"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M22 18.1429C22 18.4629 21.96 18.7728 21.88 19.0728C21.79 19.4728 21.63 19.8629 21.42 20.2029C20.73 21.3629 19.46 22.1429 18 22.1429C16.97 22.1429 16.04 21.7528 15.34 21.1128C15.04 20.8528 14.78 20.5429 14.58 20.2029C14.21 19.6029 14 18.8929 14 18.1429C14 17.0629 14.43 16.0729 15.13 15.3529C15.86 14.6029 16.88 14.1429 18 14.1429C19.18 14.1429 20.25 14.6529 20.97 15.4729C21.61 16.1829 22 17.1229 22 18.1429Z"
-        stroke="none"
-        strokeWidth="1.5"
-        strokeMiterlimit="10"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M15.5 15.6429L20.5 20.1429"
-        stroke="none"
-        strokeWidth="1.5"
-        strokeMiterlimit="10"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-    <span>Subscriptions</span>
-  </a>
-)}
-                      <a href="#" className="menu-link blacklist-link">
+                      {session?.user?.role === 2 && (
+                        <a
+                          href="/subscriptions"
+                          className="menu-link blacklist-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsOpen(false);
+                            router.push("/subscriptions?tab=subscriptions");
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="25"
+                            viewBox="0 0 24 25"
+                            fill="none"
+                          >
+                            <path
+                              d="M12 12.1429C14.7614 12.1429 17 9.90428 17 7.14285C17 4.38143 14.7614 2.14285 12 2.14285C9.23858 2.14285 7 4.38143 7 7.14285C7 9.90428 9.23858 12.1429 12 12.1429Z"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M3.41016 22.1429C3.41016 18.2729 7.26015 15.1429 12.0002 15.1429C12.9602 15.1429 13.8902 15.2728 14.7602 15.5128"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M22 18.1429C22 18.4629 21.96 18.7728 21.88 19.0728C21.79 19.4728 21.63 19.8629 21.42 20.2029C20.73 21.3629 19.46 22.1429 18 22.1429C16.97 22.1429 16.04 21.7528 15.34 21.1128C15.04 20.8528 14.78 20.5429 14.58 20.2029C14.21 19.6029 14 18.8929 14 18.1429C14 17.0629 14.43 16.0729 15.13 15.3529C15.86 14.6029 16.88 14.1429 18 14.1429C19.18 14.1429 20.25 14.6529 20.97 15.4729C21.61 16.1829 22 17.1229 22 18.1429Z"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeMiterlimit="10"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M15.5 15.6429L20.5 20.1429"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeMiterlimit="10"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Subscriptions</span>
+                        </a>
+                      )}
+                      <a href="/blacklist" className="menu-link blacklist-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
