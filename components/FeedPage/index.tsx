@@ -90,27 +90,34 @@ const FeedPage = () => {
   }, []);
 
   /* ========== FETCH FOLLOWING ========== */
-  const fetchFollowingPosts = async () => {
-    if (followingLoadingMore || !followingHasMore) return;
-    setFollowingLoadingMore(true);
+const fetchFollowingPosts = async () => {
+  if (followingLoadingMore || !followingHasMore) return;
+  setFollowingLoadingMore(true);
 
-    const res = await getApiWithOutQuery({
-      url: `${API_GET_FOLLOWING_POSTS}?page=${followingPage}&limit=${limit}`,
+  const res = await getApiWithOutQuery({
+    url: `${API_GET_FOLLOWING_POSTS}?page=${followingPage}&limit=${limit}`,
+  });
+
+  if (res?.success && Array.isArray(res.posts)) {
+    // Normalize media field
+    const normalizedPosts = res.posts.map((p: any) => ({
+      ...p,
+      media: Array.isArray(p.media) ? p.media : p.media ? [p.media] : [],
+    }));
+
+    setFollowingPosts((prev) => {
+      const ids = new Set(prev.map((p: any) => p._id));
+      return [...prev, ...normalizedPosts.filter((p: any) => !ids.has(p._id))];
     });
+    setFollowingPage((p) => p + 1);
+    setFollowingHasMore(res.pagination?.hasNextPage);
+  } else {
+    setFollowingHasMore(false);
+  }
 
-    if (res?.success && Array.isArray(res.posts)) {
-      setFollowingPosts((prev) => {
-        const ids = new Set(prev.map((p: any) => p._id));
-        return [...prev, ...res.posts.filter((p: any) => !ids.has(p._id))];
-      });
-      setFollowingPage((p) => p + 1);
-      setFollowingHasMore(res.pagination?.hasNextPage);
-    } else {
-      setFollowingHasMore(false);
-    }
+  setFollowingLoadingMore(false);
+};
 
-    setFollowingLoadingMore(false);
-  };
 
   useEffect(() => {
     if (activeTab !== "following" || !isLoggedIn) return;

@@ -209,12 +209,14 @@ const Sidebar: React.FC = () => {
                               session?.user?.name ||
                               "Corey Bergson"}
                         </div>
+                        {session?.user?.role === 2 && (
                         <div className="profile-card__badge">
                           <img
                             src="/images/logo/profile-badge.png"
                             alt="MoneyBoy Social Profile Badge"
                           />
                         </div>
+                        )}
                       </div>
                       <div className="profile-card__username">
                         {profileLoading
@@ -615,33 +617,15 @@ const Sidebar: React.FC = () => {
                           }
                         >
                           <div>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M15 2.5H9C4 2.5 2 4.5 2 9.5V15.5C2 19.28 3.14 21.35 5.86 22.12C6.08 19.52 8.75 17.47 12 17.47C15.25 17.47 17.92 19.52 18.14 22.12C20.86 21.35 22 19.28 22 15.5V9.5C22 4.5 20 2.5 15 2.5ZM12 14.67C10.02 14.67 8.42 13.06 8.42 11.08C8.42 9.10002 10.02 7.5 12 7.5C13.98 7.5 15.58 9.10002 15.58 11.08C15.58 13.06 13.98 14.67 12 14.67Z"
-                                stroke="none"
-                                stroke-width="none"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              ></path>
-                              <path
-                                d="M18.1399 22.12C17.2599 22.38 16.2199 22.5 14.9999 22.5H8.99986C7.77986 22.5 6.73986 22.38 5.85986 22.12C6.07986 19.52 8.74986 17.47 11.9999 17.47C15.2499 17.47 17.9199 19.52 18.1399 22.12Z"
-                                stroke="none"
-                                stroke-width="none"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              ></path>
-                              <path
-                                d="M15.5799 11.08C15.5799 13.06 13.9799 14.67 11.9999 14.67C10.0199 14.67 8.41992 13.06 8.41992 11.08C8.41992 9.10002 10.0199 7.5 11.9999 7.5C13.9799 7.5 15.5799 9.10002 15.5799 11.08Z"
-                                stroke="none"
-                                stroke-width="none"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              ></path>
-                            </svg>
+                    
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M11.3599 2.8125V9.2925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
                             <span>Subscriptions</span>
                           </div>
                         </Link>
