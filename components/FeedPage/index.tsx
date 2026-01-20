@@ -51,7 +51,7 @@ const FeedPage = () => {
   const setMenuRef = (id: number, el: HTMLDivElement | null) => menuRefs.current.set(id, el);
   const setButtonRef = (id: number, el: HTMLButtonElement | null) => buttonRefs.current.set(id, el);
   const toggleMenu = (id: number) => setOpenMenuId((prev) => (prev === id ? null : id));
-  const toggleExpand = (postId: string, tab: keyof typeof expandedPosts) => {setExpandedPosts((prev) => ({...prev, [tab]: { ...prev[tab], [postId]: !prev[tab][postId] },})); };
+  // const toggleExpand = (postId: string, tab: keyof typeof expandedPosts) => {setExpandedPosts((prev) => ({...prev, [tab]: { ...prev[tab], [postId]: !prev[tab][postId] },})); };
 
   const updatePostInList = (
     list: any[],

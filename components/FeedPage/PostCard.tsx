@@ -2,57 +2,53 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/navigation";
-
 import { Navigation } from "swiper/modules";
 
-const PostCard = () => {
-  const [expanded, setExpanded] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(3);
-  const [saved, setSaved] = useState(false);
+import "swiper/css";
+import "swiper/css/navigation";
+
+interface PostCardProps {
+  post: any;
+  onLike: (postId: string) => void;
+  onSave: (postId: string) => void;
+}
+
+const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
-  };
-
-  const handleSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setSaved((prev) => !prev);
+  const handleCopy = () => {
+    navigator.clipboard.writeText("your-link");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
   };
 
   return (
     <div className="moneyboy-post__container card">
       <div className="moneyboy-post__header">
-        <a href="#" className="profile-card">
+        <Link href="#" className="profile-card">
           <div className="profile-card__main">
             <div className="profile-card__avatar-settings">
               <div className="profile-card__avatar">
-                <img alt="MoneyBoy Social Profile Avatar" src="https://res.cloudinary.com/drhj03nvv/image/upload/v1768307520/profile/1768307518783-post-img-13.jpg.jpg" />
+                <img src={post.creatorInfo?.profile} alt="MoneyBoy Social Profile Avatar" />
               </div>
             </div>
 
             <div className="profile-card__info">
               <div className="profile-card__name-badge">
-                <div className="profile-card__name">tulidev</div>
+                <div className="profile-card__name">{post.creatorInfo?.userName}</div>
                 <div className="profile-card__badge">
-                  <img alt="MoneyBoy Social Profile Badge" src="/images/logo/profile-badge.png" />
+                  <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                 </div>
               </div>
-              <div className="profile-card__username">@tulid123</div>
+              <div className="profile-card__username">@{post.creatorInfo?.displayName}</div>
             </div>
           </div>
-        </a>
+        </Link>
 
         <div className="moneyboy-post__upload-more-info">
           <div className="moneyboy-post__upload-time">2 days ago</div>
-          
           <div className="rel-user-more-opts-wrapper">
             <button className="rel-user-more-opts-trigger-icon" onClick={() => setOpen(!open)}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
@@ -65,14 +61,14 @@ const PostCard = () => {
             <div className="rel-users-more-opts-popup-wrapper" style={{transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)", height: open ? "auto" : "0px", opacity: open ? 1 : 0, display: open ? "block" : "none", overflow: "visible",left: "auto", transition: "all 0.2s ease",}}>
               <div className="rel-users-more-opts-popup-container">
                 <ul>
-                  <li data-copy-post-link="inset-post-link-here">
+                  <li onClick={handleCopy} className="copy-post-link" data-copy-post-link="inset-post-link-here">
                     <div className="icon copy-link-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244">
                         </path>
                       </svg>
                     </div>
-                    <span>Copy Link</span>
+                    <span>{copied ? "Copied!" : "Copy Link"}</span>
                   </li>
                 </ul>
               </div>
@@ -82,16 +78,38 @@ const PostCard = () => {
       </div>
 
       <div className="moneyboy-post__desc">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vel erat non mauris convallis vehicula. Nulla et sapien. Integer tortor tellus, aliquam... <span className="active-down-effect-2x">more </span></p>
+       {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>{post.text} {!expanded && (<span className="active-down-effect-2x post-more" onClick={() => setExpanded(true)}>more</span>)}</p> */}
+       <p className="post-text">
+          {post?.text ? (
+            <>
+              {expanded || post.text.length <= 150
+                ? post.text
+                : `${post.text.substring(0, 150)}...`}
+
+              {post.text.length > 150 && (
+                <span
+                  className="active-down-effect-2x post-more"
+                  onClick={() => setExpanded(!expanded)}
+                >
+                  {expanded ? " less" : " more"}
+                </span>
+              )}
+            </>
+          ) : (
+            "Today, I experienced the most blissful ride outside. The air is fresh and it feels amazing..."
+          )}
+        </p>
       </div>
 
       <div className="moneyboy-post__media">
         <div className="moneyboy-post__img">
-        <Swiper slidesPerView={1} spaceBetween={15} navigation={true} modules={[Navigation]} className="post_swiper">
-          <SwiperSlide><img alt="MoneyBoy Post Image" src="/images/post-images/post-img-1.png"/></SwiperSlide>
-          <SwiperSlide><img alt="MoneyBoy Post Image" src="/images/post-images/post-img-2.png"/></SwiperSlide>
-          <SwiperSlide><img alt="MoneyBoy Post Image" src="/images/post-images/post-img-3.png"/></SwiperSlide>
-        </Swiper>
+          <Swiper slidesPerView={1} spaceBetween={15} navigation modules={[Navigation]} className="post_swiper">
+            {(post.media?.[0]?.mediaFiles || []).map(
+              (img: string, i: number) => (
+                <SwiperSlide key={i}><img src={img} alt="MoneyBoy Post Image" /></SwiperSlide>
+              )
+            )}
+          </Swiper>
         </div>
 
         <div className="moneyboy-post__actions">
@@ -112,11 +130,11 @@ const PostCard = () => {
 
             {/* Like */}
             <li>
-              <Link href="#" className="post-like-btn">
+              <Link href="#" className={`post-like-btn ${post.isLiked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); onLike(post._id);}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <span>3</span>
+                <span>{post.likeCount || 0}</span>
               </Link>
             </li>
 
@@ -128,7 +146,7 @@ const PostCard = () => {
                   <path d="M7 8H17" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                   <path d="M7 13H13" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
-                <span>0</span>
+                <span>{post.commentCount || 0}</span>
               </Link>
             </li>
           </ul>
@@ -146,7 +164,7 @@ const PostCard = () => {
 
             {/* Save */}
             <li>
-              <Link href="#">
+              <Link href="#" onClick={(e) => {e.preventDefault(); onSave(post._id);}}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                 <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
