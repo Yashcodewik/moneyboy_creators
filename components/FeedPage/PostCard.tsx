@@ -78,7 +78,27 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
       </div>
 
       <div className="moneyboy-post__desc">
-       <p className={`post-text ${expanded ? "expanded" : ""}`}>{post.text} {!expanded && (<span className="active-down-effect-2x post-more" onClick={() => setExpanded(true)}>more</span>)}</p>
+       {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>{post.text} {!expanded && (<span className="active-down-effect-2x post-more" onClick={() => setExpanded(true)}>more</span>)}</p> */}
+       <p className="post-text">
+          {post?.text ? (
+            <>
+              {expanded || post.text.length <= 150
+                ? post.text
+                : `${post.text.substring(0, 150)}...`}
+
+              {post.text.length > 150 && (
+                <span
+                  className="active-down-effect-2x post-more"
+                  onClick={() => setExpanded(!expanded)}
+                >
+                  {expanded ? " less" : " more"}
+                </span>
+              )}
+            </>
+          ) : (
+            "Today, I experienced the most blissful ride outside. The air is fresh and it feels amazing..."
+          )}
+        </p>
       </div>
 
       <div className="moneyboy-post__media">

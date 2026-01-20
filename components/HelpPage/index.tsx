@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React from 'react'
 
@@ -11,7 +12,7 @@ const DmcaPage = () => {
       <main className="moneyboy-dynamic-content-layout">
             <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
               <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-                <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}>
+                <button className="cate-back-btn active-down-effect" onClick={() => router.back()}>
                   <span className="icons arrowLeft"></span>
                 </button>
                 <button className="page-content-type-button active-down-effect active"> Help & Support</button>
@@ -49,6 +50,21 @@ const DmcaPage = () => {
                 <h3>4. Abuse & Safety</h3>
                 <p>MoneyBoy.com has a zero-tolerance policy toward illegal content or abuse.To report any violation (including impersonation, harassment, or underage material), please use the same contact channel at <b>support@moneyboy.com</b> — include the subject line “Abuse Report”.</p>
                 <p>All reports are reviewed under the applicable laws, including the <b>EU Digital Services Act (DSA)</b> and <b>U.S. Section 230</b> safe harbor provisions.</p>
+                <h3>Platform Information & Guides</h3>
+                <p>This section provides general information about MoneyBoy.com and how the platform works, for both users and content creators.</p>
+                <h4>About MoneyBoy</h4>
+                <ul className="points link_points">
+                  <li>What is MoneyBoy.com <Link href="/what-is-moneyboy">/what-is-moneyboy</Link></li>
+                  <li>How it works <Link href="/how-it-works">/how-it-works</Link></li>
+                </ul>
+                <h4>For Content Creators</h4>
+                <ul className="points link_points">
+                  <li>For Creators <Link href="/for-cretors">/for-creators</Link></li>
+                </ul>
+                <h4>General Help</h4>
+                <ul className="points link_points">
+                  <li>Frequently Asked Questions (FAQ) <Link href="#">/faq</Link></li>
+                </ul>
               </div>
             </div>
       </main>
