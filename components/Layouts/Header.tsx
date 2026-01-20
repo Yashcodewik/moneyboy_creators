@@ -550,7 +550,7 @@ const Header = () => {
                           </svg>
                         </div>
                         <div className="menu-profile-stats-txt">
-                          <div className="stats-label"> Subscriptions </div>
+                          <div className="stats-label"> {session?.user?.role === 2 ? "Subscribers" : "Subscriptions"} </div>
                           <div className="stats-value">
                             <span> 10K </span>
                           </div>
