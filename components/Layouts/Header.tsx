@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import "./header.css";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_CREATOR_PROFILE, API_USER_PROFILE } from "@/utils/api/APIConstant";
@@ -318,7 +317,7 @@ const Header = () => {
                   </div>
                 </>
               ) : (
-                <div className="header-auth-buttons gap-10">
+                <div className="header-auth-buttons flex items-center gap-10">
                   <Link href="/login" className="btn-txt-gradient btn-grey">
                     {" "}
                     <span>Sign In</span>
