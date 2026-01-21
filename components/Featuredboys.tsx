@@ -1,7 +1,61 @@
 "use client";
-import React from 'react'
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import { API_GET_FEATURED_MONEYBOYS } from "@/utils/api/APIConstant";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 const Featuredboys = () => {
+  const [featured, setFeatured] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const { session } = useDecryptedSession();
+  const limit = 6;
+    const router = useRouter();
+
+  const fetchFeatured = async (pageNumber = 1) => {
+    setLoading(true);
+
+    const payload: any = {
+      page: pageNumber,
+    };
+
+    const res = await apiPost({
+      url: API_GET_FEATURED_MONEYBOYS,
+      values: { userId: session?.user?.id || "", page, limit },
+    });
+    console.log("API input:", session?.user?.id);
+
+    if (res?.success) {
+      setFeatured(res.data || []);
+      setPage(res.pagination?.page || 1);
+      setTotalPages(res.pagination?.totalPages || 1);
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchFeatured(page);
+  }, [page, session?.user?._id]);
+
+  const handleRefresh = () => {
+    fetchFeatured(page);
+  };
+
+  const handlePrev = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   return (
     <aside className="moneyboy-2x-1x-b-layout">
       <div className="moneyboy-feed-sidebar-container">
@@ -12,7 +66,10 @@ const Featuredboys = () => {
             </div>
 
             <div className="featured-card-opts">
-              <button className="icon-btn hover-scale-icon">
+              <button
+                className="icon-btn hover-scale-icon"
+                onClick={handleRefresh}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -30,7 +87,11 @@ const Featuredboys = () => {
                 </svg>
               </button>
 
-              <button className="icon-btn hover-scale-icon">
+              <button
+                className="icon-btn hover-scale-icon"
+                onClick={handlePrev}
+                disabled={page === 1}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -56,7 +117,11 @@ const Featuredboys = () => {
                 </svg>
               </button>
 
-              <button className="icon-btn hover-scale-icon">
+              <button
+                className="icon-btn hover-scale-icon"
+                onClick={handleNext}
+                disabled={page === totalPages}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -85,293 +150,63 @@ const Featuredboys = () => {
           </div>
 
           <div className="featured-profiles-wrapper">
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-7.png"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-6.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Zain Schleifer
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @coreybergson
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                 
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {loading && <p>Loading...</p>}
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-4.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
+            {!loading &&
+              featured.map((item) => (
+                <div className="featured-profile__card" key={item._id} onClick={() => router.push(`/profile/${item._id}`)}>
+                  <div className="featured-profile__info-wrapper">
+                    <div className="profile-card featured-profile-card">
+                      <div className="profile-card__bg-img">
                         <img
-                          src="/images/profile-avatars/profile-avatar-5.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
+                          src={
+                            item.coverImage ||
+                            "/images/profile-banners/profile-banner-1.jpg"
+                          }
+                          alt="Featured Profile Background Image"
                         />
                       </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Gustavo Stanton
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @gustavostanton
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-             
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-3.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-3.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Emerson Bator
+                      <div className="profile-card__main">
+                        <div className="profile-card__avatar-settings">
+                          <div className="profile-card__avatar">
+                            <img
+                              src={
+                                item.profileImage ||
+                                "/images/profile-avatars/profile-avatar-6.jpg"
+                              }
+                              alt="MoneyBoy Avatar"
+                            />
+                          </div>
                         </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @emersonbator
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-2.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-7.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Omar Dokidis
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @omardokidis
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                   
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                        <div className="profile-card__info">
+                          <div className="profile-card__name-badge">
+                            <div className="profile-card__name">
+                              {item.displayName ||
+                                `${item.firstName} ${item.lastName}`}
+                            </div>
+                            <div className="profile-card__badge">
+                              <img
+                                src="/images/logo/profile-badge.png"
+                                alt="Badge"
+                              />
+                            </div>
+                          </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-1.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-2.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Wilson Septimus
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
+                          <div className="profile-card__username">
+                            @{item.userName}
+                          </div>
                         </div>
                       </div>
-                      <div className="profile-card__username">
-                        @wilsonseptimus
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-5.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-8.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
+                      <div className="profile-card__desc">
+                        <p>{item.bio || "No bio available"}</p>
                       </div>
                     </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Ruben Kenter
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @rubenkenter
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                 
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
                   </div>
                 </div>
-              </div>
-            </div>
+              ))}
           </div>
         </div>
 
@@ -394,7 +229,7 @@ const Featuredboys = () => {
         </div>
       </div>
     </aside>
-  )
-}
+  );
+};
 
-export default Featuredboys
+export default Featuredboys;

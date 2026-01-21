@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 
@@ -17,12 +17,33 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const handleCopy = () => {
     navigator.clipboard.writeText("your-link");
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      // If click is outside both menu and button, close menu
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="moneyboy-post__container card">
@@ -61,6 +82,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
           <div className="moneyboy-post__upload-time">2 days ago</div>
           <div className="rel-user-more-opts-wrapper">
             <button
+              ref={buttonRef}
               className="rel-user-more-opts-trigger-icon"
               onClick={() => setOpen(!open)}
             >
@@ -90,6 +112,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
             </button>
 
             <div
+              ref={menuRef}
               className="rel-users-more-opts-popup-wrapper"
               style={{
                 transform: open
