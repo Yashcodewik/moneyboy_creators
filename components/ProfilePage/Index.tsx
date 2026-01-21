@@ -1,12 +1,22 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { getApiWithOutQuery } from "@/utils/endpoints/common";
+import { useDispatch, useSelector } from "react-redux";
+import { getApiByParams, getApiWithOutQuery } from "@/utils/endpoints/common";
 import {
   API_CREATOR_PROFILE,
+  API_CREATOR_PROFILE_BY_ID,
   API_FOLLOWER_COUNT,
 } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
-import { fetchFollowerCounts } from "../redux/other/followActions";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import { useParams } from "next/navigation";
+import { AppDispatch, RootState } from "../redux/store";
+import {
+  fetchFollowerCounts,
+  followUserAction,
+  unfollowUserAction,
+} from "../redux/other/followActions";
+
 interface User {
   _id: string;
   firstName: string;
@@ -25,9 +35,9 @@ interface User {
 interface CreatorDetails {
   _id: string;
   userId: string;
-  city:string;
-  country:string;
-  bio:string;
+  city: string;
+  country: string;
+  bio: string;
   bodyType: string;
   sexualOrientation: string;
   age: string;
@@ -42,96 +52,194 @@ interface CreatorDetails {
   updatedAt: string;
   __v: number;
 }
-interface FollowerStats {
-  followerCount: number;
-  followingCount: number;
-  postCount?: number;
-  followerStats?: FollowerStats;
-}
 
 interface ApiCreatorProfileResponse {
   user: User;
   creator: CreatorDetails;
+  isFollowing?: boolean;
+  followerCount?: number;
+  followingCount?: number;
+  postCount?: number;
 }
+
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [profile, setProfile] = useState<ApiCreatorProfileResponse | null>(
     null,
   );
+  const [postCount, setPostCount] = useState<number>(0);
   const [likedItems, setLikedItems] = useState<number[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [layoutTab, setLayoutTab] = useState("grid");
-  const [followerStats, setFollowerStats] = useState<FollowerStats>({
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [isFollowLoading, setIsFollowLoading] = useState<boolean>(false);
+
+  const params = useParams();
+  const profileUserId = params.id as string;
+  const { session, status } = useDecryptedSession();
+  const sessionUserId = session?.user?.id;
+
+  const [profileStats, setProfileStats] = useState({
     followerCount: 0,
     followingCount: 0,
-    postCount: 0,
   });
+
+  const dispatch = useDispatch<AppDispatch>();
+  const followState = useSelector((state: RootState) => state.follow);
+
+  const followerStats = followState.counts;
 
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+const refetchProfile = async () => {
+  if (!profileUserId) return;
 
-        const response = await getApiWithOutQuery({
+  try {
+    let response;
+    if (status === "authenticated" && sessionUserId === profileUserId) {
+      response = await getApiWithOutQuery({
+        url: API_CREATOR_PROFILE,
+      });
+    } else {
+      response = await getApiByParams({
+        url: API_CREATOR_PROFILE_BY_ID,
+        params: profileUserId,
+      });
+    }
+
+    if (response?.user && response?.creator) {
+      setProfile(response);
+      setIsFollowing(response?.isFollowing || false);
+      setPostCount(response?.postCount || 0); // Set post count from response
+      setProfileStats({
+        followerCount: response.followerCount || 0,
+        followingCount: response.followingCount || 0,
+      });
+    }
+  } catch (err: any) {
+    console.error("Error refetching profile:", err);
+  }
+};
+
+useEffect(() => {
+  if (!profileUserId) return;
+  if (status === "loading") return;
+
+  const fetchProfile = async () => {
+    setLoading(true);
+    setError(null);
+
+    let response;
+
+    try {
+      if (status === "authenticated" && sessionUserId === profileUserId) {
+        response = await getApiWithOutQuery({
           url: API_CREATOR_PROFILE,
         });
-
-        console.log("==============", response);
-
-        if (response && response.user && response.creator) {
-          setProfile(response);
-
-          // If follower stats are included in the response
-          if (response.followerStats) {
-            setFollowerStats(response.followerStats);
-          } else {
-            // If not, fetch them separately
-            await fetchFollowerCounts(response.user._id);
-          }
-        } else {
-          setError("Failed to load profile - Invalid response structure");
-          console.error("Invalid response structure:", response);
-        }
-      } catch (err: any) {
-        setError("An error occurred while fetching profile");
-        console.error("Error fetching user profile:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  const fetchFollowerCounts = async (userId: string) => {
-    try {
-      const response = await getApiWithOutQuery({
-        url: API_FOLLOWER_COUNT, 
-        
-      });
-
-      if (response && response.success) {
-        setFollowerStats({
-          followerCount: response.data.followerCount || 0,
-          followingCount: response.data.followingCount || 0,
-          postCount: response.data.postCount || 0, 
+      } else {
+        response = await getApiByParams({
+          url: API_CREATOR_PROFILE_BY_ID,
+          params: profileUserId,
         });
       }
+
+      if (response?.user && response?.creator) {
+        setProfile(response);
+        setIsFollowing(response?.isFollowing || false);
+        setPostCount(response?.postCount || 0); // Set post count from response
+      }
     } catch (err: any) {
-      console.error("Error fetching follower counts:", err);
+      console.error("Error fetching profile:", err);
+      setError(err.message || "Failed to load profile");
+    } finally {
+      setLoading(false);
     }
   };
+
+  fetchProfile();
+}, [profileUserId, status, sessionUserId]);
+
+useEffect(() => {
+  if (profile) {
+    setPostCount(profile.postCount || 0); // Also set post count here
+    setProfileStats({
+      followerCount: profile.followerCount || 0,
+      followingCount: profile.followingCount || 0,
+    });
+  }
+}, [profile]);
+
+  useEffect(() => {
+    if (!profileUserId) return;
+
+    dispatch(fetchFollowerCounts());
+  }, [dispatch, profileUserId]);
+
+  const handleFollowToggle = async () => {
+    if (!profileUserId || isFollowLoading || sessionUserId === profileUserId)
+      return;
+
+    setIsFollowLoading(true);
+
+    const previousState = {
+      isFollowing,
+      followerCount: profileStats.followerCount,
+    };
+
+    const newFollowingState = !isFollowing;
+    setIsFollowing(newFollowingState);
+    setProfileStats((prev) => ({
+      ...prev,
+      followerCount: newFollowingState
+        ? prev.followerCount + 1
+        : prev.followerCount - 1,
+    }));
+
+    try {
+      let result;
+      if (isFollowing) {
+        result = await dispatch(unfollowUserAction(profileUserId)).unwrap();
+      } else {
+        result = await dispatch(followUserAction(profileUserId)).unwrap();
+      }
+
+      if (result?.followerCount !== undefined) {
+        setProfileStats((prev) => ({
+          ...prev,
+          followerCount: result.followerCount,
+        }));
+      }
+
+      dispatch(fetchFollowerCounts());
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+
+      setIsFollowing(previousState.isFollowing);
+      setProfileStats((prev) => ({
+        ...prev,
+        followerCount: previousState.followerCount,
+      }));
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("SESSION USER ID:", session?.user?.id);
+    console.log("PROFILE USER ID:", profileUserId);
+    console.log("Is following:", isFollowing);
+    console.log("Profile stats:", profileStats);
+  }, [session, profileUserId, isFollowing, profileStats]);
+
   const toggleLike = (id: number) => {
     setLikedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -176,14 +284,11 @@ const ProfilePage = () => {
                     <div className="profile-card__info">
                       <div className="profile-card__name-badge">
                         <div className="profile-card__name">
-                          {/* Dynamic Name */}
                           {profile?.user?.displayName || "Unknown Creator"}
                         </div>
-                        {/* Dynamic Badge - Only show if verified */}
                       </div>
                       <div className="profile-card__username">
-                        {/* Dynamic Username */}@
-                        {profile?.user?.userName || "unknown"}
+                        @{profile?.user?.userName || "unknown"}
                       </div>
                     </div>
                   </div>
@@ -369,11 +474,23 @@ const ProfilePage = () => {
                           </svg>
                         </a>
                       </li>
-                      <li>
-                        <button className="btn-txt-gradient">
-                          <span>Follow</span>
-                        </button>
-                      </li>
+                      {profile && session?.user?.id !== profile.user._id && (
+                        <li>
+                          <button
+                            className="btn-txt-gradient"
+                            onClick={handleFollowToggle}
+                            disabled={isFollowLoading}
+                          >
+                            <span>
+                              {isFollowLoading
+                                ? "Processing..."
+                                : isFollowing
+                                  ? "Following"
+                                  : "Follow"}
+                            </span>
+                          </button>
+                        </li>
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -397,7 +514,10 @@ const ProfilePage = () => {
                         strokeWidth="1.5"
                       />
                     </svg>
-                    <span>{profile?.creator?.city || "Unknown City"}, {profile?.creator?.country || "Unknown Country"}</span>
+                    <span>
+                      {profile?.creator?.city || "Unknown City"},{" "}
+                      {profile?.creator?.country || "Unknown Country"}
+                    </span>
                   </div>
                   <div className="profile-card__geo-detail">
                     <svg
@@ -448,13 +568,21 @@ const ProfilePage = () => {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span>Joined {new Date(profile?.user?.createdAt || "").toLocaleString("default", { month: "long", year: "numeric" })}</span>
+                    <span>
+                      Joined{" "}
+                      {new Date(profile?.user?.createdAt || "").toLocaleString(
+                        "default",
+                        { month: "long", year: "numeric" },
+                      )}
+                    </span>
                   </div>
                 </div>
                 <div className="creator-profile-stats-link">
                   <div className="profile-card__stats">
                     <div className="profile-card__stats-item posts-stats">
-                      <div className="profile-card__stats-num">{followerStats.postCount?.toLocaleString() || "2,880"}</div>
+                      <div className="profile-card__stats-num">
+                       {postCount.toLocaleString()}
+                      </div>
                       <div className="profile-card__stats-label">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -497,9 +625,7 @@ const ProfilePage = () => {
                     </div>
                     <div className="profile-card__stats-item followers-stats">
                       <div className="profile-card__stats-num">
-                        {" "}
-                        {followerStats.followerCount.toLocaleString() ||
-                          "253"}{" "}
+                        {profileStats.followerCount.toLocaleString()}
                       </div>
                       <div className="profile-card__stats-label">
                         <svg
@@ -543,8 +669,7 @@ const ProfilePage = () => {
                     </div>
                     <div className="profile-card__stats-item following-stats">
                       <div className="profile-card__stats-num">
-                        {followerStats.followingCount.toLocaleString() ||
-                          "1,920"}{" "}
+                        {profileStats.followingCount.toLocaleString()}
                       </div>
                       <div className="profile-card__stats-label">
                         <svg
@@ -611,7 +736,7 @@ const ProfilePage = () => {
               </div>
 
               <div className="creator-profile-description">
-             <p>{profile?.creator?.bio || "No bio available."}</p>
+                <p>{profile?.creator?.bio || "No bio available."}</p>
               </div>
 
               <div className="creator-subscriptions-container">
@@ -870,10 +995,35 @@ const ProfilePage = () => {
                                   </div>
                                   <div className="creator-content-stat-box views-btn">
                                     <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                       <path d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z" stroke="white" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                                       <path d="M7 8H17" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                       <path d="M7 13H13" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-miterlimit="10"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7 8H17"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7 13H13"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        ></path>
                                       </svg>
                                     </button>
                                     <span>13</span>
@@ -934,17 +1084,43 @@ const ProfilePage = () => {
                                 <div className="creator-content-card__stats">
                                   <div className="creator-content-stat-box views-btn">
                                     <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                        <path d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
                                       </svg>
                                     </button>
                                     <span>13</span>
                                   </div>
                                   <div className="creator-content-stat-box">
-                                    <button className={`like-button ${likedItems.includes(2) ? "liked" : ""}`} onClick={() => toggleLike(2)}>
-                                      <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                       <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
+                                      <svg
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
                                       </svg>
                                     </button>
 
@@ -1005,7 +1181,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
+                                  {/* <div className="creator-content-stat-box">
                                     <button
                                       className={`like-button ${
                                         likedItems.includes(3) ? "liked" : ""
@@ -1030,7 +1206,7 @@ const ProfilePage = () => {
                                     </button>
 
                                     <span>12K</span>
-                                  </div>
+                                  </div> */}
                                   <div className="creator-content-stat-box views-btn">
                                     <button>
                                       <svg
@@ -1056,6 +1232,24 @@ const ProfilePage = () => {
                                       </svg>
                                     </button>
                                     <span>13</span>
+                                  </div>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
+                                      <svg
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
+                                      </svg>
+                                    </button>
+
+                                    <span>71</span>
                                   </div>
                                 </div>
                               </div>
@@ -1111,65 +1305,49 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                      className={`like-button ${
-                                        likedItems.includes(4) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(4)}
-                                    >
+                                  <div className="creator-content-stat-box views-btn">
+                                    <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
                                         fill="none"
                                       >
                                         <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
                                           stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
                                         />
                                       </svg>
                                     </button>
-
-                                    <span>12K</span>
+                                    <span>13</span>
                                   </div>
-                                  <div className="creator-content-stat-box wishlist-btn">
-                                    <button>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
                                       <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="25"
-                                        viewBox="0 0 24 25"
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
                                         fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
                                       >
-                                        <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
                                       </svg>
                                     </button>
-                                    <span>10</span>
+
+                                    <span>71</span>
                                   </div>
                                 </div>
                               </div>
@@ -1247,32 +1425,6 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                      className={`like-button ${
-                                        likedItems.includes(1) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(1)}
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div>
                                   <div className="creator-content-stat-box views-btn">
                                     <button>
                                       <svg
@@ -1298,6 +1450,24 @@ const ProfilePage = () => {
                                       </svg>
                                     </button>
                                     <span>13</span>
+                                  </div>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
+                                      <svg
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
+                                      </svg>
+                                    </button>
+
+                                    <span>71</span>
                                   </div>
                                 </div>
                               </div>
@@ -1353,12 +1523,78 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
+                                  <div className="creator-content-stat-box views-btn">
+                                    <button>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                    </button>
+                                    <span>13</span>
+                                  </div>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
+                                      <svg
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
+                                      </svg>
+                                    </button>
+
+                                    <span>71</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="creator-content-card-container">
+                              <div className="creator-content-card">
+                                <div className="creator-content-card__media">
+                                  <div className="creator-card__img">
+                                    <img
+                                      src="/images/profile-avatars/profile-avatar-6.jpg"
+                                      alt="Creator Content Image"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="creator-content-card__description">
+                                  <p>
+                                    Today, I experienced the most blissful ride
+                                    outside.
+                                  </p>
+                                </div>
+
+                                <div className="creator-content-card__stats">
                                   <div className="creator-content-stat-box">
                                     <button
                                       className={`like-button ${
-                                        likedItems.includes(5) ? "liked" : ""
+                                        likedItems.includes(1) ? "liked" : ""
                                       }`}
-                                      onClick={() => toggleLike(5)}
+                                      onClick={() => toggleLike(1)}
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1389,99 +1625,26 @@ const ProfilePage = () => {
                                         fill="none"
                                       >
                                         <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                        <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-avatars/profile-avatar-6.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                      className={`like-button ${
-                                        likedItems.includes(6) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(6)}
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div>
-                                  <div className="creator-content-stat-box wishlist-btn">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="25"
-                                        viewBox="0 0 24 25"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
+                                          d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-miterlimit="10"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
                                         ></path>
                                         <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
+                                          d="M7 8H17"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
                                         ></path>
                                         <path
-                                          d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
+                                          d="M7 13H13"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
                                         ></path>
                                       </svg>
                                     </button>
@@ -1541,65 +1704,49 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                      className={`like-button ${
-                                        likedItems.includes(7) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(7)}
-                                    >
+                                  <div className="creator-content-stat-box views-btn">
+                                    <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
                                         fill="none"
                                       >
                                         <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
                                           stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
                                         />
                                       </svg>
                                     </button>
-
-                                    <span>12K</span>
+                                    <span>13</span>
                                   </div>
-                                  <div className="creator-content-stat-box wishlist-btn">
-                                    <button>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
                                       <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="25"
-                                        viewBox="0 0 24 25"
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
                                         fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
                                       >
-                                        <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
                                       </svg>
                                     </button>
-                                    <span>13</span>
+
+                                    <span>71</span>
                                   </div>
                                 </div>
                               </div>
@@ -1677,63 +1824,49 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                      className="like-button"
-                                      data-like-button=""
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div>
-                                  <div className="creator-content-stat-box wishlist-btn">
+                                  <div className="creator-content-stat-box views-btn">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width="24"
-                                        height="25"
-                                        viewBox="0 0 24 25"
+                                        height="24"
+                                        viewBox="0 0 24 24"
                                         fill="none"
                                       >
                                         <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
                                           stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                        ></path>
+                                        />
                                         <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
+                                        />
                                       </svg>
                                     </button>
                                     <span>13</span>
+                                  </div>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
+                                      <svg
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
+                                      </svg>
+                                    </button>
+
+                                    <span>71</span>
                                   </div>
                                 </div>
                               </div>
@@ -1760,8 +1893,10 @@ const ProfilePage = () => {
                                 <div className="creator-content-card__stats">
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className="like-button"
-                                      data-like-button=""
+                                      className={`like-button ${
+                                        likedItems.includes(1) ? "liked" : ""
+                                      }`}
+                                      onClick={() => toggleLike(1)}
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1776,7 +1911,7 @@ const ProfilePage = () => {
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                        ></path>
+                                        />
                                       </svg>
                                     </button>
 
@@ -1792,18 +1927,27 @@ const ProfilePage = () => {
                                         fill="none"
                                       >
                                         <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
+                                          d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-miterlimit="10"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        ></path>
                                         <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
+                                          d="M7 8H17"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7 13H13"
+                                          stroke="white"
+                                          stroke-width="1.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        ></path>
                                       </svg>
                                     </button>
                                     <span>13</span>
@@ -1862,63 +2006,49 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                      className="like-button"
-                                      data-like-button=""
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div>
-                                  <div className="creator-content-stat-box wishlist-btn">
+                                  <div className="creator-content-stat-box views-btn">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width="24"
-                                        height="25"
-                                        viewBox="0 0 24 25"
+                                        height="24"
+                                        viewBox="0 0 24 24"
                                         fill="none"
                                       >
                                         <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
                                           stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                        ></path>
+                                        />
                                         <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
+                                        />
                                       </svg>
                                     </button>
                                     <span>13</span>
+                                  </div>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
+                                      <svg
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
+                                      </svg>
+                                    </button>
+
+                                    <span>71</span>
                                   </div>
                                 </div>
                               </div>
@@ -1974,63 +2104,49 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                      className="like-button"
-                                      data-like-button=""
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div>
-                                  <div className="creator-content-stat-box wishlist-btn">
+                                  <div className="creator-content-stat-box views-btn">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width="24"
-                                        height="25"
-                                        viewBox="0 0 24 25"
+                                        height="24"
+                                        viewBox="0 0 24 24"
                                         fill="none"
                                       >
                                         <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
                                           stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                        ></path>
+                                        />
                                         <path
-                                          d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                                          stroke="none"
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        ></path>
+                                        />
                                       </svg>
                                     </button>
                                     <span>13</span>
+                                  </div>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                      onClick={() => toggleLike(2)}
+                                    >
+                                      <svg
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"></path>
+                                      </svg>
+                                    </button>
+
+                                    <span>71</span>
                                   </div>
                                 </div>
                               </div>

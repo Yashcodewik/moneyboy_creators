@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 
@@ -17,12 +17,56 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const handleCopy = () => {
     navigator.clipboard.writeText("your-link");
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      // If click is outside both menu and button, close menu
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const formatRelativeTime = (dateString: string) => {
+  const now = new Date();
+  const postDate = new Date(dateString);
+  const diffMs = now.getTime() - postDate.getTime();
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+  // Optional: show date for older posts
+  return postDate.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
 
   return (
     <div className="moneyboy-post__container card">
@@ -58,9 +102,13 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
         </Link>
 
         <div className="moneyboy-post__upload-more-info">
-          <div className="moneyboy-post__upload-time">2 days ago</div>
+          <div className="moneyboy-post__upload-time">
+  {formatRelativeTime(post.createdAt)}
+</div>
+
           <div className="rel-user-more-opts-wrapper">
             <button
+              ref={buttonRef}
               className="rel-user-more-opts-trigger-icon"
               onClick={() => setOpen(!open)}
             >
@@ -90,6 +138,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
             </button>
 
             <div
+              ref={menuRef}
               className="rel-users-more-opts-popup-wrapper"
               style={{
                 transform: open

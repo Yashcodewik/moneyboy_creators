@@ -39,6 +39,7 @@ interface Follower {
   bio?: string;
   isFollowing: boolean;
   isFollowingYou: boolean;
+  profileImage?: string;
 }
 
 const FollowersPage = () => {
@@ -155,33 +156,33 @@ const FollowersPage = () => {
     setLoading(false);
   };
 
-  const fetchFollowers = async (pageNo = 1, search = "") => {
-    setLoading(true);
-    try {
-      const res = await getApi({
-        url: API_GET_FOLLOWERS,
-        page: pageNo,
-        rowsPerPage: 10,
-        searchText: search,
-      });
+const fetchFollowers = async (pageNo = 1, search = "") => {
+  setLoading(true);
+  try {
+    const res = await getApi({
+      url: API_GET_FOLLOWERS,
+      page: pageNo,
+      rowsPerPage: 10,
+      searchText: search,
+    });
 
-      if (res?.success) {
-        const followersWithStatus = res.data.map((follower: any) => ({
-          ...follower,
-          isFollowingYou: true,
-        }));
-        setFollowers(followersWithStatus);
-        setFollowersPage(pageNo);
-        setFollowersTotalPages(res.meta?.totalPages || 1);
-        setFollowersTotal(res.meta?.total || 0);
-      }
-    } catch (error) {
-      console.error("Error fetching followers:", error);
-      // ShowToast("Failed to load followers", "error");
-    } finally {
-      setLoading(false);
+    if (res?.success) {
+      const followersWithStatus = res.data.map((follower: any) => ({
+        ...follower,
+        isFollowingYou: true,
+      }));
+      setFollowers(followersWithStatus);
+      setFollowersPage(pageNo);
+      setFollowersTotalPages(res.meta?.totalPages || 1);
+      setFollowersTotal(res.meta?.total || 0);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching followers:", error);
+    // ShowToast("Failed to load followers", "error");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchFollowing = async (pageNo = 1, search = "") => {
     setLoading(true);
@@ -472,10 +473,19 @@ const FollowersPage = () => {
                 >
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
-                      <img
-                        src="/images/profile-avatars/profile-avatar-6.jpg"
-                        alt={`${follower.firstName}'s profile`}
-                      />
+                        <img
+                      src={
+                        follower.profileImage &&
+                        follower.profileImage.trim() !== ""
+                          ? follower.profileImage
+                          : "/images/profile-avatars/profile-avatar-6.jpg"
+                      }
+                      alt={`${follower.firstName}'s profile`}
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "/images/profile-avatars/profile-avatar-6.jpg";
+                      }}
+                    />
                     </div>
                   </div>
                   <div className="profile-card__info">
@@ -814,10 +824,18 @@ const FollowersPage = () => {
                 >
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
-                      <img
-                        src="/images/profile-avatars/profile-avatar-6.jpg"
-                        alt={`${follow.firstName}'s profile`}
-                      />
+                         <img
+                      src={
+                        follow.profileImage && follow.profileImage.trim() !== ""
+                          ? follow.profileImage
+                          : "/images/profile-avatars/profile-avatar-6.jpg"
+                      }
+                      alt={`${follow.firstName}'s profile`}
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "/images/profile-avatars/profile-avatar-6.jpg";
+                      }}
+                    />
                     </div>
                   </div>
                   <div className="profile-card__info">

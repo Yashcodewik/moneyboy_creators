@@ -33,3 +33,5 @@ export const API_GET_LIKED_POSTS = "/post/liked";
 export const API_CREATE_UPDATE_SUBSCRIPTION = "/subscription/create";
 export const API_GET_MY_SUBSCRIPTION = "/subscription/me";
 export const API_BLOCK_COUNTRIES: string = "/creator/block-countries";
+export const API_GET_FEATURED_MONEYBOYS = "/social/featuredmoneysGet";
+export const API_CREATOR_PROFILE_BY_ID = "/creator/profile"; 

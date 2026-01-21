@@ -16,6 +16,7 @@ import {
   API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import Featuredboys from "../Featuredboys";
 
 interface UserProfile {
   id: number;
@@ -1339,136 +1340,135 @@ const UserProfilepage = () => {
           )}
           {activeTab === "popular" && (
             <div className="moneyboy-posts-wrapper" data-multi-tabs-content-tab>
-           {
-  popularPosts.map((post, index) => (
-    <div key={post._id} className="moneyboy-post__container card">
-      <div className="moneyboy-post__header">
-        <a href="#" className="profile-card">
-          <div className="profile-card__main">
-            <div className="profile-card__avatar-settings">
-              <div className="profile-card__avatar">
-                <img
-                  src={
-                    post.creatorInfo?.profile ||
-                    "/images/profile-avatars/profile-avatar-4.jpg"
-                  }
-                  alt="MoneyBoy Social Profile Avatar"
-                />
-              </div>
-            </div>
+              {popularPosts.map((post, index) => (
+                <div key={post._id} className="moneyboy-post__container card">
+                  <div className="moneyboy-post__header">
+                    <a href="#" className="profile-card">
+                      <div className="profile-card__main">
+                        <div className="profile-card__avatar-settings">
+                          <div className="profile-card__avatar">
+                            <img
+                              src={
+                                post.creatorInfo?.profile ||
+                                "/images/profile-avatars/profile-avatar-4.jpg"
+                              }
+                              alt="MoneyBoy Social Profile Avatar"
+                            />
+                          </div>
+                        </div>
 
-            <div className="profile-card__info">
-              <div className="profile-card__name-badge">
-                <div className="profile-card__name">
-                  {post.creatorInfo?.displayName}
-                </div>
-                <div className="profile-card__badge">
-                  <img
-                    src="/images/logo/profile-badge.png"
-                    alt="MoneyBoy Social Profile Badge"
-                  />
-                </div>
-              </div>
-              <div className="profile-card__username">
-                @{post.creatorInfo?.userName}
-              </div>
-            </div>
-          </div>
-        </a>
-
-        <div className="moneyboy-post__upload-more-info">
-          <div className="moneyboy-post__upload-time">
-            {getTimeAgo(post.createdAt)}
-          </div>
-
-          <div
-            className={`rel-user-more-opts-wrapper ${
-              openMenuId === index ? "active" : ""
-            }`}
-            data-more-actions-toggle-element
-            ref={(el) => setMenuRef(index, el)}
-          >
-            <button
-              className="rel-user-more-opts-trigger-icon"
-              onClick={() => toggleMenu(index)}
-              ref={(el) => setButtonRef(index, el)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="25"
-                viewBox="0 0 24 25"
-                fill="none"
-              >
-                <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
-                <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
-                <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
-              </svg>
-            </button>
-
-            {openMenuId === index && (
-              <div className="rel-users-more-opts-popup-wrapper">
-                <div className="rel-users-more-opts-popup-container">
-                  <ul>
-                    <li data-copy-post-link={post._id}>
-                      <div className="icon copy-link-icon">
-                        {" "}
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke-width="1.5"
-                          stroke="currentColor"
-                          className="size-6"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                          ></path>
-                        </svg>
+                        <div className="profile-card__info">
+                          <div className="profile-card__name-badge">
+                            <div className="profile-card__name">
+                              {post.creatorInfo?.displayName}
+                            </div>
+                            <div className="profile-card__badge">
+                              <img
+                                src="/images/logo/profile-badge.png"
+                                alt="MoneyBoy Social Profile Badge"
+                              />
+                            </div>
+                          </div>
+                          <div className="profile-card__username">
+                            @{post.creatorInfo?.userName}
+                          </div>
+                        </div>
                       </div>
-                      <span>Copy Link</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                    </a>
 
-      <div className="moneyboy-post__desc">
-        <p>
-          {expandedPosts.popular?.[post._id]
-            ? post.text
-            : `${post.text?.slice(0, 120)}...`}
-          <span
-            className="active-down-effect-2x"
-            onClick={() => toggleExpand(post._id, "popular")}
-          >
-            more
-          </span>
-        </p>
-      </div>
+                    <div className="moneyboy-post__upload-more-info">
+                      <div className="moneyboy-post__upload-time">
+                        {getTimeAgo(post.createdAt)}
+                      </div>
 
-      <div className="moneyboy-post__media">
-        <div className="moneyboy-post__img">
-          <img
-            src={
-              post.thumbnail ||
-              post.media?.[0]?.mediaFiles?.[0] ||
-              "/images/post-images/post-img-2.png"
-            }
-            alt="MoneyBoy Post Image"
-          />
-        </div>
+                      <div
+                        className={`rel-user-more-opts-wrapper ${
+                          openMenuId === index ? "active" : ""
+                        }`}
+                        data-more-actions-toggle-element
+                        ref={(el) => setMenuRef(index, el)}
+                      >
+                        <button
+                          className="rel-user-more-opts-trigger-icon"
+                          onClick={() => toggleMenu(index)}
+                          ref={(el) => setButtonRef(index, el)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="25"
+                            viewBox="0 0 24 25"
+                            fill="none"
+                          >
+                            <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
+                            <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
+                            <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
+                          </svg>
+                        </button>
 
-        <div className="moneyboy-post__actions">
-          <ul>
-            <li>
-              <a href="#">
-                   <svg
+                        {openMenuId === index && (
+                          <div className="rel-users-more-opts-popup-wrapper">
+                            <div className="rel-users-more-opts-popup-container">
+                              <ul>
+                                <li data-copy-post-link={post._id}>
+                                  <div className="icon copy-link-icon">
+                                    {" "}
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke-width="1.5"
+                                      stroke="currentColor"
+                                      className="size-6"
+                                    >
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
+                                      ></path>
+                                    </svg>
+                                  </div>
+                                  <span>Copy Link</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="moneyboy-post__desc">
+                    <p>
+                      {expandedPosts.popular?.[post._id]
+                        ? post.text
+                        : `${post.text?.slice(0, 120)}...`}
+                      <span
+                        className="active-down-effect-2x"
+                        onClick={() => toggleExpand(post._id, "popular")}
+                      >
+                        more
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="moneyboy-post__media">
+                    <div className="moneyboy-post__img">
+                      <img
+                        src={
+                          post.thumbnail ||
+                          post.media?.[0]?.mediaFiles?.[0] ||
+                          "/images/post-images/post-img-2.png"
+                        }
+                        alt="MoneyBoy Post Image"
+                      />
+                    </div>
+
+                    <div className="moneyboy-post__actions">
+                      <ul>
+                        <li>
+                          <a href="#">
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
                               height="24"
@@ -1512,21 +1512,21 @@ const UserProfilepage = () => {
                                 stroke-linejoin="round"
                               />
                             </svg>
-                <span>Send Tip</span>
-              </a>
-            </li>
+                            <span>Send Tip</span>
+                          </a>
+                        </li>
 
-            <li>
-              <a
-                href="#"
-                className={`post-like-btn ${post.isLiked ? "liked" : ""}`}
-                data-like-button
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleLike(post._id);
-                }}
-              >
-                   <svg
+                        <li>
+                          <a
+                            href="#"
+                            className={`post-like-btn ${post.isLiked ? "liked" : ""}`}
+                            data-like-button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleLike(post._id);
+                            }}
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
                               height="24"
@@ -1541,13 +1541,13 @@ const UserProfilepage = () => {
                                 stroke-linejoin="round"
                               />
                             </svg>
-                <span>{post.likeCount || 0}</span>
-              </a>
-            </li>
+                            <span>{post.likeCount || 0}</span>
+                          </a>
+                        </li>
 
-            <li>
-              <a href="#">
-                  <svg
+                        <li>
+                          <a href="#">
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
                               height="24"
@@ -1577,13 +1577,13 @@ const UserProfilepage = () => {
                                 stroke-linejoin="round"
                               />
                             </svg>
-                <span>{post.commentCount || 0}</span>
-              </a>
-            </li>
-          </ul>
+                            <span>{post.commentCount || 0}</span>
+                          </a>
+                        </li>
+                      </ul>
 
-          <ul>
-            <li>
+                      <ul>
+                        <li>
                           <a href="#">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1611,15 +1611,15 @@ const UserProfilepage = () => {
                             </svg>
                           </a>
                         </li>
-            <li>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSave(post._id);
-                }}
-              >
-                 <svg
+                        <li>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleSave(post._id);
+                            }}
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
                               height="24"
@@ -1648,508 +1648,19 @@ const UserProfilepage = () => {
                                 stroke-linejoin="round"
                               />
                             </svg>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  ))}
-
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
       </div>
 
-      <aside className="moneyboy-2x-1x-b-layout">
-        <div className="moneyboy-feed-sidebar-container">
-          <div className="featured-profiles-card-container card">
-            <div className="featured-profiles-header">
-              <div className="featured-card-heading">
-                <h3 className="card-heading">Featured Moneyboys</h3>
-              </div>
-
-              <div className="featured-card-opts">
-                <button className="icon-btn hover-scale-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="25"
-                    viewBox="0 0 24 25"
-                    fill="none"
-                  >
-                    <path
-                      d="M22 12.5C22 18.02 17.52 22.5 12 22.5C6.48 22.5 3.11 16.94 3.11 16.94M3.11 16.94H7.63M3.11 16.94V21.94M2 12.5C2 6.98 6.44 2.5 12 2.5C18.67 2.5 22 8.06 22 8.06M22 8.06V3.06M22 8.06H17.56"
-                      stroke="none"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                <button className="icon-btn hover-scale-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="25"
-                    viewBox="0 0 24 25"
-                    fill="none"
-                  >
-                    <path
-                      d="M12 22.5C6.47715 22.5 2 18.0228 2 12.5C2 6.97715 6.47715 2.5 12 2.5C17.5228 2.5 22 6.97715 22 12.5C22 18.0228 17.5228 22.5 12 22.5Z"
-                      stroke="none"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M13.26 16.03L9.74001 12.5L13.26 8.97"
-                      stroke="none"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                <button className="icon-btn hover-scale-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="25"
-                    viewBox="0 0 24 25"
-                    fill="none"
-                  >
-                    <path
-                      d="M12 22.5C17.5228 22.5 22 18.0228 22 12.5C22 6.97715 17.5228 2.5 12 2.5C6.47715 2.5 2 6.97715 2 12.5C2 18.0228 6.47715 22.5 12 22.5Z"
-                      stroke="none"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M10.74 16.03L14.26 12.5L10.74 8.97"
-                      stroke="none"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="featured-profiles-wrapper">
-              <div className="featured-profile__card">
-                <div className="featured-profile__info-wrapper">
-                  <div className="profile-card featured-profile-card">
-                    <div className="profile-card__bg-img">
-                      <img
-                        src="/images/profile-banners/profile-banner-7.png"
-                        alt="Featured Profile Background Image"
-                      />
-                    </div>
-                    <div className="profile-card__main">
-                      <div className="profile-card__avatar-settings">
-                        <div className="profile-card__avatar">
-                          <img
-                            src="/images/profile-avatars/profile-avatar-6.jpg"
-                            alt="MoneyBoy Social Profile Avatar"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__info">
-                        <div className="profile-card__name-badge">
-                          <div className="profile-card__name">
-                            Zain Schleifer
-                          </div>
-                          <div className="profile-card__badge">
-                            <img
-                              src="/images/logo/profile-badge.png"
-                              alt="MoneyBoy Social Profile Badge"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__username">
-                          @charliemango
-                        </div>
-                      </div>
-                      <div className="profile-card__icon">
-                        {/* <div className="profile-card__blur-icon">
-                          <button className="like-button" data-like-button>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="21"
-                              viewBox="0 0 20 21"
-                              fill="none"
-                            >
-                              <path
-                                d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div> */}
-                      </div>
-                    </div>
-                    <div className="profile-card__desc">
-                      <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="featured-profile__card">
-                <div className="featured-profile__info-wrapper">
-                  <div className="profile-card featured-profile-card">
-                    <div className="profile-card__bg-img">
-                      <img
-                        src="/images/profile-banners/profile-banner-4.jpg"
-                        alt="Featured Profile Background Image"
-                      />
-                    </div>
-                    <div className="profile-card__main">
-                      <div className="profile-card__avatar-settings">
-                        <div className="profile-card__avatar">
-                          <img
-                            src="/images/profile-avatars/profile-avatar-5.jpg"
-                            alt="MoneyBoy Social Profile Avatar"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__info">
-                        <div className="profile-card__name-badge">
-                          <div className="profile-card__name">
-                            Gustavo Stanton
-                          </div>
-                          <div className="profile-card__badge">
-                            <img
-                              src="/images/logo/profile-badge.png"
-                              alt="MoneyBoy Social Profile Badge"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__username">
-                          @gustavostanton
-                        </div>
-                      </div>
-                      <div className="profile-card__icon">
-                        {/* <div className="profile-card__blur-icon">
-                          <button className="like-button" data-like-button>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="21"
-                              viewBox="0 0 20 21"
-                              fill="none"
-                            >
-                              <path
-                                d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div> */}
-                      </div>
-                    </div>
-                    <div className="profile-card__desc">
-                      <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="featured-profile__card">
-                <div className="featured-profile__info-wrapper">
-                  <div className="profile-card featured-profile-card">
-                    <div className="profile-card__bg-img">
-                      <img
-                        src="/images/profile-banners/profile-banner-3.jpg"
-                        alt="Featured Profile Background Image"
-                      />
-                    </div>
-                    <div className="profile-card__main">
-                      <div className="profile-card__avatar-settings">
-                        <div className="profile-card__avatar">
-                          <img
-                            src="/images/profile-avatars/profile-avatar-3.jpg"
-                            alt="MoneyBoy Social Profile Avatar"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__info">
-                        <div className="profile-card__name-badge">
-                          <div className="profile-card__name">
-                            Emerson Bator
-                          </div>
-                          <div className="profile-card__badge">
-                            <img
-                              src="/images/logo/profile-badge.png"
-                              alt="MoneyBoy Social Profile Badge"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__username">
-                          @emersonbator
-                        </div>
-                      </div>
-                      <div className="profile-card__icon">
-                        {/* <div className="profile-card__blur-icon">
-                          <button className="like-button" data-like-button>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="21"
-                              viewBox="0 0 20 21"
-                              fill="none"
-                            >
-                              <path
-                                d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div> */}
-                      </div>
-                    </div>
-                    <div className="profile-card__desc">
-                      <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="featured-profile__card">
-                <div className="featured-profile__info-wrapper">
-                  <div className="profile-card featured-profile-card">
-                    <div className="profile-card__bg-img">
-                      <img
-                        src="/images/profile-banners/profile-banner-2.jpg"
-                        alt="Featured Profile Background Image"
-                      />
-                    </div>
-                    <div className="profile-card__main">
-                      <div className="profile-card__avatar-settings">
-                        <div className="profile-card__avatar">
-                          <img
-                            src="/images/profile-avatars/profile-avatar-7.jpg"
-                            alt="MoneyBoy Social Profile Avatar"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__info">
-                        <div className="profile-card__name-badge">
-                          <div className="profile-card__name">Omar Dokidis</div>
-                          <div className="profile-card__badge">
-                            <img
-                              src="/images/logo/profile-badge.png"
-                              alt="MoneyBoy Social Profile Badge"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__username">
-                          @omardokidis
-                        </div>
-                      </div>
-                      <div className="profile-card__icon">
-                        {/* <div className="profile-card__blur-icon">
-                          <button className="like-button" data-like-button>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="21"
-                              viewBox="0 0 20 21"
-                              fill="none"
-                            >
-                              <path
-                                d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div> */}
-                      </div>
-                    </div>
-                    <div className="profile-card__desc">
-                      <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="featured-profile__card">
-                <div className="featured-profile__info-wrapper">
-                  <div className="profile-card featured-profile-card">
-                    <div className="profile-card__bg-img">
-                      <img
-                        src="/images/profile-banners/profile-banner-1.jpg"
-                        alt="Featured Profile Background Image"
-                      />
-                    </div>
-                    <div className="profile-card__main">
-                      <div className="profile-card__avatar-settings">
-                        <div className="profile-card__avatar">
-                          <img
-                            src="/images/profile-avatars/profile-avatar-2.jpg"
-                            alt="MoneyBoy Social Profile Avatar"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__info">
-                        <div className="profile-card__name-badge">
-                          <div className="profile-card__name">
-                            Wilson Septimus
-                          </div>
-                          <div className="profile-card__badge">
-                            <img
-                              src="/images/logo/profile-badge.png"
-                              alt="MoneyBoy Social Profile Badge"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__username">
-                          @wilsonseptimus
-                        </div>
-                      </div>
-                      <div className="profile-card__icon">
-                        {/* <div className="profile-card__blur-icon">
-                          <button className="like-button" data-like-button>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="21"
-                              viewBox="0 0 20 21"
-                              fill="none"
-                            >
-                              <path
-                                d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div> */}
-                      </div>
-                    </div>
-                    <div className="profile-card__desc">
-                      <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="featured-profile__card">
-                <div className="featured-profile__info-wrapper">
-                  <div className="profile-card featured-profile-card">
-                    <div className="profile-card__bg-img">
-                      <img
-                        src="/images/profile-banners/profile-banner-5.jpg"
-                        alt="Featured Profile Background Image"
-                      />
-                    </div>
-                    <div className="profile-card__main">
-                      <div className="profile-card__avatar-settings">
-                        <div className="profile-card__avatar">
-                          <img
-                            src="/images/profile-avatars/profile-avatar-8.jpg"
-                            alt="MoneyBoy Social Profile Avatar"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__info">
-                        <div className="profile-card__name-badge">
-                          <div className="profile-card__name">Ruben Kenter</div>
-                          <div className="profile-card__badge">
-                            <img
-                              src="/images/logo/profile-badge.png"
-                              alt="MoneyBoy Social Profile Badge"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__username">
-                          @rubenkenter
-                        </div>
-                      </div>
-                      <div className="profile-card__icon">
-                        {/* <div className="profile-card__blur-icon">
-                          <button className="like-button" data-like-button>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="21"
-                              viewBox="0 0 20 21"
-                              fill="none"
-                            >
-                              <path
-                                d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div> */}
-                      </div>
-                    </div>
-                    <div className="profile-card__desc">
-                      <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="moneyboy-network-grow-card-wrapper card">
-            <a href="#" className="moneyboy-network-grow-card card">
-              <div className="bg-img">
-                <img
-                  src="/images/grow-network-bg-image.png"
-                  alt="Grow Network By MoneyBoy Social"
-                />
-              </div>
-              <div className="text-logo">
-                <h3>Network</h3>
-                <img
-                  src="/images/logo/moneyboy-logo.png"
-                  alt="MoneyBoy Social Logo"
-                />
-              </div>
-            </a>
-          </div>
-        </div>
-      </aside>
+      <Featuredboys />
     </div>
   );
 };
