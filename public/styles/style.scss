@@ -3669,7 +3669,10 @@ body {
 
 .creator-profile-page-container {
   .creator-profile-banner {
+    transition: var(--transition-fast);
     .imgicons {
+      z-index: 2;
+      cursor: pointer;
       background-color: #fdfdfd;
       border-radius: 8px;
       padding: 3px;
@@ -3681,12 +3684,20 @@ body {
       height: 24px;
       display: grid;
       place-items: center;
+      transition: var(--transition-fast);
+      &:hover {
+        background-color: #000;
+        svg {
+          stroke: #fdc926;
+        }
+      }
     }
   }
   .creator-profile-info-container {
     .profile-card {
       .profile-card__avatar {
         .imgicons {
+          cursor: pointer;
           background-color: #fdfdfd;
           border-radius: 8px;
           padding: 3px;
@@ -3698,6 +3709,13 @@ body {
           height: 24px;
           display: grid;
           place-items: center;
+          transition: var(--transition-fast);
+          &:hover {
+            background-color: #000;
+            svg {
+              stroke: #fdc926;
+            }
+          }
         }
       }
     }
@@ -3970,6 +3988,69 @@ body {
         font-size: 14px;
         line-height: 20px;
         font-weight: 500;
+      }
+    }
+    &.connect_social_wrap {
+      .btn_wrap {
+        background-color: #fff;
+        border: 1.5px solid #ebebeb;
+        border-radius: 18px;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        label {
+          color: #000;
+          font-weight: 500;
+          font-size: 16px;
+          line-height: 20px;
+          white-space: nowrap;
+        }
+        button {
+          gap: 8px;
+          width: 100%;
+          max-width: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #020202;
+          cursor: pointer;
+          font-family: var(--font-family-heading);
+          font-weight: 500;
+          text-transform: capitalize;
+          transition: var(--transition-fast);
+          letter-spacing: .35px;
+          border-radius: 12px;
+          width: 100%;
+          padding: 10px 0px;
+          font-size: 13px;
+          line-height: 100%;
+          .icons {
+            width: 20px;
+            height: 20px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background-color: #FFF;
+            svg {
+              width: 12px;
+              height: 12px;
+            }
+          }
+          &.xbtn {
+            color: #FFF;
+            background-color: #000;
+            .icons {
+              svg {
+                color: #000;
+              }
+            }
+          }
+          &.googlebtn {
+            color: #FFF;
+            background-color: #1a73e8;
+          }
+        }
       }
     }
   }

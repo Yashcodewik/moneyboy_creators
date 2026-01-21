@@ -21,6 +21,8 @@ import { countryOptions, creatorFormOptions } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { FcGoogle } from "react-icons/fc";
+import { FaXTwitter } from "react-icons/fa6";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -326,8 +328,7 @@ const EditProfilePage = () => {
 
                       <label
                         htmlFor="coverUpload"
-                        className="imgicons"
-                        style={{ cursor: "pointer" }}
+                        className="imgicons active-down-effect-2x"
                       >
                         <TbCamera size={16} />
                       </label>
@@ -363,8 +364,7 @@ const EditProfilePage = () => {
 
                                 <label
                                   htmlFor="profileUpload"
-                                  className="imgicons"
-                                  style={{ cursor: "pointer" }}
+                                  className="imgicons active-down-effect-2x"
                                 >
                                   <TbCamera size={16} />
                                 </label>
@@ -847,6 +847,20 @@ const EditProfilePage = () => {
                           >
                             <span>Save Changes</span>
                           </button>
+                        </div>
+                      </div>
+                      <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap connect_social_wrap">
+                        <div className="select_countries_wrap">
+                          <h5>Connect Your Social accounts</h5>
+                          <p>Connect Your Social accounts to Your MoneYBoy Profile</p>
+                          <div className="btn_wrap">
+                            <label>Sign in With x</label>
+                            <button type="button" className="active-down-effect xbtn"><div className="icons"><FaXTwitter size={18} /></div> SIGN IN WITH X</button>
+                          </div>
+                          <div className="btn_wrap">
+                            <label>Sign In With Google</label>
+                            <button type="button" className="active-down-effect googlebtn"><div className="icons"><FcGoogle size={16} /></div> SIGN IN WITH GOOGLE</button>
+                          </div>
                         </div>
                       </div>
                       <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
