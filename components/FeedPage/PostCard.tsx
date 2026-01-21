@@ -45,6 +45,29 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
     };
   }, []);
 
+  const formatRelativeTime = (dateString: string) => {
+  const now = new Date();
+  const postDate = new Date(dateString);
+  const diffMs = now.getTime() - postDate.getTime();
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+  // Optional: show date for older posts
+  return postDate.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
   return (
     <div className="moneyboy-post__container card">
       <div className="moneyboy-post__header">
@@ -79,7 +102,10 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
         </Link>
 
         <div className="moneyboy-post__upload-more-info">
-          <div className="moneyboy-post__upload-time">2 days ago</div>
+          <div className="moneyboy-post__upload-time">
+  {formatRelativeTime(post.createdAt)}
+</div>
+
           <div className="rel-user-more-opts-wrapper">
             <button
               ref={buttonRef}

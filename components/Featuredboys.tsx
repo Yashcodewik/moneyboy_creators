@@ -56,6 +56,15 @@ const Featuredboys = () => {
     }
   };
 
+  const handleProfileClick = (creatorId: string) => {
+  if (!session?.user?.id) {
+    router.push("/login"); // or "/auth/login"
+    return;
+  }
+
+  router.push(`/profile/${creatorId}`);
+};
+
   return (
     <aside className="moneyboy-2x-1x-b-layout">
       <div className="moneyboy-feed-sidebar-container">
@@ -154,7 +163,7 @@ const Featuredboys = () => {
 
             {!loading &&
               featured.map((item) => (
-                <div className="featured-profile__card" key={item._id} onClick={() => router.push(`/profile/${item._id}`)}>
+                <div className="featured-profile__card" key={item._id}  onClick={() => handleProfileClick(item._id)}>
                   <div className="featured-profile__info-wrapper">
                     <div className="profile-card featured-profile-card">
                       <div className="profile-card__bg-img">
