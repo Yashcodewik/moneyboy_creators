@@ -489,6 +489,20 @@
                        }
                      }
                    }
+
+                   &.subscriptions_icons {
+                    svg path {
+                      fill: black;
+                      stroke: #FFF;
+                      &:nth-child(1) {
+                        fill: #000;
+                      }
+
+                      &:nth-child(2) {
+                        fill: #000;
+                      }
+                    }
+                  }
  
                    &.blacklist-link {
                      svg path {

@@ -665,7 +665,7 @@ const Header = () => {
                       {session?.user?.role === 2 && (
                         <a
                           href="/subscriptions"
-                          className="menu-link blacklist-link"
+                          className="menu-link subscriptions_icons"
                           onClick={(e) => {
                             e.preventDefault();
                             setIsOpen(false);
@@ -1028,7 +1028,7 @@ const Header = () => {
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className="menu-link like-link"
+                          className="menu-link photos-link"
                           onClick={(e) => handleTabNavigation(e, "photos")} // Default to posts for users
                         >
                           <svg
