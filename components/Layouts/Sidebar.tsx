@@ -33,6 +33,7 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     const pathToPageMap: Record<string, string> = {
+       "/": "feed",  
       "/discover": "discover",
       "/feed": "feed",
       "/like": "likes",
