@@ -254,6 +254,26 @@
                  align-items: center;
                  gap: 6px;
                  cursor: pointer;
+
+                 /* &.subscriptions_icons {
+                  &:hover {
+                    .icon.subsvg {
+                      svg {
+                        path {
+                          stroke: red;
+
+                          &:nth-child(1) {
+                            fill: red;
+                          }
+
+                          &:nth-child(4) {
+                            stroke: red;
+                          }
+                        }
+                      }
+                    }
+                  }
+                 } */
  
                  &:nth-child(1) {
                    &:hover {
@@ -280,7 +300,7 @@
                      .icon {
                        svg {
                          path {
-                           stroke: black;
+                           stroke: #FFF;
  
                            &:nth-child(1) {
                              fill: black;

@@ -528,10 +528,7 @@ const Header = () => {
                           </div>
                         </div>
                       </div>
-                      <div
-                        className="menu-profile-stats-item"
-                        onClick={handleStatsClick}
-                      >
+                      <div className="menu-profile-stats-item subscriptions_icons" onClick={handleStatsClick} >
                         <div className="icon">
                           {session?.user?.role === 2 ? (
                             /* 🔹 Subscribers SVG (existing one) */
@@ -564,7 +561,7 @@ const Header = () => {
                             </svg>
                           ) : (
                             /* 🔹 Subscriptions SVG (new one) */
-                            <svg
+                            <svg className="subsvg"
                               width="32"
                               height="32"
                               viewBox="0 0 32 32"
