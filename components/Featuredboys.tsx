@@ -13,32 +13,48 @@ const Featuredboys = () => {
   const { session } = useDecryptedSession();
   const limit = 6;
     const router = useRouter();
+const fetchFeatured = async (pageNumber = 1) => {
+  setLoading(true);
+  
+  console.log("Session:", session); // Add this
+  console.log("Session user:", session?.user); // Add this
+  
+  if (!session?.user?.publicId && !session?.user?.id) {
+    console.error("No user identifier found in session");
+    setLoading(false);
+    return;
+  }
 
-  const fetchFeatured = async (pageNumber = 1) => {
-    setLoading(true);
-
-    const payload: any = {
-      page: pageNumber,
-    };
-
+  try {
     const res = await apiPost({
       url: API_GET_FEATURED_MONEYBOYS,
-      values: { userId: session?.user?.id || "", page, limit },
+      values: { 
+        userPublicId: session.user.publicId || session.user.id,
+        page: pageNumber, 
+        limit 
+      },
     });
-    console.log("API input:", session?.user?.id);
-
+    
+    console.log("API Response status:", res?.success);
+    console.log("API Response data:", res?.data);
+    console.log("API Response message:", res?.message);
+    
     if (res?.success) {
       setFeatured(res.data || []);
       setPage(res.pagination?.page || 1);
       setTotalPages(res.pagination?.totalPages || 1);
+    } else {
+      console.error("API returned success: false");
     }
-
+  } catch (error) {
+    console.error("Fetch error details:", error);
+  } finally {
     setLoading(false);
-  };
-
+  }
+};
   useEffect(() => {
     fetchFeatured(page);
-  }, [page, session?.user?._id]);
+  }, [page, session?.user?.publicId]);
 
   const handleRefresh = () => {
     fetchFeatured(page);
@@ -56,13 +72,13 @@ const Featuredboys = () => {
     }
   };
 
-  const handleProfileClick = (creatorId: string) => {
+  const handleProfileClick = (publicId  : string) => {
   if (!session?.user?.id) {
     router.push("/login"); // or "/auth/login"
     return;
   }
 
-  router.push(`/profile/${creatorId}`);
+ router.push(`/profile/${publicId}`);
 };
 
   return (
@@ -163,7 +179,7 @@ const Featuredboys = () => {
 
             {!loading &&
               featured.map((item) => (
-                <div className="featured-profile__card" key={item._id}  onClick={() => handleProfileClick(item._id)}>
+                <div className="featured-profile__card" key={item._id}  onClick={() => handleProfileClick(item.publicId)}>
                   <div className="featured-profile__info-wrapper">
                     <div className="profile-card featured-profile-card">
                       <div className="profile-card__bg-img">

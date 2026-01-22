@@ -76,9 +76,10 @@ const ProfilePage = () => {
   const [isFollowLoading, setIsFollowLoading] = useState<boolean>(false);
 
   const params = useParams();
-  const profileUserId = params.id as string;
+ const profilePublicId = params.id as string;
   const { session, status } = useDecryptedSession();
-  const sessionUserId = session?.user?.id;
+  const sessionPublicId = session?.user?.publicId;
+
 
   const [profileStats, setProfileStats] = useState({
     followerCount: 0,
@@ -94,73 +95,49 @@ const ProfilePage = () => {
     setActiveTab(tabName);
   };
 
-const refetchProfile = async () => {
-  if (!profileUserId) return;
-
-  try {
-    let response;
-    if (status === "authenticated" && sessionUserId === profileUserId) {
-      response = await getApiWithOutQuery({
-        url: API_CREATOR_PROFILE,
-      });
-    } else {
-      response = await getApiByParams({
-        url: API_CREATOR_PROFILE_BY_ID,
-        params: profileUserId,
-      });
-    }
-
-    if (response?.user && response?.creator) {
-      setProfile(response);
-      setIsFollowing(response?.isFollowing || false);
-      setPostCount(response?.postCount || 0); // Set post count from response
-      setProfileStats({
-        followerCount: response.followerCount || 0,
-        followingCount: response.followingCount || 0,
-      });
-    }
-  } catch (err: any) {
-    console.error("Error refetching profile:", err);
-  }
-};
 
 useEffect(() => {
-  if (!profileUserId) return;
-  if (status === "loading") return;
+  if (!profilePublicId || status !== "authenticated") return;
+  if (!sessionPublicId) return;
 
   const fetchProfile = async () => {
     setLoading(true);
     setError(null);
 
-    let response;
-
     try {
-      if (status === "authenticated" && sessionUserId === profileUserId) {
-        response = await getApiWithOutQuery({
-          url: API_CREATOR_PROFILE,
-        });
-      } else {
-        response = await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: profileUserId,
-        });
-      }
+      const isOwnProfile = sessionPublicId === profilePublicId;
 
+      console.log("isOwnProfile:", isOwnProfile);
+
+      const response = isOwnProfile
+        ? await getApiWithOutQuery({
+            url: API_CREATOR_PROFILE,
+          })
+        : await getApiByParams({
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: profilePublicId, // ✅ STRING ONLY
+          });
+
+
+          console.log(response,"resposne ----------")
       if (response?.user && response?.creator) {
         setProfile(response);
-        setIsFollowing(response?.isFollowing || false);
-        setPostCount(response?.postCount || 0); // Set post count from response
+        setIsFollowing(Boolean(response.isFollowing));
+        setPostCount(response.postCount ?? 0);
       }
     } catch (err: any) {
       console.error("Error fetching profile:", err);
-      setError(err.message || "Failed to load profile");
+      setError(err?.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
   };
 
   fetchProfile();
-}, [profileUserId, status, sessionUserId]);
+}, [profilePublicId, status, sessionPublicId]);
+
+
+
 
 useEffect(() => {
   if (profile) {
@@ -173,13 +150,13 @@ useEffect(() => {
 }, [profile]);
 
   useEffect(() => {
-    if (!profileUserId) return;
+    if (!profilePublicId) return;
 
     dispatch(fetchFollowerCounts());
-  }, [dispatch, profileUserId]);
+  }, [dispatch, profilePublicId]);
 
   const handleFollowToggle = async () => {
-    if (!profileUserId || isFollowLoading || sessionUserId === profileUserId)
+    if (!profilePublicId || isFollowLoading || sessionPublicId === profilePublicId)
       return;
 
     setIsFollowLoading(true);
@@ -201,9 +178,9 @@ useEffect(() => {
     try {
       let result;
       if (isFollowing) {
-        result = await dispatch(unfollowUserAction(profileUserId)).unwrap();
+        result = await dispatch(unfollowUserAction(profilePublicId)).unwrap();
       } else {
-        result = await dispatch(followUserAction(profileUserId)).unwrap();
+        result = await dispatch(followUserAction(profilePublicId)).unwrap();
       }
 
       if (result?.followerCount !== undefined) {
@@ -228,11 +205,12 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    console.log("SESSION USER ID:", session?.user?.id);
-    console.log("PROFILE USER ID:", profileUserId);
+   console.log("SESSION USER publicId:", session?.user?.publicId);
+console.log("PROFILE publicId:", profilePublicId);
+    console.log("PROFILE USER ID:", profilePublicId);
     console.log("Is following:", isFollowing);
     console.log("Profile stats:", profileStats);
-  }, [session, profileUserId, isFollowing, profileStats]);
+  }, [session, profilePublicId, isFollowing, profileStats]);
 
   const toggleLike = (id: number) => {
     setLikedItems((prev) =>
@@ -920,7 +898,7 @@ useEffect(() => {
                     </button>
 
                     <div className="">
-                      <a href="#" className="premium-btn store-btn">
+                      <a href="/store" className="premium-btn store-btn">
                         <img
                           src="/images/logo/profile-badge.png"
                           alt="Store Button Icon"
