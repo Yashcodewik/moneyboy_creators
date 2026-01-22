@@ -607,25 +607,15 @@ const Sidebar: React.FC = () => {
 
                     {session?.user?.role === 1 && (
                       <li>
-                        <Link
-                          href="#"
-                          className={`active-down-effect ${
-                            activePage === "subscriptions" ? "active" : ""
-                          }`}
-                          onClick={(e) =>
-                            handleNavClick("subscriptions", "/subscriptions", e)
-                          }
-                        >
+                        <Link href="#" className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""}`} onClick={(e) => handleNavClick("subscriptions", "/subscriptions", e)}>
                           <div>
-                    
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M11.3599 2.8125V9.2925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M11.3599 2.8125V9.2925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                             <span>Subscriptions</span>
                           </div>
                         </Link>
@@ -678,9 +668,7 @@ const Sidebar: React.FC = () => {
                         </div>
                       </Link>
                     </li>
-
-                    {/* Navigation Button - Store */}
-                    {session?.user?.role === 2 && (
+                    
                       <li>
                         <Link
                           href="/store"
@@ -737,7 +725,6 @@ const Sidebar: React.FC = () => {
                           </div>
                         </Link>
                       </li>
-                    )}
                     {/* <li>
                     <Link
                       href="/"

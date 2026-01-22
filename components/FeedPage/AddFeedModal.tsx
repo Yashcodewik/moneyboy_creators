@@ -444,15 +444,14 @@ const formik = useFormik({
           >
             <HiMenuAlt2 size={20} />
           </button> */}
+          <div className="hline"/>
+          <div className="icontext_wrap">
+           <button className="cate-back-btn active-down-effect btn_icons"><FiAtSign size={20} /></button>
+           <p>Tag</p>
+          </div>
 
 
        <div className="right">
-          <button
-            className="cate-back-btn active-down-effect btn_icons"
-            // onClick={() => setShowTagModal(true)}
-          >
-            <FiAtSign size={20} />
-          </button>
     <button className="cate-back-btn active-down-effect btn_icons">
       <FaXTwitter size={20} />
     </button>

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import SideBar from "./SideBar";
+import { Smile, Mic } from "lucide-react";
 
 const MessagePage = () => {
   const [activeChat, setActiveChat] = useState<string | null>("james");
@@ -97,10 +98,9 @@ const MessagePage = () => {
 
                 <div className="chat-room-footer-layout">
                   <div className="chat-room-footer-container">
-
                     <div className="chat-file-upload-btn">
                       <label>
-                        <input type="file" />
+                        <input type="file" hidden />
                         <span>
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M12.3297 12.1499L9.85969 14.6199C8.48969 15.9899 8.48969 18.1999 9.85969 19.5699C11.2297 20.9399 13.4397 20.9399 14.8097 19.5699L18.6997 15.6799C21.4297 12.9499 21.4297 8.50992 18.6997 5.77992C15.9697 3.04992 11.5297 3.04992 8.79969 5.77992L4.55969 10.0199C2.21969 12.3599 2.21969 16.1599 4.55969 18.5099" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -108,17 +108,37 @@ const MessagePage = () => {
                         </span>
                       </label>
                     </div>
-
                     <div className="chat-msg-typing-input">
                       <input type="text" placeholder="Send a message..." />
                     </div>
-
                     <div className="chat-msg-action-btns">
+                      <button className="emojis-icon-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
+                          <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"></rect>
+                          <path d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                      </button>
+                      <button className="voice-recorder-icon-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
+                          <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"></rect>
+                          <path d="M11.4434 15.6387V16.9845C11.4434 20.3253 14.1588 23.0408 17.4996 23.0408C20.8404 23.0408 23.5559 20.3253 23.5559 16.9845V15.6387" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M17.5007 20.2715C19.2502 20.2715 20.6673 18.8544 20.6673 17.1048V12.7507C20.6673 11.0011 19.2502 9.58398 17.5007 9.58398C15.7511 9.58398 14.334 11.0011 14.334 12.7507V17.1048C14.334 18.8544 15.7511 20.2715 17.5007 20.2715Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M16.4004 13.0905C17.1129 12.8292 17.8887 12.8292 18.6012 13.0905" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M16.8672 14.7687C17.2868 14.6578 17.7222 14.6578 18.1418 14.7687" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M17.5 23.041V25.416" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                      </button>
                       <button className="btn-txt-simple send-msg-btn">
                         <span>Send</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                          <path d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M10.1094 13.6505L13.6894 10.0605" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
                       </button>
                     </div>
-
                   </div>
                 </div>
 

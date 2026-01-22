@@ -254,7 +254,7 @@ body {
         text-align: left;
       }
       &::after {
-        content: "Recent";
+        content: "Now";
         padding-right: 10px;
         font-size: 14px;
         font-family: var(--font-family-heading);
@@ -1498,6 +1498,9 @@ body {
         }
       }
     }
+    .hline {
+      border-left: 1.5px solid #ebebeb;
+    }
     .actions {
       display: flex;
       align-items: center;
@@ -1715,6 +1718,34 @@ body {
         }
       }
       .actions {
+        .icontext_wrap {
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          &:hover {
+            button {
+              background-color: #000;
+              svg {
+                stroke: #fdc926;
+              }
+            }
+          }
+          button {
+            width: 26px;
+            height: 26px;
+            max-width: 100%;
+            svg {
+              width: 16px;
+              height: 16px;
+            }
+          }
+          p {
+            font-size: 11px;
+            line-height: 13px;
+            text-align: center;
+          }
+        }
         .btn_icons {
           cursor: pointer;
           width: 32px;
@@ -1725,12 +1756,30 @@ body {
           padding: 5px;
           background-color: #FDFDFD;
           box-shadow: 0px 6px 4px -4px #08080803, 0px 2px 1.5px -4px #0808080A, 0px 4px 4px 0px #00000017;
+          &:hover {
+            background: #000;
+            svg {
+              stroke: #fdc926;
+            }
+          }
+        }
+        .hline {
+          height: 100%;
+          min-height: 25px;
         }
         .right {
           gap: 10px;
           display: flex;
           align-items: center;
           margin-left: auto;
+          .btn_icons {
+            &:hover {
+              background: #000;
+              svg {
+                fill: #fdc926;
+              }
+            }
+          }
         }
         .premium-btn {
           width: 100%;
