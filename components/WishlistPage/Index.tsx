@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Featuredboys from "../Featuredboys";
+import CustomSelect from "../CustomSelect";
+import { timeOptions } from "../helper/creatorOptions";
 
 const WishlistPage = () => {
   const [wishlist, setWishlist] = useState(false);
@@ -9,7 +11,8 @@ const WishlistPage = () => {
   const [subActiveTab, setSubActiveTab] = useState<string>("videos");
   const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [likedItems, setLikedItems] = useState<number[]>([]);
-
+  const [time, setTime] = useState<string>("all");
+  const [savedTime, setSavedTime] = useState<string>("all");
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
@@ -104,73 +107,19 @@ const WishlistPage = () => {
                               </div>
                             </div>
                             <div className="creater-content-filters-layouts">
-                              <div className="creator-content-select-filter">
-                                <div
-                                  className="custom-select-element bg-white p-sm size-sm"
-                                  data-custom-select-element
-                                  data-custom-select-value
-                                >
-                                  <div
-                                    className="custom-select-label-wrapper"
-                                    data-custom-select-triger
-                                    onClick={() =>
-                                      setWishlist((prev) => !prev)
-                                    }
-                                  >
-                                    <div className="custom-select-icon-txt">
-                                      <span className="custom-select-label-txt">
-                                        All Time
-                                      </span>
-                                    </div>
-                                    <div className="custom-select-chevron">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="25"
-                                        height="24"
-                                        viewBox="0 0 25 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeMiterlimit="10"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                  {wishlist && (
-                                    <div
-                                      className="custom-select-options-dropdown-wrapper"
-                                      data-custom-select-dropdown
-                                    >
-                                      <div className="custom-select-options-dropdown-container">
-                                        <div className="custom-select-options-lists-container">
-                                          <ul
-                                            className="custom-select-options-list"
-                                            data-custom-select-options-list
-                                          >
-                                            <li className="custom-select-option">
-                                              <span> Option 1</span>
-                                            </li>
-                                            <li className="custom-select-option">
-                                              <span> Option 2</span>
-                                            </li>
-                                            <li className="custom-select-option">
-                                              <span> Option 3</span>
-                                            </li>
-                                            <li className="custom-select-option">
-                                              <span> Option 4</span>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
+                                     <div className="creator-content-select-filter">
+                              <CustomSelect
+                                className="bg-white p-sm size-sm"
+                                label="All Time"
+                                options={timeOptions}
+                                value={time}
+                                searchable={false}
+                                // onChange={(val) => {
+                                //   setTime(val);
+                                //   fetchLikedPosts(1);
+                                // }}
+                              />
+                            </div>
                               <div
                                 className="creator-content-grid-layout-options"
                                 data-multi-dem-cards-layout-btns
@@ -766,70 +715,18 @@ const WishlistPage = () => {
                             </div>
                           </div>
                           <div className="creater-content-filters-layouts">
-                            <div className="creator-content-select-filter">
-                              <div
-                                className="custom-select-element bg-white p-sm size-sm"
-                                data-custom-select-element
-                                data-custom-select-value
-                              >
-                                <div
-                                  className="custom-select-label-wrapper"
-                                  data-custom-select-triger
-                                  onClick={() => setAllTime((prev) => !prev)}
-                                >
-                                  <div className="custom-select-icon-txt">
-                                    <span className="custom-select-label-txt">
-                                      All Time
-                                    </span>
-                                  </div>
-                                  <div className="custom-select-chevron">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="25"
-                                      height="24"
-                                      viewBox="0 0 25 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeMiterlimit="10"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  </div>
-                                </div>
-                                {allTime && (
-                                  <div
-                                    className="custom-select-options-dropdown-wrapper"
-                                    data-custom-select-dropdown
-                                  >
-                                    <div className="custom-select-options-dropdown-container">
-                                      <div className="custom-select-options-lists-container">
-                                        <ul
-                                          className="custom-select-options-list"
-                                          data-custom-select-options-list
-                                        >
-                                          <li className="custom-select-option">
-                                            <span> Option 1</span>
-                                          </li>
-                                          <li className="custom-select-option">
-                                            <span> Option 2</span>
-                                          </li>
-                                          <li className="custom-select-option">
-                                            <span> Option 3</span>
-                                          </li>
-                                          <li className="custom-select-option">
-                                            <span> Option 4</span>
-                                          </li>
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                                 <div className="creator-content-select-filter">
+                              <CustomSelect
+                                className="bg-white p-sm size-sm"
+                                label="All Time"
+                                options={timeOptions}
+                                value={time}
+                                searchable={false}
+                                // onChange={(val) => {
+                                //   setTime(val);
+                                //   fetchLikedPosts(1);
+                                // }}
+                              />
                             </div>
                             <div
                               className="creator-content-grid-layout-options"

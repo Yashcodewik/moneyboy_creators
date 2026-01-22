@@ -17,6 +17,8 @@ import {
   unfollowUserAction,
 } from "../redux/other/followActions";
 import Featuredboys from "../Featuredboys";
+import CustomSelect from "../CustomSelect";
+import { timeOptions } from "../helper/creatorOptions";
 
 interface Creator {
   _id: string;
@@ -28,6 +30,7 @@ interface Creator {
   isFollowing: boolean;
   profileImage: string;
   coverImage: string;
+  role: number;
 }
 
 interface Follower {
@@ -40,6 +43,7 @@ interface Follower {
   isFollowing: boolean;
   isFollowingYou: boolean;
   profileImage?: string;
+  role: number;
 }
 
 const FollowersPage = () => {
@@ -47,6 +51,7 @@ const FollowersPage = () => {
   const [openMoreId, setOpenMoreId] = useState<string | null>(null);
   const moreRef = useRef<HTMLDivElement | null>(null);
   const [selectedOption, setSelectedOption] = useState("All Time");
+  const [time, setTime] = useState<string>("all_time");
   const [tab, setTab] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -156,33 +161,33 @@ const FollowersPage = () => {
     setLoading(false);
   };
 
-const fetchFollowers = async (pageNo = 1, search = "") => {
-  setLoading(true);
-  try {
-    const res = await getApi({
-      url: API_GET_FOLLOWERS,
-      page: pageNo,
-      rowsPerPage: 10,
-      searchText: search,
-    });
+  const fetchFollowers = async (pageNo = 1, search = "") => {
+    setLoading(true);
+    try {
+      const res = await getApi({
+        url: API_GET_FOLLOWERS,
+        page: pageNo,
+        rowsPerPage: 10,
+        searchText: search,
+      });
 
-    if (res?.success) {
-      const followersWithStatus = res.data.map((follower: any) => ({
-        ...follower,
-        isFollowingYou: true,
-      }));
-      setFollowers(followersWithStatus);
-      setFollowersPage(pageNo);
-      setFollowersTotalPages(res.meta?.totalPages || 1);
-      setFollowersTotal(res.meta?.total || 0);
+      if (res?.success) {
+        const followersWithStatus = res.data.map((follower: any) => ({
+          ...follower,
+          isFollowingYou: true,
+        }));
+        setFollowers(followersWithStatus);
+        setFollowersPage(pageNo);
+        setFollowersTotalPages(res.meta?.totalPages || 1);
+        setFollowersTotal(res.meta?.total || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching followers:", error);
+      // ShowToast("Failed to load followers", "error");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching followers:", error);
-    // ShowToast("Failed to load followers", "error");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const fetchFollowing = async (pageNo = 1, search = "") => {
     setLoading(true);
@@ -473,19 +478,19 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
                 >
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
-                        <img
-                      src={
-                        follower.profileImage &&
-                        follower.profileImage.trim() !== ""
-                          ? follower.profileImage
-                          : "/images/profile-avatars/profile-avatar-6.jpg"
-                      }
-                      alt={`${follower.firstName}'s profile`}
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "/images/profile-avatars/profile-avatar-6.jpg";
-                      }}
-                    />
+                      <img
+                        src={
+                          follower.profileImage &&
+                          follower.profileImage.trim() !== ""
+                            ? follower.profileImage
+                            : "/images/profile-avatars/profile-avatar-6.jpg"
+                        }
+                        alt={`${follower.firstName}'s profile`}
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "/images/profile-avatars/profile-avatar-6.jpg";
+                        }}
+                      />
                     </div>
                   </div>
                   <div className="profile-card__info">
@@ -495,10 +500,12 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
                           `${follower.firstName} ${follower.lastName}`}
                       </div>
                       <div className="profile-card__badge">
-                        <img
-                          src="/images/logo/profile-badge.png"
-                          alt="MoneyBoy Social Profile Badge"
-                        />
+                        {follower.role === 2 && (
+                          <img
+                            src="/images/logo/profile-badge.png"
+                            alt="MoneyBoy Social Profile Badge"
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="profile-card__username">
@@ -824,18 +831,19 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
                 >
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
-                         <img
-                      src={
-                        follow.profileImage && follow.profileImage.trim() !== ""
-                          ? follow.profileImage
-                          : "/images/profile-avatars/profile-avatar-6.jpg"
-                      }
-                      alt={`${follow.firstName}'s profile`}
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "/images/profile-avatars/profile-avatar-6.jpg";
-                      }}
-                    />
+                      <img
+                        src={
+                          follow.profileImage &&
+                          follow.profileImage.trim() !== ""
+                            ? follow.profileImage
+                            : "/images/profile-avatars/profile-avatar-6.jpg"
+                        }
+                        alt={`${follow.firstName}'s profile`}
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "/images/profile-avatars/profile-avatar-6.jpg";
+                        }}
+                      />
                     </div>
                   </div>
                   <div className="profile-card__info">
@@ -844,7 +852,7 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
                         {follow.displayName ||
                           `${follow.firstName} ${follow.lastName}`}
                       </div>
-                      {follow.isFollowingYou && (
+                      {follow.role === 2 && (
                         <div className="profile-card__badge">
                           <img
                             src="/images/logo/profile-badge.png"
@@ -910,7 +918,7 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
             className="moneyboy-feed-page-cate-buttons card"
             id="posts-tabs-btn-card"
           >
-            <button
+            {/* <button
               className="cate-back-btn active-down-effect"
               onClick={() => router.push("/feed")}
             >
@@ -938,7 +946,7 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
                   strokeLinejoin="round"
                 />
               </svg>
-            </button>
+            </button> */}
             <button
               className={`page-content-type-button active-down-effect ${
                 follow === "Followers" ? "active" : ""
@@ -1019,81 +1027,13 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
 
                         <div className="creater-content-filters-layouts">
                           <div className="creator-content-select-filter">
-                            <div
-                              className="custom-select-element bg-white p-sm size-sm"
-                              data-custom-select-element
-                              data-custom-select-value
-                            >
-                              <div
-                                className="custom-select-label-wrapper"
-                                data-custom-select-triger
-                                onClick={() => setTab((prev) => !prev)}
-                              >
-                                <div className="custom-select-icon-txt">
-                                  <span className="custom-select-label-txt">
-                                    {selectedOption}
-                                  </span>
-                                </div>
-                                <div className="custom-select-chevron">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="25"
-                                    height="24"
-                                    viewBox="0 0 25 24"
-                                    fill="none"
-                                  >
-                                    <path
-                                      d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeMiterlimit="10"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                </div>
-                              </div>
-                              {tab && (
-                                <div
-                                  className="custom-select-options-dropdown-wrapper"
-                                  data-custom-select-dropdown
-                                >
-                                  <div className="custom-select-options-dropdown-container">
-                                    <div className="custom-select-options-lists-container">
-                                      <ul
-                                        className="custom-select-options-list"
-                                        data-custom-select-options-list
-                                      >
-                                        <li
-                                          className="custom-select-option"
-                                          // onClick={() =>
-                                          //   handleTabChange("All Time")
-                                          // }
-                                        >
-                                          <span>option 1</span>
-                                        </li>
-                                        <li
-                                          className="custom-select-option"
-                                          // onClick={() =>
-                                          //   handleTabChange("This Month")
-                                          // }
-                                        >
-                                          <span>option 2</span>
-                                        </li>
-                                        <li
-                                          className="custom-select-option"
-                                          // onClick={() =>
-                                          //   handleTabChange("This Week")
-                                          // }
-                                        >
-                                          <span>option 3</span>
-                                        </li>
-                                      </ul>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            <CustomSelect
+                              className="bg-white p-sm size-sm"
+                              label="All Time"
+                              options={timeOptions}
+                              value={selectedOption}
+                              searchable={false}
+                            />
                           </div>
                         </div>
                       </div>
@@ -1167,40 +1107,17 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
 
                         <div className="creater-content-filters-layouts">
                           <div className="creator-content-select-filter">
-                            <div
-                              className="custom-select-element bg-white p-sm size-sm"
-                              data-custom-select-element
-                              data-custom-select-value
-                            >
-                              <div
-                                className="custom-select-label-wrapper"
-                                data-custom-select-triger
-                              >
-                                <div className="custom-select-icon-txt">
-                                  <span className="custom-select-label-txt">
-                                    All Time
-                                  </span>
-                                </div>
-                                <div className="custom-select-chevron">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="25"
-                                    height="24"
-                                    viewBox="0 0 25 24"
-                                    fill="none"
-                                  >
-                                    <path
-                                      d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeMiterlimit="10"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
+                            <CustomSelect
+                              className="bg-white p-sm size-sm"
+                              label="All Time"
+                              options={timeOptions}
+                              value={time}
+                              searchable={false}
+                              // onChange={(val) => {
+                              //   setTime(val);
+                              //   fetchLikedPosts(1);
+                              // }}
+                            />
                           </div>
                         </div>
                       </div>

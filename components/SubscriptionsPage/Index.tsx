@@ -5,31 +5,38 @@ import CustomSelect from '../CustomSelect';
 import Link from "next/link";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useSearchParams } from "next/navigation";
+import { statusOptions, timeOptions } from "../helper/creatorOptions";
 
 const SubscriptionsPage = () => {
   const [time, setTime] = useState("all");
   const [activeTab, setActiveTab] = useState("subscribers"); // "subscribers" or "subscriptions"
   const { session } = useDecryptedSession();
-  const isCreator = session?.isAuthenticated && session?.user?.role === 2;
-  const searchParams = useSearchParams(); // Add this line
+
+const isCreator = session?.isAuthenticated && session?.user?.role === 2;
+const searchParams = useSearchParams();
+
+const tabFromUrl = searchParams.get("tab");
+
+// ✅ Allow subscriptions tab ONLY when opened explicitly
+const allowSubscriptionsTab = !isCreator || tabFromUrl === "subscriptions";
+
+  
+  
 
   // Replace your existing useEffect with this:
-  useEffect(() => {
-    const tabFromUrl = searchParams.get('tab');
-    
-    if (tabFromUrl === 'subscriptions') {
-      setActiveTab("subscriptions");
-    } else if (tabFromUrl === 'subscribers') {
-      setActiveTab("subscribers");
-    } else {
-      // Default based on user role
-      if (!isCreator) {
-        setActiveTab("subscriptions");
-      } else {
-        setActiveTab("subscribers");
-      }
-    }
-  }, [searchParams, isCreator]);
+useEffect(() => {
+  if (!isCreator) {
+    setActiveTab("subscriptions");
+    return;
+  }
+
+  if (tabFromUrl === "subscriptions") {
+    setActiveTab("subscriptions");
+  } else {
+    setActiveTab("subscribers");
+  }
+}, [tabFromUrl, isCreator]);
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -39,28 +46,39 @@ const SubscriptionsPage = () => {
           {/* Tabs */}
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             {/* <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft hwhite"></span></button> */}
-            {isCreator ? (
-              <>
-                <button
-                  className={`page-content-type-button active-down-effect max-50 ${activeTab === "subscribers" ? "active" : ""}`}
-                  onClick={() => setActiveTab("subscribers")}
-                >
-                  Subscribers
-                </button>
-                <button
-                  className={`page-content-type-button active-down-effect max-50 ${activeTab === "subscriptions" ? "active" : ""}`}
-                  onClick={() => setActiveTab("subscriptions")}
-                >
-                  Subscriptions
-                </button>
-              </>
-            ) : (
-              <button
-                className="page-content-type-button active-down-effect max-50 active"
-              >
-                Subscriptions
-              </button>
-            )}
+        {isCreator ? (
+  <>
+    <button
+      className={`page-content-type-button active-down-effect max-50 ${
+        activeTab === "subscribers" ? "active" : ""
+      }`}
+      onClick={() => {
+        setActiveTab("subscribers");
+
+        // 🔥 remove tab param so subscriptions hides again
+        window.history.replaceState(null, "", "/subscriptions");
+      }}
+    >
+      Subscribers
+    </button>
+
+    {allowSubscriptionsTab && (
+      <button
+        className={`page-content-type-button active-down-effect max-50 ${
+          activeTab === "subscriptions" ? "active" : ""
+        }`}
+        onClick={() => setActiveTab("subscriptions")}
+      >
+        Subscriptions
+      </button>
+    )}
+  </>
+) : (
+  <button className="page-content-type-button active-down-effect max-50 active">
+    Subscriptions
+  </button>
+)}
+
           </div>
 
 
@@ -114,54 +132,24 @@ const SubscriptionsPage = () => {
 
                     <div className="creater-content-filters-layouts">
                       <div className="creator-content-select-filter group_select">
-                        <div className="custom-select-element bg-white p-sm size-sm">
-                          <div className="custom-select-label-wrapper">
-                            <div className="custom-select-icon-txt">
-                              <span className="custom-select-label-txt">All Status</span>
-                            </div>
-                            <div className="custom-select-chevron">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                                <path d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            </div>
-                          </div>
-                          <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown style={{translate: "none", rotate: "none", scale: "none", overflow: "hidden", display: "none", opacity: 0, transform: "translate(0px, -10px)", height: "0px",}}>
-                            <div className="custom-select-options-dropdown-container">
-                              <div className="custom-select-options-lists-container">
-                                <ul className="custom-select-options-list" data-custom-select-options-list>
-                                  <li className="custom-select-option"><span> Option 1</span></li>
-                                  <li className="custom-select-option"><span> Option 2</span></li>
-                                  <li className="custom-select-option"><span> Option 3</span></li>
-                                  <li className="custom-select-option"><span> Option 4</span></li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="custom-select-element bg-white p-sm size-sm">
-                          <div className="custom-select-label-wrapper">
-                            <div className="custom-select-icon-txt">
-                              <span className="custom-select-label-txt">All Time</span>
-                            </div>
-                            <div className="custom-select-chevron">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                                <path d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            </div>
-                          </div>
-                          <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown style={{translate: "none", rotate: "none", scale: "none", overflow: "hidden", display: "none", opacity: 0, transform: "translate(0px, -10px)", height: "0px",}}>
-                            <div className="custom-select-options-dropdown-container">
-                              <div className="custom-select-options-lists-container">
-                                <ul className="custom-select-options-list" data-custom-select-options-list>
-                                  <li className="custom-select-option"><span> Option 1</span></li>
-                                  <li className="custom-select-option"><span> Option 2</span></li>
-                                  <li className="custom-select-option"><span> Option 3</span></li>
-                                  <li className="custom-select-option"><span> Option 4</span></li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                       
+                        <CustomSelect
+                          label="All Status"
+                          options={statusOptions}
+                          value={status}
+                          // onChange={(val) => setStatus(val)}
+                          placeholder="Search status"
+                          searchable={false}
+                        />
+                      
+                     <CustomSelect
+                          className="bg-white p-sm size-sm"
+                          label="All Time"
+                          options={timeOptions}
+                          value={time}
+                          searchable={false}
+                        
+                        />
                         <div className="custom-select-element bg-white p-sm size-sm">
                           <div className="custom-select-label-wrapper">
                             <div className="custom-select-icon-txt">
