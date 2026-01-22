@@ -61,6 +61,7 @@ export const authOptions: NextAuthOptions = {
           lastName: res.user.lastName,
           role: res.user.role,
           accessToken: res.token,
+           publicId: res.user.publicId, 
         };
 
         console.log("Authorize returning userData:", userData);
@@ -86,6 +87,7 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
         token.user = user;
         token.accessToken = user.accessToken;
+        token.publicId = user.publicId;
       }
 
       return token;
@@ -104,6 +106,7 @@ export const authOptions: NextAuthOptions = {
         const sensitiveData = {
           token: token.accessToken,
           user: token.user,
+          publicId: token.publicId,
           isAuthenticated: true,
         };
 
