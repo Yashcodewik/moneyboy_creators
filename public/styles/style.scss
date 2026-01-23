@@ -1560,9 +1560,12 @@ body {
           font-style: normal;
           font-family: var(--font-family-base);
           &.right {
-            display: inline-block;
             width: 100%;
             text-align: right;
+            display: inline-flex;
+            align-items: center;
+            justify-content: end;
+            gap: 5px;
           }
         }
       }
