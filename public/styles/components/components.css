@@ -1340,6 +1340,14 @@
            object-fit: cover;
            object-position: center center;
          }
+         video {
+          transition: var(--transition-fast);
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center center;
+          display: block;
+        }
        }
  
        .moneyboy-post__actions {
