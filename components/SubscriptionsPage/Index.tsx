@@ -133,7 +133,7 @@ useEffect(() => {
                     <div className="creater-content-filters-layouts">
                       <div className="creator-content-select-filter group_select">
                        
-                        <CustomSelect
+                        <CustomSelect className="bg-white p-sm size-sm"
                           label="All Status"
                           options={statusOptions}
                           value={status}
@@ -142,13 +142,12 @@ useEffect(() => {
                           searchable={false}
                         />
                       
-                     <CustomSelect
+                        <CustomSelect
                           className="bg-white p-sm size-sm"
                           label="All Time"
                           options={timeOptions}
                           value={time}
                           searchable={false}
-                        
                         />
                         <div className="custom-select-element bg-white p-sm size-sm">
                           <div className="custom-select-label-wrapper">

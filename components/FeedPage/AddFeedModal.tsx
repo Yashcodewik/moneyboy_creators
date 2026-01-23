@@ -24,6 +24,7 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
+import { Smile } from "lucide-react";
 
 type feedParams = {
   show: boolean;
@@ -212,7 +213,7 @@ const formik = useFormik({
               onBlur={formik.handleBlur}
             />
           </div>
-          <span className="right">{formik.values.text.length}/300</span>
+          <span className="right"><Smile size={20} stroke="black" strokeWidth={1} fill="#fece26"/> {formik.values.text.length}/300</span>
           {formik.touched.text && formik.errors.text && (
             <span className="error-message">{formik.errors.text}</span>
           )}
