@@ -216,13 +216,26 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
             modules={[Navigation]}
             className="post_swiper"
           >
-            {(post.media?.[0]?.mediaFiles || []).map(
-              (img: string, i: number) => (
-                <SwiperSlide key={i}>
-                  <img src={img} alt="MoneyBoy Post Image" />
-                </SwiperSlide>
-              ),
-            )}
+           {post.media?.[0]?.mediaFiles?.map((file: string, i: number) => {
+  const isVideo = post.media?.[0]?.type === "video";
+
+  return (
+    <SwiperSlide key={i}>
+      {isVideo ? (
+        <video
+          src={file}
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      ) : (
+        <img src={file} alt="MoneyBoy Post Image" />
+      )}
+    </SwiperSlide>
+  );
+})}
+
           </Swiper>
         </div>
 
