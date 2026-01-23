@@ -1,10 +1,12 @@
 "use client";
 import React from 'react'
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const HowWorks = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+const fromTab = searchParams.get("fromTab") || "all";
   return (
     <div className="container">
       <div className="moneyboy-main-asides-layout-container">
@@ -12,7 +14,7 @@ const HowWorks = () => {
         <main className="moneyboy-dynamic-content-layout">
           <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
             <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-              <button className="cate-back-btn active-down-effect" onClick={() => router.back()}>
+              <button className="cate-back-btn active-down-effect" onClick={() => router.push(`/help?tab=${fromTab}`)}>
                 <span className="icons arrowLeft"></span>
               </button>
               <button className="page-content-type-button active-down-effect active"> How It Works</button>

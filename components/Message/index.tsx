@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
 import { Smile, Mic } from "lucide-react";
 import "@/public/styles/small-components/small-components.css"
@@ -7,10 +7,24 @@ import "@/public/styles/small-components/small-components.css"
 const MessagePage = () => {
   const [activeChat, setActiveChat] = useState<string | null>("james");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-
+const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleMenu = (id: number) => {
     setOpenMenuId((prev) => (prev === id ? null : id));
   };
+  useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      openMenuId !== null &&
+      menuRef.current &&
+      !menuRef.current.contains(event.target as Node)
+    ) {
+      setOpenMenuId(null);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, [openMenuId]);
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
@@ -57,7 +71,7 @@ const MessagePage = () => {
                         </svg>
                       </button>
                       {/* Popup */}
-                      <div className="rel-users-more-opts-popup-wrapper" style={{translate: "none", rotate: "none", scale: "none", transform: openMenuId === 1 ? "translate(0px, 0px)" : "translate(0px, -10px)", height: openMenuId === 1 ? "auto" : "0px", opacity: openMenuId === 1 ? 1 : 0, display: openMenuId === 1 ? "flex" : "none", overflow: openMenuId === 1 ? "visible" : "hidden", left: "auto", bottom: "auto", width: "auto",}}>
+                      <div className="rel-users-more-opts-popup-wrapper"  ref={menuRef} style={{translate: "none", rotate: "none", scale: "none", transform: openMenuId === 1 ? "translate(0px, 0px)" : "translate(0px, -10px)", height: openMenuId === 1 ? "auto" : "0px", opacity: openMenuId === 1 ? 1 : 0, display: openMenuId === 1 ? "flex" : "none", overflow: openMenuId === 1 ? "visible" : "hidden", left: "auto", bottom: "auto", width: "auto",}}>
                         <div className="rel-users-more-opts-popup-container">
                           <ul>
                             <li className="chat-msg-search">
