@@ -1274,7 +1274,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         </svg>
                         <span>Purchased Media</span>
                       </a>
-                      {session?.user?.role === 2 && (
+                      
                         <a href="/store" className="menu-link store-link">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1321,7 +1321,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                           </svg>
                           <span>Store</span>
                         </a>
-                      )}
+                      
                     </div>
                   </div>
                   <div className="links-block">
