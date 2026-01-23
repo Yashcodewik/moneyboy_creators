@@ -196,7 +196,7 @@ const formik = useFormik({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal_head">
-          <h3>Poll Post</h3>
+          <h3>New Post</h3>
           <button className="close-btn" onClick={onClose}>
             <CgClose size={22} />
           </button>
