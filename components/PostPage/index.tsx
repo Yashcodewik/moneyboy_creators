@@ -1,52 +1,50 @@
 "use client";
+import React, { useEffect, useRef, useState } from "react";
+import Featuredboys from "../Featuredboys";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import CustomSelect from "../CustomSelect";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getApiByParams } from "@/utils/endpoints/common";
+import { API_GET_POST_BY_PUBLIC_ID } from "@/utils/api/APIConstant";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
-
 import "swiper/css";
 import "swiper/css/navigation";
 
-interface PostCardProps {
-  post: any;
-  onLike: (postId: string) => void;
-  onSave: (postId: string) => void;
-}
-
-const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
-  const [open, setOpen] = useState(false);
+const PostPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams(); // <-- new
+  const publicId = searchParams.get("publicId"); // get publicId from URL
+  const [post, setPost] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
+   const menuRef = useRef<HTMLDivElement | null>(null);
+   const buttonRef = useRef<HTMLButtonElement | null>(null);
+   const [copied, setCopied] = useState(false);
+     const [open, setOpen] = useState(false);
 
-const handleCopy = () => {
- const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
-  navigator.clipboard.writeText(url);
-  setCopied(true);
-  setTimeout(() => setCopied(false), 1200);
-};
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      // If click is outside both menu and button, close menu
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
+    if (!publicId) return;
+
+    const fetchPost = async () => {
+      try {
+        const data = await getApiByParams({
+          url: API_GET_POST_BY_PUBLIC_ID,
+          params: publicId as string, // send publicId as param
+        });
+
+        if (data.success) setPost(data.post);
+      } catch (err) {
+        console.error("Error fetching post:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    fetchPost();
+  }, [publicId]);
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const formatRelativeTime = (dateString: string) => {
+    const formatRelativeTime = (dateString: string) => {
   const now = new Date();
   const postDate = new Date(dateString);
   const diffMs = now.getTime() - postDate.getTime();
@@ -68,46 +66,77 @@ const handleCopy = () => {
     year: "numeric",
   });
 };
+const handleCopy = () => {
+ const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
+  navigator.clipboard.writeText(url);
+  setCopied(true);
+  setTimeout(() => setCopied(false), 1200);
+};
+  if (loading) {
+  return <div style={{ padding: 20 }}>Loading...</div>;
+}
 
+if (!post) {
+  return <div style={{ padding: 20 }}>Post not found</div>;
+}
   return (
-    <div className="moneyboy-post__container card">
-      <div className="moneyboy-post__header">
-        <Link href="#" className="profile-card">
-          <div className="profile-card__main">
-            <div className="profile-card__avatar-settings">
-              <div className="profile-card__avatar">
-                <img
-                  src={post.creatorInfo?.profile}
-                  alt="MoneyBoy Social Profile Avatar"
-                />
-              </div>
-            </div>
-
-            <div className="profile-card__info">
-              <div className="profile-card__name-badge">
-                <div className="profile-card__name">
-                  {post.creatorInfo?.userName}
-                </div>
-                <div className="profile-card__badge">
-                  <img
-                    src="/images/logo/profile-badge.png"
-                    alt="MoneyBoy Social Profile Badge"
-                  />
-                </div>
-              </div>
-              <div className="profile-card__username">
-                @{post.creatorInfo?.displayName}
-              </div>
-            </div>
+    <div className="moneyboy-2x-1x-layout-container">
+      <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
+        <div className="moneyboy-feed-page-container">
+          <div
+            className="moneyboy-feed-page-cate-buttons card"
+            id="posts-tabs-btn-card"
+          >
+            <button className="page-content-type-button active-down-effect active">
+              Feed
+            </button>
+            <button className="page-content-type-button active-down-effect">
+              Following
+            </button>
+            <button className="page-content-type-button active-down-effect">
+              Popular
+            </button>
           </div>
-        </Link>
-
-        <div className="moneyboy-post__upload-more-info">
-          <div className="moneyboy-post__upload-time">
-  {formatRelativeTime(post.createdAt)}
-</div>
-
-          <div className="rel-user-more-opts-wrapper">
+          <div className="moneyboy-posts-wrapper">
+            {/* ================= Post ================= */}
+            <div className="moneyboy-post__container card">
+              <div className="moneyboy-post__header">
+                <a href="#" className="profile-card">
+                  <div className="profile-card__main">
+                    <div className="profile-card__avatar-settings">
+                      <div className="profile-card__avatar">
+                        <img
+    src={
+      post?.creatorInfo?.profile ||
+      "/images/profile-avatars/profile-avatar-1.png"
+    }
+    alt={post?.creatorInfo?.displayName || "Profile Avatar"}
+  />
+                      </div>
+                    </div>
+                    <div className="profile-card__info">
+                      <div className="profile-card__name-badge">
+                        <div className="profile-card__name">
+                          {post.creatorInfo?.displayName || "User"}
+                        </div>
+                        <div className="profile-card__badge">
+                          <img
+                            src="/images/logo/profile-badge.png"
+                            alt="MoneyBoy Social Profile Badge"
+                          />
+                        </div>
+                      </div>
+                      <div className="profile-card__username">
+                        @{post.creatorInfo?.userName || "username"}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+                <div className="moneyboy-post__upload-more-info">
+                  <div className="moneyboy-post__upload-time">
+                    {formatRelativeTime(post.createdAt)}  
+                  </div>
+                <div className="rel-user-more-opts-wrapper">
             <button
               ref={buttonRef}
               className="rel-user-more-opts-trigger-icon"
@@ -181,12 +210,10 @@ const handleCopy = () => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="moneyboy-post__desc">
-        {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>{post.text} {!expanded && (<span className="active-down-effect-2x post-more" onClick={() => setExpanded(true)}>more</span>)}</p> */}
-        <p className="post-text">
+                </div>
+              </div>
+              <div className="moneyboy-post__desc">
+                 <p className="post-text">
           {post?.text ? (
             <>
               {expanded || post.text.length <= 150
@@ -206,9 +233,8 @@ const handleCopy = () => {
             "Today, I experienced the most blissful ride outside. The air is fresh and it feels amazing..."
           )}
         </p>
-      </div>
-
-      <div className="moneyboy-post__media">
+              </div>
+           <div className="moneyboy-post__media">
         <div className="moneyboy-post__img">
           <Swiper
             slidesPerView={1}
@@ -300,7 +326,7 @@ const handleCopy = () => {
                 className={`post-like-btn ${post.isLiked ? "active" : ""}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  onLike(post._id);
+                  // onLike(post._id);
                 }}
               >
                 <svg
@@ -398,7 +424,7 @@ const handleCopy = () => {
                 className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  onSave(post._id);
+                  // onSave(post._id);
                 }}
               >
                 <svg
@@ -435,8 +461,13 @@ const handleCopy = () => {
           </ul>
         </div>
       </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <Featuredboys />
     </div>
   );
 };
 
-export default PostCard;
+export default PostPage;

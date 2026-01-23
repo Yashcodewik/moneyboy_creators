@@ -35,3 +35,4 @@ export const API_GET_MY_SUBSCRIPTION = "/subscription/me";
 export const API_BLOCK_COUNTRIES: string = "/creator/block-countries";
 export const API_GET_FEATURED_MONEYBOYS = "/social/featuredmoneysGet";
 export const API_CREATOR_PROFILE_BY_ID = "/creator/profile"; 
+export const API_GET_POST_BY_PUBLIC_ID = "/post/public"; 
