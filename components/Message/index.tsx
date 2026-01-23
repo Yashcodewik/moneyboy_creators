@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import SideBar from "./SideBar";
 import { Smile, Mic } from "lucide-react";
+import "@/public/styles/small-components/small-components.css"
 
 const MessagePage = () => {
   const [activeChat, setActiveChat] = useState<string | null>("james");
@@ -56,6 +57,72 @@ const MessagePage = () => {
                             <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
                           </svg>
                         </button>
+                      </div>
+                      <div className="rel-users-more-opts-popup-wrapper" style={{translate: "none", rotate: "none", scale: "none", transform: "translate(0px, -10px)", height: "0px", opacity: 0, display: "none", overflow: "hidden", left: "auto", bottom: "auto", width: "auto",}}>
+                        <div className="rel-users-more-opts-popup-container">
+                          <ul>
+                            <li className="chat-msg-search">
+                              <div>
+                                <div className="label-input">
+                                  <div className="input-placeholder-icon">
+                                    <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                      <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                      <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                      <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                      <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                  </div>
+                                  <input type="text" placeholder="Search Message" />
+                                </div>
+                              </div>
+                            </li>
+
+                            <li>
+                              <div className="icon mute-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                  <path d="M22 2L2 22" strokeWidth="1.5" strokeLinecap="round" />
+                                </svg>
+                              </div>
+                              <span>Mute Conversation</span>
+                            </li>
+
+                            <li>
+                              <div className="icon hide-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                  <path d="M22 2L2 22" strokeWidth="1.5" strokeLinecap="round" />
+                                </svg>
+                              </div>
+                              <span>Hide Conversation</span>
+                            </li>
+
+                            <li>
+                              <div className="icon block-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                  <path d="M20.5 15.5L15.5 20.5" strokeWidth="1.5" />
+                                </svg>
+                              </div>
+                              <span>Block Messages</span>
+                            </li>
+
+                            <li>
+                              <div className="icon report-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                  <path d="M5 2V22" strokeWidth="1.5" />
+                                </svg>
+                              </div>
+                              <span>Report Conversation</span>
+                            </li>
+
+                            <li>
+                              <div className="icon delete-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                  <path d="M5 6L19 6" strokeWidth="1.5" />
+                                </svg>
+                              </div>
+                              <span>Delete Conversation</span>
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
 
