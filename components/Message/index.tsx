@@ -21,57 +21,43 @@ const MessagePage = () => {
              <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
              <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
               <div className="msg-chat-room-container">
-                <div className="chat-room-header-layout">
-                  <div className="chat-room-header-container">
-
-                    <div className="chat-room-header-profile">
-                      <div className="profile-card">
-                        <a href="#" className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img src="/images/profile-avatars/profile-avatar-27.jpg" alt="MoneyBoy Social Profile Avatar" />
+              <div className="chat-room-header-layout">
+                <div className="chat-room-header-container">
+                  {/* Profile */}
+                  <div className="chat-room-header-profile">
+                    <div className="profile-card">
+                      <div className="profile-card__main">
+                        <div className="profile-card__avatar-settings">
+                          <div className="profile-card__avatar">
+                            <img src="/images/profile-avatars/profile-avatar-27.jpg" alt="Profile Avatar" />
+                          </div>
+                        </div>
+                        <div className="profile-card__info">
+                          <div className="profile-card__name-badge">
+                            <div className="profile-card__name">Madagascar Silver</div>
+                            <div className="profile-card__badge">
+                              <img src="/images/logo/profile-badge.png" alt="Profile Badge"/>
                             </div>
                           </div>
-
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">Madagascar Silver</div>
-                              <div className="profile-card__badge">
-                                <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">@madagascarsilver</div>
-                          </div>
-                        </a>
+                          <div className="profile-card__username">@madagascarsilver</div>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="chat-room-header-btns">
-                      <a href="#" className="btn-txt-gradient"><span>View Profile</span></a>
-
-                      <div className="rel-user-more-opts-wrapper" data-more-actions-toggle-element="">
-                        <button className="rel-user-more-opts-trigger-icon" onClick={() => toggleMenu(1)}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25">
-                            <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
-                            <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
-                            <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="rel-users-more-opts-popup-wrapper" style={{translate: "none", rotate: "none", scale: "none", transform: "translate(0px, -10px)", height: "0px", opacity: 0, display: "none", overflow: "hidden", left: "auto", bottom: "auto", width: "auto",}}>
-                         {/* style={{
-    translate: "none",
-    rotate: "none",
-    scale: "none",
-    transform: "translate(0px, -10px)",
-    height: openMenuId === 1 ? "auto" : "0px",
-    opacity: openMenuId === 1 ? 1 : 0,
-    display: openMenuId === 1 ? "block" : "none",
-    overflow: "hidden",
-    left: "auto",
-    bottom: "auto",
-    width: "auto",
-  }}> */}
+                  </div>
+                  {/* Actions */}
+                  <div className="chat-room-header-btns">
+                    <div className="btn-txt-gradient"><span>View Profile</span></div>
+                    {/* More Options */}
+                    <div className="rel-user-more-opts-wrapper">
+                      <button className="rel-user-more-opts-trigger-icon" aria-label="More options" onClick={() => toggleMenu(1)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25">
+                          <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
+                          <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
+                          <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
+                        </svg>
+                      </button>
+                      {/* Popup */}
+                      <div className="rel-users-more-opts-popup-wrapper" style={{translate: "none", rotate: "none", scale: "none", transform: openMenuId === 1 ? "translate(0px, 0px)" : "translate(0px, -10px)", height: openMenuId === 1 ? "auto" : "0px", opacity: openMenuId === 1 ? 1 : 0, display: openMenuId === 1 ? "flex" : "none", overflow: openMenuId === 1 ? "visible" : "hidden", left: "auto", bottom: "auto", width: "auto",}}>
                         <div className="rel-users-more-opts-popup-container">
                           <ul>
                             <li className="chat-msg-search">
@@ -89,47 +75,74 @@ const MessagePage = () => {
                                 </div>
                               </div>
                             </li>
-
                             <li>
                               <div className="icon mute-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                                  <path d="M22 2L2 22" strokeWidth="1.5" strokeLinecap="round" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                  <path d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M22 2L2 22" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
                               </div>
                               <span>Mute Conversation</span>
                             </li>
-
                             <li>
                               <div className="icon hide-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                                  <path d="M22 2L2 22" strokeWidth="1.5" strokeLinecap="round" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                  <g>
+                                    <path d="M17.8201 5.77047C16.0701 4.45047 14.0701 3.73047 12.0001 3.73047C8.47009 3.73047 5.18009 5.81047 2.89009 9.41047C1.99009 10.8205 1.99009 13.1905 2.89009 14.6005C3.68009 15.8405 4.60009 16.9105 5.60009 17.7705" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M14.5299 9.46992L9.46992 14.5299C8.81992 13.8799 8.41992 12.9899 8.41992 11.9999C8.41992 10.0199 10.0199 8.41992 11.9999 8.41992C12.9899 8.41992 13.8799 8.81992 14.5299 9.46992Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M8.41992 19.5297C9.55992 20.0097 10.7699 20.2697 11.9999 20.2697C15.5299 20.2697 18.8199 18.1897 21.1099 14.5897C22.0099 13.1797 22.0099 10.8097 21.1099 9.39969C20.7799 8.87969 20.4199 8.38969 20.0499 7.92969" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M15.5099 12.6992C15.2499 14.1092 14.0999 15.2592 12.6899 15.5192" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M9.47 14.5293L2 21.9993" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M22 2L14.53 9.47" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  </g>
                                 </svg>
                               </div>
                               <span>Hide Conversation</span>
                             </li>
-
                             <li>
                               <div className="icon block-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                                  <path d="M20.5 15.5L15.5 20.5" strokeWidth="1.5" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M20.5 15.5001L15.5 20.5001" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                  </path>
                                 </svg>
                               </div>
                               <span>Block Messages</span>
                             </li>
-
                             <li>
                               <div className="icon report-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                                  <path d="M5 2V22" strokeWidth="1.5" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                  <path d="M5.14844 2V22" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  <path d="M5.14844 4H16.3484C19.0484 4 19.6484 5.5 17.7484 7.4L16.5484 8.6C15.7484 9.4 15.7484 10.7 16.5484 11.4L17.7484 12.6C19.6484 14.5 18.9484 16 16.3484 16H5.14844" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
                               </div>
                               <span>Report Conversation</span>
                             </li>
-
                             <li>
                               <div className="icon delete-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                                  <path d="M5 6L19 6" strokeWidth="1.5" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                  <g clip-path="url(#clip0_6001_200)">
+                                    <mask id="mask0_6001_200" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+                                      <path d="M24 0H0V24H24V0Z" fill="white"></path>
+                                    </mask>
+                                    <g mask="url(#mask0_6001_200)">
+                                      <path d="M21 5.98047C17.67 5.65047 14.32 5.48047 10.98 5.48047C9 5.48047 7.02 5.58047 5.04 5.78047L3 5.98047" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                      <path d="M8.5 4.97L8.72 3.66C8.88 2.71 9 2 10.69 2H13.31C15 2 15.13 2.75 15.28 3.67L15.5 4.97" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                      <path d="M19 6L18.3358 18.5288C18.2234 20.4821 18.1314 22 15.2803 22H8.71971C5.86861 22 5.77664 20.4821 5.66423 18.5288L5 6" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                      <path d="M10.3301 16.5H13.6601" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                      <path d="M9.5 12.5H14.5" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </g>
+                                  </g>
+                                  <defs>
+                                    <clipPath id="clip0_6001_200">
+                                      <rect width="24" height="24" fill="white"></rect>
+                                    </clipPath>
+                                  </defs>
                                 </svg>
                               </div>
                               <span>Delete Conversation</span>
@@ -138,9 +151,9 @@ const MessagePage = () => {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
+              </div>
 
                 <div className="chat-room-body-layout">
                   <div className="chat-room-body-container">
