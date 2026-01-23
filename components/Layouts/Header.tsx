@@ -131,13 +131,20 @@ const Header = () => {
     router.push(`/follower?tab=${tab}`);
   };
 
-  const handleStatsClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsOpen(false);
-
+const handleStatsClick = (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsOpen(false);
+  
+  if (session?.user?.role === 2) {
+    // For creators: go to subscribers page
+    router.push("/subscriptions?tab=subscribers");
+  } else {
+    // For regular users: go to subscriptions page
     router.push("/subscriptions?tab=subscriptions");
-  };
+  }
+};
+
   return (
     <>
       <header className="header-main">
