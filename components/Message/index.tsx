@@ -50,7 +50,7 @@ const MessagePage = () => {
                       <a href="#" className="btn-txt-gradient"><span>View Profile</span></a>
 
                       <div className="rel-user-more-opts-wrapper" data-more-actions-toggle-element="">
-                        <button className="rel-user-more-opts-trigger-icon">
+                        <button className="rel-user-more-opts-trigger-icon" onClick={() => toggleMenu(1)}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25">
                             <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
                             <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
@@ -59,6 +59,19 @@ const MessagePage = () => {
                         </button>
                       </div>
                       <div className="rel-users-more-opts-popup-wrapper" style={{translate: "none", rotate: "none", scale: "none", transform: "translate(0px, -10px)", height: "0px", opacity: 0, display: "none", overflow: "hidden", left: "auto", bottom: "auto", width: "auto",}}>
+                         {/* style={{
+    translate: "none",
+    rotate: "none",
+    scale: "none",
+    transform: "translate(0px, -10px)",
+    height: openMenuId === 1 ? "auto" : "0px",
+    opacity: openMenuId === 1 ? 1 : 0,
+    display: openMenuId === 1 ? "block" : "none",
+    overflow: "hidden",
+    left: "auto",
+    bottom: "auto",
+    width: "auto",
+  }}> */}
                         <div className="rel-users-more-opts-popup-container">
                           <ul>
                             <li className="chat-msg-search">
