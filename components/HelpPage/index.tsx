@@ -196,7 +196,7 @@ const HelpPage = () => {
                     <ul className="points link_points">
                       <li>
                         For Creators{" "}
-                        <Link href={`/help/for-cretors?fromTab=${activeTab}`}>
+                        <Link href={`/help/for-creators?fromTab=${activeTab}`}>
                           /for-creators
                         </Link>
                       </li>
