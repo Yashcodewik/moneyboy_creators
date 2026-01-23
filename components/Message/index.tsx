@@ -18,8 +18,8 @@ const MessagePage = () => {
           <div className="msg-page-container" msg-page-wrapper={true}>
             <SideBar />
             <div className="msg-chats-layout">
-             <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
-             <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
+             <div className="msg-chats-rooms-container">
+             <div className="msg-chat-room-layout">
               <div className="msg-chat-room-container">
               <div className="chat-room-header-layout">
                 <div className="chat-room-header-container">
