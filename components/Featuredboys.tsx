@@ -15,43 +15,31 @@ const Featuredboys = () => {
     const router = useRouter();
 const fetchFeatured = async (pageNumber = 1) => {
   setLoading(true);
-  
-  console.log("Session:", session); // Add this
-  console.log("Session user:", session?.user); // Add this
-  
-  if (!session?.user?.publicId && !session?.user?.id) {
-    console.error("No user identifier found in session");
-    setLoading(false);
-    return;
-  }
 
   try {
     const res = await apiPost({
       url: API_GET_FEATURED_MONEYBOYS,
-      values: { 
-        userPublicId: session.user.publicId || session.user.id,
-        page: pageNumber, 
-        limit 
+      values: {
+        page: pageNumber,
+        limit,
+        ...(session?.user?.publicId && {
+          userPublicId: session.user.publicId,
+        }),
       },
     });
-    
-    console.log("API Response status:", res?.success);
-    console.log("API Response data:", res?.data);
-    console.log("API Response message:", res?.message);
-    
+
     if (res?.success) {
       setFeatured(res.data || []);
       setPage(res.pagination?.page || 1);
       setTotalPages(res.pagination?.totalPages || 1);
-    } else {
-      console.error("API returned success: false");
     }
   } catch (error) {
-    console.error("Fetch error details:", error);
+    console.error("Fetch error:", error);
   } finally {
     setLoading(false);
   }
 };
+
   useEffect(() => {
     fetchFeatured(page);
   }, [page, session?.user?.publicId]);
