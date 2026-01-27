@@ -76,10 +76,9 @@ const ProfilePage = () => {
   const [isFollowLoading, setIsFollowLoading] = useState<boolean>(false);
 
   const params = useParams();
- const profilePublicId = params.id as string;
+  const profilePublicId = params.id as string;
   const { session, status } = useDecryptedSession();
   const sessionPublicId = session?.user?.publicId;
-
 
   const [profileStats, setProfileStats] = useState({
     followerCount: 0,
@@ -95,59 +94,54 @@ const ProfilePage = () => {
     setActiveTab(tabName);
   };
 
+  useEffect(() => {
+    if (!profilePublicId || status !== "authenticated") return;
+    if (!sessionPublicId) return;
 
-useEffect(() => {
-  if (!profilePublicId || status !== "authenticated") return;
-  if (!sessionPublicId) return;
+    const fetchProfile = async () => {
+      setLoading(true);
+      setError(null);
 
-  const fetchProfile = async () => {
-    setLoading(true);
-    setError(null);
+      try {
+        const isOwnProfile = sessionPublicId === profilePublicId;
 
-    try {
-      const isOwnProfile = sessionPublicId === profilePublicId;
+        console.log("isOwnProfile:", isOwnProfile);
 
-      console.log("isOwnProfile:", isOwnProfile);
+        const response = isOwnProfile
+          ? await getApiWithOutQuery({
+              url: API_CREATOR_PROFILE,
+            })
+          : await getApiByParams({
+              url: API_CREATOR_PROFILE_BY_ID,
+              params: profilePublicId, // ✅ STRING ONLY
+            });
 
-      const response = isOwnProfile
-        ? await getApiWithOutQuery({
-            url: API_CREATOR_PROFILE,
-          })
-        : await getApiByParams({
-            url: API_CREATOR_PROFILE_BY_ID,
-            params: profilePublicId, // ✅ STRING ONLY
-          });
-
-
-          console.log(response,"resposne ----------")
-      if (response?.user && response?.creator) {
-        setProfile(response);
-        setIsFollowing(Boolean(response.isFollowing));
-        setPostCount(response.postCount ?? 0);
+        console.log(response, "resposne ----------");
+        if (response?.user && response?.creator) {
+          setProfile(response);
+          setIsFollowing(Boolean(response.isFollowing));
+          setPostCount(response.postCount ?? 0);
+        }
+      } catch (err: any) {
+        console.error("Error fetching profile:", err);
+        setError(err?.message || "Failed to load profile");
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      console.error("Error fetching profile:", err);
-      setError(err?.message || "Failed to load profile");
-    } finally {
-      setLoading(false);
+    };
+
+    fetchProfile();
+  }, [profilePublicId, status, sessionPublicId]);
+
+  useEffect(() => {
+    if (profile) {
+      setPostCount(profile.postCount || 0); // Also set post count here
+      setProfileStats({
+        followerCount: profile.followerCount || 0,
+        followingCount: profile.followingCount || 0,
+      });
     }
-  };
-
-  fetchProfile();
-}, [profilePublicId, status, sessionPublicId]);
-
-
-
-
-useEffect(() => {
-  if (profile) {
-    setPostCount(profile.postCount || 0); // Also set post count here
-    setProfileStats({
-      followerCount: profile.followerCount || 0,
-      followingCount: profile.followingCount || 0,
-    });
-  }
-}, [profile]);
+  }, [profile]);
 
   useEffect(() => {
     if (!profilePublicId) return;
@@ -156,7 +150,11 @@ useEffect(() => {
   }, [dispatch, profilePublicId]);
 
   const handleFollowToggle = async () => {
-    if (!profilePublicId || isFollowLoading || sessionPublicId === profilePublicId)
+    if (
+      !profilePublicId ||
+      isFollowLoading ||
+      sessionPublicId === profilePublicId
+    )
       return;
 
     setIsFollowLoading(true);
@@ -205,8 +203,8 @@ useEffect(() => {
   };
 
   useEffect(() => {
-   console.log("SESSION USER publicId:", session?.user?.publicId);
-console.log("PROFILE publicId:", profilePublicId);
+    console.log("SESSION USER publicId:", session?.user?.publicId);
+    console.log("PROFILE publicId:", profilePublicId);
     console.log("PROFILE USER ID:", profilePublicId);
     console.log("Is following:", isFollowing);
     console.log("Profile stats:", profileStats);
@@ -217,7 +215,6 @@ console.log("PROFILE publicId:", profilePublicId);
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
-
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -559,7 +556,7 @@ console.log("PROFILE publicId:", profilePublicId);
                   <div className="profile-card__stats">
                     <div className="profile-card__stats-item posts-stats">
                       <div className="profile-card__stats-num">
-                       {postCount.toLocaleString()}
+                        {postCount.toLocaleString()}
                       </div>
                       <div className="profile-card__stats-label">
                         <svg
@@ -947,10 +944,10 @@ console.log("PROFILE publicId:", profilePublicId);
                                 <div className="creator-content-card__stats">
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${
-                                        likedItems.includes(1) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(1)}
+                                    // className={`like-button ${
+                                    //   likedItems.includes(1) ? "liked" : ""
+                                    // }`}
+                                    // onClick={() => toggleLike(1)}
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -971,7 +968,7 @@ console.log("PROFILE publicId:", profilePublicId);
 
                                     <span>12K</span>
                                   </div>
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box ">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1060,7 +1057,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1088,8 +1085,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -1185,7 +1182,7 @@ console.log("PROFILE publicId:", profilePublicId);
 
                                     <span>12K</span>
                                   </div> */}
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box ">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1213,8 +1210,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -1283,7 +1280,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1311,8 +1308,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -1403,7 +1400,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1431,8 +1428,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -1501,7 +1498,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1529,8 +1526,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -1569,10 +1566,10 @@ console.log("PROFILE publicId:", profilePublicId);
                                 <div className="creator-content-card__stats">
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${
-                                        likedItems.includes(1) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(1)}
+                                    // className={`like-button ${
+                                    //   likedItems.includes(1) ? "liked" : ""
+                                    // }`}
+                                    // onClick={() => toggleLike(1)}
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1593,7 +1590,7 @@ console.log("PROFILE publicId:", profilePublicId);
 
                                     <span>12K</span>
                                   </div>
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1682,7 +1679,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box ">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1710,8 +1707,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -1802,7 +1799,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box ">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1830,8 +1827,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -1871,10 +1868,10 @@ console.log("PROFILE publicId:", profilePublicId);
                                 <div className="creator-content-card__stats">
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${
-                                        likedItems.includes(1) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(1)}
+                                    // className={`like-button ${
+                                    //   likedItems.includes(1) ? "liked" : ""
+                                    // }`}
+                                    // onClick={() => toggleLike(1)}
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1895,7 +1892,7 @@ console.log("PROFILE publicId:", profilePublicId);
 
                                     <span>12K</span>
                                   </div>
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1984,7 +1981,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box ">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -2012,8 +2009,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"
@@ -2082,7 +2079,7 @@ console.log("PROFILE publicId:", profilePublicId);
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box views-btn">
+                                  <div className="creator-content-stat-box ">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -2110,8 +2107,8 @@ console.log("PROFILE publicId:", profilePublicId);
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
-                                      className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                      onClick={() => toggleLike(2)}
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
                                     >
                                       <svg
                                         width="22"

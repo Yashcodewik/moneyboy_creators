@@ -7,24 +7,28 @@ import "@/public/styles/small-components/small-components.css"
 const MessagePage = () => {
   const [activeChat, setActiveChat] = useState<string | null>("james");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-const menuRef = useRef<HTMLDivElement | null>(null);
+
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const toggleMenu = (id: number) => {
     setOpenMenuId((prev) => (prev === id ? null : id));
   };
-  useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      openMenuId !== null &&
-      menuRef.current &&
-      !menuRef.current.contains(event.target as Node)
-    ) {
-      setOpenMenuId(null);
-    }
-  };
+    useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => document.removeEventListener("mousedown", handleClickOutside);
-}, [openMenuId]);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
@@ -32,8 +36,8 @@ const menuRef = useRef<HTMLDivElement | null>(null);
           <div className="msg-page-container" msg-page-wrapper={true}>
             <SideBar />
             <div className="msg-chats-layout">
-             <div className="msg-chats-rooms-container">
-             <div className="msg-chat-room-layout">
+             <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
+             <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
               <div className="msg-chat-room-container">
               <div className="chat-room-header-layout">
                 <div className="chat-room-header-container">
@@ -71,7 +75,7 @@ const menuRef = useRef<HTMLDivElement | null>(null);
                         </svg>
                       </button>
                       {/* Popup */}
-                      <div className="rel-users-more-opts-popup-wrapper"  ref={menuRef} style={{translate: "none", rotate: "none", scale: "none", transform: openMenuId === 1 ? "translate(0px, 0px)" : "translate(0px, -10px)", height: openMenuId === 1 ? "auto" : "0px", opacity: openMenuId === 1 ? 1 : 0, display: openMenuId === 1 ? "flex" : "none", overflow: openMenuId === 1 ? "visible" : "hidden", left: "auto", bottom: "auto", width: "auto",}}>
+                      <div ref={dropdownRef}  className="rel-users-more-opts-popup-wrapper" style={{translate: "none", rotate: "none", scale: "none", transform: openMenuId === 1 ? "translate(0px, 0px)" : "translate(0px, -10px)", height: openMenuId === 1 ? "auto" : "0px", opacity: openMenuId === 1 ? 1 : 0, display: openMenuId === 1 ? "flex" : "none", overflow: openMenuId === 1 ? "visible" : "hidden", left: "auto", bottom: "auto", width: "auto",}}>
                         <div className="rel-users-more-opts-popup-container">
                           <ul>
                             <li className="chat-msg-search">

@@ -7,6 +7,7 @@ interface Props {
   hasMore: boolean;
   children: React.ReactNode;
   loader?: React.ReactNode;
+  scrollableTarget: string; // required
 }
 
 export default function InfiniteScrollWrapper({
@@ -15,6 +16,7 @@ export default function InfiniteScrollWrapper({
   hasMore,
   children,
   loader = <div className="nodeta">Loading...</div>,
+  scrollableTarget, // <-- MUST destructure this
 }: Props) {
   return (
     <InfiniteScroll
@@ -23,6 +25,7 @@ export default function InfiniteScrollWrapper({
       hasMore={hasMore}
       loader={loader}
       scrollThreshold={0.85}
+      scrollableTarget={scrollableTarget} // now TS knows what this is
     >
       {children}
     </InfiniteScroll>
