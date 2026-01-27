@@ -4415,8 +4415,17 @@ body {
 //     scrollbar-width: none;
 //   }
 // }
-.infinite-scroll-component {scrollbar-width: none;overflow: visible !important;}
-.infinite-scroll-component::-webkit-scrollbar {display: none;}
+.infinite-scroll-component {
+  height: calc(100dvh - 80px) !important;
+  overflow-y: auto !important;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  .rel-user-more-opts-wrapper .rel-users-more-opts-popup-wrapper:has([data-copy-post-link]) {}
+  .rel-users-more-opts-popup-wrapper {
+    right: 0px;
+  }
+}
 
 .post_swiper {
   width: 100%;
