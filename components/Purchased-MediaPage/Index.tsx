@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import CustomSelect from "../CustomSelect";
 import {
+  creatorsOptions,
   statusOptions,
   timeOptions,
   typeOptions,
@@ -138,133 +139,13 @@ const PurchasedMediaPage: React.FC = () => {
                         />
                       </div>
                       <div className="pm-page-select">
-                        <div
-                          className="custom-select-element"
-                          data-custom-select-element
-                          data-custom-select-value
-                        >
-                          <div
-                            className="custom-select-label-wrapper"
-                            data-custom-select-triger
-                            onClick={() => toggleDropdown("creator")}
-                          >
-                            <div className="custom-select-icon-txt">
-                              <span className="custom-select-label-txt">
-                                All Creators
-                              </span>
-                            </div>
-                            <div className="custom-select-chevron">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="25"
-                                height="24"
-                                viewBox="0 0 25 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                  stroke="none"
-                                  stroke-width="1.5"
-                                  stroke-miterlimit="10"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                          {openDropdown === "creator" && (
-                            <div
-                              className="custom-select-options-dropdown-wrapper"
-                              data-custom-select-dropdown
-                            >
-                              <div className="custom-select-options-dropdown-container">
-                                <div
-                                  className="custom-select-options-search"
-                                  data-custom-select-options-search
-                                >
-                                  <div className="label-input">
-                                    <div className="input-placeholder-icon">
-                                      <svg
-                                        className="svg-icon"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M14 5H20"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M14 8H17"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <input
-                                      type="text"
-                                      placeholder="Search here"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="custom-select-options-lists-container">
-                                  <ul
-                                    className="custom-select-options-list"
-                                    data-custom-select-options-list
-                                  >
-                                    <li className="custom-select-option">
-                                      <span>Option 1</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 2</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 3</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 4</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 5</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 6</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 7</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 8</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 9</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 10</span>
-                                    </li>
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <CustomSelect
+                          label="All Creators"
+                          options={creatorsOptions}
+                          value={type}
+                          // onChange={(val) => setType(val)}
+                          placeholder="Search type"
+                        />
                       </div>
                       <div className="pm-page-select">
                         <CustomSelect

@@ -148,7 +148,7 @@ const FeedPage = () => {
     setFollowingLoadingMore(false);
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     if (activeTab !== "following" || !isLoggedIn) return;
 
     setFollowingPosts([]);
@@ -198,10 +198,10 @@ const FeedPage = () => {
   /* ================= LIKE / SAVE ================= */
 
   const handleLike = async (postId: string) => {
-      if (!isLoggedIn) {
-    router.push("/login"); // or "/auth/login"
-    return;
-  }
+    if (!isLoggedIn) {
+      router.push("/login"); // or "/auth/login"
+      return;
+    }
     if (likeLoading[postId]) return;
 
     const { list, setList } = resolveList();
@@ -229,46 +229,46 @@ const FeedPage = () => {
 
     setLikeLoading((p) => ({ ...p, [postId]: false }));
   };
-const handleSave = async (postId: string) => {
-  if (!isLoggedIn) {
-    router.push("/login");
-    return;
-  }
-
-  if (saveLoading[postId]) return;
-
-  setSaveLoading((p) => ({ ...p, [postId]: true }));
-
-  const { list, setList } = resolveList();
-
-  const toggleSave = (p: any) => {
-    if (p._id === postId) {
-      return { ...p, isSaved: !p.isSaved }; // toggle based on current state
+  const handleSave = async (postId: string) => {
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
     }
-    return p;
-  };
 
-  // Update all lists safely
-  setPosts((prev) => prev.map(toggleSave));
-  setFollowingPosts((prev) => prev.map(toggleSave));
-  setPopularPosts((prev) => prev.map(toggleSave));
+    if (saveLoading[postId]) return;
 
-  const res = await apiPost({
-    url: list.find((p) => p._id === postId)?.isSaved ? API_UNSAVE_POST : API_SAVE_POST,
-    values: { postId },
-  });
+    setSaveLoading((p) => ({ ...p, [postId]: true }));
 
-  if (!res?.success) {
-    // rollback on error
+    const { list, setList } = resolveList();
+
+    const toggleSave = (p: any) => {
+      if (p._id === postId) {
+        return { ...p, isSaved: !p.isSaved }; // toggle based on current state
+      }
+      return p;
+    };
+
+    // Update all lists safely
     setPosts((prev) => prev.map(toggleSave));
     setFollowingPosts((prev) => prev.map(toggleSave));
     setPopularPosts((prev) => prev.map(toggleSave));
-  }
 
-  setSaveLoading((p) => ({ ...p, [postId]: false }));
-};
+    const res = await apiPost({
+      url: list.find((p) => p._id === postId)?.isSaved
+        ? API_UNSAVE_POST
+        : API_SAVE_POST,
+      values: { postId },
+    });
 
+    if (!res?.success) {
+      // rollback on error
+      setPosts((prev) => prev.map(toggleSave));
+      setFollowingPosts((prev) => prev.map(toggleSave));
+      setPopularPosts((prev) => prev.map(toggleSave));
+    }
 
+    setSaveLoading((p) => ({ ...p, [postId]: false }));
+  };
 
   /* ================= TAB SWITCH ================= */
 
@@ -279,6 +279,15 @@ const handleSave = async (postId: string) => {
     }
     setActiveTab(tab);
   };
+
+  useEffect(() => {
+    const container = document.getElementById("feed-scroll-container");
+    if (container) {
+      container.scrollTop = 0; // reset scroll for tab change
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [activeTab]); // <-- run when tab changes
 
   /* ================= RENDER ================= */
 
@@ -314,8 +323,12 @@ const handleSave = async (postId: string) => {
                 dataLength={posts.length}
                 fetchMore={fetchPosts}
                 hasMore={hasMore}
+                scrollableTarget="feed-scroll-container"
               >
-                <div className="moneyboy-posts-wrapper">
+                <div
+                  className="moneyboy-posts-wrapper"
+                  id="feed-scroll-container"
+                >
                   {posts.map((post) => (
                     <PostCard
                       key={post._id}
@@ -327,14 +340,17 @@ const handleSave = async (postId: string) => {
                 </div>
               </InfiniteScrollWrapper>
             )}
-            {/* FOLLOWING */}
             {activeTab === "following" && (
               <InfiniteScrollWrapper
                 dataLength={followingPosts.length}
                 fetchMore={fetchFollowingPosts}
                 hasMore={followingHasMore}
+                scrollableTarget="following-scroll-container"
               >
-                <div className="moneyboy-posts-wrapper">
+                <div
+                  className="moneyboy-posts-wrapper"
+                  id="following-scroll-container"
+                >
                   {followingPosts.map((post) => (
                     <PostCard
                       key={post._id}
@@ -352,8 +368,12 @@ const handleSave = async (postId: string) => {
                 dataLength={popularPosts.length}
                 fetchMore={fetchPopularPosts}
                 hasMore={popularHasMore}
+                scrollableTarget="popular-scroll-container"
               >
-                <div className="moneyboy-posts-wrapper">
+                <div
+                  className="moneyboy-posts-wrapper"
+                  id="popular-scroll-container"
+                >
                   {popularPosts.map((post) => (
                     <PostCard
                       key={post._id}
