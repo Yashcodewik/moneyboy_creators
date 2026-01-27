@@ -46,7 +46,7 @@ const Sidebar: React.FC = () => {
       "/profile": "profile",
       "/userprofile": "userprofile",
       "/follower": "follower",
-      "/edit-profile": "edit-profile",
+      "/creator-edit-profile": "creator-edit-profile",
       "/user-edit-profile": "user-edit-profile",
     };
 
