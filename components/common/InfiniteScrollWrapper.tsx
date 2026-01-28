@@ -7,7 +7,7 @@ interface Props {
   hasMore: boolean;
   children: React.ReactNode;
   loader?: React.ReactNode;
-  scrollableTarget: string; // required
+  scrollableTarget: string;
 }
 
 export default function InfiniteScrollWrapper({
@@ -15,18 +15,11 @@ export default function InfiniteScrollWrapper({
   fetchMore,
   hasMore,
   children,
-  loader = <div className="nodeta">Loading...</div>,
-  scrollableTarget, // <-- MUST destructure this
+  loader = <div className="loadingtext"><img src="/images/micons.png" alt="M" className="loading-letter-img"/>{"oneyBoy".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 2) * 0.1}s` }}>{char}</span>))}</div>,
+  scrollableTarget,
 }: Props) {
   return (
-    <InfiniteScroll
-      dataLength={dataLength}
-      next={fetchMore}
-      hasMore={hasMore}
-      loader={loader}
-      scrollThreshold={0.85}
-      scrollableTarget={scrollableTarget} // now TS knows what this is
-    >
+    <InfiniteScroll dataLength={dataLength} next={fetchMore} hasMore={hasMore} loader={loader} scrollThreshold={0.85} scrollableTarget={scrollableTarget}>
       {children}
     </InfiniteScroll>
   );
