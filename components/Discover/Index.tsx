@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import Filter from "./Filter";
 
 const Dashboard = () => {
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<any>(null);
   type FilterType =
     | "category"
     | "feature"
@@ -40,9 +40,12 @@ const Dashboard = () => {
     const get = await getDecryptedSession();
     return get;
   };
-
   useEffect(() => {
-    getData();
+    const loadSession = async () => {
+      const s = await getDecryptedSession();
+      setSession(s); // 🔥 THIS WAS MISSING
+    };
+    loadSession();
   }, []);
 
   useEffect(() => {
@@ -67,7 +70,7 @@ const Dashboard = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const isClickInsideDropdown = Object.values(dropdownRefs.current).some(
-        (ref) => ref && ref.contains(event.target as Node)
+        (ref) => ref && ref.contains(event.target as Node),
       );
 
       const target = event.target as HTMLElement;
@@ -83,29 +86,69 @@ const Dashboard = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  console.log("=============", session);
+const fetchCreators = async ({ queryKey }: any) => {
+  const [_key, page, search, userPublicId, filtersString] = queryKey;
+  const filters = JSON.parse(filtersString);
 
-  const fetchCreators = async ({ queryKey }: any) => {
-  const [_key, page, search] = queryKey;
+  const params = new URLSearchParams();
+
+  if (userPublicId) {
+    params.append("userPublicId", userPublicId);
+  }
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value && value !== "all") {
+      params.append(key, value as string);
+    }
+  });
+
+  // 🚫 DO NOT pass page/search separately
+  params.append("page", String(page));
+  params.append("rowsPerPage", "8");
+  if (search) params.append("q", search);
+
   return getApi({
-    url: API_GET_DISCOVER_CREATORS,
-    page,
-    rowsPerPage: 8,
-    searchText: search,
+    url: `${API_GET_DISCOVER_CREATORS}?${params.toString()}`,
   });
 };
 
-const { data, isLoading } = useQuery({
-  queryKey: ["discover-creators", page, filterValues.search || ""],
-  queryFn: fetchCreators,
-  // keepPreviousData: true,
-});
 
-useEffect(() => {
-  if (data?.success) {
-    setCreators(data.data);
-    setTotalPages(data.meta.totalPages);
-  }
-}, [data]);
+
+
+  const { data, isLoading } = useQuery({
+queryKey: [
+  "discover-creators",
+  page,
+  search,
+  session?.user?.publicId || null,
+  JSON.stringify(filterValues),
+],
+    queryFn: fetchCreators,
+    enabled: true, // Always enabled, even without session
+  });
+
+  console.log("FILTER VALUES:", filterValues);
+  // console.log("API URL:", `${API_GET_DISCOVER_CREATORS}?${params.toString()}`);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filterValues]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setPage(1); // reset page when search changes
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  useEffect(() => {
+    if (data?.success) {
+      setCreators(data.data);
+      setTotalPages(data.meta.totalPages);
+    }
+  }, [data]);
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -130,7 +173,9 @@ useEffect(() => {
       <div className="pagination-container">
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={i} className="pagination-dots">...</span>
+            <span key={i} className="pagination-dots">
+              ...
+            </span>
           ) : (
             <button
               key={i}
@@ -139,7 +184,7 @@ useEffect(() => {
             >
               {p}
             </button>
-          )
+          ),
         )}
 
         <button
@@ -157,10 +202,16 @@ useEffect(() => {
       <div className="moneyboy-2x-1x-layout-container">
         <div className="discovery-page-container">
           <div className="discovery-page-content-container">
-            <Filter search={search} setSearch={setSearch} setPage={setPage} />
+            <Filter
+              search={search}
+              setSearch={setSearch}
+              setPage={setPage}
+              filterValues={filterValues}
+              setFilterValues={setFilterValues}
+            />
             <div className="discovery-page-content-wrapper">
               <div className="discovery-page-cards-layouts">
-                  {creators.map((creator) => (
+                {creators.map((creator) => (
                   <div
                     key={creator._id}
                     className="user-profile-card-wrapper"
@@ -169,33 +220,36 @@ useEffect(() => {
                     <div className="user-profile-card-container">
                       <div className="user-profile-card__img">
                         <img
-                          src={creator.profile || "/images/profile-avatars/profile-avatar-11.png"}
+                          src={
+                            creator.profile ||
+                            "/images/profile-avatars/profile-avatar-11.png"
+                          }
                           alt={creator.displayName}
                         />
                       </div>
                       <div className="user-profile-content-overlay-container">
                         {/* actions unchanged */}
                         <div className="user-profile-card__action-btns">
-                        <div className="user-profile-card__like-btn">
-                          <button className="like-button" data-like-button>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="21"
-                              height="20"
-                              viewBox="0 0 21 20"
-                              fill="none"
-                            >
-                              <path
-                                d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
+                          {/* <div className="user-profile-card__like-btn">
+                            <button className="like-button" data-like-button>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="21"
+                                height="20"
+                                viewBox="0 0 21 20"
+                                fill="none"
+                              >
+                                <path
+                                  d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                          </div> */}
                         </div>
-                      </div>
                         <div className="user-profile-card__info-container">
                           <div className="user-profile-card__info">
                             <div className="user-profile-card__name-badge">
@@ -213,37 +267,37 @@ useEffect(() => {
                               @{creator.userName}
                             </div>
                           </div>
-                                        <div className="user-profile-card__wishlist-btn">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="21"
-                            height="20"
-                            viewBox="0 0 21 20"
-                            fill="none"
-                          >
-                            <path
-                              d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                              stroke="none"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                              stroke="none"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                              stroke="none"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
+                          <div className="user-profile-card__wishlist-btn">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="21"
+                              height="20"
+                              viewBox="0 0 21 20"
+                              fill="none"
+                            >
+                              <path
+                                d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
                         </div>
                       </div>
                     </div>

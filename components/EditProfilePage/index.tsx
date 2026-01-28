@@ -17,7 +17,11 @@ import {
   API_TOGGLE_CREATOR_ACCOUNT,
   API_UPDATE_CREATOR_PROFILE,
 } from "@/utils/api/APIConstant";
-import { countryOptions, creatorFormOptions } from "../helper/creatorOptions";
+import {
+  categoryOptions,
+  countryOptions,
+  creatorFormOptions,
+} from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -55,6 +59,7 @@ const ALLOWED_PROFILE_FIELDS = [
   "style",
   "size",
   "popularity",
+  "category",
 ];
 
 const EditProfilePage = () => {
@@ -234,7 +239,7 @@ const EditProfilePage = () => {
 
     const res = await apiPost({
       url: API_BLOCK_COUNTRIES,
-       values: { countryNames: blockedCountries },  
+      values: { countryNames: blockedCountries },
     });
 
     if (res?.success) {
@@ -656,6 +661,55 @@ const EditProfilePage = () => {
                               setFormData({ ...formData, popularity: val })
                             }
                           />
+                          <CustomSelect
+                            label="All Categories"
+                            options={categoryOptions}
+                            value={formData.category || ""}
+                            onChange={(value) =>
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                category: value,
+                              }))
+                            }
+                            icon={
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="25"
+                                height="24"
+                                viewBox="0 0 25 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M22.4102 10.44L21.4302 14.62C20.5902 18.23 18.9302 19.69 15.8102 19.39C15.3102 19.35 14.7702 19.26 14.1902 19.12L12.5102 18.72C8.34018 17.73 7.05018 15.67 8.03018 11.49L9.01018 7.29999C9.21018 6.44999 9.45018 5.70999 9.75018 5.09999C10.9202 2.67999 12.9102 2.02999 16.2502 2.81999L17.9202 3.20999C22.1102 4.18999 23.3902 6.25999 22.4102 10.44Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M15.8099 19.39C15.1899 19.81 14.4099 20.16 13.4599 20.47L11.8799 20.99C7.90985 22.27 5.81985 21.2 4.52985 17.23L3.24985 13.28C1.96985 9.31001 3.02985 7.21001 6.99985 5.93001L8.57985 5.41001C8.98985 5.28001 9.37985 5.17001 9.74985 5.10001C9.44985 5.71001 9.20985 6.45001 9.00985 7.30001L8.02985 11.49C7.04985 15.67 8.33985 17.73 12.5099 18.72L14.1899 19.12C14.7699 19.26 15.3099 19.35 15.8099 19.39Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M13.3901 8.53L18.2401 9.76"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12.4102 12.4L15.3102 13.14"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            }
+                          />
 
                           {/* Update Button */}
                           <div className="btm_btn one">
@@ -852,14 +906,33 @@ const EditProfilePage = () => {
                       <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap connect_social_wrap">
                         <div className="select_countries_wrap">
                           <h5>Connect Your Social accounts</h5>
-                          <p>Connect Your Social accounts to Your MoneYBoy Profile</p>
+                          <p>
+                            Connect Your Social accounts to Your MoneYBoy
+                            Profile
+                          </p>
                           <div className="btn_wrap">
                             <label>Sign in With x</label>
-                            <button type="button" className="active-down-effect xbtn"><div className="icons"><FaXTwitter size={18} /></div> SIGN IN WITH X</button>
+                            <button
+                              type="button"
+                              className="active-down-effect xbtn"
+                            >
+                              <div className="icons">
+                                <FaXTwitter size={18} />
+                              </div>{" "}
+                              SIGN IN WITH X
+                            </button>
                           </div>
                           <div className="btn_wrap">
                             <label>Sign In With Google</label>
-                            <button type="button" className="active-down-effect googlebtn"><div className="icons"><FcGoogle size={16} /></div> SIGN IN WITH GOOGLE</button>
+                            <button
+                              type="button"
+                              className="active-down-effect googlebtn"
+                            >
+                              <div className="icons">
+                                <FcGoogle size={16} />
+                              </div>{" "}
+                              SIGN IN WITH GOOGLE
+                            </button>
                           </div>
                         </div>
                       </div>
