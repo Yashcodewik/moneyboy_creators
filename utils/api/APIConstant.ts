@@ -37,3 +37,6 @@ export const API_GET_FEATURED_MONEYBOYS = "/social/featuredmoneysGet";
 export const API_CREATOR_PROFILE_BY_ID = "/creator/profile"; 
 export const API_GET_POST_BY_PUBLIC_ID = "/post/public"; 
 export const API_GET_DISCOVER_CREATORS = "/social/discover";
+
+//Subscription 
+export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";

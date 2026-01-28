@@ -116,7 +116,9 @@ const WalletTransactionsPage = () => {
                     </div>
                     <div className="payout_wrap">
                       <h3>Get a payout</h3>
-                      <button className="btn-txt-gradient" type="button"><span>Request payout</span> </button>
+                     <Link href="/request-payout">
+                      <button className="btn-txt-gradient" type="button" ><span>Request payout</span> </button>
+                    </Link>
                     </div>
                     </>
                       )}

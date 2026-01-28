@@ -14,7 +14,7 @@ const fromTab = searchParams.get("fromTab") || "all";
         <main className="moneyboy-dynamic-content-layout">
           <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
             <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-              <button className="cate-back-btn active-down-effect" onClick={() => router.push(`/help?tab=${fromTab}`)}>
+              <button className="cate-back-btn active-down-effect" onClick={() => router.push(`/help?tab=guides`)}>
                 <span className="icons arrowLeft"></span>
               </button>
               <button className="page-content-type-button active-down-effect active"> How It Works</button>
