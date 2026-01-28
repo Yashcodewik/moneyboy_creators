@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getApiByParams, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { apiPost, getApiByParams, getApiWithOutQuery } from "@/utils/endpoints/common";
 import {
   API_CREATOR_PROFILE,
   API_CREATOR_PROFILE_BY_ID,
   API_FOLLOWER_COUNT,
+  API_SUBSCRIBE_CREATOR,
 } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
@@ -74,6 +75,9 @@ const ProfilePage = () => {
   const [layoutTab, setLayoutTab] = useState("grid");
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [isFollowLoading, setIsFollowLoading] = useState<boolean>(false);
+  const [subLoading, setSubLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+
 
   const params = useParams();
   const profilePublicId = params.id as string;
@@ -215,6 +219,29 @@ const ProfilePage = () => {
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
+
+  const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
+    if (!profile?.user?._id || subLoading) return;
+
+    setSubLoading(true);
+
+    const res = await apiPost({
+      url: API_SUBSCRIBE_CREATOR,
+      values: {
+        creatorId: profile.user._id,
+        planType,
+      },
+    });
+    if (res?.success) {
+      setSubscribed(true);
+    } else {
+      // backend already handles duplicate subscription
+      alert(res?.message || "Subscription failed");
+    }
+
+    setSubLoading(false);
+  };
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -728,8 +755,11 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       <div className="subscripton-button">
-                        <button className="btn-txt-gradient btn-outline p-sm">
-                          <span>Subscribe</span>
+                        <button className="btn-txt-gradient btn-outline p-sm" 
+                          disabled={subLoading}
+                          onClick={() => handleSubscribe("MONTHLY")}
+                          >
+                          <span>{subLoading ? "Processing..." : subscribed ? "Subscribed" : "Subscribe"}</span>
                         </button>
                       </div>
                     </li>
@@ -745,8 +775,11 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       <div className="subscripton-button">
-                        <button className="btn-txt-gradient btn-outline p-sm">
-                          <span>Subscribe</span>
+                        <button className="btn-txt-gradient btn-outline p-sm"
+                          disabled={subLoading}
+                          onClick={() => handleSubscribe("YEARLY")}
+                          >
+                          <span>{subLoading ? "Processing..." : subscribed ? "Subscribed" : "Subscribe"}</span>
                         </button>
                       </div>
                     </li>

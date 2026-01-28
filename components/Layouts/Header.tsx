@@ -7,6 +7,7 @@ import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_CREATOR_PROFILE, API_USER_PROFILE } from "@/utils/api/APIConstant";
+import PromoteModal from "../FeedPage/PromoteModal";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +19,11 @@ const Header = () => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+useEffect(() => {
+  console.log("showPromoteModal:", showPromoteModal);
+}, [showPromoteModal]);
+
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -815,7 +821,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         <span>Blacklist</span>
                       </a>
                       {session?.user?.role === 2 && (
-                        <a href="#" className="menu-link block-countries-link">
+                        <a href="/block-countries" className="menu-link block-countries-link">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -842,7 +848,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         </a>
                       )}
                       {session?.user?.role === 2 && (
-                        <a href="#" className="menu-link banking-to-earn-link">
+                        <a href="/banking" className="menu-link banking-to-earn-link">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -1457,7 +1463,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                   <div className="links-block">
                     <div className="menu-links-wrapper">
                       {session?.user?.role === 2 && (
-                        <a href="#" className="menu-link payout-requests-link">
+                        <a href="/request-payout" className="menu-link payout-requests-link">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -1506,7 +1512,15 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         </a>
                       )}
                       {session?.user?.role === 2 && (
-                        <a href="#" className="menu-link premium-btn">
+                          <a
+                            href="#"
+                            className="menu-link premium-btn"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log("Promote Profile clicked");
+                              setShowPromoteModal(true);
+                            }}
+                          >
                           <svg
                             className="self-colored"
                             xmlns="http://www.w3.org/2000/svg"
@@ -1642,6 +1656,9 @@ const handleStatsClick = (e: React.MouseEvent) => {
             </div>
           </div>
         </div>
+      )}
+      {showPromoteModal && (
+        <PromoteModal onClose={() => setShowPromoteModal(false)} />
       )}
     </>
   );

@@ -20,10 +20,6 @@ const tabFromUrl = searchParams.get("tab");
 // ✅ Allow subscriptions tab ONLY when opened explicitly
 const allowSubscriptionsTab = !isCreator || tabFromUrl === "subscriptions";
 
-  
-  
-
-  // Replace your existing useEffect with this:
 useEffect(() => {
   if (!isCreator) {
     setActiveTab("subscriptions");
@@ -37,6 +33,14 @@ useEffect(() => {
   }
 }, [tabFromUrl, isCreator]);
 
+// useEffect(() => {
+//   if (!isCreator) {
+//     setActiveTab("subscriptions");
+//   } else {
+//     setActiveTab("subscribers");
+//   }
+// }, [isCreator]);
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -46,42 +50,39 @@ useEffect(() => {
           {/* Tabs */}
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             {/* <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft hwhite"></span></button> */}
-        {isCreator ? (
-  <>
-    <button
-      className={`page-content-type-button active-down-effect max-50 ${
-        activeTab === "subscribers" ? "active" : ""
-      }`}
-      onClick={() => {
-        setActiveTab("subscribers");
+          {isCreator ? (
+            <>
+              <button
+                className={`page-content-type-button active-down-effect max-50 ${
+                  activeTab === "subscribers" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("subscribers");
 
-        // 🔥 remove tab param so subscriptions hides again
-        window.history.replaceState(null, "", "/subscriptions");
-      }}
-    >
-      Subscribers
-    </button>
+                  // 🔥 remove tab param so subscriptions hides again
+                  window.history.replaceState(null, "", "/subscriptions");
+                }}
+              >
+                Subscribers
+              </button>
 
-    {allowSubscriptionsTab && (
-      <button
-        className={`page-content-type-button active-down-effect max-50 ${
-          activeTab === "subscriptions" ? "active" : ""
-        }`}
-        onClick={() => setActiveTab("subscriptions")}
-      >
-        Subscriptions
-      </button>
-    )}
-  </>
-) : (
-  <button className="page-content-type-button active-down-effect max-50 active">
-    Subscriptions
-  </button>
-)}
-
+              {/* {allowSubscriptionsTab && ( */}
+                <button
+                  className={`page-content-type-button active-down-effect max-50 ${
+                    activeTab === "subscriptions" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("subscriptions")}
+                >
+                  Subscriptions
+                </button>
+              {/* )} */}
+            </>
+          ) : (
+            <button className="page-content-type-button active-down-effect max-50 active">
+              Subscriptions
+            </button>
+          )}
           </div>
-
-
           <div className="tabs-content-wrapper-layout">
             <div data-multi-dem-cards-layout>
               <div className="creator-content-filter-grid-container">
