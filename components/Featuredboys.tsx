@@ -1,7 +1,74 @@
 "use client";
-import React from 'react'
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import { API_GET_FEATURED_MONEYBOYS } from "@/utils/api/APIConstant";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 const Featuredboys = () => {
+  const [featured, setFeatured] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const { session } = useDecryptedSession();
+  const limit = 6;
+    const router = useRouter();
+const fetchFeatured = async (pageNumber = 1) => {
+  setLoading(true);
+
+  try {
+    const res = await apiPost({
+      url: API_GET_FEATURED_MONEYBOYS,
+      values: {
+        page: pageNumber,
+        limit,
+        ...(session?.user?.publicId && {
+          userPublicId: session.user.publicId,
+        }),
+      },
+    });
+
+    if (res?.success) {
+      setFeatured(res.data || []);
+      setPage(res.pagination?.page || 1);
+      setTotalPages(res.pagination?.totalPages || 1);
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => {
+    fetchFeatured(page);
+  }, [page, session?.user?.publicId]);
+
+  const handleRefresh = () => {
+    fetchFeatured(page);
+  };
+
+  const handlePrev = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const handleProfileClick = (publicId  : string) => {
+  if (!session?.user?.id) {
+    router.push("/login"); // or "/auth/login"
+    return;
+  }
+
+ router.push(`/profile/${publicId}`);
+};
+
   return (
     <aside className="moneyboy-2x-1x-b-layout">
       <div className="moneyboy-feed-sidebar-container">
@@ -12,7 +79,10 @@ const Featuredboys = () => {
             </div>
 
             <div className="featured-card-opts">
-              <button className="icon-btn hover-scale-icon">
+              <button
+                className="icon-btn hover-scale-icon"
+                onClick={handleRefresh}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -30,7 +100,11 @@ const Featuredboys = () => {
                 </svg>
               </button>
 
-              <button className="icon-btn hover-scale-icon">
+              <button
+                className="icon-btn hover-scale-icon"
+                onClick={handlePrev}
+                disabled={page === 1}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -56,7 +130,11 @@ const Featuredboys = () => {
                 </svg>
               </button>
 
-              <button className="icon-btn hover-scale-icon">
+              <button
+                className="icon-btn hover-scale-icon"
+                onClick={handleNext}
+                disabled={page === totalPages}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -85,401 +163,63 @@ const Featuredboys = () => {
           </div>
 
           <div className="featured-profiles-wrapper">
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-7.png"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-6.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Zain Schleifer
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @coreybergson
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
-                        <button className="like-button" data-like-button>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="21"
-                            viewBox="0 0 20 21"
-                            fill="none"
-                          >
-                            <path
-                              d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {loading && <p>Loading...</p>}
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-4.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
+            {!loading &&
+              featured.map((item) => (
+                <div className="featured-profile__card" key={item._id}  onClick={() => handleProfileClick(item.publicId)}>
+                  <div className="featured-profile__info-wrapper">
+                    <div className="profile-card featured-profile-card">
+                      <div className="profile-card__bg-img">
                         <img
-                          src="/images/profile-avatars/profile-avatar-5.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
+                          src={
+                            item.coverImage ||
+                            "/images/profile-banners/profile-banner-1.jpg"
+                          }
+                          alt="Featured Profile Background Image"
                         />
                       </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Gustavo Stanton
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @gustavostanton
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
-                        <button className="like-button" data-like-button>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="21"
-                            viewBox="0 0 20 21"
-                            fill="none"
-                          >
-                            <path
-                              d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-3.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-3.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Emerson Bator
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @emersonbator
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
-                        <button className="like-button" data-like-button>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="21"
-                            viewBox="0 0 20 21"
-                            fill="none"
-                          >
-                            <path
-                              d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                      <div className="profile-card__main">
+                        <div className="profile-card__avatar-settings">
+                          <div className="profile-card__avatar">
+                            <img
+                              src={
+                                item.profileImage ||
+                                "/images/profile-avatars/profile-avatar-6.jpg"
+                              }
+                              alt="MoneyBoy Avatar"
                             />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                          </div>
+                        </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-2.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-7.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Omar Dokidis
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @omardokidis
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
-                        <button className="like-button" data-like-button>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="21"
-                            viewBox="0 0 20 21"
-                            fill="none"
-                          >
-                            <path
-                              d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                        <div className="profile-card__info">
+                          <div className="profile-card__name-badge">
+                            <div className="profile-card__name">
+                              {item.displayName ||
+                                `${item.firstName} ${item.lastName}`}
+                            </div>
+                            <div className="profile-card__badge">
+                              <img
+                                src="/images/logo/profile-badge.png"
+                                alt="Badge"
+                              />
+                            </div>
+                          </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-1.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-2.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Wilson Septimus
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
+                          <div className="profile-card__username">
+                            @{item.userName}
+                          </div>
                         </div>
                       </div>
-                      <div className="profile-card__username">
-                        @wilsonseptimus
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
-                        <button className="like-button" data-like-button>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="21"
-                            viewBox="0 0 20 21"
-                            fill="none"
-                          >
-                            <path
-                              d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="featured-profile__card">
-              <div className="featured-profile__info-wrapper">
-                <div className="profile-card featured-profile-card">
-                  <div className="profile-card__bg-img">
-                    <img
-                      src="/images/profile-banners/profile-banner-5.jpg"
-                      alt="Featured Profile Background Image"
-                    />
-                  </div>
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-8.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
+                      <div className="profile-card__desc">
+                        <p>{item.bio || "No bio available"}</p>
                       </div>
                     </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          Ruben Kenter
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @rubenkenter
-                      </div>
-                    </div>
-                    <div className="profile-card__icon">
-                      <div className="profile-card__blur-icon">
-                        <button className="like-button" data-like-button>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="21"
-                            viewBox="0 0 20 21"
-                            fill="none"
-                          >
-                            <path
-                              d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="profile-card__desc">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit
-                    </p>
                   </div>
                 </div>
-              </div>
-            </div>
+              ))}
           </div>
         </div>
 
@@ -502,7 +242,7 @@ const Featuredboys = () => {
         </div>
       </div>
     </aside>
-  )
-}
+  );
+};
 
-export default Featuredboys
+export default Featuredboys;

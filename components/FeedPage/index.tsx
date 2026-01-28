@@ -2,3275 +2,723 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import {
+  API_GET_POSTS,
+  API_GET_FOLLOWING_POSTS,
+  API_GET_POPULAR_POSTS,
+  API_LIKE_POST,
+  API_UNLIKE_POST,
+  API_SAVE_POST,
+  API_UNSAVE_POST,
+} from "@/utils/api/APIConstant";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
+import PostCard from "./PostCard";
+import Featuredboys from "../Featuredboys";
+import CustomSelect from "../CustomSelect";
+import { CgClose } from "react-icons/cg";
+
+/* ===================================================== */
+
+type TabType = "feed" | "following" | "popular";
+const LIMIT = 4;
+
+/* ===================================================== */
 
 const FeedPage = () => {
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("feed");
-  const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
-  const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
   const router = useRouter();
-
-  const setMenuRef = (id: number, element: HTMLDivElement | null) => {
-    menuRefs.current.set(id, element);
-  };
-
-  const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
-    buttonRefs.current.set(id, element);
-  };
-
-  // Use NextAuth session
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
-  useEffect(() => {
-    const likeButtons = document.querySelectorAll("[data-like-button]");
+  const firstFetchRef = useRef(false);
 
-    const handleClick = (event: Event) => {
-      const button = event.currentTarget as HTMLElement;
-      button.classList.toggle("liked");
-    };
+  /* ================= TAB ================= */
+  const [activeTab, setActiveTab] = useState<TabType>("feed");
 
-    likeButtons.forEach((button) => {
-      button.addEventListener("click", handleClick);
+  /* ================= FEED ================= */
+  const [posts, setPosts] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  /* ================= FOLLOWING ================= */
+  const [followingPosts, setFollowingPosts] = useState<any[]>([]);
+  const [followingPage, setFollowingPage] = useState(1);
+  const [followingHasMore, setFollowingHasMore] = useState(true);
+  const [followingLoadingMore, setFollowingLoadingMore] = useState(false);
+
+  /* ================= POPULAR ================= */
+  const [popularPosts, setPopularPosts] = useState<any[]>([]);
+  const [popularPage, setPopularPage] = useState(1);
+  const [popularHasMore, setPopularHasMore] = useState(true);
+  const [popularLoadingMore, setPopularLoadingMore] = useState(false);
+
+  /* ================= ACTION STATES ================= */
+  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
+  const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
+
+  /* ================= HELPERS ================= */
+
+  const resolveList = () => {
+    if (activeTab === "following") {
+      return { list: followingPosts, setList: setFollowingPosts };
+    }
+    if (activeTab === "popular") {
+      return { list: popularPosts, setList: setPopularPosts };
+    }
+    return { list: posts, setList: setPosts };
+  };
+
+  const updatePost = (
+    list: any[],
+    postId: string,
+    updater: (post: any) => any,
+  ) => list.map((p) => (p._id === postId ? updater(p) : p));
+
+  /* ================= FETCH FEED ================= */
+
+  const fetchPosts = async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+
+    const res = await apiPost({
+      url: API_GET_POSTS,
+      values: {
+        userId: (session?.user as any)?.id || "",
+        page,
+        limit: LIMIT,
+      },
     });
 
-    // Cleanup function
-    return () => {
-      likeButtons.forEach((button) => {
-        button.removeEventListener("click", handleClick);
+    console.log("--------------", session);
+    if (Array.isArray(res) && res.length) {
+      setPosts((prev) => {
+        const ids = new Set(prev.map((p) => p._id));
+        return [...prev, ...res.filter((p) => !ids.has(p._id))];
       });
-    };
-  }, []);
-  // const toggleMenu = (id: number) => {
-  //   setOpenMenuId((prev) => (prev === id ? null : id));
-  // };
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prev) => (prev === id ? null : id));
+      setPage((p) => p + 1);
+    } else {
+      setHasMore(false);
+    }
+
+    setLoadingMore(false);
   };
-  const handleTabClick = (tabName: string) => {
-    if (!isLoggedIn && tabName === "discover") {
+
+  useEffect(() => {
+    if (firstFetchRef.current) return;
+    firstFetchRef.current = true;
+    fetchPosts();
+  }, []);
+
+  /* ================= FETCH FOLLOWING ================= */
+
+  const fetchFollowingPosts = async () => {
+    if (followingLoadingMore || !followingHasMore) return;
+
+    setFollowingLoadingMore(true);
+
+    const res = await getApiWithOutQuery({
+      url: `${API_GET_FOLLOWING_POSTS}?page=${followingPage}&limit=${LIMIT}`,
+    });
+
+    if (res?.success && Array.isArray(res.posts)) {
+      setFollowingPosts((prev) => {
+        const ids = new Set(prev.map((p) => p._id));
+        return [
+          ...prev,
+          ...res.posts
+            .map((p: any) => ({
+              ...p,
+              media: Array.isArray(p.media)
+                ? p.media
+                : p.media
+                  ? [p.media]
+                  : [],
+            }))
+            .filter((p: any) => !ids.has(p._id)),
+        ];
+      });
+
+      setFollowingPage((p) => p + 1);
+      setFollowingHasMore(res.pagination?.hasNextPage);
+    } else {
+      setFollowingHasMore(false);
+    }
+
+    setFollowingLoadingMore(false);
+  };
+
+  useEffect(() => {
+    if (activeTab !== "following" || !isLoggedIn) return;
+
+    setFollowingPosts([]);
+    setFollowingPage(1);
+    setFollowingHasMore(true);
+
+    fetchFollowingPosts();
+  }, [activeTab, isLoggedIn]);
+
+  /* ================= FETCH POPULAR ================= */
+
+  const fetchPopularPosts = async () => {
+    if (popularLoadingMore || !popularHasMore) return;
+
+    setPopularLoadingMore(true);
+
+    const res = await apiPost({
+      url: API_GET_POPULAR_POSTS,
+      values: {
+        userId: (session?.user as any)?.id || "",
+        page: popularPage,
+        limit: LIMIT,
+      },
+    });
+
+    if (Array.isArray(res) && res.length) {
+      setPopularPosts((prev) => {
+        const ids = new Set(prev.map((p) => p._id));
+        return [...prev, ...res.filter((p) => !ids.has(p._id))];
+      });
+      setPopularPage((p) => p + 1);
+    } else {
+      setPopularHasMore(false);
+    }
+
+    setPopularLoadingMore(false);
+  };
+
+  useEffect(() => {
+    if (activeTab !== "popular") return;
+    setPopularPosts([]);
+    setPopularPage(1);
+    setPopularHasMore(true);
+    fetchPopularPosts();
+  }, [activeTab]);
+
+  /* ================= LIKE / SAVE ================= */
+
+  const handleLike = async (postId: string) => {
+    if (!isLoggedIn) {
+      router.push("/login"); // or "/auth/login"
+      return;
+    }
+    if (likeLoading[postId]) return;
+
+    const { list, setList } = resolveList();
+    const post = list.find((p) => p._id === postId);
+    if (!post) return;
+
+    setLikeLoading((p) => ({ ...p, [postId]: true }));
+
+    setList((prev) =>
+      updatePost(prev, postId, (p) => ({
+        ...p,
+        isLiked: !p.isLiked,
+        likeCount: p.isLiked ? p.likeCount - 1 : p.likeCount + 1,
+      })),
+    );
+
+    const res = await apiPost({
+      url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
+      values: { postId },
+    });
+
+    if (!res?.success) {
+      setList((prev) => updatePost(prev, postId, () => post));
+    }
+
+    setLikeLoading((p) => ({ ...p, [postId]: false }));
+  };
+  const handleSave = async (postId: string) => {
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    if (saveLoading[postId]) return;
+
+    setSaveLoading((p) => ({ ...p, [postId]: true }));
+
+    const { list, setList } = resolveList();
+
+    const toggleSave = (p: any) => {
+      if (p._id === postId) {
+        return { ...p, isSaved: !p.isSaved }; // toggle based on current state
+      }
+      return p;
+    };
+
+    // Update all lists safely
+    setPosts((prev) => prev.map(toggleSave));
+    setFollowingPosts((prev) => prev.map(toggleSave));
+    setPopularPosts((prev) => prev.map(toggleSave));
+
+    const res = await apiPost({
+      url: list.find((p) => p._id === postId)?.isSaved
+        ? API_UNSAVE_POST
+        : API_SAVE_POST,
+      values: { postId },
+    });
+
+    if (!res?.success) {
+      // rollback on error
+      setPosts((prev) => prev.map(toggleSave));
+      setFollowingPosts((prev) => prev.map(toggleSave));
+      setPopularPosts((prev) => prev.map(toggleSave));
+    }
+
+    setSaveLoading((p) => ({ ...p, [postId]: false }));
+  };
+
+  /* ================= TAB SWITCH ================= */
+
+  const handleTabClick = (tab: TabType) => {
+    if (!isLoggedIn && tab === "following") {
       router.push("/discover");
       return;
     }
-    setActiveTab(tabName);
+    setActiveTab(tab);
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId === null) return;
+    const container = document.getElementById("feed-scroll-container");
+    if (container) {
+      container.scrollTop = 0; // reset scroll for tab change
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [activeTab]); // <-- run when tab changes
 
-      const menuElement = menuRefs.current.get(openMenuId);
-      const buttonElement = buttonRefs.current.get(openMenuId);
+  /* ================= RENDER ================= */
 
-      const target = event.target as Node;
-
-      // If click is outside both menu and its button, close the menu
-      if (
-        menuElement &&
-        !menuElement.contains(target) &&
-        buttonElement &&
-        !buttonElement.contains(target)
-      ) {
-        setOpenMenuId(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [openMenuId]);
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout">
-          <div
-            className="moneyboy-feed-page-container"
-            data-multiple-tabs-section
-            data-scroll-zero
-          >
-            <div
-              className="moneyboy-feed-page-cate-buttons card"
-              id="posts-tabs-btn-card"
-            >
+          <div className="moneyboy-feed-page-container">
+            {/* TABS */}
+            <div className="moneyboy-feed-page-cate-buttons card">
               <button
-                className={`page-content-type-button active-down-effect ${
-                  activeTab === "feed" ? "active" : ""
-                }`}
+                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
                 onClick={() => handleTabClick("feed")}
               >
                 Feed
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${
-                  activeTab === (isLoggedIn ? "following" : "discover")
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  handleTabClick(isLoggedIn ? "following" : "discover")
-                }
+                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
+                onClick={() => handleTabClick("following")}
               >
                 {isLoggedIn ? "Following" : "Discover"}
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${
-                  activeTab === "popular" ? "active" : ""
-                }`}
+                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
                 onClick={() => handleTabClick("popular")}
               >
                 Popular
               </button>
             </div>
-            <div className="moneyboy-posts-wrapper">
-              {activeTab === "feed" && (
+            {/* FEED */}
+            {activeTab === "feed" && (
+              <InfiniteScrollWrapper
+                dataLength={posts.length}
+                fetchMore={fetchPosts}
+                hasMore={hasMore}
+                scrollableTarget="feed-scroll-container"
+              >
                 <div
                   className="moneyboy-posts-wrapper"
-                  data-multi-tabs-content-tabdata__active
+                  id="feed-scroll-container"
                 >
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-1.png"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Corey Bergson
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @coreybergson
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 1 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(1, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(1)}
-                            ref={(el) => setButtonRef(1, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 1 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-1.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-4.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Lincoln Westervelt
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @lincolnwestervelt
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 2 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(2, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(2)}
-                            ref={(el) => setButtonRef(2, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 2 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-2.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-2.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Marcus Botosh
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @marcusbotosh
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 3 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(3, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(3)}
-                            ref={(el) => setButtonRef(3, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 3 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-3.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-1.png"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Corey Bergson
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @coreybergson
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 4 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(4, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(4)}
-                            ref={(el) => setButtonRef(4, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 4 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-1.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-4.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Lincoln Westervelt
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @lincolnwestervelt
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 5 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(5, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(5)}
-                            ref={(el) => setButtonRef(5, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 5 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-2.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-2.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Marcus Botosh
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @marcusbotosh
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 6 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(6, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(6)}
-                            ref={(el) => setButtonRef(6, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 6 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-3.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                    />
+                  ))}
                 </div>
-              )}
-              {activeTab === "following" && (
+              </InfiniteScrollWrapper>
+            )}
+            {activeTab === "following" && (
+              <InfiniteScrollWrapper
+                dataLength={followingPosts.length}
+                fetchMore={fetchFollowingPosts}
+                hasMore={followingHasMore}
+                scrollableTarget="following-scroll-container"
+              >
                 <div
                   className="moneyboy-posts-wrapper"
-                  data-multi-tabs-content-tab
+                  id="following-scroll-container"
                 >
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-2.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Marcus Botosh
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @marcusbotosh
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 7 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(7, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(7)}
-                            ref={(el) => setButtonRef(7, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 7 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-3.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+                  {followingPosts.map((post) => (
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                    />
+                  ))}
                 </div>
-              )}
-              {activeTab === "popular" && (
+              </InfiniteScrollWrapper>
+            )}
+            {/* POPULAR */}
+            {activeTab === "popular" && (
+              <InfiniteScrollWrapper
+                dataLength={popularPosts.length}
+                fetchMore={fetchPopularPosts}
+                hasMore={popularHasMore}
+                scrollableTarget="popular-scroll-container"
+              >
                 <div
                   className="moneyboy-posts-wrapper"
-                  data-multi-tabs-content-tab
+                  id="popular-scroll-container"
                 >
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-4.jpg"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Lincoln Westervelt
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @lincolnwestervelt
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 8 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(8, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(8)}
-                            ref={(el) => setButtonRef(8, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 8 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-2.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="moneyboy-post__container card">
-                    <div className="moneyboy-post__header">
-                      <a href="#" className="profile-card">
-                        <div className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              <img
-                                src="/images/profile-avatars/profile-avatar-1.png"
-                                alt="MoneyBoy Social Profile Avatar"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                Corey Bergson
-                              </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
-                              </div>
-                            </div>
-                            <div className="profile-card__username">
-                              @coreybergson
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-
-                      <div className="moneyboy-post__upload-more-info">
-                        <div className="moneyboy-post__upload-time">
-                          1 Hour ago
-                        </div>
-                        <div
-                          className={`rel-user-more-opts-wrapper ${
-                            openMenuId === 9 ? "active" : ""
-                          }`}
-                          data-more-actions-toggle-element
-                          ref={(el) => setMenuRef(9, el)}
-                        >
-                          <button
-                            className="rel-user-more-opts-trigger-icon"
-                            onClick={() => toggleMenu(9)}
-                            ref={(el) => setButtonRef(9, el)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                              <path
-                                d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                              ></path>
-                            </svg>
-                          </button>
-                          {openMenuId === 9 && (
-                            <div className="rel-users-more-opts-popup-wrapper">
-                              <div className="rel-users-more-opts-popup-container">
-                                <ul>
-                                  <li data-copy-post-link="inset-post-link-here">
-                                    <div className="icon copy-link-icon">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                        stroke="currentColor"
-                                        className="size-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <span>Copy Link</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="moneyboy-post__desc">
-                      <p>
-                        Today, I experienced the most blissful ride outside. The
-                        air is fresh and It ...
-                        <span className="active-down-effect-2x">more</span>
-                      </p>
-                    </div>
-
-                    <div className="moneyboy-post__media">
-                      <div className="moneyboy-post__img">
-                        <img
-                          src="/images/post-images/post-img-1.png"
-                          alt="MoneyBoy Post Image"
-                        />
-                      </div>
-                      <div className="moneyboy-post__actions">
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 12.85V13.59"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  className="dollar-sign"
-                                  d="M10 6.40997V7.18997"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Send Tip</span>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#" className="post-like-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>12K</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 8H17"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M7 13H13"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>15</span>
-                            </a>
-                          </li>
-                        </ul>
-                        <ul>
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M5.15002 2V22"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeMiterlimit="10"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-
-                          <li>
-                            <a href="#">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+                  {popularPosts.map((post) => (
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                    />
+                  ))}
                 </div>
-              )}
-            </div>
+              </InfiniteScrollWrapper>
+            )}
           </div>
         </div>
-        <aside className="moneyboy-2x-1x-b-layout">
-          <div className="moneyboy-feed-sidebar-container">
-            <div className="featured-profiles-card-container card">
-              <div className="featured-profiles-header">
-                <div className="featured-card-heading">
-                  <h3 className="card-heading">Featured Moneyboys</h3>
-                </div>
+        <Featuredboys />
+      </div>
 
-                <div className="featured-card-opts">
-                  <button className="icon-btn hover-scale-icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="25"
-                      viewBox="0 0 24 25"
-                      fill="none"
-                    >
-                      <path
-                        d="M22 12.5C22 18.02 17.52 22.5 12 22.5C6.48 22.5 3.11 16.94 3.11 16.94M3.11 16.94H7.63M3.11 16.94V21.94M2 12.5C2 6.98 6.44 2.5 12 2.5C18.67 2.5 22 8.06 22 8.06M22 8.06V3.06M22 8.06H17.56"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+      {/* ================= MODALS ================= */}
 
-                  <button className="icon-btn hover-scale-icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="25"
-                      viewBox="0 0 24 25"
-                      fill="none"
-                    >
-                      <path
-                        d="M12 22.5C6.47715 22.5 2 18.0228 2 12.5C2 6.97715 6.47715 2.5 12 2.5C17.5228 2.5 22 6.97715 22 12.5C22 18.0228 17.5228 22.5 12 22.5Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M13.26 16.03L9.74001 12.5L13.26 8.97"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-
-                  <button className="icon-btn hover-scale-icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="25"
-                      viewBox="0 0 24 25"
-                      fill="none"
-                    >
-                      <path
-                        d="M12 22.5C17.5228 22.5 22 18.0228 22 12.5C22 6.97715 17.5228 2.5 12 2.5C6.47715 2.5 2 6.97715 2 12.5C2 18.0228 6.47715 22.5 12 22.5Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M10.74 16.03L14.26 12.5L10.74 8.97"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="featured-profiles-wrapper">
-                <div className="featured-profile__card">
-                  <div className="featured-profile__info-wrapper">
-                    <div className="profile-card featured-profile-card">
-                      <div className="profile-card__bg-img">
-                        <img
-                          src="/images/profile-banners/profile-banner-7.png"
-                          alt="Featured Profile Background Image"
-                        />
-                      </div>
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src="/images/profile-avatars/profile-avatar-6.jpg"
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Zain Schleifer
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @coreybergson
-                          </div>
-                        </div>
-                        <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
-                            <button className="like-button" data-like-button>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="21"
-                                viewBox="0 0 20 21"
-                                fill="none"
-                              >
-                                <path
-                                  d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="profile-card__desc">
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="featured-profile__card">
-                  <div className="featured-profile__info-wrapper">
-                    <div className="profile-card featured-profile-card">
-                      <div className="profile-card__bg-img">
-                        <img
-                          src="/images/profile-banners/profile-banner-4.jpg"
-                          alt="Featured Profile Background Image"
-                        />
-                      </div>
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src="/images/profile-avatars/profile-avatar-5.jpg"
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Gustavo Stanton
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @gustavostanton
-                          </div>
-                        </div>
-                        <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
-                            <button className="like-button" data-like-button>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="21"
-                                viewBox="0 0 20 21"
-                                fill="none"
-                              >
-                                <path
-                                  d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="profile-card__desc">
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="featured-profile__card">
-                  <div className="featured-profile__info-wrapper">
-                    <div className="profile-card featured-profile-card">
-                      <div className="profile-card__bg-img">
-                        <img
-                          src="/images/profile-banners/profile-banner-3.jpg"
-                          alt="Featured Profile Background Image"
-                        />
-                      </div>
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src="/images/profile-avatars/profile-avatar-3.jpg"
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Emerson Bator
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @emersonbator
-                          </div>
-                        </div>
-                        <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
-                            <button className="like-button" data-like-button>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="21"
-                                viewBox="0 0 20 21"
-                                fill="none"
-                              >
-                                <path
-                                  d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="profile-card__desc">
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="featured-profile__card">
-                  <div className="featured-profile__info-wrapper">
-                    <div className="profile-card featured-profile-card">
-                      <div className="profile-card__bg-img">
-                        <img
-                          src="/images/profile-banners/profile-banner-2.jpg"
-                          alt="Featured Profile Background Image"
-                        />
-                      </div>
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src="/images/profile-avatars/profile-avatar-7.jpg"
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Omar Dokidis
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @omardokidis
-                          </div>
-                        </div>
-                        <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
-                            <button className="like-button" data-like-button>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="21"
-                                viewBox="0 0 20 21"
-                                fill="none"
-                              >
-                                <path
-                                  d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="profile-card__desc">
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="featured-profile__card">
-                  <div className="featured-profile__info-wrapper">
-                    <div className="profile-card featured-profile-card">
-                      <div className="profile-card__bg-img">
-                        <img
-                          src="/images/profile-banners/profile-banner-1.jpg"
-                          alt="Featured Profile Background Image"
-                        />
-                      </div>
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src="/images/profile-avatars/profile-avatar-2.jpg"
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Wilson Septimus
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @wilsonseptimus
-                          </div>
-                        </div>
-                        <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
-                            <button className="like-button" data-like-button>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="21"
-                                viewBox="0 0 20 21"
-                                fill="none"
-                              >
-                                <path
-                                  d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="profile-card__desc">
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="featured-profile__card">
-                  <div className="featured-profile__info-wrapper">
-                    <div className="profile-card featured-profile-card">
-                      <div className="profile-card__bg-img">
-                        <img
-                          src="/images/profile-banners/profile-banner-5.jpg"
-                          alt="Featured Profile Background Image"
-                        />
-                      </div>
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src="/images/profile-avatars/profile-avatar-8.jpg"
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              Ruben Kenter
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @rubenkenter
-                          </div>
-                        </div>
-                        <div className="profile-card__icon">
-                          <div className="profile-card__blur-icon">
-                            <button className="like-button" data-like-button>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="21"
-                                viewBox="0 0 20 21"
-                                fill="none"
-                              >
-                                <path
-                                  d="M10.5166 17.8417C10.2333 17.9417 9.76663 17.9417 9.48329 17.8417C7.06663 17.0167 1.66663 13.575 1.66663 7.74166C1.66663 5.16666 3.74163 3.08333 6.29996 3.08333C7.81663 3.08333 9.15829 3.81666 9.99996 4.95C10.8416 3.81666 12.1916 3.08333 13.7 3.08333C16.2583 3.08333 18.3333 5.16666 18.3333 7.74166C18.3333 13.575 12.9333 17.0167 10.5166 17.8417Z"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="profile-card__desc">
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="moneyboy-network-grow-card-wrapper card">
-              <a href="#" className="moneyboy-network-grow-card card">
-                <div className="bg-img">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
+        <div className="modal-wrap tip-modal">
+          <button className="close-btn">
+            <CgClose size={22} />
+          </button>
+          <div className="profile-card">
+            <div className="profile-card__main justify-center">
+              <div className="profile-card__avatar-settings">
+                <div className="profile-card__avatar">
                   <img
-                    src="/images/grow-network-bg-image.png"
-                    alt="Grow Network By MoneyBoy Social"
+                    src="/images/profile-avatars/profile-avatar-1.png"
+                    alt="MoneyBoy Social Profile Avatar"
                   />
                 </div>
-                <div className="text-logo">
-                  <h3>Network</h3>
-                  <img
-                    src="/images/logo/moneyboy-logo.png"
-                    alt="MoneyBoy Social Logo"
-                  />
+              </div>
+              <div className="profile-card__info">
+                <div className="profile-card__name-badge">
+                  <div className="profile-card__name"> Addisonraee </div>
+                  <div className="profile-card__badge">
+                    <img
+                      src="/images/logo/profile-badge.png"
+                      alt="MoneyBoy Social Profile Badge"
+                    />
+                  </div>
                 </div>
-              </a>
+                <div className="profile-card__username">@rae</div>
+              </div>
             </div>
           </div>
-        </aside>
+          <h3 className="title">Thanks for the Tip</h3>
+          <div className="text-center">
+            <label className="orange">Enter The Amount</label>
+            <input
+              className="form-input number-input"
+              type="number"
+              placeholder="Question"
+              name="firstName"
+            />
+          </div>
+          <div className="actions">
+            <button className="premium-btn active-down-effect">
+              <span>Sent Tip</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
+        <div className="modal-wrap subscription-modal">
+          <button className="close-btn">
+            <CgClose size={22} />
+          </button>
+          <div className="profile-card">
+            <div className="profile-card__main justify-center">
+              <div className="profile-card__avatar-settings">
+                <div className="profile-card__avatar">
+                  <img
+                    src="/images/profile-avatars/profile-avatar-1.png"
+                    alt="MoneyBoy Social Profile Avatar"
+                  />
+                </div>
+              </div>
+              <div className="profile-card__info">
+                <div className="profile-card__name-badge">
+                  <div className="profile-card__name">Corey Bergson</div>
+                  <div className="profile-card__badge">
+                    <img
+                      src="/images/logo/profile-badge.png"
+                      alt="MoneyBoy Social Profile Badge"
+                    />
+                  </div>
+                </div>
+                <div className="profile-card__username">@coreybergson</div>
+              </div>
+            </div>
+          </div>
+          <h3 className="title">
+            Monthly Subscription <span className="gradinttext">$9.99</span>{" "}
+            <sub>
+              /month <span>(Save 25%)</span>
+            </sub>
+          </h3>
+          <ul className="points">
+            <li>Full access to this creator’s exclusive content</li>
+            <li>Direct message with this creator</li>
+            <li>Requested personalised Pay Per view contaent </li>
+            <li>Cancel your subscription at any time</li>
+          </ul>
+          <div className="actions">
+            <CustomSelect
+              label="Select  a payment card"
+              searchable={false}
+              options={[
+                { label: "Visa Credit Card", value: "visa" },
+                { label: "Mastercard Credit Card", value: "mastercard" },
+                { label: "RuPay Debit Card", value: "rupay" },
+                { label: "American Express", value: "amex" },
+                { label: "Discover Card", value: "discover" },
+              ]}
+            />
+            <button className="premium-btn active-down-effect">
+              <span>Subscribe</span>
+            </button>
+          </div>
+          <p className="note">
+            Clicking “Subscribe” will take you to the payment screen to finalize
+            you subscription
+          </p>
+        </div>
+      </div>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
+        <div className="modal-wrap tip-modal unlockmodal">
+          <button className="close-btn">
+            <CgClose size={22} />
+          </button>
+          <div className="profile-card">
+            <div className="profile-card__main justify-center">
+              <div className="profile-card__avatar-settings">
+                <div className="profile-card__avatar">
+                  <img
+                    src="/images/profile-avatars/profile-avatar-1.png"
+                    alt="MoneyBoy Social Profile Avatar"
+                  />
+                </div>
+              </div>
+              <div className="profile-card__info">
+                <div className="profile-card__name-badge">
+                  <div className="profile-card__name"> Romanatwood</div>
+                  <div className="profile-card__badge">
+                    <img
+                      src="/images/logo/profile-badge.png"
+                      alt="MoneyBoy Social Profile Badge"
+                    />
+                  </div>
+                </div>
+                <div className="profile-card__username">@atwood</div>
+              </div>
+            </div>
+          </div>
+          <h3 className="title">Unlock Content</h3>
+          <h4>
+            <span className="textorange">4.99</span> USD
+          </h4>
+          <p>
+            My man hates spiders!!{" "}
+            <img src="/images/icons/spider_icons.svg" className="icons" />{" "}
+            <img src="/images/icons/smiling-faceicons.svg" className="icons" />
+          </p>
+          <div className="actions">
+            <button className="premium-btn active-down-effect">
+              <span>Confirm to unlock</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
+        <div className="modal-wrap promote-modal">
+          <button className="close-btn">
+            <CgClose size={22} />
+          </button>
+          <h3 className="title">Promote Your Profile</h3>
+          <p>
+            Increase your visibility on MoneyBoy! Promote your profile to appear
+            in the Featured MoneyBoys section and attract more fans.
+          </p>
+          <div className="note">
+            <p>
+              Choose your promotion plan and pay easily with your Wallet or
+              credit card.”
+            </p>
+          </div>
+          <div className="select_wrap grid2">
+            <label className="radio_wrap box_select">
+              <input type="radio" name="access" />
+              <h3>3 Days</h3>
+              <p>$9.99 /day</p>
+            </label>
+            <label className="radio_wrap box_select">
+              <input type="radio" name="access" />
+              <h3>7 Days</h3>
+              <p>$7.99 /day</p>
+            </label>
+            <label className="radio_wrap box_select">
+              <input type="radio" name="access" />
+              <h3>14 Days</h3>
+              <p>$5.99 /day</p>
+            </label>
+            <label className="radio_wrap box_select">
+              <input type="radio" name="access" />
+              <h3>30 Days</h3>
+              <p>$3.99 /day</p>
+            </label>
+          </div>
+          <div className="total_wrap">
+            <div>
+              <h3>Total Price</h3>
+              <p>7 Days at $7.99 /day</p>
+            </div>
+            <div>
+              <h2>$55.99</h2>
+            </div>
+          </div>
+          <h4>Payment Method</h4>
+          <div className="select_wrap">
+            <label className="radio_wrap">
+              <input type="radio" name="access" />{" "}
+              <img src="/images/icons/wallet_icons.svg" className="icons" />{" "}
+              <p>Pay with wallet</p>
+            </label>
+            <label className="radio_wrap">
+              <input type="radio" name="access" />{" "}
+              <img src="/images/icons/card_icons.svg" className="icons" />{" "}
+              <p>Pay with credit/debit card</p>
+            </label>
+          </div>
+          <div className="actions">
+            <button className="premium-btn active-down-effect">
+              <span>Confirm & Promote</span>
+            </button>
+            <button className="active-down-effect">
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
+        <div className="modal-wrap request-modal">
+          <button className="close-btn">
+            <CgClose size={22} />
+          </button>
+          <h3 className="title">PPV - Request Custom Content</h3>
+          <div className="profile-card">
+            <div className="profile-card__main justify-center">
+              <div className="profile-card__avatar-settings">
+                <div className="profile-card__avatar">
+                  <img
+                    src="/images/profile-avatars/profile-avatar-1.png"
+                    alt="MoneyBoy Social Profile Avatar"
+                  />
+                </div>
+              </div>
+              <div className="profile-card__info">
+                <div className="profile-card__name-badge">
+                  <div className="profile-card__name">Gogo</div>
+                  <div className="profile-card__badge">
+                    <img
+                      src="/images/logo/profile-badge.png"
+                      alt="MoneyBoy Social Profile Badge"
+                    />
+                  </div>
+                </div>
+                <div className="profile-card__username">@gogo</div>
+              </div>
+            </div>
+          </div>
+          <p className="small">
+            Request a personalized video or photo directly from this MoneyBoy.
+          </p>
+          <div>
+            <label>Request type</label>
+            <CustomSelect
+              searchable={false}
+              label="Custom video"
+              options={[
+                { label: "Select One", value: "select1" },
+                { label: "Select Two", value: "select1" },
+                { label: "Select Three", value: "select1" },
+              ]}
+            />
+          </div>
+          <div>
+            <label>Request type</label>
+            <textarea
+              rows={3}
+              placeholder="Describe what you’d like (tone, outfit, duration, etc.)"
+            />
+          </div>
+          <div>
+            <label>Upload reference file</label>
+            <div className="upload-wrapper">
+              <div className="img_wrap">
+                <svg className="icons idshape size-45"></svg>
+                {/* <div className="imgicons"><TbCamera size="16" /></div> */}
+              </div>
+            </div>
+          </div>
+          <div>
+            <label>Offer your price</label>
+            <input className="form-input" type="number" placeholder="10.99" />
+          </div>
+          <div className="">
+            <p className="boldblack">Minimum request price: 20€</p>
+            <p>Final price will be confirmed by the creator before payment.</p>
+          </div>
+          <div className="actions">
+            <button className="premium-btn active-down-effect">
+              <span>Send Request</span>
+            </button>
+            <button className="active-down-effect">
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );

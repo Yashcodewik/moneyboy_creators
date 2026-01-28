@@ -20,6 +20,7 @@ import { authOptions } from "@/libs/auth";
 import Link from "next/link";
 import { CgClose } from "react-icons/cg";
 import ReduxProvider from "@/components/redux/ReduxProvider";
+import ScrollToTop from "./ScrollToTop";
 
 export const metadata: Metadata = {
   title: "Moneyboy Creators",
@@ -73,6 +74,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}>
+          <ScrollToTop /> 
         <ReduxProvider> 
           <AuthProviders session={session}>
             {children}

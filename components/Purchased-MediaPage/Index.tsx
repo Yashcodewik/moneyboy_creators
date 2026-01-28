@@ -12,10 +12,12 @@ import {
 } from "react-icons/fa";
 import CustomSelect from "../CustomSelect";
 import {
+  creatorsOptions,
   statusOptions,
   timeOptions,
   typeOptions,
 } from "../helper/creatorOptions";
+import { FaStar } from "react-icons/fa6";
 
 const PurchasedMediaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("favorites");
@@ -27,6 +29,10 @@ const PurchasedMediaPage: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<
     "status" | "type" | "creator" | "time" | null
   >(null);
+  const [showVideo, setShowVideo] = useState<boolean>(false);
+  const toggleVideo = () => {
+    setShowVideo(!showVideo);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -118,7 +124,7 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Status"
                           options={statusOptions}
                           value={status}
-                          onChange={(val) => setStatus(val)}
+                          // onChange={(val) => setStatus(val)}
                           placeholder="Search status"
                         />
                       </div>
@@ -128,145 +134,25 @@ const PurchasedMediaPage: React.FC = () => {
                           label="All Types"
                           options={typeOptions}
                           value={type}
-                          onChange={(val) => setType(val)}
+                          // onChange={(val) => setType(val)}
                           placeholder="Search type"
                         />
                       </div>
                       <div className="pm-page-select">
-                        <div
-                          className="custom-select-element"
-                          data-custom-select-element
-                          data-custom-select-value
-                        >
-                          <div
-                            className="custom-select-label-wrapper"
-                            data-custom-select-triger
-                            onClick={() => toggleDropdown("creator")}
-                          >
-                            <div className="custom-select-icon-txt">
-                              <span className="custom-select-label-txt">
-                                All Creators
-                              </span>
-                            </div>
-                            <div className="custom-select-chevron">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="25"
-                                height="24"
-                                viewBox="0 0 25 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                  stroke="none"
-                                  stroke-width="1.5"
-                                  stroke-miterlimit="10"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                          {openDropdown === "creator" && (
-                            <div
-                              className="custom-select-options-dropdown-wrapper"
-                              data-custom-select-dropdown
-                            >
-                              <div className="custom-select-options-dropdown-container">
-                                <div
-                                  className="custom-select-options-search"
-                                  data-custom-select-options-search
-                                >
-                                  <div className="label-input">
-                                    <div className="input-placeholder-icon">
-                                      <svg
-                                        className="svg-icon"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M14 5H20"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M14 8H17"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                      </svg>
-                                    </div>
-                                    <input
-                                      type="text"
-                                      placeholder="Search here"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="custom-select-options-lists-container">
-                                  <ul
-                                    className="custom-select-options-list"
-                                    data-custom-select-options-list
-                                  >
-                                    <li className="custom-select-option">
-                                      <span>Option 1</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 2</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 3</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 4</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 5</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 6</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 7</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 8</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 9</span>
-                                    </li>
-                                    <li className="custom-select-option">
-                                      <span>Option 10</span>
-                                    </li>
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <CustomSelect
+                          label="All Creators"
+                          options={creatorsOptions}
+                          value={type}
+                          // onChange={(val) => setType(val)}
+                          placeholder="Search type"
+                        />
                       </div>
                       <div className="pm-page-select">
                         <CustomSelect
                           label="All Time"
                           options={timeOptions}
                           value={time}
-                          onChange={(val) => setTime(val)}
+                          // onChange={(val) => setTime(val)}
                           placeholder="Search time"
                         />
                       </div>
@@ -275,72 +161,76 @@ const PurchasedMediaPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            <div className="video_wrap">
-              <iframe
-                className="video_fream"
-                src="https://www.youtube.com/embed/VIDEO_ID"
-                title="Video player"
-                frameBorder="0"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-              />
-              <div className="pm-page-card-footer vdocard-footer">
-                <div className="profile-card">
-                  <Link href="#" className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src="/images/profile-avatars/profile-avatar-6.jpg"
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">Zain Schleifer</div>
-                        <div className="profile-card__badge">
+            {showVideo && (
+              <div className="video_wrap">
+                <iframe
+                  className="video_fream"
+                  src="https://www.youtube.com/embed/VIDEO_ID"
+                  title="Video player"
+                  frameBorder="0"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+                <div className="pm-page-card-footer vdocard-footer">
+                  <div className="profile-card">
+                    <Link href="#" className="profile-card__main">
+                      <div className="profile-card__avatar-settings">
+                        <div className="profile-card__avatar">
                           <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
+                            src="/images/profile-avatars/profile-avatar-6.jpg"
+                            alt="MoneyBoy Social Profile Avatar"
                           />
                         </div>
                       </div>
-                      <div className="profile-card__username">
-                        @zainschleifer
+                      <div className="profile-card__info">
+                        <div className="profile-card__name-badge">
+                          <div className="profile-card__name">
+                            Zain Schleifer
+                          </div>
+                          <div className="profile-card__badge">
+                            <img
+                              src="/images/logo/profile-badge.png"
+                              alt="MoneyBoy Social Profile Badge"
+                            />
+                          </div>
+                        </div>
+                        <div className="profile-card__username">
+                          @zainschleifer
+                        </div>
                       </div>
+                    </Link>
+                  </div>
+                  <div className="meta-bar">
+                    <div className="meta-item view">
+                      <FaEye /> <span>12K</span>
                     </div>
-                  </Link>
-                </div>
-                <div className="meta-bar">
-                  <div className="meta-item view">
-                    <FaEye /> <span>12K</span>
-                  </div>
-                  <div className="meta-item">
-                    <span>4 days ago</span>
-                  </div>
-                  <div className="meta-actions">
-                    <Link href="#">
-                      <FaThumbsUp /> <span>71</span>
-                    </Link>
-                    <Link href="#">
-                      {" "}
-                      <FaThumbsDown />
-                    </Link>
-                    <Link href="#" className="favorite">
-                      <FaHeart /> <span>Favorite</span>
-                    </Link>
-                    <Link href="#">
-                      {" "}
-                      <FaCommentAlt /> <span>4</span>{" "}
-                    </Link>
-                    <Link href="#">
-                      <FaFlag />
-                    </Link>
+                    <div className="meta-item">
+                      <span>4 days ago</span>
+                    </div>
+                    <div className="meta-actions">
+                      <Link href="#">
+                        <FaThumbsUp /> <span>71</span>
+                      </Link>
+                      <Link href="#">
+                        {" "}
+                        <FaThumbsDown />
+                      </Link>
+                      <Link href="#" className="favorite">
+                        <FaStar color="#e5741f" />
+                        {/* <span>Favorite</span> */}
+                      </Link>
+                      <Link href="#">
+                        {" "}
+                        <FaCommentAlt /> <span>4</span>{" "}
+                      </Link>
+                      <Link href="#">
+                        <FaFlag />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
             <div className="pm-page-hero-wrapper">
               <div className="pm-page-hero-container ">
                 <div className="hero-type-card-wrapper ">
@@ -450,7 +340,11 @@ const PurchasedMediaPage: React.FC = () => {
                           reflex decide the next champion.
                         </p>
                       </div>
-                      <a href="#" className="btn-txt-gradient btn-outline">
+                      <a
+                        href="#"
+                        className="btn-txt-gradient btn-outline"
+                        onClick={toggleVideo}
+                      >
                         <span>Watch Now</span>
                       </a>
                     </div>

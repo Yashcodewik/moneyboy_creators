@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import "./header.css";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_CREATOR_PROFILE, API_USER_PROFILE } from "@/utils/api/APIConstant";
@@ -90,6 +89,7 @@ const Header = () => {
                 firstName: response.user.firstName,
                 lastName: response.user.lastName,
                 email: response.user.email,
+                profile: response.user.profile,
               };
             }
           } else {
@@ -100,6 +100,7 @@ const Header = () => {
                 firstName: response.data.firstName,
                 lastName: response.data.lastName,
                 email: response.data.email,
+                profile: response.data.profile,
               };
             }
           }
@@ -129,6 +130,21 @@ const Header = () => {
 
     router.push(`/follower?tab=${tab}`);
   };
+
+const handleStatsClick = (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsOpen(false);
+  
+  if (session?.user?.role === 2) {
+    // For creators: go to subscribers page
+    router.push("/subscriptions?tab=subscribers");
+  } else {
+    // For regular users: go to subscriptions page
+    router.push("/subscriptions?tab=subscriptions");
+  }
+};
+
   return (
     <>
       <header className="header-main">
@@ -141,7 +157,10 @@ const Header = () => {
                   alt="MoneyBoy Logo"
                   fill priority
                 /> */}
-                <img src="/images/logo/moneyboy-logo.png" alt="MoneyBoy Social Logo"/>
+                <img
+                  src="/images/logo/moneyboy-logo.png"
+                  alt="MoneyBoy Social Logo"
+                />
               </Link>
             </div>
 
@@ -299,9 +318,10 @@ const Header = () => {
                       <div className="profile-avatar">
                         <Image
                           src={
-                            session?.user?.role === 2
+                            userProfile?.profile ||
+                            (session?.user?.role === 2
                               ? "/images/profile-avatars/profile-avatar-1.png"
-                              : "/images/profile-avatars/profile-avatar-13.jpg"
+                              : "/images/profile-avatars/profile-avatar-13.jpg")
                           }
                           alt="User Images"
                           width={40}
@@ -312,7 +332,7 @@ const Header = () => {
                   </div>
                 </>
               ) : (
-                <div className="header-auth-buttons gap-10">
+                <div className="header-auth-buttons flex items-center gap-10">
                   <Link href="/login" className="btn-txt-gradient btn-grey">
                     {" "}
                     <span>Sign In</span>
@@ -367,9 +387,10 @@ const Header = () => {
                         <div className="profile-card__avatar">
                           <img
                             src={
-                              session?.user?.role === 2
+                              userProfile?.profile ||
+                              (session?.user?.role === 2
                                 ? "/images/profile-avatars/profile-avatar-1.png"
-                                : "/images/profile-avatars/profile-avatar-13.jpg"
+                                : "/images/profile-avatars/profile-avatar-13.jpg")
                             }
                             alt="MoneyBoy Social Profile Avatar"
                           />
@@ -385,12 +406,14 @@ const Header = () => {
                                 session?.user?.name ||
                                 "Corey Bergson"}
                           </div>
-                          <div className="profile-card__badge">
-                            <img
-                              src="/images/logo/profile-badge.png"
-                              alt="MoneyBoy Social Profile Badge"
-                            />
-                          </div>
+                          {session?.user?.role === 2 && (
+                            <div className="profile-card__badge">
+                              <img
+                                src="/images/logo/profile-badge.png"
+                                alt="MoneyBoy Social Profile Badge"
+                              />
+                            </div>
+                          )}
                         </div>
                         <div className="profile-card__username">
                           {profileLoading
@@ -512,40 +535,83 @@ const Header = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="menu-profile-stats-item">
+                      <div className="menu-profile-stats-item subscriptions_icons" onClick={handleStatsClick} >
                         <div className="icon">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 25"
-                            fill="none"
-                          >
-                            <path
-                              d="M15 2.5H9C4 2.5 2 4.5 2 9.5V15.5C2 19.28 3.14 21.35 5.86 22.12C6.08 19.52 8.75 17.47 12 17.47C15.25 17.47 17.92 19.52 18.14 22.12C20.86 21.35 22 19.28 22 15.5V9.5C22 4.5 20 2.5 15 2.5ZM12 14.67C10.02 14.67 8.42 13.06 8.42 11.08C8.42 9.10002 10.02 7.5 12 7.5C13.98 7.5 15.58 9.10002 15.58 11.08C15.58 13.06 13.98 14.67 12 14.67Z"
-                              stroke="none"
-                              strokeWidth="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M18.1399 22.12C17.2599 22.38 16.2199 22.5 14.9999 22.5H8.99986C7.77986 22.5 6.73986 22.38 5.85986 22.12C6.07986 19.52 8.74986 17.47 11.9999 17.47C15.2499 17.47 17.9199 19.52 18.1399 22.12Z"
-                              stroke="none"
-                              strokeWidth="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M15.5799 11.08C15.5799 13.06 13.9799 14.67 11.9999 14.67C10.0199 14.67 8.41992 13.06 8.41992 11.08C8.41992 9.10002 10.0199 7.5 11.9999 7.5C13.9799 7.5 15.5799 9.10002 15.5799 11.08Z"
-                              stroke="none"
-                              strokeWidth="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                          {session?.user?.role === 2 ? (
+                            /* 🔹 Subscribers SVG (existing one) */
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 25"
+                              fill="none"
+                            >
+                              <path
+                                d="M15 2.5H9C4 2.5 2 4.5 2 9.5V15.5C2 19.28 3.14 21.35 5.86 22.12C6.08 19.52 8.75 17.47 12 17.47C15.25 17.47 17.92 19.52 18.14 22.12C20.86 21.35 22 19.28 22 15.5V9.5C22 4.5 20 2.5 15 2.5ZM12 14.67C10.02 14.67 8.42 13.06 8.42 11.08C8.42 9.10002 10.02 7.5 12 7.5C13.98 7.5 15.58 9.10002 15.58 11.08C15.58 13.06 13.98 14.67 12 14.67Z"
+                                stroke="none"
+                                strokeWidth="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M18.1399 22.12C17.2599 22.38 16.2199 22.5 14.9999 22.5H8.99986C7.77986 22.5 6.73986 22.38 5.85986 22.12C6.07986 19.52 8.74986 17.47 11.9999 17.47C15.2499 17.47 17.9199 19.52 18.1399 22.12Z"
+                                stroke="none"
+                                strokeWidth="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M15.5799 11.08C15.5799 13.06 13.9799 14.67 11.9999 14.67C10.0199 14.67 8.41992 13.06 8.41992 11.08C8.41992 9.10002 10.0199 7.5 11.9999 7.5C13.9799 7.5 15.5799 9.10002 15.5799 11.08Z"
+                                stroke="none"
+                                strokeWidth="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          ) : (
+                            /* 🔹 Subscriptions SVG (new one) */
+                            <svg className="subsvg"
+                              width="32"
+                              height="32"
+                              viewBox="0 0 32 32"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M3.35986 9.48047H28.6399"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M11.3599 2.8125V9.2925"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M20.6401 2.8125V8.6925"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          )}
                         </div>
+
                         <div className="menu-profile-stats-txt">
-                          <div className="stats-label"> Subscribers </div>
+                          <div className="stats-label">
+                            {session?.user?.role === 2
+                              ? "Subscribers"
+                              : "Subscriptions"}
+                          </div>
                           <div className="stats-value">
-                            <span> 10K </span>
+                            <span>10K</span>
                           </div>
                         </div>
                       </div>
@@ -569,7 +635,7 @@ const Header = () => {
                             router.push("/userprofile");
                           } else if (session?.user?.role === 2) {
                             console.log(" role 2");
-                            router.push("/profile");
+                            router.push(`/profile/${session?.user?.publicId}`);
                           } else {
                             router.push("/profile");
                           }
@@ -597,7 +663,20 @@ const Header = () => {
                         </svg>
                         <span>My Profile</span>
                       </a>
-                      <a href="#" className="menu-link edit-profile-link">
+                      <a
+                        href="#"
+                        className="menu-link edit-profile-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsOpen(false);
+
+                          if (session?.user?.role === 1) {
+                            router.push("/user-edit-profile");
+                          } else if (session?.user?.role === 2) {
+                            router.push("/creator-edit-profile");
+                          }
+                        }}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 25"
@@ -636,7 +715,65 @@ const Header = () => {
                         </svg>
                         <span>Edit Profile</span>
                       </a>
-                      <a href="#" className="menu-link blacklist-link">
+                      {session?.user?.role === 2 && (
+                        <a
+                          href="#"
+                          className="menu-link subscriptions_icons"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsOpen(false);
+                            router.push("/subscriptions?tab=subscriptions");
+                          }}
+                        >
+                          <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 32 32"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z"
+                              stroke="black"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M3.35986 9.48047H28.6399"
+                              stroke="black"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M11.3599 2.8125V9.2925"
+                              stroke="black"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M20.6401 2.8125V8.6925"
+                              stroke="black"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z"
+                              stroke="black"
+                              stroke-width="2"
+                              stroke-miterlimit="10"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+
+                          <span>Subscriptions</span>
+                        </a>
+                      )}
+                      <a href="/blacklist" className="menu-link blacklist-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -854,26 +991,6 @@ const Header = () => {
                   </div>
                   <div className="links-block">
                     <div className="menu-links-wrapper">
-                      {session?.user?.role === 1 && (
-                        <a href="/like" className="menu-link like-link">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M12.62 20.8101C12.28 20.9301 11.72 20.9301 11.38 20.8101C8.48 19.8201 2 15.6901 2 8.6901C2 5.6001 4.49 3.1001 7.56 3.1001C9.38 3.1001 10.99 3.9801 12 5.3401C13.01 3.9801 14.63 3.1001 16.44 3.1001C19.51 3.1001 22 5.6001 22 8.6901C22 15.6901 15.52 19.8201 12.62 20.8101Z"
-                              stroke="none"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                          <span>Likes</span>
-                        </a>
-                      )}
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
@@ -964,7 +1081,7 @@ const Header = () => {
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className="menu-link like-link"
+                          className="menu-link photos-link"
                           onClick={(e) => handleTabNavigation(e, "photos")} // Default to posts for users
                         >
                           <svg
@@ -999,13 +1116,13 @@ const Header = () => {
                           <span>Photos</span>
                         </a>
                       )}
-                        <a
-                          href="/follower"
-                          className="menu-link like-link"
-                          onClick={(e) => handleTabfollowNavigation(e, "followers")} // Default to posts for users
-                        >
-
-                     
+                      <a
+                        href="/follower"
+                        className="menu-link like-link"
+                        onClick={(e) =>
+                          handleTabfollowNavigation(e, "followers")
+                        } // Default to posts for users
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -1044,11 +1161,13 @@ const Header = () => {
                         </svg>
                         <span>Followers</span>
                       </a>
-                        <a
-                          href="/follower"
-                          className="menu-link like-link"
-                          onClick={(e) => handleTabfollowNavigation(e, "following")} 
-                        >
+                      <a
+                        href="/follower"
+                        className="menu-link like-link"
+                        onClick={(e) =>
+                          handleTabfollowNavigation(e, "following")
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -1072,6 +1191,24 @@ const Header = () => {
                           />
                         </svg>
                         <span>Following</span>
+                      </a>
+                      <a href="/like" className="menu-link like-link">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M12.62 20.8101C12.28 20.9301 11.72 20.9301 11.38 20.8101C8.48 19.8201 2 15.6901 2 8.6901C2 5.6001 4.49 3.1001 7.56 3.1001C9.38 3.1001 10.99 3.9801 12 5.3401C13.01 3.9801 14.63 3.1001 16.44 3.1001C19.51 3.1001 22 5.6001 22 8.6901C22 15.6901 15.52 19.8201 12.62 20.8101Z"
+                            stroke="none"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                        <span>Likes</span>
                       </a>
                       <a href="/wishlist" className="menu-link wishlist-link">
                         <svg
@@ -1137,7 +1274,7 @@ const Header = () => {
                         </svg>
                         <span>Purchased Media</span>
                       </a>
-                      {session?.user?.role === 2 && (
+                      
                         <a href="/store" className="menu-link store-link">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1184,14 +1321,14 @@ const Header = () => {
                           </svg>
                           <span>Store</span>
                         </a>
-                      )}
+                      
                     </div>
                   </div>
                   <div className="links-block">
                     <div className="menu-links-block-label">Wallet History</div>
                     <div className="menu-links-wrapper">
                       <a
-                        href="#"
+                        href="/wallet-transactions?tab=wallet"
                         className="menu-link wallet-transactions-link"
                       >
                         <svg
@@ -1232,7 +1369,7 @@ const Header = () => {
                         </svg>
                         <span>Wallet Transactions</span>
                       </a>
-                      <a href="#" className="menu-link order-history-link">
+                      <a href="wallet-transactions?tab=orders" className="menu-link order-history-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -1273,7 +1410,7 @@ const Header = () => {
                         </svg>
                         <span>Order History</span>
                       </a>
-                      <a href="#" className="menu-link payment-history-link">
+                      <a href="wallet-transactions?tab=payments" className="menu-link payment-history-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"

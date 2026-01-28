@@ -254,6 +254,26 @@
                  align-items: center;
                  gap: 6px;
                  cursor: pointer;
+
+                 /* &.subscriptions_icons {
+                  &:hover {
+                    .icon.subsvg {
+                      svg {
+                        path {
+                          stroke: red;
+
+                          &:nth-child(1) {
+                            fill: red;
+                          }
+
+                          &:nth-child(4) {
+                            stroke: red;
+                          }
+                        }
+                      }
+                    }
+                  }
+                 } */
  
                  &:nth-child(1) {
                    &:hover {
@@ -280,7 +300,7 @@
                      .icon {
                        svg {
                          path {
-                           stroke: black;
+                           stroke: #FFF;
  
                            &:nth-child(1) {
                              fill: black;
@@ -489,6 +509,20 @@
                        }
                      }
                    }
+
+                   &.subscriptions_icons {
+                    svg path {
+                      fill: black;
+                      stroke: #FFF;
+                      &:nth-child(1) {
+                        fill: #000;
+                      }
+
+                      &:nth-child(2) {
+                        fill: #000;
+                      }
+                    }
+                  }
  
                    &.blacklist-link {
                      svg path {
@@ -1306,6 +1340,14 @@
            object-fit: cover;
            object-position: center center;
          }
+         video {
+          transition: var(--transition-fast);
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center center;
+          display: block;
+        }
        }
  
        .moneyboy-post__actions {
@@ -1332,264 +1374,168 @@
          border-radius: 15px;
  
          ul {
-           display: flex;
-           align-items: center;
-           gap: 20px;
-           gap: 16px;
- 
-           li {
-             a {
-               display: flex;
-               align-items: center;
-               transition: var(--transition-fast);
-               opacity: 0.8;
-               gap: 8px;
- 
-               svg {
-                 transition: var(--transition-fast);
-                 transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                 width: 20px;
-                 height: 20px;
-               }
- 
-               span {
-                 transition: var(--transition-fast);
-                 font-family: var(--font-family-base);
-                 font-weight: 500;
-                 font-style: SemiBold;
-                 font-size: 14px;
-                 line-height: 26px;
-                 letter-spacing: 3%;
-                 color: white;
-               }
- 
-               &:active {
-                 svg {
-                   transform: scale(1) !important;
-                 }
-               }
- 
-               &:hover {
-                 opacity: 1;
- 
-                 svg {
-                   transform: scale(1.15);
- 
-                   path {
-                   }
-                 }
- 
-                 span {
-                 }
-               }
-             }
-           }
- 
-           &:nth-child(1) {
-             li {
-               &:nth-child(1) {
-                 a {
-                   svg {
-                   }
- 
-                   span {
-                   }
- 
-                   &:active {
-                     svg {
-                     }
-                   }
- 
-                   &:hover {
-                     svg {
-                       path {
-                         &:nth-child(1) {
-                           stroke: #f5ad23;
-                           fill: #f5ad23;
-                         }
- 
-                         &:nth-child(2) {
-                           stroke: #f5ad23;
-                         }
-                       }
-                     }
- 
-                     span {
-                     }
-                   }
-                 }
-               }
- 
-               &:nth-child(2) {
-                 a {
-                   svg {
-                   }
- 
-                   span {
-                   }
- 
-                   &:active {
-                     svg {
-                     }
-                   }
- 
-                   &:hover {
-                     svg {
-                       path {
-                         stroke: var(--like-color);
-                         fill: var(--like-color);
-                       }
-                     }
- 
-                     span {
-                     }
-                   }
- 
-                   &.post-like-btn {
-                     &.liked {
-                       svg {
-                         animation: heartLikedPopUpAnimation 0.45s ease-out;
- 
-                         path {
-                           fill: var(--like-color);
-                           stroke: var(--like-color);
-                         }
-                       }
-                     }
-                   }
-                 }
-               }
- 
-               &:nth-child(3) {
-                 a {
-                   svg {
-                   }
- 
-                   span {
-                   }
- 
-                   &:active {
-                     svg {
-                     }
-                   }
- 
-                   &:hover {
-                     svg {
-                       path {
-                         &:nth-child(1) {
-                           fill: #46a0e3;
-                           stroke: #46a0e3;
-                         }
-                       }
-                     }
- 
-                     span {
-                     }
-                   }
-                 }
-               }
-             }
-           }
- 
-           &:nth-child(2) {
-             li {
-               &:nth-child(1) {
-                 a {
-                   svg {
-                   }
- 
-                   span {
-                   }
- 
-                   &:active {
-                     svg {
-                     }
-                   }
- 
-                   &:hover {
-                     svg {
-                       path {
-                         &:nth-child(1) {
-                           stroke: #e84c88;
-                           fill: #e84c88;
-                         }
- 
-                         &:nth-child(2) {
-                           stroke: #e84c88;
-                           fill: #e84c88;
-                         }
- 
-                         &:nth-child(3),
-                         &:nth-child(4),
-                         &:nth-child(5) {
-                         }
-                       }
-                     }
- 
-                     span {
-                     }
-                   }
-                 }
-               }
- 
-               &:nth-child(2) {
-                 a {
-                   svg {
-                   }
- 
-                   span {
-                   }
- 
-                   &:active {
-                     svg {
-                     }
-                   }
- 
-                   &:hover {
-                     svg {
-                       path {
-                         /* stroke: var(--like-color);
-                                     fill: var(--like-color); */
-                         &:nth-child(1) {
-                           stroke: #6c5ce7;
-                           fill: #6c5ce7;
-                           position: relative;
-                           z-index: 2;
-                         }
- 
-                         &:nth-child(2) {
-                           stroke: #6c5ce7;
-                           fill: #6c5ce7;
-                         }
- 
-                         &:nth-child(3) {
-                           stroke: #ffffff;
-                           fill: #ffffff;
-                         }
-                       }
-                     }
- 
-                     span {
-                     }
-                   }
- 
-                   &.post-like-btn {
-                     &.liked {
-                       svg {
-                         animation: heartLikedPopUpAnimation 0.45s ease-out;
- 
-                         path {
-                           fill: var(--like-color);
-                           stroke: var(--like-color);
-                         }
-                       }
-                     }
-                   }
-                 }
-               }
-             }
-           }
-         }
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        
+          li {
+            a {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              opacity: 0.8;
+              transition: var(--transition-fast);
+        
+              svg {
+                width: 20px;
+                height: 20px;
+                transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+              }
+        
+              span {
+                font-family: var(--font-family-base);
+                font-weight: 500;
+                font-size: 14px;
+                line-height: 26px;
+                letter-spacing: 3%;
+                color: white;
+                transition: var(--transition-fast);
+              }
+        
+              &:hover,
+              &:active,
+              &.active {
+                opacity: 1;
+        
+                svg {
+                  transform: scale(1.15);
+                }
+              }
+        
+              &:active {
+                svg {
+                  transform: scale(1) !important;
+                }
+              }
+            }
+          }
+        
+          /* ===================== UL 1 ===================== */
+          &:nth-child(1) {
+            li {
+              /* -------- Item 1 -------- */
+              &:nth-child(1) {
+                a {
+                  &:hover,
+                  &:active,
+                  &.active {
+                    svg path {
+                      &:nth-child(1) {
+                        stroke: #f5ad23;
+                        fill: #f5ad23;
+                      }
+        
+                      &:nth-child(2) {
+                        stroke: #f5ad23;
+                      }
+                    }
+                  }
+                }
+              }
+        
+              /* -------- Item 2 (Like) -------- */
+              &:nth-child(2) {
+                a {
+                  &:hover,
+                  &:active,
+                  &.active,
+                  &.liked {
+                    svg path {
+                      stroke: var(--like-color);
+                      fill: var(--like-color);
+                    }
+                  }
+        
+                  &.post-like-btn.liked {
+                    svg {
+                      animation: heartLikedPopUpAnimation 0.45s ease-out;
+                    }
+                  }
+                }
+              }
+        
+              /* -------- Item 3 -------- */
+              &:nth-child(3) {
+                a {
+                  &:hover,
+                  &:active,
+                  &.active {
+                    svg path:nth-child(1) {
+                      fill: #46a0e3;
+                      stroke: #46a0e3;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        
+          /* ===================== UL 2 ===================== */
+          &:nth-child(2) {
+            li {
+              /* -------- Item 1 -------- */
+              &:nth-child(1) {
+                a {
+                  &:hover,
+                  &:active,
+                  &.active {
+                    svg path {
+                      &:nth-child(1),
+                      &:nth-child(2) {
+                        stroke: #e84c88;
+                        fill: #e84c88;
+                      }
+                    }
+                  }
+                }
+              }
+        
+              /* -------- Item 2 -------- */
+              &:nth-child(2) {
+                a {
+                  &:hover,
+                  &:active,
+                  &.active {
+                    svg path {
+                      &:nth-child(1),
+                      &:nth-child(2) {
+                        stroke: #6c5ce7;
+                        fill: #6c5ce7;
+                      }
+        
+                      &:nth-child(3) {
+                        stroke: #ffffff;
+                        fill: #ffffff;
+                      }
+                    }
+                  }
+        
+                  &.post-like-btn.liked {
+                    svg {
+                      animation: heartLikedPopUpAnimation 0.45s ease-out;
+        
+                      path {
+                        stroke: var(--like-color);
+                        fill: var(--like-color);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        
        }
      }
    }

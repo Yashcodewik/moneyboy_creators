@@ -3,16 +3,49 @@ import { useState } from "react";
 import Featuredboys from '../Featuredboys';
 import CustomSelect from '../CustomSelect';
 import Link from "next/link";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import { useSearchParams } from "next/navigation";
 
 const WalletTransactionsPage = () => {
+  const { session } = useDecryptedSession();
+  const searchParams = useSearchParams();
+  const initialTab =
+    searchParams.get("tab") === "orders"
+      ? "orders"
+      : searchParams.get("tab") === "payments"
+      ? "payments"
+      : "wallet";
+
+  const [activeTab, setActiveTab] = useState<
+    "wallet" | "orders" | "payments" | "details"
+  >(initialTab);
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className="page-content-type-button active-down-effect active">Wallet Transactions</button>
-            <button className="page-content-type-button active-down-effect"> Order History</button>
-            <button className="page-content-type-button active-down-effect"> Payment History</button>
+            <button
+            className={`page-content-type-button active-down-effect ${activeTab === "wallet" ? "active" : ""}`}
+            onClick={() => setActiveTab("wallet")}
+          >
+            Wallet Transactions
+          </button>
+
+          <button
+            className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`}
+            onClick={() => setActiveTab("orders")}
+          >
+            Order History
+          </button>
+
+          <button
+            className={`page-content-type-button active-down-effect ${activeTab === "payments" ? "active" : ""}`}
+            onClick={() => setActiveTab("payments")}
+          >
+            Payment History
+          </button>
+
           </div>
           <div className="tabs-content-wrapper-layout">
             <div data-multi-dem-cards-layout>
@@ -62,8 +95,11 @@ const WalletTransactionsPage = () => {
                     </div>
                   </div>
                   </div>
+                  {activeTab !== "details" && (
                   <div className="creator-content-cards-wrapper wtransactions_containt">
                     <div className="rel-users-wrapper">
+                      {session?.user?.role === 2 && (
+  <>
                     <div className="history_wrap">
                       <div className="rline">
                         <p>Total Earned</p>
@@ -82,6 +118,9 @@ const WalletTransactionsPage = () => {
                       <h3>Get a payout</h3>
                       <button className="btn-txt-gradient" type="button"><span>Request payout</span> </button>
                     </div>
+                    </>
+                      )}
+                      {session?.user?.role === 1 && (
                     <div className="payout_wrap">
                       <div>
                         <p>Current Balance</p>
@@ -89,6 +128,7 @@ const WalletTransactionsPage = () => {
                       </div>
                       <button className="btn-txt-gradient" type="button"><span>Add Funds</span> </button>
                     </div>
+                      )}
                     <div className="rel-user-box">
                       <div className="rel-user-profile-action">
                         <div className="rel-user-profile">
@@ -100,7 +140,7 @@ const WalletTransactionsPage = () => {
                                 </div>
                               </div>
                               <div className="profile-card__info">
-                                <div className="profile-card__username tphead">From</div>
+                                <div className="profile-card__username tphead">{session?.user?.role === 2 ? "From" : "To"}</div>
                                 <div className="profile-card__name-badge">
                                   <div className="profile-card__name">Zain Schleifer</div>
                                   <div className="profile-card__badge"><img src="/images/logo/profile-badge.png" alt="Verified badge" /></div>
@@ -141,7 +181,7 @@ const WalletTransactionsPage = () => {
                           <p>A jazzy Lofi/neo soul-esque guitar part as shown in my video.</p>
                         </div>
                         <div className="rel-user-actions">
-                          <button className="btn-txt-gradient" type="button"><span>View</span> </button>
+                          <button className="btn-txt-gradient" type="button"  onClick={() => setActiveTab("details")}><span>View</span> </button>
                         </div>
                       </div>
                     </div>
@@ -156,7 +196,7 @@ const WalletTransactionsPage = () => {
                                 </div>
                               </div>
                               <div className="profile-card__info">
-                                <div className="profile-card__username tphead">From</div>
+                                <div className="profile-card__username tphead">{session?.user?.role === 2 ? "From" : "To"}</div>
                                 <div className="profile-card__name-badge">
                                   <div className="profile-card__name">Gustavo Stanton</div>
                                   <div className="profile-card__badge"><img src="/images/logo/profile-badge.png" alt="Verified badge" /></div>
@@ -197,12 +237,13 @@ const WalletTransactionsPage = () => {
                           <p>purchase product ZACH KING SNAPBACK HAT x1</p>
                         </div>
                         <div className="rel-user-actions">
-                          <button className="btn-txt-gradient" type="button"><span>View</span> </button>
+                          <button className="btn-txt-gradient" type="button"  onClick={() => setActiveTab("details")}><span>View</span> </button>
                         </div>
                       </div>
                     </div>
                     </div>
                   </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -210,9 +251,11 @@ const WalletTransactionsPage = () => {
           {/* ===================================== */}
           {/* ========== Payment History ========== */}
           {/* ===================================== */}
+          {activeTab === "details" && (
+            <>
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             {/* Back Button */}
-            <button className="cate-back-btn active-down-effect" type="button" aria-label="Go back">
+            <button className="cate-back-btn active-down-effect" type="button" aria-label="Go back"  onClick={() => setActiveTab("orders")}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M9.57 5.93L3.5 12L9.57 18.07" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M20.5 12H3.67" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -223,6 +266,7 @@ const WalletTransactionsPage = () => {
               <h3>#80900857</h3>
             </div>
           </div>
+          
           <div className="tabs-content-wrapper-layout">
             <div>
               <div className="creator-content-filter-grid-container">
@@ -297,7 +341,7 @@ const WalletTransactionsPage = () => {
                         </div>
                       </div>
 
-                      <div className="rel-user-box">
+                      {/* <div className="rel-user-box">
                         <div className="rel-user-profile-action">
                           <div className="rel-user-profile">
                             <div className="profile-card">
@@ -352,13 +396,15 @@ const WalletTransactionsPage = () => {
                             <button className="btn-txt-gradient" type="button"><span>View</span> </button>
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          </>
+          )}
         </div>
       </div>
 

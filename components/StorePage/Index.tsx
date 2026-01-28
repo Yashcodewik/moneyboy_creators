@@ -1,98 +1,132 @@
-"use client";
-import React, { useState } from "react";
-import FeaturedSlider from './FeaturedSlider';
+  "use client";
+  import React, { useState } from "react";
+  import FeaturedSlider from "./FeaturedSlider";
+  import CustomSelect from "../CustomSelect";
+  import { timeOptions } from "../helper/creatorOptions";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
 
-const StorePage = () => {
-  const [store, setStore] = useState(false);
-  const [layout, setLayout] = useState<"grid" | "list">("grid");
-  const [subActiveTab, setSubActiveTab] = useState<string>("videos");
+  const StorePage = () => {
+    const [store, setStore] = useState(false);
+    const [layout, setLayout] = useState<"grid" | "list">("grid");
+    const [subActiveTab, setSubActiveTab] = useState<string>("videos");
+        const { session } = useDecryptedSession();
+      const userRole = session?.user?.role; 
+  const isCreator = userRole === 2;
 
-  return (
+const [activeMainTab, setActiveMainTab] = useState<"moneyboys" | "mystore">(
+  isCreator ? "mystore" : "moneyboys"
+);
+    const [time, setTime] = useState<string>("all_time");
+  
+    return (
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout">
           <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers">
-            <div
-              className="moneyboy-feed-page-cate-buttons card store-page-header-wrapper"
-              id="posts-tabs-btn-card"
-            >
-              <div className="store-page-header">
-                <div className="store-page-header-bg-img">
-                  <img
-                    src="/images/element-assets/store-page-header-bg.jpg"
-                    alt="Store Header BG Image"
-                  />
-                </div>
-                <button className="cate-back-btn active-down-effect">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M9.57 5.92999L3.5 12L9.57 18.07"
-                      stroke="none"
-                      strokeWidth="2.5"
-                      strokeMiterlimit="10"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                    <path
-                      d="M20.4999 12H3.66992"
-                      stroke="none"
-                      strokeWidth="2.5"
-                      strokeMiterlimit="10"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                  </svg>
-                </button>
-                <div className="store-page-header-content-wrapper">
-                  <div className="store-page-header--profile">
-                    <div className="profile-card">
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src="/images/profile-avatars/profile-avatar-1.png"
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              {" "}
-                              Corey Bergson{" "}
-                            </div>
-                            <div className="profile-card__badge">
+     <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+  {isCreator && (
+    <button
+      className={`page-content-type-button active-down-effect ${
+        activeMainTab === "mystore" ? "active" : ""
+      }`}
+      onClick={() => setActiveMainTab("mystore")}
+    >
+      My Store
+    </button>
+  )}
+
+  <button
+    className={`page-content-type-button active-down-effect ${
+      activeMainTab === "moneyboys" ? "active" : ""
+    }`}
+    onClick={() => setActiveMainTab("moneyboys")}
+  >
+    Moneyboys
+  </button>
+</div>
+            {activeMainTab === "mystore" && (
+              <div
+                className="moneyboy-feed-page-cate-buttons card store-page-header-wrapper"
+                id="posts-tabs-btn-card"
+              >
+                <div className="store-page-header">
+                  <div className="store-page-header-bg-img">
+                    <img
+                      src="/images/element-assets/store-page-header-bg.jpg"
+                      alt="Store Header BG Image"
+                    />
+                  </div>
+                  {/* <button className="cate-back-btn active-down-effect">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M9.57 5.92999L3.5 12L9.57 18.07"
+                        stroke="none"
+                        strokeWidth="2.5"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                      <path
+                        d="M20.4999 12H3.66992"
+                        stroke="none"
+                        strokeWidth="2.5"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                    </svg>
+                  </button> */}
+                  <div className="store-page-header-content-wrapper">
+                    <div className="store-page-header--profile">
+                      <div className="profile-card">
+                        <div className="profile-card__main">
+                          <div className="profile-card__avatar-settings">
+                            <div className="profile-card__avatar">
                               <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
+                                src="/images/profile-avatars/profile-avatar-1.png"
+                                alt="MoneyBoy Social Profile Avatar"
                               />
                             </div>
                           </div>
-                          <div className="profile-card__username">
-                            {" "}
-                            @coreybergson{" "}
+                          <div className="profile-card__info">
+                            <div className="profile-card__name-badge">
+                              <div className="profile-card__name">
+                                {" "}
+                                Corey Bergson{" "}
+                              </div>
+                              <div className="profile-card__badge">
+                                <img
+                                  src="/images/logo/profile-badge.png"
+                                  alt="MoneyBoy Social Profile Badge"
+                                />
+                              </div>
+                            </div>
+                            <div className="profile-card__username">
+                              {" "}
+                              @coreybergson{" "}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="store-page-header-tag">
-                    <img
-                      src="/images/logo/profile-badge.png"
-                      alt="Store Button Icon"
-                    />
-                    <span>Store</span>
+                    <div className="store-page-header-tag">
+                      <img
+                        src="/images/logo/profile-badge.png"
+                        alt="Store Button Icon"
+                      />
+                      <span>Store</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div>
+            {activeMainTab === "mystore" && (
               <div className="store-page-wrapper">
                 <div className="hero-type-card-wrapper">
                   <div className="hero-type-card-container">
@@ -108,6 +142,7 @@ const StorePage = () => {
                       <h4>Want Something Special?</h4>
                       <div className="hero-type-card--cta-box">
                         <p>
+                          {" "}
                           Request a custom photo or video directly from this
                           MoneyBoy
                         </p>
@@ -119,8 +154,8 @@ const StorePage = () => {
                       </div>
                       <div className="hero-type-card--desc">
                         <p>
-                          Prices very based on your request. You’ll get a
-                          quote before payment.
+                          Prices very based on your request. You’ll get a quote
+                          before payment.
                         </p>
                       </div>
                     </div>
@@ -377,69 +412,13 @@ const StorePage = () => {
                             </div>
                             <div className="creater-content-filters-layouts">
                               <div className="creator-content-select-filter">
-                                <div
-                                  className="custom-select-element bg-white p-sm size-sm"
-                                  data-custom-select-element
-                                  data-custom-select-value
-                                >
-                                  <div
-                                    className="custom-select-label-wrapper"
-                                    data-custom-select-triger
-                                    onClick={() => setStore((prev) => !prev)}
-                                  >
-                                    <div className="custom-select-icon-txt">
-                                      <span className="custom-select-label-txt">
-                                        All Time
-                                      </span>
-                                    </div>
-                                    <div className="custom-select-chevron">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="25"
-                                        height="24"
-                                        viewBox="0 0 25 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeMiterlimit="10"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                  {store && (
-                                    <div
-                                      className="custom-select-options-dropdown-wrapper"
-                                      data-custom-select-dropdown
-                                    >
-                                      <div className="custom-select-options-dropdown-container">
-                                        <div className="custom-select-options-lists-container">
-                                          <ul
-                                            className="custom-select-options-list"
-                                            data-custom-select-options-list
-                                          >
-                                            <li className="custom-select-option">
-                                              <span> Option 1</span>
-                                            </li>
-                                            <li className="custom-select-option">
-                                              <span> Option 2</span>
-                                            </li>
-                                            <li className="custom-select-option">
-                                              <span> Option 3</span>
-                                            </li>
-                                            <li className="custom-select-option">
-                                              <span> Option 4</span>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
+                                <CustomSelect
+                                  className="bg-white p-sm size-sm"
+                                  label="All Time"
+                                  options={timeOptions}
+                                  value={time}
+                                  searchable={false}
+                                />
                               </div>
                               <div
                                 className="creator-content-grid-layout-options"
@@ -514,901 +493,901 @@ const StorePage = () => {
                           }
                         >
                           {subActiveTab === "videos" && (
-                          <div
-                            className="creator-content-type-container-wrapper"
-                            data-multi-tabs-content-tabdata__active
-                          >
-                            <div className="col-4-cards-layout">
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-11.jpg"
-                                      alt="Post Image"
-                                    />
-                                  </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                            <div
+                              className="creator-content-type-container-wrapper"
+                              data-multi-tabs-content-tabdata__active
+                            >
+                              <div className="col-4-cards-layout">
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-11.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-9.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-9.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-12.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-12.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-10.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-10.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-13.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-13.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-7.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-7.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-14.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-14.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-8.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-8.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
+                                  </div>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
                                     >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
                           )}
 
                           <div
@@ -1416,896 +1395,896 @@ const StorePage = () => {
                             data-multi-tabs-content-tab
                           >
                             {subActiveTab === "photos" && (
-                            <div className="col-4-cards-layout">
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-13.jpg"
-                                      alt="Post Image"
-                                    />
-                                  </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                              <div className="col-4-cards-layout">
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-13.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-7.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-7.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-14.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-14.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-8.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-8.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-11.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-11.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-9.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-9.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-12.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-12.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline"
-                                  >
-                                    <svg
-                                      className="only-fill-hover-effect"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                        fill="url(#paint0_linear_745_155)"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_155"
-                                          x1="1.99456"
-                                          y1="0.916991"
-                                          x2="26.1808"
-                                          y2="6.81415"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FECE26"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#E5741F"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>$12.00</span>
-                                  </a>
-                                </div>
-                              </div>
-                              <div className="creator-media-card card">
-                                <div className="creator-media-card__media-wrapper">
-                                  <div className="creator-media-card__media">
-                                    <img
-                                      src="/images/post-images/post-img-10.jpg"
-                                      alt="Post Image"
-                                    />
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
                                   </div>
-                                  <div className="creator-media-card__overlay">
-                                    <div className="creator-media-card__stats">
-                                      <div className="creator-media-card__stats-btn wishlist-icon">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span> 13 </span>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline"
+                                    >
+                                      <svg
+                                        className="only-fill-hover-effect"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                          fill="url(#paint0_linear_745_155)"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_155"
+                                            x1="1.99456"
+                                            y1="0.916991"
+                                            x2="26.1808"
+                                            y2="6.81415"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FECE26"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#E5741F"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>$12.00</span>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div className="creator-media-card card">
+                                  <div className="creator-media-card__media-wrapper">
+                                    <div className="creator-media-card__media">
+                                      <img
+                                        src="/images/post-images/post-img-10.jpg"
+                                        alt="Post Image"
+                                      />
+                                    </div>
+                                    <div className="creator-media-card__overlay">
+                                      <div className="creator-media-card__stats">
+                                        <div className="creator-media-card__stats-btn wishlist-icon">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                            <path
+                                              d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            ></path>
+                                          </svg>
+                                          <span> 13 </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="creator-media-card__desc">
-                                  <p>
-                                    Today, I experienced the most blissful
-                                    ride outside.
-                                  </p>
-                                </div>
-                                <div className="creator-media-card__btn">
-                                  <a
-                                    href="#"
-                                    className="btn-txt-gradient btn-outline grey-variant"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 20 20"
-                                      fill="none"
+                                  <div className="creator-media-card__desc">
+                                    <p>
+                                      Today, I experienced the most blissful ride
+                                      outside.
+                                    </p>
+                                  </div>
+                                  <div className="creator-media-card__btn">
+                                    <a
+                                      href="#"
+                                      className="btn-txt-gradient btn-outline grey-variant"
                                     >
-                                      <path
-                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                        stroke="url(#paint0_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M5.41602 18.3333H14.5827"
-                                        stroke="url(#paint1_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M7.91602 11.6667H12.0827"
-                                        stroke="url(#paint2_linear_745_209)"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_745_209"
-                                          x1="9.9704"
-                                          y1="1.65417"
-                                          x2="9.9704"
-                                          y2="15.8167"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint1_linear_745_209"
-                                          x1="9.99935"
-                                          y1="18.3333"
-                                          x2="9.99935"
-                                          y2="19.3333"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                        <linearGradient
-                                          id="paint2_linear_745_209"
-                                          x1="9.99935"
-                                          y1="11.6667"
-                                          x2="9.99935"
-                                          y2="12.6667"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stopColor="#FFCD84"></stop>
-                                          <stop
-                                            offset="1"
-                                            stopColor="#FEA10A"
-                                          ></stop>
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                    <span>For Subscribers</span>
-                                  </a>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                          stroke="url(#paint0_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M5.41602 18.3333H14.5827"
+                                          stroke="url(#paint1_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <path
+                                          d="M7.91602 11.6667H12.0827"
+                                          stroke="url(#paint2_linear_745_209)"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        ></path>
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_745_209"
+                                            x1="9.9704"
+                                            y1="1.65417"
+                                            x2="9.9704"
+                                            y2="15.8167"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint1_linear_745_209"
+                                            x1="9.99935"
+                                            y1="18.3333"
+                                            x2="9.99935"
+                                            y2="19.3333"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                          <linearGradient
+                                            id="paint2_linear_745_209"
+                                            x1="9.99935"
+                                            y1="11.6667"
+                                            x2="9.99935"
+                                            y2="12.6667"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stopColor="#FFCD84"></stop>
+                                            <stop
+                                              offset="1"
+                                              stopColor="#FEA10A"
+                                            ></stop>
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span>For Subscribers</span>
+                                    </a>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
                             )}
                           </div>
                         </div>
@@ -2314,11 +2293,700 @@ const StorePage = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {activeMainTab === "moneyboys" && (
+              <div className="discovery-page-container">
+                <div className="discovery-page-content-container">
+                  <div className="discovery-page-content-wrapper mt-0">
+                    <div className="discovery-page-cards-layouts">
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-11.png"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    Zain Schleifer
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @zainschleifer
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-6.jpg"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    James Baptista
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @jamesbaptista
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-5.jpg"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    Jaxson Geidt
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @jaxsongeidt
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-3.jpg"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    Kadin Septimus
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @kadinseptimus
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-12.jpg"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    Brandon Stanton
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @brandonstanton
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-14.jpg"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    Ahmad Lubin
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @ahmadlubin
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-13.jpg"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    Wilson Dorwart
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @wilsondorwart
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="user-profile-card-wrapper">
+                        <div className="user-profile-card-container">
+                          <div className="user-profile-card__img">
+                            <img
+                              src="/images/profile-avatars/profile-avatar-10.jpg"
+                              alt="Discover Profile Avatar"
+                            />
+                          </div>
+
+                          <div className="user-profile-content-overlay-container">
+                            <div className="user-profile-card__action-btns">
+                              {/* <div className="user-profile-card__like-btn">
+                                <button className="like-button" data-like-button>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="21"
+                                    height="20"
+                                    viewBox="0 0 21 20"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                      stroke="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </div> */}
+                            </div>
+
+                            <div className="user-profile-card__info-container">
+                              <div className="user-profile-card__info">
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    Roger Dokidis
+                                  </div>
+                                  <div className="user-profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="user-profile-card__username">
+                                  @rogerdokidis
+                                </div>
+                              </div>
+                              <div className="user-profile-card__wishlist-btn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="21"
+                                  height="20"
+                                  viewBox="0 0 21 20"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-  );
-};
+    );
+  };
 
-export default StorePage;
+  export default StorePage;

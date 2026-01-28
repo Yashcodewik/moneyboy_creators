@@ -16,7 +16,24 @@ export const API_FOLLOWER_COUNT = "/social/counts";
 export const API_CREATE_POST = "/post/create";
 export const API_SEARCH_TAG_USERS = "/post/tag/search";
 export const API_TAG_USERS_TO_POST = "/post/tag";
-
-//creator
+export const API_GET_POSTS = "/post/feedGet";
+export const API_GET_FOLLOWING_POSTS = "/post/following";
+export const API_LIKE_POST = "/post/like";
+export const API_UNLIKE_POST = "/post/unlike";
+export const API_SAVE_POST = "/post/save";
+export const API_UNSAVE_POST = "/post/unsave";
+export const API_GET_POPULAR_POSTS = "/post/popular";
+export const API_UPDATE_USER_PROFILE = "/auth/update-profile";
+export const API_CHANGE_PASSWORD = "/auth/change-password";
+export const API_CHANGE_CREATOR_PASSWORD = "/auth/change-password";
+export const API_TOGGLE_ACCOUNT = "/auth/toggle-account";
+export const API_TOGGLE_CREATOR_ACCOUNT = "/creator/toggle-account";
+export const API_UPDATE_CREATOR_PROFILE = "/creator/update-profile";
+export const API_GET_LIKED_POSTS = "/post/liked";
+export const API_CREATE_UPDATE_SUBSCRIPTION = "/subscription/create";
+export const API_GET_MY_SUBSCRIPTION = "/subscription/me";
+export const API_BLOCK_COUNTRIES: string = "/creator/block-countries";
+export const API_GET_FEATURED_MONEYBOYS = "/social/featuredmoneysGet";
+export const API_CREATOR_PROFILE_BY_ID = "/creator/profile"; 
+export const API_GET_POST_BY_PUBLIC_ID = "/post/public"; 
 export const API_GET_DISCOVER_CREATORS = "/social/discover";
-

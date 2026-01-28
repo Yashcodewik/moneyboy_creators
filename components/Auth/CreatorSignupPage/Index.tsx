@@ -233,7 +233,7 @@ const CreatorSignupPage = () => {
       setOtpOpen(false);
 
       // redirect to feed
-      router.push("/Discover");
+      router.push("/discover");
     } catch (err: any) {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
