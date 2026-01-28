@@ -62,7 +62,6 @@ const Filter: React.FC<FilterProps> = ({
   const dropdownRefs = useRef<{
     [key in Exclude<FilterType, null>]?: HTMLDivElement | null;
   }>({});
-
   const getData = async () => {
     const get = await getDecryptedSession();
     return get;

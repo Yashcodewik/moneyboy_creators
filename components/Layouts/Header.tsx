@@ -1328,7 +1328,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                     <div className="menu-links-block-label">Wallet History</div>
                     <div className="menu-links-wrapper">
                       <a
-                        href="#"
+                        href="/wallet-transactions?tab=wallet"
                         className="menu-link wallet-transactions-link"
                       >
                         <svg
@@ -1369,7 +1369,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         </svg>
                         <span>Wallet Transactions</span>
                       </a>
-                      <a href="#" className="menu-link order-history-link">
+                      <a href="wallet-transactions?tab=orders" className="menu-link order-history-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -1410,7 +1410,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         </svg>
                         <span>Order History</span>
                       </a>
-                      <a href="#" className="menu-link payment-history-link">
+                      <a href="wallet-transactions?tab=payments" className="menu-link payment-history-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
