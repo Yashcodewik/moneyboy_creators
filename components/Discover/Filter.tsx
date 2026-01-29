@@ -180,10 +180,7 @@ const handleFilterChange = (filterName: string, value: string) => {
                       type="text"
                       placeholder="Search here"
                       value={search}
-                      onChange={(e) => {
-                        setPage(1); // reset page
-                        setSearch(e.target.value);
-                      }}
+                    onChange={(e) => setSearch(e.target.value)} 
                     />
                   </div>
                 </div>
