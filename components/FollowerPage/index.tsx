@@ -457,7 +457,7 @@ const FollowersPage = () => {
 
   const renderFollowersList = () => {
     if (loading && followers.length === 0) {
-      return <div className="nodeta">Loading followers...</div>;
+      return <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>;
     }
 
     if (followers.length === 0) {

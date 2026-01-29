@@ -11,34 +11,34 @@ const Featuredboys = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { session } = useDecryptedSession();
-  const limit = 5;
-    const router = useRouter();
-const fetchFeatured = async (pageNumber = 1) => {
-  setLoading(true);
+  const limit = 6;
+  const router = useRouter();
+  const fetchFeatured = async (pageNumber = 1) => {
+    setLoading(true);
 
-  try {
-    const res = await apiPost({
-      url: API_GET_FEATURED_MONEYBOYS,
-      values: {
-        page: pageNumber,
-        limit,
-        ...(session?.user?.publicId && {
-          userPublicId: session.user.publicId,
-        }),
-      },
-    });
+    try {
+      const res = await apiPost({
+        url: API_GET_FEATURED_MONEYBOYS,
+        values: {
+          page: pageNumber,
+          limit,
+          ...(session?.user?.publicId && {
+            userPublicId: session.user.publicId,
+          }),
+        },
+      });
 
-    if (res?.success) {
-      setFeatured(res.data || []);
-      setPage(res.pagination?.page || 1);
-      setTotalPages(res.pagination?.totalPages || 1);
+      if (res?.success) {
+        setFeatured(res.data || []);
+        setPage(res.pagination?.page || 1);
+        setTotalPages(res.pagination?.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Fetch error:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchFeatured(page);
