@@ -163,51 +163,32 @@ useEffect(() => {
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
-
     const pages: (number | string)[] = [];
-
     if (totalPages <= 6) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1, 2, 3);
-
       if (page > 4) pages.push("...");
-
       if (page > 3 && page < totalPages - 2) pages.push(page);
-
       if (page < totalPages - 3) pages.push("...");
-
       pages.push(totalPages - 1, totalPages);
     }
 
     return (
-      <div className="pagination-container">
+      <div className="pagination_wrap">
+        <button className="btn-prev" disabled={page === 1} onClick={() => setPage((prev) => Math.max(prev - 1, 1))}><CircleArrowLeft color="#000" /></button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={i} className="pagination-dots">
-              ...
-            </span>
+            <button key={i} className="premium-btn" disabled><span>…</span></button>
           ) : (
-            <button
-              key={i}
-              className={`pagination-btn ${page === p ? "active" : ""}`}
-              onClick={() => setPage(p as number)}
-            >
-              {p}
-            </button>
+            <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => setPage(p as number)}><span>{p}</span></button>
           ),
         )}
-
-        <button
-          className="pagination-btn next"
-          disabled={page === totalPages}
-          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-        >
-          Next »
-        </button>
+        <button className="btn-next" disabled={page === totalPages} onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}><CircleArrowRight color="#000" /></button>
       </div>
     );
   };
+  
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -314,13 +295,6 @@ useEffect(() => {
                     </div>
                   </div>
                 ))}
-              </div>
-              <div className="pagination_wrap">
-                <button className="btn-prev"><CircleArrowLeft color="#000"/></button>
-                <button className="premium-btn"><span>1</span></button>
-                <button className="btn-primary"><span>2</span></button>
-                <button className="btn-primary"><span>3</span></button>
-                <button className="btn-next"><CircleArrowRight color="#000"/></button>
               </div>
               {renderPagination()}
             </div>
