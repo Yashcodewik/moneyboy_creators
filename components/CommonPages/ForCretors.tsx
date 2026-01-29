@@ -19,7 +19,7 @@ const ForCretors = () => {
               >
                 <button
                   className="cate-back-btn active-down-effect"
-                  onClick={() => router.push(`/help?tab=${fromTab}`)}
+                  onClick={() => router.push(`/help?tab=guides`)}
                 >
                   <span className="icons arrowLeft"></span>
                 </button>

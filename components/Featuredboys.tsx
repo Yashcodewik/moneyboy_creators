@@ -163,7 +163,7 @@ const fetchFeatured = async (pageNumber = 1) => {
           </div>
 
           <div className="featured-profiles-wrapper">
-            {loading && <p>Loading...</p>}
+            {loading && <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
 
             {!loading &&
               featured.map((item) => (

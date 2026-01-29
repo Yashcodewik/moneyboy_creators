@@ -984,7 +984,7 @@
                 }
 
                 &.views-btn {
-                    &:hover {
+                    &:hover, &.active {
                         button {
                             svg {
                                 path {
@@ -1037,6 +1037,21 @@
                                 &:nth-child(1) {
                                     stroke: #00c2ff;
                                     fill: #00c2ff;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                &.thumup-btn {
+                    &:hover, &.active {
+                        svg {
+                            path {
+                                stroke: white;
+
+                                &:nth-child(1) {
+                                    stroke: black;
+                                    fill: black;
                                 }
                             }
                         }

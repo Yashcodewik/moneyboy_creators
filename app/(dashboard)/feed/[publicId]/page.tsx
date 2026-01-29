@@ -20,7 +20,7 @@ export default function FeedPostPage() {
     });
   }, [publicId]);
 
-  if (!post) return <div style={{ padding: 20 }}>Loading...</div>;
+  if (!post) return <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>;
 
   return (
     <div className="moneyboy-posts-wrapper">

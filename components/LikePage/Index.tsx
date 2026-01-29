@@ -170,37 +170,34 @@ const LikePage = () => {
     return `${Math.floor(hours / 24)} Day ago`;
   };
 
-  const handleLikeClick = async (
-    postId: string,
-    isLiked: boolean,
-    index: number,
-  ) => {
-    try {
-      const url = isLiked ? API_UNLIKE_POST : API_LIKE_POST;
-      const res = await apiPost({ url, values: { postId } });
+    const handleLikeClick = async (
+      postId: string,
+      isLiked: boolean,
+      index: number
+    ) => {
+      try {
+        const url = isLiked ? API_UNLIKE_POST : API_LIKE_POST;
+        const res = await apiPost({ url, values: { postId } });
 
-      if (res?.success) {
-        setPosts((prev) => {
-          if (isLiked) {
-            return prev.filter((post) => post._id !== postId);
-          } else {
-            const updated = [...prev];
-            updated[index] = {
-              ...updated[index],
-              liked: true,
-              likeCount: updated[index].likeCount + 1,
-            };
-            return updated;
-          }
-        });
-
-        // ShowToast(res.message, "success");
+        if (res?.success) {
+          setPosts((prev) =>
+            prev.map((post, i) =>
+              post._id === postId
+                ? {
+                    ...post,
+                    liked: !isLiked,
+                    likeCount: isLiked
+                      ? Math.max(0, post.likeCount - 1)
+                      : post.likeCount + 1,
+                  }
+                : post
+            )
+          );
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-      // ShowToast("Failed to update like", "error");
-    }
-  };
+    };
 
   const handleSaveClick = async (postId: string, isSaved: boolean) => {
     try {

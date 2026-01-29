@@ -34,6 +34,17 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes flip {
+  to {transform: rotateX(360deg);}
+}
+@keyframes flip1 {
+  0% {transform: rotateX(0deg); opacity: 0.7;}
+  50% {transform: rotateX(180deg); opacity: 1;}
+  100% {transform: rotateX(360deg); opacity: 0.7;}
+}
 
 .link-gradint {
   span {
@@ -128,11 +139,127 @@ body {
   }
 }
 
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #ddd;
+  border-top: 3px solid #000;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
 .nodeta {
   padding: 12px;
   text-align: center;
   color: #505050;
-  font-size: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  background: linear-gradient(to top, #e5741f 0%, #fece26 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.nodeta1 {
+  margin: 12px 0px;
+  text-align: center;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: linear-gradient(to top, #e5741f, #fece26);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(to top, #e5741f, #fece26);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    z-index: 0;
+  }
+}
+.loadingtext {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 12px;
+  font-size: 18px;
+  line-height: 22px;
+  font-weight: 500;
+  letter-spacing: 0px;
+  font-family: var(--font-family-base);
+  perspective: 600px;
+  .loading-letter-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    animationDelay: "0.1s"
+  }
+  span, .loading-letter-img {
+    display: inline-block;
+    transform-origin: 50% 50% -10px;
+    transform-style: preserve-3d;
+    animation: flip 2s infinite;
+    background: linear-gradient(to top, #e5741f 0%,#fece26 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    @for $i from 1 through 9 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.1}s;
+      }
+    }
+  }
+}
+
+.loadingtext1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 12px;
+  font-size: 18px;
+  line-height: 22px;
+  font-weight: 500;
+  font-family: var(--font-family-base);
+  perspective: 600px;
+  span,
+  .loading-letter-img {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center center;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform;
+    animation: flip1 2s infinite ease-in-out;
+  }
+  span {
+    // background: linear-gradient(93.25deg, #e5741f -49.57%, #fece26 98.1%);
+    background: linear-gradient(to top, #e5741f 0%,#fece26 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .loading-letter-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+  > * {
+    @for $i from 1 through 20 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.1}s;
+      }
+    }
+  }
 }
 
 .radio_wrap {
@@ -4404,19 +4531,20 @@ body {
   }
 }
 
-// .infinite-scroll-component__outerdiv .infinite-scroll-component  {
-//   height: calc(100dvh - 85px) !important;
-//   overflow-y: auto !important;
-//   scrollbar-width: none;
-//   &::-webkit-scrollbar {
-//     width: 0;
-//   }
-//   .moneyboy-posts-scroll-container {
-//     scrollbar-width: none;
-//   }
-// }
-.infinite-scroll-component {scrollbar-width: none;overflow: visible !important;}
-.infinite-scroll-component::-webkit-scrollbar {display: none;}
+.infinite-scroll-component__outerdiv .infinite-scroll-component  {
+  height: calc(100dvh - 80px) !important;
+  overflow-y: auto !important;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    width: 0;
+  }
+  .moneyboy-posts-scroll-container {
+    scrollbar-width: none;
+  }
+  .rel-user-more-opts-wrapper .rel-users-more-opts-popup-wrapper {
+    right: 0px;
+  }
+}
 
 .post_swiper {
   width: 100%;

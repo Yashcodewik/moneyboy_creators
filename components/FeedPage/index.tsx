@@ -298,100 +298,27 @@ const FeedPage = () => {
           <div className="moneyboy-feed-page-container">
             {/* TABS */}
             <div className="moneyboy-feed-page-cate-buttons card">
-              <button
-                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
-                onClick={() => handleTabClick("feed")}
-              >
-                Feed
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
-                onClick={() => handleTabClick("following")}
-              >
-                {isLoggedIn ? "Following" : "Discover"}
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
-                onClick={() => handleTabClick("popular")}
-              >
-                Popular
-              </button>
+              <button className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
+              <button className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>{isLoggedIn ? "Following" : "Discover"}</button>
+              <button className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`} onClick={() => handleTabClick("popular")}>Popular</button>
             </div>
-            {/* FEED */}
-            {activeTab === "feed" && (
-              <InfiniteScrollWrapper
-                dataLength={posts.length}
-                fetchMore={fetchPosts}
-                hasMore={hasMore}
-                scrollableTarget="feed-scroll-container"
-              >
-                <div
-                  className="moneyboy-posts-wrapper"
-                  id="feed-scroll-container"
-                >
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post._id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                    />
-                  ))}
-                </div>
-              </InfiniteScrollWrapper>
-            )}
-            {activeTab === "following" && (
-              <InfiniteScrollWrapper
-                dataLength={followingPosts.length}
-                fetchMore={fetchFollowingPosts}
-                hasMore={followingHasMore}
-                scrollableTarget="following-scroll-container"
-              >
-                <div
-                  className="moneyboy-posts-wrapper"
-                  id="following-scroll-container"
-                >
-                  {followingPosts.map((post) => (
-                    <PostCard
-                      key={post._id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                    />
-                  ))}
-                </div>
-              </InfiniteScrollWrapper>
-            )}
-            {/* POPULAR */}
-            {activeTab === "popular" && (
-              <InfiniteScrollWrapper
-                dataLength={popularPosts.length}
-                fetchMore={fetchPopularPosts}
-                hasMore={popularHasMore}
-                scrollableTarget="popular-scroll-container"
-              >
-                <div
-                  className="moneyboy-posts-wrapper"
-                  id="popular-scroll-container"
-                >
-                  {popularPosts.map((post) => (
-                    <PostCard
-                      key={post._id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                    />
-                  ))}
-                </div>
-              </InfiniteScrollWrapper>
-            )}
+            <InfiniteScrollWrapper dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
+              fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
+              hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore } scrollableTarget="moneyboy-scroll-container">
+              <div className="moneyboy-posts-wrapper" id="moneyboy-scroll-container">
+                {(activeTab === "feed" ? posts :
+                  activeTab === "following" ? followingPosts : popularPosts
+                ).map((post) => (
+                  <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
+                ))}
+              </div>
+            </InfiniteScrollWrapper>
           </div>
         </div>
         <Featuredboys />
       </div>
-
+      
       {/* ================= MODALS ================= */}
-
       <div
         className="modal"
         role="dialog"
@@ -443,12 +370,7 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap subscription-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -561,12 +483,7 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap promote-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -636,12 +553,7 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap request-modal">
           <button className="close-btn">
             <CgClose size={22} />

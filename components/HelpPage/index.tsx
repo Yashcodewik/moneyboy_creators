@@ -180,14 +180,14 @@ const HelpPage = () => {
                       <li>
                         What is MoneyBoy.com{" "}
                         <Link
-                          href={`/help/what-is-moneyboy?fromTab=${activeTab}`}
+                          href={`/help/what-is-moneyboy?fromTab=guides`}
                         >
                           /what-is-moneyboy
                         </Link>
                       </li>
                       <li>
                         How it works{" "}
-                        <Link href={`/help/how-it-works?fromTab=${activeTab}`}>
+                        <Link href={`/help/how-it-works?fromTab=guides`}>
                           /how-it-works
                         </Link>
                       </li>
@@ -196,7 +196,7 @@ const HelpPage = () => {
                     <ul className="points link_points">
                       <li>
                         For Creators{" "}
-                        <Link href={`/help/for-creators?fromTab=${activeTab}`}>
+                        <Link href={`/help/for-creators?fromTab=guides`}>
                           /for-creators
                         </Link>
                       </li>
@@ -205,7 +205,7 @@ const HelpPage = () => {
                     <ul className="points link_points">
                       <li>
                         Frequently Asked Questions (FAQ){" "}
-                        <Link href={`/help/faq?fromTab=${activeTab}`}>
+                        <Link href={`/help/faq?fromTab=guides`}>
                           /faq
                         </Link>
                       </li>

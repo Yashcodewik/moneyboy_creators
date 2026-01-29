@@ -73,11 +73,11 @@ const handleCopy = () => {
   setTimeout(() => setCopied(false), 1200);
 };
   if (loading) {
-  return <div style={{ padding: 20 }}>Loading...</div>;
+  return <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>;
 }
 
 if (!post) {
-  return <div style={{ padding: 20 }}>Post not found</div>;
+  return <div className="nodeta">Post not found</div>;
 }
   return (
     <div className="moneyboy-2x-1x-layout-container">
