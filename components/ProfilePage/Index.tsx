@@ -990,10 +990,10 @@ const ProfilePage = () => {
                                 <div className="creator-content-card__stats">
                                   <div className="creator-content-stat-box">
                                     <button
-                                    // className={`like-button ${
-                                    //   likedItems.includes(1) ? "liked" : ""
-                                    // }`}
-                                    // onClick={() => toggleLike(1)}
+                                    className={`like-button ${
+                                      likedItems.includes(1) ? "liked" : ""
+                                    }`}
+                                    onClick={() => toggleLike(1)}
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1014,7 +1014,7 @@ const ProfilePage = () => {
 
                                     <span>12K</span>
                                   </div>
-                                  <div className="creator-content-stat-box ">
+                                  <div className="creator-content-stat-box massage-btn active">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"

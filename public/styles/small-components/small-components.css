@@ -1057,6 +1057,21 @@
                         }
                     }
                 }
+
+                &.massage-btn {
+                    &:hover, &.active {
+                        svg {
+                            path {
+                                stroke: white;
+
+                                &:nth-child(1) {
+                                    fill: #2979ff;
+                                    stroke: #2979ff;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

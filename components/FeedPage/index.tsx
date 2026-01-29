@@ -302,16 +302,14 @@ const FeedPage = () => {
               <button className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>{isLoggedIn ? "Following" : "Discover"}</button>
               <button className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`} onClick={() => handleTabClick("popular")}>Popular</button>
             </div>
-            <InfiniteScrollWrapper dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
+            <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="moneyboy-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
               fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
-              hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore } scrollableTarget="moneyboy-scroll-container">
-              <div className="moneyboy-posts-wrapper" id="moneyboy-scroll-container">
+              hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
                 {(activeTab === "feed" ? posts :
                   activeTab === "following" ? followingPosts : popularPosts
                 ).map((post) => (
                   <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
                 ))}
-              </div>
             </InfiniteScrollWrapper>
           </div>
         </div>
