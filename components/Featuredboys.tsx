@@ -11,7 +11,7 @@ const Featuredboys = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { session } = useDecryptedSession();
-  const limit = 6;
+  const limit = 5;
     const router = useRouter();
 const fetchFeatured = async (pageNumber = 1) => {
   setLoading(true);

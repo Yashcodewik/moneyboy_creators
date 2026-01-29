@@ -4573,11 +4573,19 @@ body {
 }
 
 .infinite-scroll-component__outerdiv .infinite-scroll-component  {
-  height: calc(100dvh - 80px) !important;
+  height: calc(100dvh - 140px) !important;
   overflow-y: auto !important;
   scrollbar-width: none;
   &::-webkit-scrollbar {
     width: 0;
+  }
+  &.moneyboy-posts-wrapper {
+    height: calc(100dvh - 140px) !important;
+    overflow-y: auto !important;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      width: 0;
+    }
   }
   .moneyboy-posts-scroll-container {
     scrollbar-width: none;
