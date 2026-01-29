@@ -107,7 +107,6 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
     return postDate.toLocaleDateString();
   };
 
-
   return (
     <div className="moneyboy-post__container card">
       <div className="moneyboy-post__header">
@@ -183,18 +182,22 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
       <div className="moneyboy-post__media">
         <div className="moneyboy-post__img">
           <Swiper slidesPerView={1} spaceBetween={15} navigation modules={[Navigation]} className="post_swiper">
-           {post.media?.[0]?.mediaFiles?.map((file: string, i: number) => {
-              const isVideo = post.media?.[0]?.type === "video";
-              return (
-                <SwiperSlide key={i}>
-                  {isVideo ? (
-                    <video src={file} autoPlay muted loop playsInline/>
-                  ) : (
-                    <img src={file} alt="MoneyBoy Post Image" />
-                  )}
-                </SwiperSlide>
-              );
-            })}
+            {post.media?.[0]?.mediaFiles?.length > 0 ? (
+              post.media[0].mediaFiles.map((file: string, i: number) => {
+                const isVideo = post.media?.[0]?.type === "video";
+                return (
+                  <SwiperSlide key={i}>
+                    {isVideo ? (
+                      <video src={file} autoPlay muted loop playsInline />
+                    ) : (
+                      <img src={file} alt="MoneyBoy Post Image" />
+                    )}
+                  </SwiperSlide>
+                );
+              })
+            ) : (
+              <SwiperSlide><div className="nomedia"></div></SwiperSlide>
+            )}
           </Swiper>
         </div>
         <div className="moneyboy-post__actions">

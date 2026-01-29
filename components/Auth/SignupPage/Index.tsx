@@ -109,11 +109,9 @@ const SignupPage = () => {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
   };
-
-
-
+  
   return (
-    <div className="container login_wrap">
+    <div className="container login_wrap lg_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">

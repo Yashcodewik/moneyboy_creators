@@ -313,7 +313,9 @@ const FeedPage = () => {
             </InfiniteScrollWrapper>
           </div>
         </div>
-        <Featuredboys />
+        <aside className="moneyboy-2x-1x-b-layout scrolling">
+          <Featuredboys />
+        </aside>
       </div>
       
       {/* ================= MODALS ================= */}
