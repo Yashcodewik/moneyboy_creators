@@ -1328,7 +1328,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                     <div className="menu-links-block-label">Wallet History</div>
                     <div className="menu-links-wrapper">
                       <a
-                        href="#"
+                        href="/wallet-transactions"
                         className="menu-link wallet-transactions-link"
                       >
                         <svg

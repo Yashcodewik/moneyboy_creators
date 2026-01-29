@@ -5,15 +5,43 @@ import CustomSelect from '../CustomSelect';
 import Link from "next/link";
 
 const WalletTransactionsPage = () => {
+    const [activeTab, setActiveTab] = useState<
+    "wallet" | "order" | "payment" | "details"
+  >("wallet");
+
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className="page-content-type-button active-down-effect active">Wallet Transactions</button>
-            <button className="page-content-type-button active-down-effect"> Order History</button>
-            <button className="page-content-type-button active-down-effect"> Payment History</button>
-          </div>
+       <div className="moneyboy-feed-page-cate-buttons card">
+  <button
+    className={`page-content-type-button active-down-effect ${
+      activeTab === "wallet" ? "active" : ""
+    }`}
+    onClick={() => setActiveTab("wallet")}
+  >
+    Wallet Transactions
+  </button>
+
+  <button
+    className={`page-content-type-button active-down-effect ${
+      activeTab === "order" ? "active" : ""
+    }`}
+    onClick={() => setActiveTab("order")}
+  >
+    Order History
+  </button>
+
+  <button
+    className={`page-content-type-button active-down-effect ${
+      activeTab === "payment" ? "active" : ""
+    }`}
+    onClick={() => setActiveTab("payment")}
+  >
+    Payment History
+  </button>
+</div>
           <div className="tabs-content-wrapper-layout">
             <div data-multi-dem-cards-layout>
               <div className="creator-content-filter-grid-container">
@@ -64,7 +92,7 @@ const WalletTransactionsPage = () => {
                   </div>
                   <div className="creator-content-cards-wrapper wtransactions_containt">
                     <div className="rel-users-wrapper">
-                    <div className="history_wrap">
+                    {/* <div className="history_wrap">
                       <div className="rline">
                         <p>Total Earned</p>
                         <h3>$ 1,598.61</h3>
@@ -77,11 +105,12 @@ const WalletTransactionsPage = () => {
                         <p>Wallet Balance</p>
                         <h3>$ 1,429.42</h3>
                       </div>
-                    </div>
-                    <div className="payout_wrap">
+                    </div> */}
+                    {/* <div className="payout_wrap">
                       <h3>Get a payout</h3>
                       <button className="btn-txt-gradient" type="button"><span>Request payout</span> </button>
-                    </div>
+                    </div> */}
+                    {/* {activeTab === "wallet" && ( */}
                     <div className="payout_wrap">
                       <div>
                         <p>Current Balance</p>
@@ -89,6 +118,7 @@ const WalletTransactionsPage = () => {
                       </div>
                       <button className="btn-txt-gradient" type="button"><span>Add Funds</span> </button>
                     </div>
+                    {/* )} */}
                     <div className="rel-user-box">
                       <div className="rel-user-profile-action">
                         <div className="rel-user-profile">
@@ -197,7 +227,23 @@ const WalletTransactionsPage = () => {
                           <p>purchase product ZACH KING SNAPBACK HAT x1</p>
                         </div>
                         <div className="rel-user-actions">
-                          <button className="btn-txt-gradient" type="button"><span>View</span> </button>
+                          <button
+  className="btn-txt-gradient"
+  type="button"
+  onClick={() =>
+    setSelectedOrder({
+      id: "#80900857",
+      product: "Sunset Video",
+      unitPrice: "$10",
+      quantity: 1,
+      total: "$10",
+      type: "Digital",
+      description: "purchase product ZACH KING SNAPBACK HAT x1",
+    })
+  }
+>
+  <span>View</span>
+</button>
                         </div>
                       </div>
                     </div>
@@ -210,6 +256,8 @@ const WalletTransactionsPage = () => {
           {/* ===================================== */}
           {/* ========== Payment History ========== */}
           {/* ===================================== */}
+          {selectedOrder && (
+            <>
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             {/* Back Button */}
             <button className="cate-back-btn active-down-effect" type="button" aria-label="Go back">
@@ -297,7 +345,7 @@ const WalletTransactionsPage = () => {
                         </div>
                       </div>
 
-                      <div className="rel-user-box">
+                      {/* <div className="rel-user-box">
                         <div className="rel-user-profile-action">
                           <div className="rel-user-profile">
                             <div className="profile-card">
@@ -352,14 +400,17 @@ const WalletTransactionsPage = () => {
                             <button className="btn-txt-gradient" type="button"><span>View</span> </button>
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+           </>
+          )}
         </div>
+       
       </div>
 
       <Featuredboys />

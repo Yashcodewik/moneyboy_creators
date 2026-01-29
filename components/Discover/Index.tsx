@@ -93,55 +93,65 @@ const fetchCreators = async ({ queryKey }: any) => {
 
   const params = new URLSearchParams();
 
+  // user
   if (userPublicId) {
     params.append("userPublicId", userPublicId);
   }
 
+  // filters
   Object.entries(filters).forEach(([key, value]) => {
     if (value && value !== "all") {
       params.append(key, value as string);
     }
   });
 
-  // 🚫 DO NOT pass page/search separately
+  // search
+  if (search) {
+    params.append("q", search);
+  }
+
+  // pagination
   params.append("page", String(page));
   params.append("rowsPerPage", "8");
-  if (search) params.append("q", search);
 
+  // ✅ FULL URL BUILT HERE
+  const finalUrl = `${API_GET_DISCOVER_CREATORS}?${params.toString()}`;
+
+  // 🚫 DO NOT pass page/search again
   return getApi({
-    url: `${API_GET_DISCOVER_CREATORS}?${params.toString()}`,
+    url: finalUrl,
   });
 };
 
 
 
 
-  const { data, isLoading } = useQuery({
-queryKey: [
-  "discover-creators",
-  page,
-  search,
-  session?.user?.publicId || null,
-  JSON.stringify(filterValues),
-],
-    queryFn: fetchCreators,
-    enabled: true, // Always enabled, even without session
-  });
 
+
+
+const { data, isLoading } = useQuery({
+  queryKey: [
+    "discover-creators",
+    page,
+    search,
+    session?.user?.publicId,
+    JSON.stringify(filterValues),
+  ],
+  queryFn: fetchCreators,
+  enabled: !!session?.user?.publicId, // 🔥 THIS FIXES IT
+});
   console.log("FILTER VALUES:", filterValues);
   // console.log("API URL:", `${API_GET_DISCOVER_CREATORS}?${params.toString()}`);
 
   useEffect(() => {
     setPage(1);
+    setCreators([]); 
   }, [filterValues]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setPage(1); // reset page when search changes
-    }, 500);
-
-    return () => clearTimeout(handler);
-  }, [search]);
+  
+useEffect(() => {
+  setPage(1);
+  setCreators([]);
+}, [search]);
 
   useEffect(() => {
     if (data?.success) {
