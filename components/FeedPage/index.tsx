@@ -279,39 +279,20 @@ const FeedPage = () => {
                 Popular
               </button>
             </div>
-            <div
-              id="feed-scroll-container"
-              className="moneyboy-posts-scroll-container"
-            >
-              <InfiniteScrollWrapper
-                className="moneyboy-posts-wrapper"
-                scrollableTarget="feed-scroll-container"
-                dataLength={activeList.length}
-                fetchMore={fetchMoreHandler}
-                hasMore={activeHasMore ?? false}
-              >
-                {activeList.map((post) => (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    onLike={handleLike}
-                    onSave={handleSave}
-                  />
+            <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="moneyboy-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
+              fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
+              hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
+                {(activeTab === "feed" ? posts :
+                  activeTab === "following" ? followingPosts : popularPosts
+                ).map((post) => (
+                  <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
                 ))}
-              </InfiniteScrollWrapper>
-              {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
-                fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
-                hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
-                  {(activeTab === "feed" ? posts :
-                    activeTab === "following" ? followingPosts : popularPosts
-                  ).map((post) => (
-                    <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
-                  ))}
-              </InfiniteScrollWrapper> */}
-            </div>
+            </InfiniteScrollWrapper>
           </div>
         </div>
-        <Featuredboys />
+        <aside className="moneyboy-2x-1x-b-layout scrolling">
+          <Featuredboys />
+        </aside>
       </div>
 
       {/* ================= MODALS ================= */}
