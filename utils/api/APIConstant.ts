@@ -40,4 +40,7 @@ export const API_GET_DISCOVER_CREATORS = "/social/discover";
 export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";
+export const API_GET_SAVED_ITEMS = "/post/saved";
+export const API_GET_SAVED_CREATORS = "/creator/saved-creators";
+
 
