@@ -38,5 +38,11 @@ export const API_CREATOR_PROFILE_BY_ID = "/creator/profile";
 export const API_GET_POST_BY_PUBLIC_ID = "/post/public"; 
 export const API_GET_DISCOVER_CREATORS = "/social/discover";
 
-//Subscription 
+// Post
+export const API_GET_POSTS_BY_CREATOR = "/creator/by-creator";
+
+//Subscription
 export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";
+export const API_UPGRADE_SUBSCRIPTION: string = "/subscription/upgrade-subscription";
+export const API_MY_SUBSCRIPTIONS: string = "/subscription/my-subscriptions";
+export const API_MY_SUBSCRIBERS: string = "/subscription/my-subscribers";
