@@ -428,6 +428,47 @@ body {
     }
   }
 }
+// Pagination Start
+.pagination_wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 15px 0;
+  button {
+    width: 32px;
+    height: 32px;
+    padding: 5px;
+    font-family: var(--font-family-heading);
+    letter-spacing: 0.65px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 100%;
+    border-radius: 30px;
+    transition: var(--transition-fast);
+    will-change: transform;
+    &.btn-prev, &.btn-next {
+      padding: 0px;
+      svg {
+        width: 100%;
+        display: block;
+      }
+      &:hover {
+        svg {
+          circle, path {
+            stroke: #e5741f;
+          }
+        }
+      }
+    }
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
 
 /* Custome Class Start  */
 .hightunset {}

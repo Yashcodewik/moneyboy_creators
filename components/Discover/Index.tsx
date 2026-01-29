@@ -5,6 +5,7 @@ import { getApi } from "@/utils/endpoints/common";
 import { API_GET_DISCOVER_CREATORS } from "@/utils/api/APIConstant";
 import { useQuery } from "@tanstack/react-query";
 import Filter from "./Filter";
+import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 
 const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
@@ -314,7 +315,14 @@ useEffect(() => {
                   </div>
                 ))}
               </div>
-              {/* {renderPagination()} */}
+              <div className="pagination_wrap">
+                <button className="btn-prev"><CircleArrowLeft color="#000"/></button>
+                <button className="premium-btn"><span>1</span></button>
+                <button className="btn-primary"><span>2</span></button>
+                <button className="btn-primary"><span>3</span></button>
+                <button className="btn-next"><CircleArrowRight color="#000"/></button>
+              </div>
+              {renderPagination()}
             </div>
           </div>
         </div>
