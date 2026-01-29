@@ -170,34 +170,34 @@ const LikePage = () => {
     return `${Math.floor(hours / 24)} Day ago`;
   };
 
-    const handleLikeClick = async (
-      postId: string,
-      isLiked: boolean,
-      index: number
-    ) => {
-      try {
-        const url = isLiked ? API_UNLIKE_POST : API_LIKE_POST;
-        const res = await apiPost({ url, values: { postId } });
+  const handleLikeClick = async (
+    postId: string,
+    isLiked: boolean,
+    index: number,
+  ) => {
+    try {
+      const url = isLiked ? API_UNLIKE_POST : API_LIKE_POST;
+      const res = await apiPost({ url, values: { postId } });
 
-        if (res?.success) {
-          setPosts((prev) =>
-            prev.map((post, i) =>
-              post._id === postId
-                ? {
-                    ...post,
-                    liked: !isLiked,
-                    likeCount: isLiked
-                      ? Math.max(0, post.likeCount - 1)
-                      : post.likeCount + 1,
-                  }
-                : post
-            )
-          );
-        }
-      } catch (err) {
-        console.error(err);
+      if (res?.success) {
+        setPosts((prev) =>
+          prev.map((post, i) =>
+            post._id === postId
+              ? {
+                  ...post,
+                  liked: !isLiked,
+                  likeCount: isLiked
+                    ? Math.max(0, post.likeCount - 1)
+                    : post.likeCount + 1,
+                }
+              : post,
+          ),
+        );
       }
-    };
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleSaveClick = async (postId: string, isSaved: boolean) => {
     try {
@@ -475,15 +475,25 @@ const LikePage = () => {
 
                   <div className="moneyboy-post__media">
                     <div className="moneyboy-post__img">
-                      <img
-                        src={
-                          post.thumbnail?.trim()
-                            ? post.thumbnail
-                            : post.media?.[0]?.mediaFiles?.[0] ||
-                              "/images/post-images/post-img-10.jpg"
-                        }
-                        alt="MoneyBoy Post Image"
-                      />
+                      {post.media?.[0]?.type === "video" ? (
+                        <video
+                          src={post.media[0].mediaFiles[0]}
+                          controls
+                          muted
+                          playsInline
+                          className="moneyboy-post__video"
+                        />
+                      ) : (
+                        <img
+                          src={
+                            post.thumbnail?.trim()
+                              ? post.thumbnail
+                              : post.media?.[0]?.mediaFiles?.[0] ||
+                                "/images/post-images/post-img-10.jpg"
+                          }
+                          alt="MoneyBoy Post Image"
+                        />
+                      )}
                     </div>
 
                     <div className="moneyboy-post__actions">
@@ -735,7 +745,7 @@ const LikePage = () => {
                             </div>
                           </div>
                           <div className="creater-content-filters-layouts">
-                                  <div className="creator-content-select-filter">
+                            <div className="creator-content-select-filter">
                               <CustomSelect
                                 className="bg-white p-sm size-sm"
                                 label="All Time"
@@ -1493,7 +1503,7 @@ const LikePage = () => {
                             </div>
                           </div>
                           <div className="creater-content-filters-layouts">
-                                 <div className="creator-content-select-filter">
+                            <div className="creator-content-select-filter">
                               <CustomSelect
                                 className="bg-white p-sm size-sm"
                                 label="All Time"
@@ -2171,7 +2181,7 @@ const LikePage = () => {
         </div>
       </div>
 
-    <Featuredboys/>
+      <Featuredboys />
     </div>
   );
 };

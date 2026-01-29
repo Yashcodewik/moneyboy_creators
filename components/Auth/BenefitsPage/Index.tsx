@@ -8,7 +8,7 @@ const BenefitsPage = () => {
   const [activeTab, setActiveTab] = useState("fan");
   const router = useRouter();
   return (
-    <div className="container login_wrap">
+    <div className="container login_wrap benefits_wrap">
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">

@@ -1,13 +1,20 @@
 "use client";
 import { getDecryptedSession } from "@/libs/getDecryptedSession";
 import React, { useEffect, useRef, useState } from "react";
-import { getApi } from "@/utils/endpoints/common";
-import { API_GET_DISCOVER_CREATORS } from "@/utils/api/APIConstant";
+import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
+import {
+  API_GET_DISCOVER_CREATORS,
+  API_SAVE_CREATOR,
+  API_UNSAVE_CREATOR,
+} from "@/utils/api/APIConstant";
 import { useQuery } from "@tanstack/react-query";
 import Filter from "./Filter";
+import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
+   const router = useRouter();
   type FilterType =
     | "category"
     | "feature"
@@ -43,7 +50,7 @@ const Dashboard = () => {
   useEffect(() => {
     const loadSession = async () => {
       const s = await getDecryptedSession();
-      setSession(s); // 🔥 THIS WAS MISSING
+      setSession(s); 
     };
     loadSession();
   }, []);
@@ -103,100 +110,137 @@ const fetchCreators = async ({ queryKey }: any) => {
     }
   });
 
-  // 🚫 DO NOT pass page/search separately
+  if (search) {
+    params.append("q", search);
+  }
+
   params.append("page", String(page));
   params.append("rowsPerPage", "8");
-  if (search) params.append("q", search);
 
-  return getApi({
-    url: `${API_GET_DISCOVER_CREATORS}?${params.toString()}`,
+  const finalUrl = `${API_GET_DISCOVER_CREATORS}?${params.toString()}`;
+
+  return getApiWithOutQuery({
+    url: finalUrl,
   });
 };
 
-
-
-
   const { data, isLoading } = useQuery({
-queryKey: [
-  "discover-creators",
-  page,
-  search,
-  session?.user?.publicId || null,
-  JSON.stringify(filterValues),
-],
+    queryKey: [
+      "discover-creators",
+      page,
+      search,
+      session?.user?.publicId,
+      JSON.stringify(filterValues),
+    ],
     queryFn: fetchCreators,
-    enabled: true, // Always enabled, even without session
+    enabled: true, 
   });
-
   console.log("FILTER VALUES:", filterValues);
   // console.log("API URL:", `${API_GET_DISCOVER_CREATORS}?${params.toString()}`);
 
-  useEffect(() => {
-    setPage(1);
-  }, [filterValues]);
+useEffect(() => {
+  setPage(1); 
+}, [filterValues, search]);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setPage(1); // reset page when search changes
-    }, 500);
-
-    return () => clearTimeout(handler);
-  }, [search]);
 
   useEffect(() => {
     if (data?.success) {
-      setCreators(data.data);
+      setCreators(
+        data.data.map((c: any) => ({
+          ...c,
+          isSaved: c.issaved, 
+        })),
+      );
       setTotalPages(data.meta.totalPages);
     }
   }, [data]);
 
+  const handleSaveCreator = async (creatorId: string) => {
+       if (!session?.user) {
+      router.push("/login"); 
+      return;
+    }
+    try {
+      const res = await apiPost({
+        url: API_SAVE_CREATOR,
+        values: { creatorId },
+      });
+      if (res.success) {
+        // ShowToast(res.message, "success");
+        setCreators((prev) =>
+          prev.map((c) => (c._id === creatorId ? { ...c, isSaved: true } : c)),
+        );
+      }
+    } catch (err: any) {
+      // ShowToast(err?.message || "Failed to save creator", "error");
+    }
+  };
+
+  const handleUnsaveCreator = async (creatorId: string) => {
+    try {
+      const res = await apiPost({
+        url: API_UNSAVE_CREATOR, 
+        values: { creatorId },
+      });
+      if (res.success) {
+        // ShowToast(res.message, "success");
+        setCreators((prev) =>
+          prev.map((c) => (c._id === creatorId ? { ...c, isSaved: false } : c)),
+        );
+      }
+    } catch (err: any) {
+      // ShowToast(err?.message || "Failed to unsave creator", "error");
+    }
+  };
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
-
     const pages: (number | string)[] = [];
-
     if (totalPages <= 6) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1, 2, 3);
-
       if (page > 4) pages.push("...");
-
       if (page > 3 && page < totalPages - 2) pages.push(page);
-
       if (page < totalPages - 3) pages.push("...");
-
       pages.push(totalPages - 1, totalPages);
     }
 
     return (
-      <div className="pagination-container">
+      <div className="pagination_wrap">
+        <button
+          className="btn-prev"
+          disabled={page === 1}
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+        >
+          <CircleArrowLeft color="#000" />
+        </button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={i} className="pagination-dots">
-              ...
-            </span>
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
           ) : (
             <button
               key={i}
-              className={`pagination-btn ${page === p ? "active" : ""}`}
+              className={page === p ? "premium-btn" : "btn-primary"}
               onClick={() => setPage(p as number)}
             >
-              {p}
+              <span>{p}</span>
             </button>
           ),
         )}
-
         <button
-          className="pagination-btn next"
+          className="btn-next"
           disabled={page === totalPages}
           onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
         >
-          Next »
+          <CircleArrowRight color="#000" />
         </button>
       </div>
     );
   };
+
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -267,30 +311,23 @@ queryKey: [
                               @{creator.userName}
                             </div>
                           </div>
-                          <div className="user-profile-card__wishlist-btn">
+                          <div
+                            className={`user-profile-card__wishlist-btn ${creator.isSaved ? "active" : ""}`}
+                            onClick={() =>
+                              creator.isSaved
+                                ? handleUnsaveCreator(creator._id)
+                                : handleSaveCreator(creator._id)
+                            }
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="21"
                               height="20"
                               viewBox="0 0 21 20"
-                              fill="none"
+                              fill={creator.isSaved ? "active" : "none"}
                             >
                               <path
                                 d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
                                 stroke="none"
                                 strokeWidth="1.5"
                                 strokeLinecap="round"
@@ -304,7 +341,7 @@ queryKey: [
                   </div>
                 ))}
               </div>
-              {/* {renderPagination()} */}
+              {renderPagination()}
             </div>
           </div>
         </div>
