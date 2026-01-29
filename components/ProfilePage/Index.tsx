@@ -57,6 +57,19 @@ interface CreatorDetails {
 interface ApiCreatorProfileResponse {
   user: User;
   creator: CreatorDetails;
+  subscription?: {
+    id: string;
+    userId: string;
+    monthlyPrice: number;
+    yearlyPrice: number;
+    creatorId: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    planType: string;
+    createdAt: string;
+    updatedAt: string;
+  };
   isFollowing?: boolean;
   followerCount?: number;
   followingCount?: number;
@@ -750,7 +763,7 @@ const ProfilePage = () => {
                           Monthly Subscription
                         </div>
                         <div className="subscription-price">
-                          <h3>$9.99</h3>
+                          <h3>${profile?.subscription?.monthlyPrice || "Not Updated yet"}</h3>
                           <span>/month</span>
                         </div>
                       </div>
@@ -769,7 +782,7 @@ const ProfilePage = () => {
                           Yearly Subscription
                         </div>
                         <div className="subscription-price">
-                          <h3>$89.99</h3>
+                          <h3>${profile?.subscription?.yearlyPrice || "Not Updated yet"}</h3>
                           <span>/year</span>
                           <div className="save-txt">(Save 25%)</div>
                         </div>
