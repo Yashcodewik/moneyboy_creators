@@ -385,7 +385,9 @@ const handleSave = async (postId: string) => {
             </div>
           </div>
         </div>
-        <Featuredboys />
+        <aside className="moneyboy-2x-1x-b-layout scrolling">
+          <Featuredboys />
+        </aside>
       </div>
 
       {/* ================= MODALS ================= */}
