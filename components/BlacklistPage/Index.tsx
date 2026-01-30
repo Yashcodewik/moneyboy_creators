@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 const BlacklistPage = () => {
   const router = useRouter();
+    const [isModalOpen, setIsModalOpen] = useState(false); 
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -21,7 +22,7 @@ const BlacklistPage = () => {
               <div data-multi-dem-cards-layout>
                 <div className="creator-content-filter-grid-container">
                   <div className="card filters-card-wrapper">
-                    <Link href="#" className="btn-txt-gradient btn-outline link-gradint rounded"><span>Want to block someone, click here !</span></Link>
+                    <button className="btn-txt-gradient btn-outline link-gradint rounded" onClick={() => setIsModalOpen(true)}><span>Want to block someone, click here !</span></button>
                     <div className="creator-content-cards-wrapper wtransactions_containt">
                       <div className="rel-users-wrapper">
                         <div className="rel-user-box blacklist_box">
@@ -34,7 +35,7 @@ const BlacklistPage = () => {
                                       <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="User profile avatar" />
                                     </div>
                                   </div>
-                                  <div className="profile-card__info">
+                                  <div className="profile-card__info">  
                                     <div className="profile-card__name-badge">
                                       <div className="profile-card__name">Zain Schleifer</div>
                                       <div className="profile-card__badge"><img src="/images/logo/profile-badge.png" alt="Verified badge" /></div>
@@ -76,9 +77,10 @@ const BlacklistPage = () => {
         <Featuredboys />
       </div>
       {/* ========== Blacklist User Modal Start ========== */}
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+       {isModalOpen && (
+      <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap blacklist">
-          <button className="close-btn"><CgClose size={22}/></button>
+          <button className="close-btn" onClick={() => setIsModalOpen(false)}><CgClose size={22}/></button>
           <h3>Blacklist user</h3>
           <div className="containt_wrap">
             <div className="">
@@ -95,11 +97,12 @@ const BlacklistPage = () => {
             </div>
           </div>
           <div className="actions">
-            <button className="premium-btn"><span>Submit</span></button>
-            <button className="cate-back-btn active-down-effect">Close</button>
+            <button className="premium-btn" onClick={() => setIsModalOpen(false)}><span>Submit</span></button>
+            <button className="cate-back-btn active-down-effect" onClick={() => setIsModalOpen(false)}>Close</button>
           </div>
         </div>
       </div> 
+       )}
     </>
   )
 }
