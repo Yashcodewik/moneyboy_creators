@@ -178,7 +178,11 @@ const FollowersPage = () => {
         }));
         setFollowers(followersWithStatus);
         setFollowersPage(pageNo);
-        setFollowersTotalPages(res.meta?.totalPages || 1);
+        const total = res.meta?.total || 0;
+        const limit = res.meta?.limit || 10;
+
+        setFollowersTotalPages(Math.ceil(total / limit));
+        setFollowersPage(page);
         setFollowersTotal(res.meta?.total || 0);
       }
     } catch (error) {
@@ -206,7 +210,12 @@ const FollowersPage = () => {
         }));
         setFollowing(followingWithStatus);
         setFollowingPage(pageNo);
-        setFollowingTotalPages(res.meta?.totalPages || 1);
+        const total = res.meta?.total || 0;
+        const limit = res.meta?.limit || 10;
+
+        setFollowingTotalPages(Math.ceil(total / limit));
+        setFollowingPage(page);
+
         setFollowingTotal(res.meta?.total || 0);
       }
     } catch (error) {
@@ -455,9 +464,125 @@ const FollowersPage = () => {
     };
   };
 
+  const renderFollowersPagination = () => {
+    if (followersTotalPages <= 1) return null;
+
+    const pages: (number | string)[] = [];
+    const page = followersPage;
+    const totalPages = followersTotalPages;
+
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1, 2, 3);
+      if (page > 4) pages.push("...");
+      if (page > 3 && page < totalPages - 2) pages.push(page);
+      if (page < totalPages - 3) pages.push("...");
+      pages.push(totalPages - 1, totalPages);
+    }
+
+    return (
+      <div className="pagination_wrap">
+        <button
+          className="btn-prev"
+          disabled={page === 1}
+          onClick={() => fetchFollowers(page - 1, followersSearchQuery)}
+        >
+          ‹
+        </button>
+
+        {pages.map((p, i) =>
+          p === "..." ? (
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
+          ) : (
+            <button
+              key={i}
+              className={page === p ? "premium-btn" : "btn-primary"}
+              onClick={() => fetchFollowers(p as number, followersSearchQuery)}
+            >
+              <span>{p}</span>
+            </button>
+          ),
+        )}
+
+        <button
+          className="btn-next"
+          disabled={page === totalPages}
+          onClick={() => fetchFollowers(page + 1, followersSearchQuery)}
+        >
+          ›
+        </button>
+      </div>
+    );
+  };
+
+  const renderFollowingPagination = () => {
+    if (followingTotalPages <= 1) return null;
+
+    const pages: (number | string)[] = [];
+    const page = followingPage;
+    const totalPages = followingTotalPages;
+
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1, 2, 3);
+      if (page > 4) pages.push("...");
+      if (page > 3 && page < totalPages - 2) pages.push(page);
+      if (page < totalPages - 3) pages.push("...");
+      pages.push(totalPages - 1, totalPages);
+    }
+
+    return (
+      <div className="pagination_wrap">
+        <button
+          className="btn-prev"
+          disabled={page === 1}
+          onClick={() => fetchFollowing(page - 1, followingSearchQuery)}
+        >
+          ‹
+        </button>
+
+        {pages.map((p, i) =>
+          p === "..." ? (
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
+          ) : (
+            <button
+              key={i}
+              className={page === p ? "premium-btn" : "btn-primary"}
+              onClick={() => fetchFollowing(p as number, followingSearchQuery)}
+            >
+              <span>{p}</span>
+            </button>
+          ),
+        )}
+
+        <button
+          className="btn-next"
+          disabled={page === totalPages}
+          onClick={() => fetchFollowing(page + 1, followingSearchQuery)}
+        >
+          ›
+        </button>
+      </div>
+    );
+  };
+
   const renderFollowersList = () => {
     if (loading && followers.length === 0) {
-      return <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>;
+      return (
+        <div className="loadingtext">
+          {"Loading".split("").map((char, i) => (
+            <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+              {char}
+            </span>
+          ))}
+        </div>
+      );
     }
 
     if (followers.length === 0) {
@@ -1041,6 +1166,7 @@ const FollowersPage = () => {
                         <div className="rel-users-wrapper" ref={moreRef}>
                           {renderFollowersList()}
                         </div>
+                        {renderFollowersPagination()}
                       </div>
                     </div>
                   </div>
@@ -1125,6 +1251,7 @@ const FollowersPage = () => {
                         <div className="rel-users-wrapper">
                           {renderFollowingList()}
                         </div>
+                        {renderFollowingPagination()}
                       </div>
                     </div>
                   </div>
