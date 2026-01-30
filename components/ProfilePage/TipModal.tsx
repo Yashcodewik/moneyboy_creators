@@ -2,13 +2,20 @@
 
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "../CustomSelect";
-
-const TipModal = ({onClose}: {onClose: () => void}) => {
+interface TipModalProps {
+  onClose: () => void;
+  creator: {
+    displayName?: string;
+    userName?: string;
+    profile?: string;
+  };
+}
+const TipModal = ({ onClose, creator }: TipModalProps) => {
 
   return (
     <>
      <div
-             className="modal"
+             className="modal show"
              role="dialog"
              aria-modal="true"
              aria-labelledby="age-modal-title"
@@ -21,15 +28,18 @@ const TipModal = ({onClose}: {onClose: () => void}) => {
                  <div className="profile-card__main justify-center">
                    <div className="profile-card__avatar-settings">
                      <div className="profile-card__avatar">
-                       <img
-                         src="/images/profile-avatars/profile-avatar-1.png"
-                         alt="MoneyBoy Social Profile Avatar"
-                       />
+                      <img
+                        src={
+                          creator?.profile ||
+                          "/images/profile-avatars/profile-avatar-1.png"
+                        }
+                        alt={creator?.displayName || "Creator Avatar"}
+                      />
                      </div>
                    </div>
                    <div className="profile-card__info">
                      <div className="profile-card__name-badge">
-                       <div className="profile-card__name"> Addisonraee </div>
+                       <div className="profile-card__name"> {creator?.displayName || "Unknown"} </div>
                        <div className="profile-card__badge">
                          <img
                            src="/images/logo/profile-badge.png"
@@ -37,7 +47,7 @@ const TipModal = ({onClose}: {onClose: () => void}) => {
                          />
                        </div>
                      </div>
-                     <div className="profile-card__username">@rae</div>
+                     <div className="profile-card__username">@{creator?.userName || "unknown"}</div>
                    </div>
                  </div>
                </div>
@@ -47,12 +57,12 @@ const TipModal = ({onClose}: {onClose: () => void}) => {
                  <input
                    className="form-input number-input"
                    type="number"
-                   placeholder="Question"
-                   name="firstName"
+                   placeholder="Amount"
+                   name="amount"
                  />
                </div>
                <div className="actions">
-                 <button className="premium-btn active-down-effect">
+                 <button className="premium-btn active-down-effect" onClick={onClose}>
                    <span>Sent Tip</span>
                  </button>
                </div>
