@@ -41,11 +41,13 @@ export const API_GET_DISCOVER_CREATORS = "/social/discover";
 // Post
 export const API_GET_POSTS_BY_CREATOR = "/creator/by-creator";
 
+
 //Subscription
 export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";
 export const API_UPGRADE_SUBSCRIPTION: string = "/subscription/upgrade-subscription";
 export const API_MY_SUBSCRIPTIONS: string = "/subscription/my-subscriptions";
 export const API_MY_SUBSCRIBERS: string = "/subscription/my-subscribers";
+export const API_CREATE_PPV_REQUEST: string = "/subscription/ppv/request";
 
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";

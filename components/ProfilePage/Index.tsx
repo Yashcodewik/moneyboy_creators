@@ -14,7 +14,7 @@ import {
 } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AppDispatch, RootState } from "../redux/store";
 import {
   fetchFollowerCounts,
@@ -24,9 +24,11 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
+import PPVRequestModal from "./PPVRequestModal";
 
 interface User {
   _id: string;
+  userId: string;
   publicId: string;
   firstName: string;
   lastName: string;
@@ -106,8 +108,16 @@ const ProfilePage = () => {
 const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY" | null>(null);
 const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew" | null>(null);
 const [showTipModal, setShowTipModal] = useState(false);
+const [selectedPost, setSelectedPost] = useState<any | null>(null);
+const [showPPVRequestModal, setShowPPVRequestModal] = useState(false);
+const [showTransactionModal, setShowTransactionModal] = useState(false);
+const [transactionData, setTransactionData] = useState<{
+  postId?: string;
+  creatorId?: string;
+  amount?: number;
+} | null>(null);
 
-
+  const router = useRouter();
   const params = useParams();
   const profilePublicId = params.id as string;
   const { session, status } = useDecryptedSession();
@@ -391,6 +401,26 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
   return null;
 };
 
+const handlePPVClick = (post: any) => {
+  // 1. Not logged in
+  if (!session?.user) {
+    router.push("/login");
+    return;
+  }
+
+  const isOwner = session.user.publicId === profile?.user?.publicId;
+  const isPurchased = post?.isPurchased;
+
+  if (isOwner || isPurchased) {
+    return;
+  }
+
+  // 3. Everyone else → PPV request
+  setSelectedPost(post);
+  setShowPPVRequestModal(true);
+};
+
+
   const truncateText = (text: string, limit = 50) =>
     text?.length > limit ? text.slice(0, limit) : text;
 
@@ -398,7 +428,11 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
   const PostCard = ({ post }: { post: any }) => {
     const isOwner = session?.user?.publicId === profile?.user?.publicId;
     const isSubscribedUser = profile?.subscriptionStatus?.isSubscribed;
-    const canViewContent = isOwner || isSubscribedUser || post.accessType === "free";
+    const canViewContent =
+    isOwner ||
+    post.accessType === "free" ||
+    (post.accessType === "pay_per_view" && post?.isPurchased);
+
     const isSubscriber = post?.accessType === "subscriber";
     const isPPV = post?.accessType === "pay_per_view";
     const mediaType = post?.media?.[0]?.type;
@@ -418,8 +452,8 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
                 </video>
               )}
             </div>
-            {!canViewContent && (
-              <div className="content-locked-label">
+            {!canViewContent && isPPV && (
+              <div className="content-locked-label" onClick={() => handlePPVClick(post)}>
                 {isSubscriber && (
                   <>
                     <svg
@@ -1296,6 +1330,26 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
             }}
           />
         )}
+       {showPPVRequestModal && selectedPost && (
+        <PPVRequestModal
+          onClose={() => {
+            setShowPPVRequestModal(false);
+            setSelectedPost(null);
+          }}
+          creator={{
+            userId: profile?.user?._id as any,
+            displayName: profile?.user?.displayName,
+            userName: profile?.user?.userName,
+            profile: profile?.user?.profile,
+          }}
+          post={selectedPost}
+          onSuccess={() => {
+            setShowPPVRequestModal(false);
+            setSelectedPost(null);
+            // later → open transaction modal
+          }}
+        />
+      )}
     </div>
   );
 };
