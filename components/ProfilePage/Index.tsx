@@ -7,9 +7,7 @@ import {
   API_CREATOR_PROFILE_BY_ID,
   API_FOLLOWER_COUNT,
   API_GET_POSTS_BY_CREATOR,
-  API_SAVE_POST,
   API_SUBSCRIBE_CREATOR,
-  API_UNSAVE_POST,
   API_UPGRADE_SUBSCRIPTION,
 } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
@@ -21,8 +19,7 @@ import {
   followUserAction,
   unfollowUserAction,
 } from "../redux/other/followActions";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import SubscriptionModal from "./SubscriptionModal";
+import { useQuery } from "@tanstack/react-query";
 
 interface User {
   _id: string;
@@ -59,6 +56,13 @@ interface CreatorDetails {
   createdAt: string;
   updatedAt: string;
   __v: number;
+}
+interface SubscriptionStatus {
+  isSubscribed: boolean;
+  currentPlan: "MONTHLY" | "YEARLY" | null;
+  expiresAt: string | null;
+  daysRemaining: number | null;
+  isExpiringSoon: boolean;
 }
 
 interface SubscriptionStatus {
@@ -99,13 +103,6 @@ const ProfilePage = () => {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [isFollowLoading, setIsFollowLoading] = useState<boolean>(false);
   const [subLoading, setSubLoading] = useState(false);
-  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
-  const [isSaved, setIsSaved] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY" | null>(null);
-const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew" | null>(null);
-
-
 
   const params = useParams();
   const profilePublicId = params.id as string;
@@ -141,7 +138,6 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
               url: API_CREATOR_PROFILE_BY_ID,
               params: profilePublicId,
             });
-
         if (response?.user && response?.creator) {
           setProfile(response);
           setIsFollowing(Boolean(response.isFollowing));
@@ -159,6 +155,9 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
   }, [profilePublicId, status, sessionPublicId]);
 
   const subStatus = profile?.subscriptionStatus;
+  const isSubscribed = subStatus?.isSubscribed;
+  const plan = subStatus?.currentPlan;
+  const canRenewOrUpgrade = subStatus?.isExpiringSoon;
 
   useEffect(() => {
     if (profile) {
@@ -232,68 +231,34 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
         planType,
       },
     });
-
-    if (!res?.success) {
+    if (res?.success) {
+     
+    } else {
+      // backend already handles duplicate subscription
       alert(res?.message || "Subscription failed");
     }
 
     setSubLoading(false);
   };
 
-  const { data: postsData, isLoading: postsLoading } = useQuery({
-    queryKey: ["creator-posts", profilePublicId],
-    queryFn: () =>
-      getApiByParams({
-        url: API_GET_POSTS_BY_CREATOR,
-        params: profilePublicId,
-      }),
-    enabled: !!profilePublicId,
-  });
+  const {data: postsData,isLoading: postsLoading,refetch: refetchPosts,} = useQuery({
+  queryKey: ["creator-posts", profilePublicId],
+      queryFn: () =>
+        getApiByParams({
+          url: API_GET_POSTS_BY_CREATOR,
+          params: profilePublicId, 
+        }),
+      enabled: !!profilePublicId,
+    });
+const posts = postsData?.posts || [];
 
-  const posts = postsData?.posts || [];
-  const photoPosts = posts?.filter((post: any) =>
-    post?.media?.some((m: any) => m.type === "photo")
-  );
-  const videoPosts = posts?.filter((post: any) =>
-    post?.media?.some((m: any) => m.type === "video")
-  );
+const photoPosts = posts.filter((post: any) =>
+  post.media?.some((m: any) => m.type === "photo"),
+);
 
-  const saveCreatorMutation = useMutation({
-    mutationFn: () =>
-      apiPost({
-        url: API_SAVE_POST,
-        values: {
-          creatorId: profile?.creator?._id,
-        },
-      }),
-    onSuccess: () => {
-      setIsSaved(true);
-    },
-  });
-
-  const unSaveCreatorMutation = useMutation({
-    mutationFn: () =>
-      apiPost({
-        url: API_UNSAVE_POST,
-        values: {
-          creatorId: profile?.creator?._id,
-        },
-      }),
-    onSuccess: () => {
-      setIsSaved(false);
-    },
-  });
-
-  const handleSaveToggle = () => {
-  if (!profile?.creator?._id) return;
-
-  if (isSaved) {
-    unSaveCreatorMutation.mutate();
-  } else {
-    saveCreatorMutation.mutate();
-  }
-};
-
+const videoPosts = posts.filter((post: any) =>
+  post.media?.some((m: any) => m.type === "video"),
+);
 
   const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
     if (!profile?.user?._id || subLoading) return;
@@ -315,40 +280,34 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
     setSubLoading(false);
   };
 
-  const openSubscriptionModal = (
-  plan: "MONTHLY" | "YEARLY",
-  action: "subscribe" | "upgrade" | "renew"
-) => {
-  setSelectedPlan(plan);
-  setModalAction(action);
-  setShowSubscriptionModal(true);
-};
-
-
-  const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
+  const renderSubscriptionButton = (
+    targetPlan: "MONTHLY" | "YEARLY",
+  ) => {
     if (!subStatus) return null;
 
     const { isSubscribed, currentPlan, isExpiringSoon } = subStatus;
 
+    // 🔹 Rule 3: NOT SUBSCRIBED
     if (!isSubscribed) {
       return (
         <button
           className="btn-txt-gradient btn-outline p-sm"
           disabled={subLoading}
-          onClick={() => openSubscriptionModal(targetPlan, "subscribe")}
+          onClick={() => handleSubscribe(targetPlan)}
         >
           <span>{subLoading ? "Processing..." : "Subscribe"}</span>
         </button>
       );
     }
 
+    // 🔹 SAME PLAN
     if (currentPlan === targetPlan) {
       if (isExpiringSoon) {
         return (
           <button
             className="btn-txt-gradient btn-outline p-sm"
             disabled={subLoading}
-            onClick={() => openSubscriptionModal(targetPlan, "renew")}
+            onClick={() => handleUpgrade(targetPlan)}
           >
             <span>{subLoading ? "Processing..." : "Renew"}</span>
           </button>
@@ -356,26 +315,34 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
       }
 
       return (
-        <button className="btn-txt-gradient btn-outline p-sm" disabled>
+        <button
+          className="btn-txt-gradient btn-outline p-sm"
+          disabled
+        >
           <span>Subscribed</span>
         </button>
       );
     }
 
+    // 🔹 DOWNGRADE (YEARLY → MONTHLY) 
     if (currentPlan === "YEARLY" && targetPlan === "MONTHLY") {
       return (
-        <button className="btn-txt-gradient btn-outline p-sm" disabled>
+        <button
+          className="btn-txt-gradient btn-outline p-sm"
+          disabled
+        >
           <span>Subscribed</span>
         </button>
       );
     }
 
+    // 🔹 UPGRADE (MONTHLY → YEARLY)
     if (currentPlan === "MONTHLY" && targetPlan === "YEARLY") {
       return (
         <button
           className="btn-txt-gradient btn-outline p-sm"
           disabled={subLoading}
-          onClick={() => openSubscriptionModal("YEARLY", "upgrade")}
+          onClick={() => handleUpgrade("YEARLY")}
         >
           <span>{subLoading ? "Processing..." : "Upgrade"}</span>
         </button>
@@ -385,221 +352,6 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
     return null;
   };
 
-  const truncateText = (text: string, limit = 50) =>
-    text?.length > limit ? text.slice(0, limit) : text;
-
-  // Reusable component for post cards
-  const PostCard = ({ post }: { post: any }) => {
-    const isOwner = session?.user?.publicId === profile?.user?.publicId;
-    const isSubscribedUser = profile?.subscriptionStatus?.isSubscribed;
-    const canViewContent = isOwner || isSubscribedUser || post.accessType === "free";
-    const isSubscriber = post?.accessType === "subscriber";
-    const isPPV = post?.accessType === "pay_per_view";
-    const mediaType = post?.media?.[0]?.type;
-    const firstMedia = post?.media?.[0]?.mediaFiles?.[0] || "/images/profile-avatars/profile-avatar-6.jpg";
-
-    return (
-      <div className="creator-content-card-container" key={post?.publicId}>
-        <div className="creator-content-card">
-          <div className="creator-content-card__media">
-            <div className={`creator-card__img ${!firstMedia ? "nomedia" : ""}`}>
-              {mediaType === "photo" && firstMedia && (
-                <img src={firstMedia} alt="Creator Content" />
-              )}
-              {mediaType === "video" && firstMedia && (
-                <video controls={canViewContent} preload="metadata" style={{ width: "100%" }}>
-                  <source src={firstMedia} />
-                </video>
-              )}
-            </div>
-            {!canViewContent && (
-              <div className="content-locked-label">
-                {isSubscriber && (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="21"
-                      height="20"
-                      viewBox="0 0 21 20"
-                      fill="none"
-                    >
-                      <path
-                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M6.04199 18.3333H15.2087"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M8.54199 11.6667H12.7087"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span> For Subscribers </span>
-                  </>
-                )}
-                {isPPV && (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="21"
-                      height="20"
-                      viewBox="0 0 21 20"
-                      fill="none"
-                    >
-                      <path
-                        d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span> ${post?.price?.toFixed(2)} </span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="creator-content-card__description">
-            <p>
-              {expandedPosts[post.publicId]
-                ? post.text
-                : `${truncateText(post.text)}${post.text?.length > 50 ? "..." : ""}`}
-            </p>
-          </div>
-
-          <div className="creator-content-card__stats">
-            <div className="creator-content-stat-box">
-              <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="21"
-                  height="20"
-                  viewBox="0 0 21 20"
-                  fill="none"
-                >
-                  <path
-                    d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                    stroke="none"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <span>{post?.likeCount}</span>
-            </div>
-            <div className="creator-content-stat-box">
-              <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeMiterlimit="10"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M7 8H17"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M7 13H13"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <span>{post?.commentCount}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Tab content renderer
-  const renderTabContent = (filterType: "all" | "video" | "photo") => {
-    let filteredPosts = posts;
-    
-    if (filterType === "video") {
-      filteredPosts = videoPosts;
-    } else if (filterType === "photo") {
-      filteredPosts = photoPosts;
-    }
-
-    return (
-      <div data-multi-tabs-content-tabdata__active data-multi-dem-cards-layout>
-        <div className="creator-content-filter-grid-container">
-          <ProfileTab
-            onChangeLayouts={(layout) => setLayoutTab(layout)}
-            onChangeTab={(tab) => console.log("Tab:", tab)}
-          />
-          <div
-            className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
-            data-direct-cards-layout
-            data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
-          >
-            {postsLoading && <p>Loading posts...</p>}
-            {!postsLoading && filteredPosts?.map((post: any) => <PostCard key={post.publicId} post={post} />)}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const calculateYearlySavings = (
-  monthly?: number,
-  yearly?: number
-): number | null => {
-  if (!monthly || !yearly) return null;
-
-  const yearlyFromMonthly = monthly * 12;
-  if (yearly >= yearlyFromMonthly) return null;
-
-  const savingsPercent =
-    ((yearlyFromMonthly - yearly) / yearlyFromMonthly) * 100;
-
-  return Math.round(savingsPercent);
-};
 
 
   return (
@@ -1069,17 +821,28 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
               <div className="creator-profile-description">
                 <p>{profile?.creator?.bio || "No bio available."}</p>
               </div>
-              {profile?.subscription?.monthlyPrice && (
-                <div className="creator-subscriptions-container">
-                  <div className="subscriptions-container">
-                    <ul>
-                      <li>
-                        <div className="subscription-info">
-                          <div className="subscription-label">Monthly Subscription</div>
-                          <div className="subscription-price">
-                            <h3>${profile?.subscription?.monthlyPrice || "Not Updated yet"}</h3>
-                            <span>/month</span>
-                          </div>
+            {profile?.subscription?.monthlyPrice && (
+              <div className="creator-subscriptions-container">
+                <div className="subscriptions-container">
+                  <ul>
+                    <li>
+                      <div className="subscription-info">
+                        <div className="subscription-label">
+                          Monthly Subscription
+                        </div>
+                        <div className="subscription-price">
+                          <h3>${profile?.subscription?.monthlyPrice || "Not Updated yet"}</h3>
+                          <span>/month</span>
+                        </div>
+                      </div>
+                      <div className="subscripton-button">
+                      {renderSubscriptionButton("MONTHLY")}
+                      </div>
+                    </li>
+                    <li>
+                      <div className="subscription-info">
+                        <div className="subscription-label">
+                          Yearly Subscription
                         </div>
                         <div className="subscripton-button">{renderSubscriptionButton("MONTHLY")}</div>
                       </li>
@@ -1102,14 +865,17 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
                             })()}</div>
                           </div>
                         </div>
-                        <div className="subscripton-button">{renderSubscriptionButton("YEARLY")}</div>
-                      </li>
-                    </ul>
-                  </div>
+                      </div>
+                      <div className="subscripton-button">
+                        {renderSubscriptionButton("YEARLY")}
+                      </div>
+                    </li>
+                  </ul>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
+        </div>  
           <div className="creator-profile-page-multi-tab-section card">
             <div className="creator-profile-page-multi-tab-container">
               <div className="multi-tab-section" data-multiple-tabs-section>
@@ -1248,9 +1014,514 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
                   </div>
 
                   <div className="multi-tabs-content-container content-creator-profile-tabs-layout-wrapper">
-                    {activeTab === "posts" && renderTabContent("all")}
-                    {activeTab === "videos" && renderTabContent("video")}
-                    {activeTab === "photos" && renderTabContent("photo")}
+                    {activeTab === "posts" && (
+                      <div
+                        data-multi-tabs-content-tabdata__active
+                        data-multi-dem-cards-layout
+                      >
+                        <div className="creator-content-filter-grid-container">
+                          <ProfileTab
+                            onChangeLayouts={(layout) => setLayoutTab(layout)}
+                            onChangeTab={(tab) => console.log("Tab:", tab)}
+                          />
+                          <div
+                            className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
+                            data-direct-cards-layout
+                            data-layout-toggle-rows={
+                              layoutTab === "list" ? true : undefined
+                            }
+                          >
+                            {postsLoading && <p>Loading posts...</p>}
+                            {!postsLoading &&
+                                posts.map((post: any) => {
+                                  const isFree = post.accessType === "free";
+                                  const isSubscriber = post.accessType === "subscriber";
+                                  const isPPV = post.accessType === "pay_per_view";
+
+                                  const firstMedia =
+                                    post.media?.[0]?.mediaFiles?.[0] ||
+                                    "/images/profile-avatars/profile-avatar-6.jpg"; // fallback
+
+                                  return (
+                              <div className="creator-content-card-container" key={post.publicId}>
+                                <div className="creator-content-card">
+                                  <div className="creator-content-card__media">
+                                    <div className="creator-card__img">
+                                      <img src={firstMedia} alt="Creator Content Image" />
+                                    </div>
+                                    {!isFree && (
+                                    <div className="content-locked-label">
+                                      {isSubscriber && (
+                                      <>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="21"
+                                        height="20"
+                                        viewBox="0 0 21 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M6.04199 18.3333H15.2087"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M8.54199 11.6667H12.7087"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                      <span> For Subscribers </span>
+                                      </>
+                                      )}
+                                      {isPPV && (
+                                        <>
+                                        <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="21"
+                                        height="20"
+                                        viewBox="0 0 21 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                        <span> ${post.price?.toFixed(2)} </span></>
+                                      )}
+                                    </div>
+                                    )}
+                                  </div>
+
+                                  <div className="creator-content-card__description">
+                                    <p>{post.text}</p>
+                                  </div>
+
+                                  <div className="creator-content-card__stats">
+                                    <div className="creator-content-stat-box">
+                                      <button
+                                      // className={`like-button ${
+                                      //   likedItems.includes(1) ? "liked" : ""
+                                      // }`}
+                                      // onClick={() => toggleLike(1)}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="21"
+                                          height="20"
+                                          viewBox="0 0 21 20"
+                                          fill="none"
+                                        >
+                                          <path
+                                            d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                            stroke="none"
+                                            strokeWidth="1.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                        </svg>
+                                      </button>
+
+                                      <span>{post.likeCount}</span>
+                                    </div>
+                                    <div className="creator-content-stat-box ">
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                        >
+                                          <path
+                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                            stroke="white"
+                                            stroke-width="1.5"
+                                            stroke-miterlimit="10"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                          ></path>
+                                          <path
+                                            d="M7 8H17"
+                                            stroke="white"
+                                            stroke-width="1.5"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                          ></path>
+                                          <path
+                                            d="M7 13H13"
+                                            stroke="white"
+                                            stroke-width="1.5"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                          ></path>
+                                        </svg>
+                                      </button>
+                                      <span>{post.commentCount}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                            
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeTab === "videos" && (
+                      <div
+                        data-multi-tabs-content-tab
+                        data-multi-dem-cards-layout
+                      >
+                        <div className="creator-content-filter-grid-container">
+                          <ProfileTab
+                            onChangeLayouts={(layout) => setLayoutTab(layout)}
+                            onChangeTab={(tab) => console.log("Tab:", tab)}
+                          />
+                          <div
+                            className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
+                            data-direct-cards-layout
+                            data-layout-toggle-rows={
+                              layoutTab === "list" ? true : undefined
+                            }
+                          >
+                              {postsLoading && <p>Loading posts...</p>}
+                            {!postsLoading &&
+                                videoPosts.map((post: any) => {
+                                  const isFree = post.accessType === "free";
+                                  const isSubscriber = post.accessType === "subscriber";
+                                  const isPPV = post.accessType === "pay_per_view";
+
+                                  const firstMedia =
+                                    post.media?.[0]?.mediaFiles?.[0] ||
+                                    "/images/profile-avatars/profile-avatar-6.jpg"; // fallback
+
+                                  return (
+                            <div className="creator-content-card-container" key={post.publicId}>
+                              <div className="creator-content-card">
+                                <div className="creator-content-card__media">
+                                  <div className="creator-card__img">
+                                     <img src={firstMedia} alt="Creator Content Image" />
+                                  </div>
+                                  {!isFree && (
+                                    <div className="content-locked-label">
+                                      {isSubscriber && (
+                                      <>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="21"
+                                        height="20"
+                                        viewBox="0 0 21 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M6.04199 18.3333H15.2087"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M8.54199 11.6667H12.7087"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                      <span> For Subscribers </span>
+                                      </>
+                                      )}
+                                      {isPPV && (
+                                        <>
+                                        <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="21"
+                                        height="20"
+                                        viewBox="0 0 21 20"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                        <span> ${post.price?.toFixed(2)} </span></>
+                                      )}
+                                    </div>
+                                    )}
+                                </div>
+
+                                <div className="creator-content-card__description">
+                                  <p>{post.text}</p>
+                                </div>
+
+                                <div className="creator-content-card__stats">
+                                  <div className="creator-content-stat-box">
+                                    <button>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                    </button>
+                                    <span>{post.likeCount}</span>
+                                  </div>
+                                  <div className="creator-content-stat-box">
+                                    <button
+                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                    // onClick={() => toggleLike(2)}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
+                                       <path d="M7 10v12"/>
+                                      </svg>
+                                    </button>
+
+                                    <span>{post.commentCount}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                              );
+                          })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeTab === "photos" && (
+                      <div
+                        data-multi-tabs-content-tab
+                        data-multi-dem-cards-layout
+                      >
+                        <div className="creator-content-filter-grid-container">
+                          <ProfileTab
+                            onChangeLayouts={(layout) => setLayoutTab(layout)}
+                            onChangeTab={(tab) => console.log("Tab:", tab)}
+                          />
+                          <div
+                            className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
+                            data-direct-cards-layout
+                            data-layout-toggle-rows={
+                              layoutTab === "list" ? true : undefined
+                            }
+                          >
+                             {postsLoading && <p>Loading posts...</p>}
+                            {!postsLoading &&
+                                photoPosts.map((post: any) => {
+                                  const isFree = post.accessType === "free";
+                                  const isSubscriber = post.accessType === "subscriber";
+                                  const isPPV = post.accessType === "pay_per_view";
+
+                                  const firstMedia =
+                                    post.media?.[0]?.mediaFiles?.[0] ||
+                                    "/images/profile-avatars/profile-avatar-6.jpg"; // fallback
+
+                                  return (
+                                  <div className="creator-content-card-container" key={post.publicId}>
+                                    <div className="creator-content-card">
+                                      <div className="creator-content-card__media">
+                                        <div className="creator-card__img">
+                                          <img src={firstMedia} alt="Creator Content Image" />
+                                        </div>
+                                        {!isFree && (
+                                          <div className="content-locked-label">
+                                            {isSubscriber && (
+                                            <>
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="21"
+                                              height="20"
+                                              viewBox="0 0 21 20"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M6.04199 18.3333H15.2087"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M8.54199 11.6667H12.7087"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                            </svg>
+                                            <span> For Subscribers </span>
+                                            </>
+                                            )}
+                                            {isPPV && (
+                                              <>
+                                              <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="21"
+                                              height="20"
+                                              viewBox="0 0 21 20"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                            </svg>
+                                              <span> ${post.price?.toFixed(2)} </span></>
+                                            )}
+                                          </div>
+                                          )}
+                                      </div>
+
+                                      <div className="creator-content-card__description">
+                                      <p>{post.text}</p>
+                                      </div>
+
+                                      <div className="creator-content-card__stats">
+                                        <div className="creator-content-stat-box ">
+                                          <button>
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="24"
+                                              height="24"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                            </svg>
+                                          </button>
+                                          <span>{post.likeCount}</span>
+                                        </div>
+                                        <div className="creator-content-stat-box">
+                                          <button
+                                          // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                          // onClick={() => toggleLike(2)}
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
+                                            <path d="M7 10v12"/>
+                                            </svg>
+                                          </button>
+
+                                          <span>{post.commentCount}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  );
+                                })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
