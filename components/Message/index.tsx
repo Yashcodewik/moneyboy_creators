@@ -4,17 +4,70 @@ import SideBar from "./SideBar";
 import { Smile, Mic } from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 const MessagePage = () => {
   const [activeChat, setActiveChat] = useState<string | null>("james");
   const [isOpen, setIsOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  // ✅ MISSING STATE (FIXED)
+  const [newComment, setNewComment] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLInputElement | null>(null);
+  const emojiRef = useRef<HTMLDivElement | null>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
+
   const isMobile = useDeviceType();
 
   const toggleMenu = () => {
     setIsOpen(prev => !prev);
   };
+
+  /* ---------------- Emoji Click ---------------- */
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart ?? newComment.length;
+    const end = textarea.selectionEnd ?? newComment.length;
+
+    const updatedText =
+      newComment.substring(0, start) +
+      emojiData.emoji +
+      newComment.substring(end);
+
+    setNewComment(updatedText);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const cursor = start + emojiData.emoji.length;
+      textarea.setSelectionRange(cursor, cursor);
+    });
+
+    setShowEmojiPicker(false);
+  };
+
+  /* ---------------- Emoji Outside Click ---------------- */
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (
+        emojiRef.current &&
+        !emojiRef.current.contains(target) &&
+        !emojiButtonRef.current?.contains(target) &&
+        !textareaRef.current?.contains(target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   /* ---------------- Desktop Style ---------------- */
   const desktopStyle: React.CSSProperties = {
@@ -57,7 +110,8 @@ const MessagePage = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   /* ---------------- Mobile Overlay Sync ---------------- */
@@ -272,7 +326,7 @@ const MessagePage = () => {
                       <input type="text" placeholder="Send a message..." />
                     </div>
                     <div className="chat-msg-action-btns">
-                      <button className="emojis-icon-btn">
+                      <button className="emojis-icon-btn" onClick={() => setShowEmojiPicker((prev) => !prev)}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
                           <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"></rect>
                           <path d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -298,6 +352,19 @@ const MessagePage = () => {
                           <path d="M10.1094 13.6505L13.6894 10.0605" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         </svg>
                       </button>
+
+                      {showEmojiPicker && (
+                        <div ref={emojiRef} className="emoji-picker-wrapper">
+                          <EmojiPicker
+                            onEmojiClick={onEmojiClick}
+                            autoFocusSearch={false}
+                            skinTonesDisabled
+                            previewConfig={{ showPreview: false }}
+                            height={360}
+                            width={340}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

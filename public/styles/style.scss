@@ -138,6 +138,29 @@ body {
   // }
 }
 
+// Emoji Styles Start
+.comment-wrap, .chat-msg-action-btns {
+  position: relative;
+  overflow: visible !important;
+}
+.emoji-picker-wrapper {
+  position: absolute;
+  bottom: 55px;
+  right: 0;
+  z-index: 9999; 
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  @media screen and (max-width: 767px) {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 360px;
+  }
+}
+
 // Button Start
 .btn-danger {
   cursor: pointer;
@@ -381,7 +404,12 @@ body {
       display: none;
     }
     &:hover {
-      background: #fff7e6;
+      color: #FFF;
+      border-color: transparent;
+      background: linear-gradient(103.7deg, #fece26 4.76%, #e5741f 118.16%);
+      *, p {
+        color: #FFF !important;
+      }
     }
     &:has(input[type="radio"]:checked) {
       color: #FFF;
@@ -715,6 +743,9 @@ body {
 .flex {
   display: flex;
 }
+.flex-column {
+  flex-direction: column;
+}
 .items-center {
   align-items: center;
 }
@@ -735,6 +766,9 @@ body {
 }
 .gap-15 {
   gap: 15px;
+}
+.gap-20 {
+  gap: 20px;
 }
 .img-fluid {
   max-width: 100%;
@@ -4586,10 +4620,12 @@ body {
   align-items: stretch;
   flex-direction: row;
   background-color: transparent;
+  position: relative;
   .comment-wrap {
     flex-grow: 1;
     display: flex;
     height: 100%;
+    position: relative;
     .label-input {
       position: relative;
       width: 100%;
@@ -4612,7 +4648,7 @@ body {
       }
     }
   }
-  button {
+  button.premium-btn {
     width: 75px;
     height: auto;
     aspect-ratio: 1;

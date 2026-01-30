@@ -362,10 +362,10 @@ dunder-proto@^1.0.1:
     es-errors "^1.3.0"
     gopd "^1.2.0"
 
-emoji-picker-react@^4.17.2:
-  version "4.17.2"
-  resolved "https://registry.npmjs.org/emoji-picker-react/-/emoji-picker-react-4.17.2.tgz"
-  integrity sha512-d70sXdqaorBsvYwNAjRUkV8VQUQTafN/XTjucl6lH2O/B+aFUiIZy5hpRJ0FxuzgVnkeJaydnRCrYpuGd0zhgQ==
+emoji-picker-react@^4.17.3:
+  version "4.17.3"
+  resolved "https://registry.npmjs.org/emoji-picker-react/-/emoji-picker-react-4.17.3.tgz"
+  integrity sha512-qeKBtdtTwI11DMP5FwVoNeZC5bPvQPTU3UVbA5BkYOdy03HNLX2OpaZ4Q4fthLaSsmjDs17c8uTC2AIEu2PCoA==
   dependencies:
     flairup "1.0.0"
 
