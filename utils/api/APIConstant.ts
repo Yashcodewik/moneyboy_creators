@@ -46,10 +46,17 @@ export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";
 export const API_UPGRADE_SUBSCRIPTION: string = "/subscription/upgrade-subscription";
 export const API_MY_SUBSCRIPTIONS: string = "/subscription/my-subscriptions";
 export const API_MY_SUBSCRIBERS: string = "/subscription/my-subscribers";
-
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";
 export const API_GET_SAVED_ITEMS = "/post/saved";
 export const API_GET_SAVED_CREATORS = "/creator/saved-creators";
+export const API_UNSAVE_FREE_CREATOR = "/post/unsave-free-creator";
+export const API_ADD_COMMENT = "/post/comment";
+export const API_GET_COMMENTS = "/post/comments"; 
+export const API_ADD_REPLY = "/post/comment"; 
+export const API_LIKE_COMMENT = "/post/comment"; 
+export const API_DISLIKE_COMMENT = "/post/comment";
+
+
 
 

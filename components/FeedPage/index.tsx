@@ -14,7 +14,7 @@ import {
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import PostCard from "./PostCard";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import Featuredboys from "../Featuredboys";
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "../CustomSelect";
@@ -39,7 +39,7 @@ const FeedPage = () => {
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
   /* ================= FEED ================= */
-
+const queryClient = useQueryClient();
   const {
     data: feedData,
     fetchNextPage: fetchNextFeedPage,
@@ -65,7 +65,7 @@ const FeedPage = () => {
       };
     },
     initialPageParam: 1,
-    enabled: activeTab === "feed" && isLoggedIn,
+    // enabled: activeTab === "feed" && isLoggedIn,
     getNextPageParam: (lastPage) => lastPage.nextPage,
   });
 
@@ -161,60 +161,107 @@ const FeedPage = () => {
 
   /* ================= LIKE ================= */
 
-  const handleLike = async (postId: string) => {
-    if (!isLoggedIn) return router.push("/login");
-    if (likeLoading[postId]) return;
+const handleLike = async (postId: string) => {
+  if (!isLoggedIn) return router.push("/login");
+  if (likeLoading[postId]) return;
 
-    const list = resolveList();
-    const post = list.find((p) => p._id === postId);
-    if (!post) return;
+  setLikeLoading((p) => ({ ...p, [postId]: true }));
 
-    setLikeLoading((p) => ({ ...p, [postId]: true }));
+  // Optimistic update: update React Query cache immediately
+  const queryKey =
+    activeTab === "feed"
+      ? ["feedPosts", (session?.user as any)?.id ?? null]
+      : activeTab === "following"
+      ? ["followingPosts"]
+      : ["popularPosts"];
 
-    const toggleLike = (p: any) =>
-      p._id === postId
-        ? {
-            ...p,
-            isLiked: !p.isLiked,
-            likeCount: p.isLiked
-              ? p.likeCount - 1
-              : p.likeCount + 1,
-          }
-        : p;
+  const oldData = queryClient.getQueryData<any>(queryKey);
 
-    // optimistic update
-    // NOTE: react-query cache update can be added later if needed
+  queryClient.setQueryData(queryKey, (data: any) => {
+    if (!data) return data;
 
-    const res = await apiPost({
-      url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
-      values: { postId },
-    });
+    const updatedPages = data.pages.map((page: any) => ({
+      ...page,
+      posts: page.posts.map((p: any) =>
+        p._id === postId
+          ? {
+              ...p,
+              isLiked: !p.isLiked,
+              likeCount: p.isLiked ? p.likeCount - 1 : p.likeCount + 1,
+            }
+          : p
+      ),
+    }));
 
-    if (!res?.success) {
-      // rollback can be added here
-    }
+    return { ...data, pages: updatedPages };
+  });
 
-    setLikeLoading((p) => ({ ...p, [postId]: false }));
-  };
+  // Call API in background
+  const post = oldData?.pages
+    .flatMap((page: any) => page.posts)
+    .find((p: any) => p._id === postId);
+
+  const res = await apiPost({
+    url: post?.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
+    values: { postId },
+  });
+
+  if (!res?.success) {
+    // Rollback if API failed
+    queryClient.setQueryData(queryKey, oldData);
+  }
+
+  setLikeLoading((p) => ({ ...p, [postId]: false }));
+};
+
 
   /* ================= SAVE ================= */
 
-  const handleSave = async (postId: string) => {
-    if (!isLoggedIn) return router.push("/login");
-    if (saveLoading[postId]) return;
+const handleSave = async (postId: string) => {
+  if (!isLoggedIn) return router.push("/login");
+  if (saveLoading[postId]) return;
 
-    setSaveLoading((p) => ({ ...p, [postId]: true }));
+  setSaveLoading((p) => ({ ...p, [postId]: true }));
 
-    const list = resolveList();
-    const post = list.find((p) => p._id === postId);
+  const queryKey =
+    activeTab === "feed"
+      ? ["feedPosts", (session?.user as any)?.id ?? null]
+      : activeTab === "following"
+      ? ["followingPosts"]
+      : ["popularPosts"];
 
-    const res = await apiPost({
-      url: post?.isSaved ? API_UNSAVE_POST : API_SAVE_POST,
-      values: { postId },
-    });
+  const oldData = queryClient.getQueryData<any>(queryKey);
 
-    setSaveLoading((p) => ({ ...p, [postId]: false }));
-  };
+  queryClient.setQueryData(queryKey, (data: any) => {
+    if (!data) return data;
+
+    const updatedPages = data.pages.map((page: any) => ({
+      ...page,
+      posts: page.posts.map((p: any) =>
+        p._id === postId ? { ...p, isSaved: !p.isSaved } : p
+      ),
+    }));
+
+    return { ...data, pages: updatedPages };
+  });
+
+  const post = oldData?.pages
+    .flatMap((page: any) => page.posts)
+    .find((p: any) => p._id === postId);
+
+  const res = await apiPost({
+    url: post?.isSaved ? API_UNSAVE_POST : API_SAVE_POST,
+    values: { postId },
+  });
+
+  if (!res?.success) {
+    // Rollback
+    queryClient.setQueryData(queryKey, oldData);
+  }
+
+  setSaveLoading((p) => ({ ...p, [postId]: false }));
+};
+
 
   /* ================= SCROLL ================= */
 
@@ -250,6 +297,32 @@ const FeedPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab]);
+
+
+  const incrementCommentCount = (postId: string) => {
+  const queryKey =
+    activeTab === "feed"
+      ? ["feedPosts", (session?.user as any)?.id ?? null]
+      : activeTab === "following"
+      ? ["followingPosts"]
+      : ["popularPosts"];
+
+  queryClient.setQueryData(queryKey, (data: any) => {
+    if (!data) return data;
+
+    return {
+      ...data,
+      pages: data.pages.map((page: any) => ({
+        ...page,
+        posts: page.posts.map((p: any) =>
+          p._id === postId
+            ? { ...p, commentCount: (p.commentCount || 0) + 1 }
+            : p
+        ),
+      })),
+    };
+  });
+};
 
   /* ================= RENDER ================= */
 
@@ -296,6 +369,7 @@ const FeedPage = () => {
                     post={post}
                     onLike={handleLike}
                     onSave={handleSave}
+                    onCommentAdded={incrementCommentCount}
                   />
                 ))}
               </InfiniteScrollWrapper>

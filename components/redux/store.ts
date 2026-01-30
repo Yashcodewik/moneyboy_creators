@@ -8,6 +8,7 @@ import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 import rootReducer from "./rootReducer";
 import { followMiddleware } from "./other/followMiddleware";
 
+
 const createNoopStorage = () => {
   return {
     getItem(_key: any) {
