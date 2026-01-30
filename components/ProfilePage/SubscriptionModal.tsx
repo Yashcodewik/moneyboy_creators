@@ -99,7 +99,7 @@ const finalPrice =
           <ul className="points">
             <li>Full access to this creator’s exclusive content</li>
             <li>Direct message with this creator</li>
-            <li>Requested personalised Pay Per view contaent </li>
+            <li>Requested personalized Pay Per view content </li>
             <li>Cancel your subscription at any time</li>
           </ul>
           <div className="actions">
