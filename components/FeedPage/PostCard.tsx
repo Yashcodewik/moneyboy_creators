@@ -19,8 +19,9 @@ interface PostCardProps {
   post: any;
   onLike: (postId: string) => void;
   onSave: (postId: string) => void;
-  onCommentAdded: (postId: string) => void;
+  onCommentAdded?: (postId: string) => void; // ✅ optional
 }
+
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 const PostCard = ({ post, onLike, onSave ,onCommentAdded}: PostCardProps) => {
@@ -134,10 +135,11 @@ const handleAddComment = async () => {
     addComment({ postId: post._id, comment: newComment })
   );
 
-  if (res?.meta?.requestStatus === "fulfilled") {
-    onCommentAdded(post._id); // 🔥 update feed count instantly
-    setNewComment("");
-  }
+ if (res?.meta?.requestStatus === "fulfilled") {
+  onCommentAdded?.(post._id); // ✅ only runs if provided
+  setNewComment("");
+}
+
 };
   const handleLikeComment = (commentId: string) => {
     dispatch(likeComment({ commentId }));
