@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRef, useState } from "react";
@@ -25,6 +24,7 @@ import {
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
 import { Smile } from "lucide-react";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 type feedParams = {
   show: boolean;
@@ -48,8 +48,9 @@ const PostSchema = Yup.object({
   }),
   isScheduled: Yup.boolean(),
   scheduledAt: Yup.string().when(["isScheduled", "accessType"], {
-    is: (isScheduled: boolean, accessType: string) => 
-      isScheduled && (accessType === "pay_per_view" || accessType === "subscriber"),
+    is: (isScheduled: boolean, accessType: string) =>
+      isScheduled &&
+      (accessType === "pay_per_view" || accessType === "subscriber"),
     then: (s) => s.required("Schedule date is required"),
     otherwise: (s) => s.notRequired(),
   }),
@@ -62,7 +63,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   >(null);
   const [isScheduled, setIsScheduled] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
-
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +71,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const [tagSearch, setTagSearch] = useState("");
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
   const [selectedTagUsers, setSelectedTagUsers] = useState<TagUser[]>([]);
- const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const MEDIA_TYPE_MAP: Record<string, string> = {
     image: "photo",
     video: "video",
@@ -102,88 +103,92 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
     });
   };
 
-const formik = useFormik({
-  initialValues: {
-    text: "",
-    accessType: "free",
-    price: "",
-    isScheduled: false,
-    scheduledAt: "",
-  },
-  validationSchema: PostSchema,
-  onSubmit: async (values) => {
-    // Prevent multiple submissions
-    if (isSubmitting) return;
-    
-    // Set loading state
-    setIsSubmitting(true);
-    
-    try {
-      const formData = new FormData();
+  const formik = useFormik({
+    initialValues: {
+      text: "",
+      accessType: "free",
+      price: "",
+      isScheduled: false,
+      scheduledAt: "",
+    },
+    validationSchema: PostSchema,
+    onSubmit: async (values) => {
+      // Prevent multiple submissions
+      if (isSubmitting) return;
 
-      formData.append("text", values.text);
-      formData.append("accessType", values.accessType);
-      formData.append("isScheduled", String(values.isScheduled));
+      // Set loading state
+      setIsSubmitting(true);
 
-      if (values.accessType === "pay_per_view") {
-        formData.append("price", values.price);
-      }
+      try {
+        const formData = new FormData();
 
-      if (values.isScheduled && values.scheduledAt) {
-        formData.append("scheduledAt", values.scheduledAt);
-      }
+        formData.append("text", values.text);
+        formData.append("accessType", values.accessType);
+        formData.append("isScheduled", String(values.isScheduled));
 
-      if (activeTool && MEDIA_TYPE_MAP[activeTool]) {
-        formData.append("mediaType", MEDIA_TYPE_MAP[activeTool]);
-      }
-
-      if (imageInputRef.current?.files) {
-        Array.from(imageInputRef.current.files).forEach((file) =>
-          formData.append("mediaFiles", file)
-        );
-      }
-
-      if (videoInputRef.current?.files) {
-        Array.from(videoInputRef.current.files).forEach((file) =>
-          formData.append("mediaFiles", file)
-        );
-      }
-
-      if (thumbnailInputRef.current?.files?.[0]) {
-        formData.append("thumbnail", thumbnailInputRef.current.files[0]);
-      }
-
-      const res = await apiPostWithMultiForm({
-        url: API_CREATE_POST,
-        values: formData,
-      });
-
-      if (res?.success) {
-        if (selectedTagUsers.length > 0) {
-          await apiPost({
-            url: API_TAG_USERS_TO_POST,
-            values: {
-              postId: res.post?._id || res.postId,
-              taggedUserIds: selectedTagUsers.map((u) => u._id),
-            },
-          });
+        if (values.accessType === "pay_per_view") {
+          formData.append("price", values.price);
         }
 
-        ShowToast(res.message, "success");
-        onClose();
-      } else {
-        ShowToast(res?.message || "Something went wrong", "error");
-      }
-    } catch (error) {
-      ShowToast("An error occurred while creating post", "error");
-      console.error("Post creation error:", error);
-    } finally {
-      // Re-enable the button
-      setIsSubmitting(false);
-    }
-  },
-});
+        if (values.isScheduled && values.scheduledAt) {
+          formData.append("scheduledAt", values.scheduledAt);
+        }
 
+        if (activeTool && MEDIA_TYPE_MAP[activeTool]) {
+          formData.append("mediaType", MEDIA_TYPE_MAP[activeTool]);
+        }
+
+        if (imageInputRef.current?.files) {
+          Array.from(imageInputRef.current.files).forEach((file) =>
+            formData.append("mediaFiles", file),
+          );
+        }
+
+        if (videoInputRef.current?.files) {
+          Array.from(videoInputRef.current.files).forEach((file) =>
+            formData.append("mediaFiles", file),
+          );
+        }
+
+        if (thumbnailInputRef.current?.files?.[0]) {
+          formData.append("thumbnail", thumbnailInputRef.current.files[0]);
+        }
+
+        const res = await apiPostWithMultiForm({
+          url: API_CREATE_POST,
+          values: formData,
+        });
+
+        if (res?.success) {
+          if (selectedTagUsers.length > 0) {
+            await apiPost({
+              url: API_TAG_USERS_TO_POST,
+              values: {
+                postId: res.post?._id || res.postId,
+                taggedUserIds: selectedTagUsers.map((u) => u._id),
+              },
+            });
+          }
+
+          ShowToast(res.message, "success");
+          onClose();
+        } else {
+          ShowToast(res?.message || "Something went wrong", "error");
+        }
+      } catch (error) {
+        ShowToast("An error occurred while creating post", "error");
+        console.error("Post creation error:", error);
+      } finally {
+        // Re-enable the button
+        setIsSubmitting(false);
+      }
+    },
+  });
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    formik.setFieldValue("text", formik.values.text + emojiData.emoji);
+    setShowEmojiPicker(false); // optional: close after selecting
+  };
   return (
     <div
       className={`modal ${show ? "show" : ""} `}
@@ -213,61 +218,64 @@ const formik = useFormik({
               onBlur={formik.handleBlur}
             />
           </div>
-          <span className="right"><Smile size={20} stroke="black" strokeWidth={1} fill="#fece26"/> {formik.values.text.length}/300</span>
+          <span className="right">
+            <Smile size={20} stroke="black" strokeWidth={1} fill="#fece26" />{" "}
+            {formik.values.text.length}/300
+          </span>
           {formik.touched.text && formik.errors.text && (
             <span className="error-message">{formik.errors.text}</span>
           )}
         </div>
 
-     <div className="select_wrap">
-  <label className="radio_wrap">
-    <input
-      type="radio"
-      name="access"
-      checked={accessType === "subscriber"}
-      onChange={() => {
-        setAccessType("subscriber");
-        setIsScheduled(false); // Reset to false when switching
-        formik.setFieldValue("accessType", "subscriber");
-        formik.setFieldValue("isScheduled", false);
-        formik.setFieldValue("scheduledAt", "");
-      }}
-    />
-    Only for Subscribers
-  </label>
+        <div className="select_wrap">
+          <label className="radio_wrap">
+            <input
+              type="radio"
+              name="access"
+              checked={accessType === "subscriber"}
+              onChange={() => {
+                setAccessType("subscriber");
+                setIsScheduled(false); // Reset to false when switching
+                formik.setFieldValue("accessType", "subscriber");
+                formik.setFieldValue("isScheduled", false);
+                formik.setFieldValue("scheduledAt", "");
+              }}
+            />
+            Only for Subscribers
+          </label>
 
-  <label className="radio_wrap">
-    <input
-      type="radio"
-      name="access"
-      checked={accessType === "pay_per_view"}
-      onChange={() => {
-        setAccessType("pay_per_view");
-        setIsScheduled(false); // Reset to false when switching
-        formik.setFieldValue("accessType", "pay_per_view");
-        formik.setFieldValue("isScheduled", false);
-        formik.setFieldValue("scheduledAt", "");
-      }}
-    />
-    Pay per View
-  </label>
+          <label className="radio_wrap">
+            <input
+              type="radio"
+              name="access"
+              checked={accessType === "pay_per_view"}
+              onChange={() => {
+                setAccessType("pay_per_view");
+                setIsScheduled(false); // Reset to false when switching
+                formik.setFieldValue("accessType", "pay_per_view");
+                formik.setFieldValue("isScheduled", false);
+                formik.setFieldValue("scheduledAt", "");
+              }}
+            />
+            Pay per View
+          </label>
 
-  <label className="radio_wrap">
-    <input
-      type="radio"
-      name="access"
-      checked={accessType === "free"}
-      onChange={() => {
-        setAccessType("free");
-        setIsScheduled(false); // Ensure it's false for free
-        formik.setFieldValue("accessType", "free");
-        formik.setFieldValue("isScheduled", false);
-        formik.setFieldValue("scheduledAt", "");
-      }}
-    />
-    Free for Everyone
-  </label>
-</div>
+          <label className="radio_wrap">
+            <input
+              type="radio"
+              name="access"
+              checked={accessType === "free"}
+              onChange={() => {
+                setAccessType("free");
+                setIsScheduled(false); // Ensure it's false for free
+                formik.setFieldValue("accessType", "free");
+                formik.setFieldValue("isScheduled", false);
+                formik.setFieldValue("scheduledAt", "");
+              }}
+            />
+            Free for Everyone
+          </label>
+        </div>
 
         {accessType === "pay_per_view" && (
           <div>
@@ -278,7 +286,7 @@ const formik = useFormik({
               placeholder="10.99 *"
               value={formik.values.price}
               onChange={(e) => formik.setFieldValue("price", e.target.value)}
-              onBlur={formik.handleBlur} 
+              onBlur={formik.handleBlur}
             />
             {formik.touched.price && formik.errors.price && (
               <div className="error-message">{formik.errors.price}</div>
@@ -286,59 +294,59 @@ const formik = useFormik({
           </div>
         )}
 
-{/* Only show scheduling for paid posts (pay_per_view or subscriber) */}
-{(accessType === "pay_per_view" || accessType === "subscriber") && (
-  <div className="flex items-center gap-10">
-    <div>
-      <label>Schedule?</label>
-  <div className="toggleGroup">
-  <input
-    type="checkbox"
-    id="on-off-switch"
-    className="checkbox"
-    checked={isScheduled}
-    onChange={() => {
-      const newIsScheduled = !isScheduled;
-      setIsScheduled(newIsScheduled);
-      formik.setFieldValue("isScheduled", newIsScheduled);
-      
-      // Clear scheduledAt when turning off scheduling
-      if (!newIsScheduled) {
-        formik.setFieldValue("scheduledAt", "");
-      }
-    }}
-  />
-        <label htmlFor="on-off-switch" className="label"></label>
-        <div className="onoffswitch" aria-hidden="true">
-          <div className="onoffswitchLabel">
-            <div className="onoffswitchInner"></div>
-            <div className="onoffswitchSwitch"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+        {/* Only show scheduling for paid posts (pay_per_view or subscriber) */}
+        {(accessType === "pay_per_view" || accessType === "subscriber") && (
+          <div className="flex items-center gap-10">
+            <div>
+              <label>Schedule?</label>
+              <div className="toggleGroup">
+                <input
+                  type="checkbox"
+                  id="on-off-switch"
+                  className="checkbox"
+                  checked={isScheduled}
+                  onChange={() => {
+                    const newIsScheduled = !isScheduled;
+                    setIsScheduled(newIsScheduled);
+                    formik.setFieldValue("isScheduled", newIsScheduled);
 
-    {isScheduled && (
-      <div className="mw-fit w-full">
-        <label>Schedule at</label>
-        <input
-          className="form-input"
-          type="date"
-          value={formik.values.scheduledAt}
-          onChange={(e) =>
-            formik.setFieldValue("scheduledAt", e.target.value)
-          }
-          onBlur={formik.handleBlur}
-        />
-        {formik.touched.scheduledAt && formik.errors.scheduledAt && (
-          <div className="error-message">
-            {formik.errors.scheduledAt}
+                    // Clear scheduledAt when turning off scheduling
+                    if (!newIsScheduled) {
+                      formik.setFieldValue("scheduledAt", "");
+                    }
+                  }}
+                />
+                <label htmlFor="on-off-switch" className="label"></label>
+                <div className="onoffswitch" aria-hidden="true">
+                  <div className="onoffswitchLabel">
+                    <div className="onoffswitchInner"></div>
+                    <div className="onoffswitchSwitch"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {isScheduled && (
+              <div className="mw-fit w-full">
+                <label>Schedule at</label>
+                <input
+                  className="form-input"
+                  type="date"
+                  value={formik.values.scheduledAt}
+                  onChange={(e) =>
+                    formik.setFieldValue("scheduledAt", e.target.value)
+                  }
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.scheduledAt && formik.errors.scheduledAt && (
+                  <div className="error-message">
+                    {formik.errors.scheduledAt}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
-      </div>
-    )}
-  </div>
-)}
 
         {/* <div
           className="upload-wrapper"
@@ -445,27 +453,26 @@ const formik = useFormik({
           >
             <HiMenuAlt2 size={20} />
           </button> */}
-          <div className="hline"/>
+          <div className="hline" />
           <div className="icontext_wrap">
-           <button className="cate-back-btn active-down-effect btn_icons"><FiAtSign size={20} /></button>
-           <p>Tag</p>
+            <button className="cate-back-btn active-down-effect btn_icons">
+              <FiAtSign size={20} />
+            </button>
+            <p>Tag</p>
           </div>
 
-
-       <div className="right">
-    <button className="cate-back-btn active-down-effect btn_icons">
-      <FaXTwitter size={20} />
-    </button>
-    <button
-      className={`premium-btn active-down-effect ${isSubmitting ? 'disabled' : ''}`}
-      onClick={() => formik.handleSubmit()}
-      disabled={isSubmitting}
-    >
-      <span>
-        {isSubmitting ? 'Posting...' : 'Post'}
-      </span>
-    </button>
-  </div>
+          <div className="right">
+            <button className="cate-back-btn active-down-effect btn_icons">
+              <FaXTwitter size={20} />
+            </button>
+            <button
+              className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
+              onClick={() => formik.handleSubmit()}
+              disabled={isSubmitting}
+            >
+              <span>{isSubmitting ? "Posting..." : "Post"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -515,9 +522,7 @@ const formik = useFormik({
             </div>
 
             {tagUsers.map((user) => {
-              const selected = selectedTagUsers.some(
-                (u) => u._id === user._id
-              );
+              const selected = selectedTagUsers.some((u) => u._id === user._id);
 
               return (
                 <div
@@ -567,7 +572,6 @@ const formik = useFormik({
           </div>
         </div>
       )}
-
     </div>
   );
 };
