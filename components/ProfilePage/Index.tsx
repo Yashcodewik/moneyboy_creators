@@ -6,7 +6,9 @@ import {
   API_CREATOR_PROFILE,
   API_CREATOR_PROFILE_BY_ID,
   API_FOLLOWER_COUNT,
+  API_GET_POSTS_BY_CREATOR,
   API_SUBSCRIBE_CREATOR,
+  API_UPGRADE_SUBSCRIPTION,
 } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
@@ -17,6 +19,7 @@ import {
   followUserAction,
   unfollowUserAction,
 } from "../redux/other/followActions";
+import { useQuery } from "@tanstack/react-query";
 
 interface User {
   _id: string;
@@ -53,6 +56,13 @@ interface CreatorDetails {
   updatedAt: string;
   __v: number;
 }
+interface SubscriptionStatus {
+  isSubscribed: boolean;
+  currentPlan: "MONTHLY" | "YEARLY" | null;
+  expiresAt: string | null;
+  daysRemaining: number | null;
+  isExpiringSoon: boolean;
+}
 
 interface ApiCreatorProfileResponse {
   user: User;
@@ -62,14 +72,12 @@ interface ApiCreatorProfileResponse {
     userId: string;
     monthlyPrice: number;
     yearlyPrice: number;
-    creatorId: string;
-    status: string;
-    startDate: string;
-    endDate: string;
-    planType: string;
+    ppvVideoPrice?: number;
+    ppvPhotoPrice?: number;
     createdAt: string;
     updatedAt: string;
   };
+  subscriptionStatus?: SubscriptionStatus;
   isFollowing?: boolean;
   followerCount?: number;
   followingCount?: number;
@@ -89,8 +97,6 @@ const ProfilePage = () => {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [isFollowLoading, setIsFollowLoading] = useState<boolean>(false);
   const [subLoading, setSubLoading] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
-
 
   const params = useParams();
   const profilePublicId = params.id as string;
@@ -132,8 +138,6 @@ const ProfilePage = () => {
               url: API_CREATOR_PROFILE_BY_ID,
               params: profilePublicId, // ✅ STRING ONLY
             });
-
-        console.log(response, "resposne ----------");
         if (response?.user && response?.creator) {
           setProfile(response);
           setIsFollowing(Boolean(response.isFollowing));
@@ -149,6 +153,11 @@ const ProfilePage = () => {
 
     fetchProfile();
   }, [profilePublicId, status, sessionPublicId]);
+
+  const subStatus = profile?.subscriptionStatus;
+  const isSubscribed = subStatus?.isSubscribed;
+  const plan = subStatus?.currentPlan;
+  const canRenewOrUpgrade = subStatus?.isExpiringSoon;
 
   useEffect(() => {
     if (profile) {
@@ -246,7 +255,7 @@ const ProfilePage = () => {
       },
     });
     if (res?.success) {
-      setSubscribed(true);
+     
     } else {
       // backend already handles duplicate subscription
       alert(res?.message || "Subscription failed");
@@ -254,6 +263,118 @@ const ProfilePage = () => {
 
     setSubLoading(false);
   };
+
+  const {data: postsData,isLoading: postsLoading,refetch: refetchPosts,} = useQuery({
+  queryKey: ["creator-posts", profilePublicId],
+      queryFn: () =>
+        getApiByParams({
+          url: API_GET_POSTS_BY_CREATOR,
+          params: profilePublicId, 
+        }),
+      enabled: !!profilePublicId,
+    });
+const posts = postsData?.posts || [];
+
+const photoPosts = posts.filter((post: any) =>
+  post.media?.some((m: any) => m.type === "photo"),
+);
+
+const videoPosts = posts.filter((post: any) =>
+  post.media?.some((m: any) => m.type === "video"),
+);
+
+  const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
+    if (!profile?.user?._id || subLoading) return;
+
+    setSubLoading(true);
+
+    const res = await apiPost({
+      url: API_UPGRADE_SUBSCRIPTION,
+      values: {
+        creatorId: profile.user._id,
+        planType,
+      },
+    });
+
+    if (!res?.success) {
+      alert(res?.message || "Upgrade failed");
+    }
+
+    setSubLoading(false);
+  };
+
+  const renderSubscriptionButton = (
+    targetPlan: "MONTHLY" | "YEARLY",
+  ) => {
+    if (!subStatus) return null;
+
+    const { isSubscribed, currentPlan, isExpiringSoon } = subStatus;
+
+    // 🔹 Rule 3: NOT SUBSCRIBED
+    if (!isSubscribed) {
+      return (
+        <button
+          className="btn-txt-gradient btn-outline p-sm"
+          disabled={subLoading}
+          onClick={() => handleSubscribe(targetPlan)}
+        >
+          <span>{subLoading ? "Processing..." : "Subscribe"}</span>
+        </button>
+      );
+    }
+
+    // 🔹 SAME PLAN
+    if (currentPlan === targetPlan) {
+      if (isExpiringSoon) {
+        return (
+          <button
+            className="btn-txt-gradient btn-outline p-sm"
+            disabled={subLoading}
+            onClick={() => handleUpgrade(targetPlan)}
+          >
+            <span>{subLoading ? "Processing..." : "Renew"}</span>
+          </button>
+        );
+      }
+
+      return (
+        <button
+          className="btn-txt-gradient btn-outline p-sm"
+          disabled
+        >
+          <span>Subscribed</span>
+        </button>
+      );
+    }
+
+    // 🔹 DOWNGRADE (YEARLY → MONTHLY) 
+    if (currentPlan === "YEARLY" && targetPlan === "MONTHLY") {
+      return (
+        <button
+          className="btn-txt-gradient btn-outline p-sm"
+          disabled
+        >
+          <span>Subscribed</span>
+        </button>
+      );
+    }
+
+    // 🔹 UPGRADE (MONTHLY → YEARLY)
+    if (currentPlan === "MONTHLY" && targetPlan === "YEARLY") {
+      return (
+        <button
+          className="btn-txt-gradient btn-outline p-sm"
+          disabled={subLoading}
+          onClick={() => handleUpgrade("YEARLY")}
+        >
+          <span>{subLoading ? "Processing..." : "Upgrade"}</span>
+        </button>
+      );
+    }
+
+    return null;
+  };
+
 
 
   return (
@@ -753,7 +874,7 @@ const ProfilePage = () => {
               <div className="creator-profile-description">
                 <p>{profile?.creator?.bio || "No bio available."}</p>
               </div>
-
+            {profile?.subscription?.monthlyPrice && (
               <div className="creator-subscriptions-container">
                 <div className="subscriptions-container">
                   <ul>
@@ -768,12 +889,7 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       <div className="subscripton-button">
-                        <button className="btn-txt-gradient btn-outline p-sm" 
-                          disabled={subLoading}
-                          onClick={() => handleSubscribe("MONTHLY")}
-                          >
-                          <span>{subLoading ? "Processing..." : subscribed ? "Subscribed" : "Subscribe"}</span>
-                        </button>
+                      {renderSubscriptionButton("MONTHLY")}
                       </div>
                     </li>
                     <li>
@@ -788,20 +904,15 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       <div className="subscripton-button">
-                        <button className="btn-txt-gradient btn-outline p-sm"
-                          disabled={subLoading}
-                          onClick={() => handleSubscribe("YEARLY")}
-                          >
-                          <span>{subLoading ? "Processing..." : subscribed ? "Subscribed" : "Subscribe"}</span>
-                        </button>
+                        {renderSubscriptionButton("YEARLY")}
                       </div>
                     </li>
                   </ul>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-
+        </div>  
           <div className="creator-profile-page-multi-tab-section card">
             <div className="creator-profile-page-multi-tab-container">
               <div className="multi-tab-section" data-multiple-tabs-section>
@@ -969,32 +1080,28 @@ const ProfilePage = () => {
                               layoutTab === "list" ? true : undefined
                             }
                           >
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-avatars/profile-avatar-6.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                </div>
+                            {postsLoading && <p>Loading posts...</p>}
+                            {!postsLoading &&
+                                posts.map((post: any) => {
+                                  const isFree = post.accessType === "free";
+                                  const isSubscriber = post.accessType === "subscriber";
+                                  const isPPV = post.accessType === "pay_per_view";
 
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
+                                  const firstMedia =
+                                    post.media?.[0]?.mediaFiles?.[0] ||
+                                    "/images/profile-avatars/profile-avatar-6.jpg"; // fallback
 
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    className={`like-button ${
-                                      likedItems.includes(1) ? "liked" : ""
-                                    }`}
-                                    onClick={() => toggleLike(1)}
-                                    >
+                                  return (
+                              <div className="creator-content-card-container" key={post.publicId}>
+                                <div className="creator-content-card">
+                                  <div className="creator-content-card__media">
+                                    <div className="creator-card__img">
+                                      <img src={firstMedia} alt="Creator Content Image" />
+                                    </div>
+                                    {!isFree && (
+                                    <div className="content-locked-label">
+                                      {isSubscriber && (
+                                      <>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width="21"
@@ -1003,208 +1110,33 @@ const ProfilePage = () => {
                                         fill="none"
                                       >
                                         <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div>
-                                  <div className="creator-content-stat-box massage-btn active">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-miterlimit="10"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M7 8H17"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M7 13H13"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/post-images/post-img-2.png"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M6.04199 18.3333H15.2087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.54199 11.6667H12.7087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> For Subscribers </span>
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                                          d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
                                           stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
                                         />
                                         <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                                          d="M6.04199 18.3333H15.2087"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M8.54199 11.6667H12.7087"
+                                          stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
                                         />
                                       </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
-
-                                    <span>71</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-banners/profile-banner-8.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> $10.00 </span>
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  {/* <div className="creator-content-stat-box">
-                                    <button
-                                      className={`like-button ${
-                                        likedItems.includes(3) ? "liked" : ""
-                                      }`}
-                                      onClick={() => toggleLike(3)}
-                                    >
-                                      <svg
+                                      <span> For Subscribers </span>
+                                      </>
+                                      )}
+                                      {isPPV && (
+                                        <>
+                                        <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width="21"
                                         height="20"
@@ -1212,152 +1144,105 @@ const ProfilePage = () => {
                                         fill="none"
                                       >
                                         <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div> */}
-                                  <div className="creator-content-stat-box ">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                                          d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
                                           stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
                                         />
                                         <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                                          d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
+                                          stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
                                         />
                                       </svg>
-                                    </button>
-                                    <span>13</span>
+                                        <span> ${post.price?.toFixed(2)} </span></>
+                                      )}
+                                    </div>
+                                    )}
                                   </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
 
-                                    <span>71</span>
+                                  <div className="creator-content-card__description">
+                                    <p>{post.text}</p>
+                                  </div>
+
+                                  <div className="creator-content-card__stats">
+                                    <div className="creator-content-stat-box">
+                                      <button
+                                      // className={`like-button ${
+                                      //   likedItems.includes(1) ? "liked" : ""
+                                      // }`}
+                                      // onClick={() => toggleLike(1)}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="21"
+                                          height="20"
+                                          viewBox="0 0 21 20"
+                                          fill="none"
+                                        >
+                                          <path
+                                            d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                            stroke="none"
+                                            strokeWidth="1.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                        </svg>
+                                      </button>
+
+                                      <span>{post.likeCount}</span>
+                                    </div>
+                                    <div className="creator-content-stat-box ">
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                        >
+                                          <path
+                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                            stroke="white"
+                                            stroke-width="1.5"
+                                            stroke-miterlimit="10"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                          ></path>
+                                          <path
+                                            d="M7 8H17"
+                                            stroke="white"
+                                            stroke-width="1.5"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                          ></path>
+                                          <path
+                                            d="M7 13H13"
+                                            stroke="white"
+                                            stroke-width="1.5"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                          ></path>
+                                        </svg>
+                                      </button>
+                                      <span>{post.commentCount}</span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-avatars/profile-avatar-9.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M6.04199 18.3333H15.2087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.54199 11.6667H12.7087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> For Subscribers </span>
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                        <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
-
-                                    <span>71</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                            );
+                          })}
+                            
                           </div>
                         </div>
                       </div>
@@ -1380,218 +1265,28 @@ const ProfilePage = () => {
                               layoutTab === "list" ? true : undefined
                             }
                           >
-                            <div className="creator-content-card-container">
+                              {postsLoading && <p>Loading posts...</p>}
+                            {!postsLoading &&
+                                videoPosts.map((post: any) => {
+                                  const isFree = post.accessType === "free";
+                                  const isSubscriber = post.accessType === "subscriber";
+                                  const isPPV = post.accessType === "pay_per_view";
+
+                                  const firstMedia =
+                                    post.media?.[0]?.mediaFiles?.[0] ||
+                                    "/images/profile-avatars/profile-avatar-6.jpg"; // fallback
+
+                                  return (
+                            <div className="creator-content-card-container" key={post.publicId}>
                               <div className="creator-content-card">
                                 <div className="creator-content-card__media">
                                   <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-banners/profile-banner-8.jpg"
-                                      alt="Creator Content Image"
-                                    />
+                                     <img src={firstMedia} alt="Creator Content Image" />
                                   </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> $10.00 </span>
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                        <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
-
-                                    <span>71</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-avatars/profile-avatar-9.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M6.04199 18.3333H15.2087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.54199 11.6667H12.7087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> For Subscribers </span>
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                        <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
-
-                                    <span>71</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-avatars/profile-avatar-6.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${
-                                    //   likedItems.includes(1) ? "liked" : ""
-                                    // }`}
-                                    // onClick={() => toggleLike(1)}
-                                    >
+                                  {!isFree && (
+                                    <div className="content-locked-label">
+                                      {isSubscriber && (
+                                      <>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width="21"
@@ -1600,107 +1295,73 @@ const ProfilePage = () => {
                                         fill="none"
                                       >
                                         <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                                          d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M6.04199 18.3333H15.2087"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M8.54199 11.6667H12.7087"
                                           stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
                                         />
                                       </svg>
-                                    </button>
-
-                                    <span>12K</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button>
-                                      <svg
+                                      <span> For Subscribers </span>
+                                      </>
+                                      )}
+                                      {isPPV && (
+                                        <>
+                                        <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
+                                        width="21"
+                                        height="20"
+                                        viewBox="0 0 21 20"
                                         fill="none"
                                       >
                                         <path
-                                          d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-miterlimit="10"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
+                                          d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
                                         <path
-                                          d="M7 8H17"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
+                                          d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
                                         <path
-                                          d="M7 13H13"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
+                                          d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
                                       </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/post-images/post-img-2.png"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M6.04199 18.3333H15.2087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.54199 11.6667H12.7087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> For Subscribers </span>
-                                  </div>
+                                        <span> ${post.price?.toFixed(2)} </span></>
+                                      )}
+                                    </div>
+                                    )}
                                 </div>
 
                                 <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
+                                  <p>{post.text}</p>
                                 </div>
 
                                 <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box ">
+                                  <div className="creator-content-stat-box">
                                     <button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1724,7 +1385,7 @@ const ProfilePage = () => {
                                         />
                                       </svg>
                                     </button>
-                                    <span>13</span>
+                                    <span>{post.likeCount}</span>
                                   </div>
                                   <div className="creator-content-stat-box">
                                     <button
@@ -1737,11 +1398,13 @@ const ProfilePage = () => {
                                       </svg>
                                     </button>
 
-                                    <span>71</span>
+                                    <span>{post.commentCount}</span>
                                   </div>
                                 </div>
                               </div>
                             </div>
+                              );
+                          })}
                           </div>
                         </div>
                       </div>
@@ -1764,369 +1427,146 @@ const ProfilePage = () => {
                               layoutTab === "list" ? true : undefined
                             }
                           >
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-banners/profile-banner-8.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> $10.00 </span>
-                                  </div>
-                                </div>
+                             {postsLoading && <p>Loading posts...</p>}
+                            {!postsLoading &&
+                                photoPosts.map((post: any) => {
+                                  const isFree = post.accessType === "free";
+                                  const isSubscriber = post.accessType === "subscriber";
+                                  const isPPV = post.accessType === "pay_per_view";
 
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
+                                  const firstMedia =
+                                    post.media?.[0]?.mediaFiles?.[0] ||
+                                    "/images/profile-avatars/profile-avatar-6.jpg"; // fallback
 
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box ">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                        <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                  return (
+                                  <div className="creator-content-card-container" key={post.publicId}>
+                                    <div className="creator-content-card">
+                                      <div className="creator-content-card__media">
+                                        <div className="creator-card__img">
+                                          <img src={firstMedia} alt="Creator Content Image" />
+                                        </div>
+                                        {!isFree && (
+                                          <div className="content-locked-label">
+                                            {isSubscriber && (
+                                            <>
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="21"
+                                              height="20"
+                                              viewBox="0 0 21 20"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M6.04199 18.3333H15.2087"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M8.54199 11.6667H12.7087"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                            </svg>
+                                            <span> For Subscribers </span>
+                                            </>
+                                            )}
+                                            {isPPV && (
+                                              <>
+                                              <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="21"
+                                              height="20"
+                                              viewBox="0 0 21 20"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                            </svg>
+                                              <span> ${post.price?.toFixed(2)} </span></>
+                                            )}
+                                          </div>
+                                          )}
+                                      </div>
 
-                                    <span>71</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                                      <div className="creator-content-card__description">
+                                      <p>{post.text}</p>
+                                      </div>
 
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-avatars/profile-avatar-6.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                </div>
+                                      <div className="creator-content-card__stats">
+                                        <div className="creator-content-stat-box ">
+                                          <button>
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="24"
+                                              height="24"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                                                stroke="none"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                              <path
+                                                d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              />
+                                            </svg>
+                                          </button>
+                                          <span>{post.likeCount}</span>
+                                        </div>
+                                        <div className="creator-content-stat-box">
+                                          <button
+                                          // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
+                                          // onClick={() => toggleLike(2)}
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
+                                            <path d="M7 10v12"/>
+                                            </svg>
+                                          </button>
 
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${
-                                    //   likedItems.includes(1) ? "liked" : ""
-                                    // }`}
-                                    // onClick={() => toggleLike(1)}
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="20"
-                                        viewBox="0 0 21 20"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-
-                                    <span>12K</span>
+                                          <span>{post.commentCount}</span>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="creator-content-stat-box">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-miterlimit="10"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M7 8H17"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                        <path
-                                          d="M7 13H13"
-                                          stroke="white"
-                                          stroke-width="1.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                        ></path>
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/post-images/post-img-2.png"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M6.04199 18.3333H15.2087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.54199 11.6667H12.7087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> For Subscribers </span>
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box ">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                        <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
-
-                                    <span>71</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-content-card-container">
-                              <div className="creator-content-card">
-                                <div className="creator-content-card__media">
-                                  <div className="creator-card__img">
-                                    <img
-                                      src="/images/profile-avatars/profile-avatar-9.jpg"
-                                      alt="Creator Content Image"
-                                    />
-                                  </div>
-                                  <div className="content-locked-label">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M6.04199 18.3333H15.2087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.54199 11.6667H12.7087"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                    <span> For Subscribers </span>
-                                  </div>
-                                </div>
-
-                                <div className="creator-content-card__description">
-                                  <p>
-                                    Today, I experienced the most blissful ride
-                                    outside.
-                                  </p>
-                                </div>
-
-                                <div className="creator-content-card__stats">
-                                  <div className="creator-content-stat-box ">
-                                    <button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                      >
-                                        <path
-                                          d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
-                                          stroke="none"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                        <path
-                                          d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
-                                          strokeWidth="1.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    </button>
-                                    <span>13</span>
-                                  </div>
-                                  <div className="creator-content-stat-box">
-                                    <button
-                                    // className={`like-button ${likedItems.includes(2) ? "liked" : ""}`}
-                                    // onClick={() => toggleLike(2)}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
-
-                                    <span>71</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                                  );
+                                })}
                           </div>
                         </div>
                       </div>

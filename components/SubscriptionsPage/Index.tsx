@@ -5,12 +5,42 @@ import CustomSelect from '../CustomSelect';
 import Link from "next/link";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useSearchParams } from "next/navigation";
-import { statusOptions, timeOptions } from "../helper/creatorOptions";
+import { getApi } from "@/utils/endpoints/common";
+import { API_MY_SUBSCRIBERS, API_MY_SUBSCRIPTIONS } from "@/utils/api/APIConstant";
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+
+export const timeOptions = [
+  { label: "All Time", value: "all" },
+  { label: "Today", value: "today" },
+  { label: "This Week", value: "this_week" },
+  { label: "This Month", value: "this_month" },
+];
+
+export const statusOptions = [
+  { label: "All Status", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Queued", value: "queued" },
+  { label: "Expired", value: "expired" },
+];
+
 
 const SubscriptionsPage = () => {
   const [time, setTime] = useState("all");
   const [activeTab, setActiveTab] = useState("subscribers"); // "subscribers" or "subscriptions"
   const { session } = useDecryptedSession();
+  const [searchText, setSearchText] = useState("");
+  const [status, setStatus] = useState("all");
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+  const [loading, setLoading] = useState(false);
+
 
 const isCreator = session?.isAuthenticated && session?.user?.role === 2;
 const searchParams = useSearchParams();
@@ -33,13 +63,85 @@ useEffect(() => {
   }
 }, [tabFromUrl, isCreator]);
 
-// useEffect(() => {
-//   if (!isCreator) {
-//     setActiveTab("subscriptions");
-//   } else {
-//     setActiveTab("subscribers");
-//   }
-// }, [isCreator]);
+useEffect(() => {
+  if (activeTab === "subscriptions") {
+    fetchMySubscriptions();
+  }
+
+  if (activeTab === "subscribers") {
+    fetchMySubscribers();
+  }
+}, [activeTab, page, searchText, status, time]);
+
+    const buildQuery = () => {
+      let q = searchText || "";
+
+      if (status !== "all") {
+        q += `|status:${status}`;
+      }
+
+      if (time !== "all") {
+        q += `|time:${time}`;
+      }
+
+      return q;
+    };
+    const fetchMySubscriptions = async () => {
+      if (activeTab !== "subscriptions") return;
+
+      setLoading(true);
+
+      const res = await getApi({
+        url: API_MY_SUBSCRIPTIONS,
+        page,
+        rowsPerPage,
+        searchText: buildQuery(),
+      });
+
+      if (res?.success) {
+        setSubscriptions(res.data || []);
+      }
+
+      setLoading(false);
+    };
+
+    const fetchMySubscribers = async () => {
+    if (activeTab !== "subscribers") return;
+
+    setLoading(true);
+
+    const res = await getApi({
+      url: API_MY_SUBSCRIBERS,
+      page,
+      rowsPerPage,
+      searchText: buildQuery(),
+    });
+
+    if (res?.success) {
+      setSubscribers(res.data || []);
+    }
+
+    setLoading(false);
+  };
+
+  const getSubscriptionState = (item: any) => {
+  const now = new Date();
+
+  if (item.isActive) {
+    return "ACTIVE";
+  }
+
+  if (item.startsAt && new Date(item.startsAt) > now) {
+    return "QUEUED";
+  }
+
+  if (item.expiresAt && new Date(item.expiresAt) < now) {
+    return "EXPIRED";
+  }
+
+  return "INACTIVE";
+};
+
 
 
   return (
@@ -127,7 +229,15 @@ useEffect(() => {
                             />
                           </svg>
                         </div>
-                        <input type="text" placeholder="Enter keyword here" />
+                       <input
+                          type="text"
+                          placeholder="Enter keyword here"
+                          value={searchText}
+                          onChange={(e) => {
+                            setSearchText(e.target.value);
+                            setPage(1);
+                          }}
+                        />
                       </div>
                     </div>
 
@@ -135,11 +245,13 @@ useEffect(() => {
                       <div className="creator-content-select-filter group_select">
                        
                         <CustomSelect className="bg-white p-sm size-sm"
-                          label="All Status"
+                           label="All Status"
                           options={statusOptions}
                           value={status}
-                          // onChange={(val) => setStatus(val)}
-                          placeholder="Search status"
+                          onChange={(val: any) => {
+                            setStatus(val);
+                            setPage(1);
+                          }}
                           searchable={false}
                         />
                       
@@ -150,7 +262,7 @@ useEffect(() => {
                           value={time}
                           searchable={false}
                         />
-                        <div className="custom-select-element bg-white p-sm size-sm">
+                        {/* <div className="custom-select-element bg-white p-sm size-sm">
                           <div className="custom-select-label-wrapper">
                             <div className="custom-select-icon-txt">
                               <span className="custom-select-label-txt">All Creators</span>
@@ -173,7 +285,7 @@ useEffect(() => {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -182,27 +294,31 @@ useEffect(() => {
                   <div className="creator-content-cards-wrapper subscriptions_containt">
                     {activeTab === "subscribers" && (
                       <div className="rel-users-wrapper">
-                        <div className="user-subbox">
+                        {subscribers?.map((item) => {
+                          const state = getSubscriptionState(item);
+                          return (
+                        <div className="user-subbox" key={item._id}>
                           <div className="rel-user-profile">
                             <div className="profile-card">
                               <Link href="#" className="profile-card__main">
                                 <div className="profile-card__avatar-settings">
                                   <div className="profile-card__avatar">
-                                    <img src="images/profile-avatars/profile-avatar-6.jpg" alt="MoneyBoy Social Profile Avatar" />
+                                    <img src={item?.subscriber?.profile || "/images/profile-avatars/profile-avatar-1.png"} alt="Avatar" />
                                   </div>
                                 </div>
                                 <div className="profile-card__info">
                                   <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Zain Schleifer</div>
+                                    <div className="profile-card__name">{item?.subscriber?.displayName || "Unknown"}</div>
                                     <div className="profile-card__badge">
                                       <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                                     </div>
                                   </div>
                                   <div className="profile-card__username">
                                     <ul>
-                                      <li className="yrly">Yearly</li>
-                                      {/* <li className="stip">Stipe</li> */}
-                                      <li className="active">Active</li>
+                                      <li className="yrly">{item?.planType === "YEARLY" ? "Yearly" : "Monthly"}</li>
+                                       {state === "ACTIVE" && <li className="active">Active</li>}
+                                        {state === "QUEUED" && <li className="saspnd">Queued</li>}
+                                        {state === "EXPIRED" && <li className="saspnd">Expired</li>}
                                     </ul>
                                   </div>
                                 </div>
@@ -214,14 +330,14 @@ useEffect(() => {
                               <svg className="icons calendarNote"/>
                               <div className="containt">
                                 <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
+                                <p>{formatDate(item.createdAt)}</p>
                               </div>
                             </div>
                             <div className="date_wrap">
                               <svg className="icons calendarNote"/>
                               <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
+                                <span>End Date</span>
+                                <p>{formatDate(item.expiresAt)}</p>
                               </div>
                             </div>
                           </div>
@@ -229,173 +345,37 @@ useEffect(() => {
                             <button className="btn-txt-gradient"><span>Message</span></button>
                           </div>
                         </div>
-                        <div className="user-subbox">
-                          <div className="rel-user-profile">
-                            <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
-                                <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="/images/profile-avatars/profile-avatar-5.jpg" alt="MoneyBoy Social Profile Avatar" />
-                                  </div>
-                                </div>
-                                <div className="profile-card__info">
-                                  <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Gustavo Stanton</div>
-                                    <div className="profile-card__badge">
-                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                                    </div>
-                                  </div>
-                                  <div className="profile-card__username">
-                                    <ul>
-                                      <li className="yrly">Yearly</li>
-                                      {/* <li className="cbill">CCbill</li> */}
-                                      <li className="active">Active</li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="date_box">
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Message</span></button>
-                          </div>
-                        </div>
-                        <div className="user-subbox">
-                          <div className="rel-user-profile">
-                            <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
-                                <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="/images/profile-avatars/profile-avatar-3.jpg" alt="MoneyBoy Social Profile Avatar" />
-                                  </div>
-                                </div>
-                                <div className="profile-card__info">
-                                  <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Emerson Bator</div>
-                                    <div className="profile-card__badge">
-                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                                    </div>
-                                  </div>
-                                  <div className="profile-card__username">
-                                    <ul>
-                                      <li className="yrly">Yearly</li>
-                                      {/* <li className="stip">Stipe</li> */}
-                                      <li className="active">Active</li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="date_box">
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Message</span></button>
-                          </div>
-                        </div>
-                        <div className="user-subbox">
-                          <div className="rel-user-profile">
-                            <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
-                                <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="/images/profile-avatars/profile-avatar-7.jpg" alt="MoneyBoy Social Profile Avatar" />
-                                  </div>
-                                </div>
-                                <div className="profile-card__info">
-                                  <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Omar Dokidis</div>
-                                    <div className="profile-card__badge">
-                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                                    </div>
-                                  </div>
-                                  <div className="profile-card__username">
-                                    <ul>
-                                      <li className="yrly">Yearly</li>
-                                      {/* <li className="stip">Stipe</li> */}
-                                      <li className="saspnd">Suspended</li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="date_box">
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Message</span></button>
-                          </div>
-                        </div>
+                         );
+                        })}
                       </div>
                     )}
-
                     {activeTab === "subscriptions" && (
                       <div className="rel-users-wrapper">
-                        <div className="user-subbox">
+                        {subscriptions?.map((item) => {
+                          const state = getSubscriptionState(item);
+                          return (
+                        <div className="user-subbox" key={item._id}>
                           <div className="rel-user-profile">
                             <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
+                              <Link href={`/creator/${item.creator.publicId}`} className="profile-card__main">
                                 <div className="profile-card__avatar-settings">
                                   <div className="profile-card__avatar">
-                                    <img src="images/profile-avatars/profile-avatar-6.jpg" alt="MoneyBoy Social Profile Avatar" />
+                                    <img src={item.creator.profile || "/images/profile-avatars/profile-avatar-1.png"} alt="Avatar" />
                                   </div>
                                 </div>
                                 <div className="profile-card__info">
                                   <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Zain Schleifer</div>
+                                    <div className="profile-card__name">{item.creator.displayName || "Unknown"}</div>
                                     <div className="profile-card__badge">
                                       <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                                     </div>
                                   </div>
                                   <div className="profile-card__username">
                                     <ul>
-                                      <li className="yrly">Yearly</li>
-                                      <li className="stip">Stipe</li>
-                                      <li className="active">Active</li>
+                                      <li className="yrly">{item.planType === "YEARLY" ? "Yearly" : "Monthly"}</li>
+                                       {state === "ACTIVE" && <li className="active">Active</li>}
+                                        {state === "QUEUED" && <li className="saspnd">Queued</li>}
+                                        {state === "EXPIRED" && <li className="saspnd">Expired</li>}
                                     </ul>
                                   </div>
                                 </div>
@@ -407,162 +387,39 @@ useEffect(() => {
                               <svg className="icons calendarNote"/>
                               <div className="containt">
                                 <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
+                                <p>{formatDate(item.createdAt)}</p>
                               </div>
                             </div>
                             <div className="date_wrap">
                               <svg className="icons calendarNote"/>
                               <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
+                                <span>End Date</span>
+                                <p>{formatDate(item.expiresAt)}</p>
                               </div>
                             </div>
                           </div>
-                          <div className="rel-user-action-btn">
-                            <button className="btn-danger"><span>Cancel</span></button>
-                          </div>
+                            <div className="rel-user-action-btn">
+                              {state === "ACTIVE" && (
+                                <button className="btn-danger">
+                                  <span>Cancel</span>
+                                </button>
+                              )}
+
+                              {state === "QUEUED" && (
+                                <button className="btn-danger" disabled>
+                                  <span>Queued</span>
+                                </button>
+                              )}
+
+                              {state === "EXPIRED" && (
+                                <button className="btn-txt-gradient">
+                                  <span>Activate</span>
+                                </button>
+                              )}
+                            </div>
                         </div>
-                        <div className="user-subbox">
-                          <div className="rel-user-profile">
-                            <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
-                                <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="/images/profile-avatars/profile-avatar-5.jpg" alt="MoneyBoy Social Profile Avatar" />
-                                  </div>
-                                </div>
-                                <div className="profile-card__info">
-                                  <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Gustavo Stanton</div>
-                                    <div className="profile-card__badge">
-                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                                    </div>
-                                  </div>
-                                  <div className="profile-card__username">
-                                    <ul>
-                                      <li className="yrly">Yearly</li>
-                                      <li className="cbill">CCbill</li>
-                                      <li className="active">Active</li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="date_box">
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="rel-user-action-btn">
-                            <button className="btn-danger"><span>Cancel</span></button>
-                          </div>
-                        </div>
-                        <div className="user-subbox">
-                          <div className="rel-user-profile">
-                            <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
-                                <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="/images/profile-avatars/profile-avatar-3.jpg" alt="MoneyBoy Social Profile Avatar" />
-                                  </div>
-                                </div>
-                                <div className="profile-card__info">
-                                  <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Emerson Bator</div>
-                                    <div className="profile-card__badge">
-                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                                    </div>
-                                  </div>
-                                  <div className="profile-card__username">
-                                    <ul>
-                                      <li className="yrly">Yearly</li>
-                                      <li className="stip">Stipe</li>
-                                      <li className="active">Active</li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="date_box">
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="rel-user-action-btn">
-                            <button className="btn-danger"><span>Cancel</span></button>
-                          </div>
-                        </div>
-                        <div className="user-subbox">
-                          <div className="rel-user-profile">
-                            <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
-                                <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="/images/profile-avatars/profile-avatar-7.jpg" alt="MoneyBoy Social Profile Avatar" />
-                                  </div>
-                                </div>
-                                <div className="profile-card__info">
-                                  <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Omar Dokidis</div>
-                                    <div className="profile-card__badge">
-                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                                    </div>
-                                  </div>
-                                  <div className="profile-card__username">
-                                    <ul>
-                                      <li className="yrly">Yearly</li>
-                                      <li className="stip">Stipe</li>
-                                      <li className="saspnd">Suspended</li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="date_box">
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Start Date</span>
-                                <p>Apr 25, 2025</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Activate</span></button>
-                          </div>
-                        </div>
+                         );
+                        })}
                       </div>
                     )}
                   </div>
