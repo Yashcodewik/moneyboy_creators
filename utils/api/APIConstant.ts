@@ -46,6 +46,7 @@ export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";
 export const API_UPGRADE_SUBSCRIPTION: string = "/subscription/upgrade-subscription";
 export const API_MY_SUBSCRIPTIONS: string = "/subscription/my-subscriptions";
 export const API_MY_SUBSCRIBERS: string = "/subscription/my-subscribers";
+
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";
 export const API_GET_SAVED_ITEMS = "/post/saved";
