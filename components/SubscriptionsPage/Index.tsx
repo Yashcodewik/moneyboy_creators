@@ -160,15 +160,11 @@ useEffect(() => {
                 }`}
                 onClick={() => {
                   setActiveTab("subscribers");
-
-                  // 🔥 remove tab param so subscriptions hides again
                   window.history.replaceState(null, "", "/subscriptions");
                 }}
               >
                 Subscribers
               </button>
-
-              {/* {allowSubscriptionsTab && ( */}
                 <button
                   className={`page-content-type-button active-down-effect max-50 ${
                     activeTab === "subscriptions" ? "active" : ""
