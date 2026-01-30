@@ -23,6 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 
 interface User {
   _id: string;
+  publicId: string;
   firstName: string;
   lastName: string;
   displayName: string;
@@ -64,6 +65,14 @@ interface SubscriptionStatus {
   isExpiringSoon: boolean;
 }
 
+interface SubscriptionStatus {
+  isSubscribed: boolean;
+  currentPlan: "MONTHLY" | "YEARLY" | null;
+  expiresAt: string | null;
+  daysRemaining: number | null;
+  isExpiringSoon: boolean;
+}
+
 interface ApiCreatorProfileResponse {
   user: User;
   creator: CreatorDetails;
@@ -86,11 +95,8 @@ interface ApiCreatorProfileResponse {
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState<string>("posts");
-  const [profile, setProfile] = useState<ApiCreatorProfileResponse | null>(
-    null,
-  );
+  const [profile, setProfile] = useState<ApiCreatorProfileResponse | null>(null);
   const [postCount, setPostCount] = useState<number>(0);
-  const [likedItems, setLikedItems] = useState<number[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [layoutTab, setLayoutTab] = useState("grid");
@@ -111,8 +117,6 @@ const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const followState = useSelector((state: RootState) => state.follow);
 
-  const followerStats = followState.counts;
-
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
@@ -128,15 +132,11 @@ const ProfilePage = () => {
       try {
         const isOwnProfile = sessionPublicId === profilePublicId;
 
-        console.log("isOwnProfile:", isOwnProfile);
-
         const response = isOwnProfile
-          ? await getApiWithOutQuery({
-              url: API_CREATOR_PROFILE,
-            })
+          ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
           : await getApiByParams({
               url: API_CREATOR_PROFILE_BY_ID,
-              params: profilePublicId, // ✅ STRING ONLY
+              params: profilePublicId,
             });
         if (response?.user && response?.creator) {
           setProfile(response);
@@ -161,7 +161,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (profile) {
-      setPostCount(profile.postCount || 0); // Also set post count here
+      setPostCount(profile.postCount || 0);
       setProfileStats({
         followerCount: profile.followerCount || 0,
         followingCount: profile.followingCount || 0,
@@ -171,17 +171,11 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!profilePublicId) return;
-
     dispatch(fetchFollowerCounts());
   }, [dispatch, profilePublicId]);
 
   const handleFollowToggle = async () => {
-    if (
-      !profilePublicId ||
-      isFollowLoading ||
-      sessionPublicId === profilePublicId
-    )
-      return;
+    if (!profilePublicId || isFollowLoading || sessionPublicId === profilePublicId) return;
 
     setIsFollowLoading(true);
 
@@ -194,9 +188,7 @@ const ProfilePage = () => {
     setIsFollowing(newFollowingState);
     setProfileStats((prev) => ({
       ...prev,
-      followerCount: newFollowingState
-        ? prev.followerCount + 1
-        : prev.followerCount - 1,
+      followerCount: newFollowingState ? prev.followerCount + 1 : prev.followerCount - 1,
     }));
 
     try {
@@ -217,7 +209,6 @@ const ProfilePage = () => {
       dispatch(fetchFollowerCounts());
     } catch (error) {
       console.error("Error toggling follow:", error);
-
       setIsFollowing(previousState.isFollowing);
       setProfileStats((prev) => ({
         ...prev,
@@ -226,20 +217,6 @@ const ProfilePage = () => {
     } finally {
       setIsFollowLoading(false);
     }
-  };
-
-  useEffect(() => {
-    console.log("SESSION USER publicId:", session?.user?.publicId);
-    console.log("PROFILE publicId:", profilePublicId);
-    console.log("PROFILE USER ID:", profilePublicId);
-    console.log("Is following:", isFollowing);
-    console.log("Profile stats:", profileStats);
-  }, [session, profilePublicId, isFollowing, profileStats]);
-
-  const toggleLike = (id: number) => {
-    setLikedItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
   };
 
   const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
@@ -391,15 +368,6 @@ const videoPosts = posts.filter((post: any) =>
                 }
                 alt="Creator Profile Banner Image"
               />
-
-              {/* <img
-    src={
-      profile?.user?.coverImage
-        ? profile.user.coverImage
-        : "/images/profile-banners/profile-banner-2.jpg"
-    }
-    alt={`${profile?.user?.displayName || "User"} Avatar`}
-  /> */}
             </div>
             <div className="creator-profile-info-container">
               <div className="profile-card">
@@ -543,25 +511,6 @@ const videoPosts = posts.filter((post: any) =>
                           </svg>
                         </a>
                       </li>
-                      {/* <li>
-                          <a href="#" className="like-btn">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M12.62 21.31C12.28 21.43 11.72 21.43 11.38 21.31C8.48 20.32 2 16.19 2 9.19001C2 6.10001 4.49 3.60001 7.56 3.60001C9.38 3.60001 10.99 4.48001 12 5.84001C13.01 4.48001 14.63 3.60001 16.44 3.60001C19.51 3.60001 22 6.10001 22 9.19001C22 16.19 15.52 20.32 12.62 21.31Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />  
-                            </svg>
-                          </a>
-                        </li> */}
                       <li>
                         <a href="#" className="message-btn">
                           <svg
@@ -706,19 +655,17 @@ const videoPosts = posts.filter((post: any) =>
                     </svg>
                     <span>
                       Joined{" "}
-                      {new Date(profile?.user?.createdAt || "").toLocaleString(
-                        "default",
-                        { month: "long", year: "numeric" },
-                      )}
+                      {new Date(profile?.user?.createdAt || "").toLocaleString("default", {
+                        month: "long",
+                        year: "numeric",
+                      })}
                     </span>
                   </div>
                 </div>
                 <div className="creator-profile-stats-link">
                   <div className="profile-card__stats">
                     <div className="profile-card__stats-item posts-stats">
-                      <div className="profile-card__stats-num">
-                        {postCount.toLocaleString()}
-                      </div>
+                      <div className="profile-card__stats-num">{postCount.toLocaleString()}</div>
                       <div className="profile-card__stats-label">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -897,10 +844,26 @@ const videoPosts = posts.filter((post: any) =>
                         <div className="subscription-label">
                           Yearly Subscription
                         </div>
-                        <div className="subscription-price">
-                          <h3>${profile?.subscription?.yearlyPrice || "Not Updated yet"}</h3>
-                          <span>/year</span>
-                          <div className="save-txt">(Save 25%)</div>
+                        <div className="subscripton-button">{renderSubscriptionButton("MONTHLY")}</div>
+                      </li>
+                      <li>
+                        <div className="subscription-info">
+                          <div className="subscription-label">Yearly Subscription</div>
+                          <div className="subscription-price">
+                            <h3>${profile?.subscription?.yearlyPrice || "Not Updated yet"}</h3>
+                            <span>/year</span>
+                            <div className="save-txt">
+                              {(() => {
+                              const savings = calculateYearlySavings(
+                                profile?.subscription?.monthlyPrice,
+                                profile?.subscription?.yearlyPrice
+                              );
+
+                              return savings ? (
+                                <div className="save-txt">(Save {savings}%)</div>
+                              ) : null;
+                            })()}</div>
+                          </div>
                         </div>
                       </div>
                       <div className="subscripton-button">
@@ -918,11 +881,8 @@ const videoPosts = posts.filter((post: any) =>
               <div className="multi-tab-section" data-multiple-tabs-section>
                 <div className="multi-tabs-layout-container">
                   <div className="multi-tabs-action-buttons">
-                    {/* Posts Tab Button */}
                     <button
-                      className={`multi-tab-switch-btn posts-btn ${
-                        activeTab === "posts" ? "active" : ""
-                      }`}
+                      className={`multi-tab-switch-btn posts-btn ${activeTab === "posts" ? "active" : ""}`}
                       onClick={() => handleTabClick("posts")}
                     >
                       <svg
@@ -964,11 +924,8 @@ const videoPosts = posts.filter((post: any) =>
                       <span>Posts</span>
                     </button>
 
-                    {/* Videos Tab Button */}
                     <button
-                      className={`multi-tab-switch-btn videos-btn ${
-                        activeTab === "videos" ? "active" : ""
-                      }`}
+                      className={`multi-tab-switch-btn videos-btn ${activeTab === "videos" ? "active" : ""}`}
                       onClick={() => handleTabClick("videos")}
                     >
                       <svg
@@ -1012,11 +969,8 @@ const videoPosts = posts.filter((post: any) =>
                       <span>Videos</span>
                     </button>
 
-                    {/* Photos Tab Button */}
                     <button
-                      className={`multi-tab-switch-btn photos-btn ${
-                        activeTab === "photos" ? "active" : ""
-                      }`}
+                      className={`multi-tab-switch-btn photos-btn ${activeTab === "photos" ? "active" : ""}`}
                       onClick={() => handleTabClick("photos")}
                     >
                       <svg
@@ -1053,10 +1007,7 @@ const videoPosts = posts.filter((post: any) =>
 
                     <div className="">
                       <a href="/store" className="premium-btn store-btn">
-                        <img
-                          src="/images/logo/profile-badge.png"
-                          alt="Store Button Icon"
-                        />
+                        <img src="/images/logo/profile-badge.png" alt="Store Button Icon" />
                         <span>Store</span>
                       </a>
                     </div>
@@ -1578,6 +1529,31 @@ const videoPosts = posts.filter((post: any) =>
           </div>
         </div>
       </div>
+
+      {showSubscriptionModal && selectedPlan && (
+       <SubscriptionModal
+        onClose={() => setShowSubscriptionModal(false)}
+        plan={selectedPlan}
+        action={modalAction}
+        creator={{
+          displayName: profile?.user?.displayName,
+          userName: profile?.user?.userName,
+          profile: profile?.user?.profile,
+        }}
+        subscription={profile?.subscription}
+        onConfirm={async () => {
+          if (modalAction === "subscribe") {
+            await handleSubscribe(selectedPlan);
+          } else {
+            await handleUpgrade(selectedPlan);
+          }
+
+          setShowSubscriptionModal(false);
+        }}
+      />
+
+      )}
+
     </div>
   );
 };
