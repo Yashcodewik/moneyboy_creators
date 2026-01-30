@@ -1,11 +1,12 @@
 // redux/rootReducer.ts
 import { combineReducers } from "@reduxjs/toolkit";
 
-import followReducer from "./other/followSlice"; // ADD THIS LINE
-
+import followReducer from "./other/followSlice"; 
+import commentReducer from "./other/commentSlice";
 const rootReducer = combineReducers({
  
-  follow: followReducer, // ADD THIS LINE
+  follow: followReducer,
+  comments: commentReducer, 
 });
 
 export default rootReducer;

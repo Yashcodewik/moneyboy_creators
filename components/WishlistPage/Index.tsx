@@ -8,9 +8,11 @@ import {
   API_GET_SAVED_CREATORS,
   API_GET_SAVED_ITEMS,
   API_UNSAVE_CREATOR,
+  API_UNSAVE_FREE_CREATOR,
   API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 const WishlistPage = () => {
   const [wishlist, setWishlist] = useState(false);
@@ -22,10 +24,12 @@ const WishlistPage = () => {
   const [time, setTime] = useState<string>("all");
   const [savedTime, setSavedTime] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [removedCreatorIds, setRemovedCreatorIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [savedCreators, setSavedCreators] = useState<any[]>([]);
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
-
+  const queryClient = useQueryClient();
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
@@ -58,11 +62,17 @@ const WishlistPage = () => {
 
     if (postRes?.success) {
       postRes.items.forEach((item: any) => {
-        if (item.type === "CREATOR" && item.creator) {
+        if (
+          item.type === "CREATOR" &&
+          item.creator &&
+          !removedCreatorIds.has(item.creator._id)
+        ) {
           creatorsMap.set(item.creator._id, {
             ...item.creator,
             isSaved: true,
             type: "CREATOR",
+            savedFrom: "ITEM",
+            creatorId: item._id,
           });
         }
 
@@ -79,15 +89,18 @@ const WishlistPage = () => {
     if (creatorRes?.success) {
       creatorRes.data.forEach((creator: any) => {
         const user = creator.userId;
-        creatorsMap.set(user._id, {
-          _id: user._id,
-          displayName: user.displayName,
-          userName: user.userName,
-          profile:
-            user.profile || "/images/profile-avatars/profile-avatar-11.png",
-          isSaved: true,
-          type: "CREATOR",
-        });
+        if (!creatorsMap.has(user._id)) {
+          creatorsMap.set(user._id, {
+            _id: user._id,
+            displayName: user.displayName,
+            userName: user.userName,
+            profile: user.profile,
+            isSaved: true,
+            type: "CREATOR",
+            savedFrom: "CREATOR",
+            creatorId: creator._id,
+          });
+        }
       });
     }
 
@@ -103,7 +116,7 @@ const WishlistPage = () => {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
-      queryKey: ["wishlist",searchTerm],
+      queryKey: ["wishlist", searchTerm],
       queryFn: fetchWishlistData,
       initialPageParam: 1,
       getNextPageParam: (lastPage) => lastPage.nextPage,
@@ -126,32 +139,60 @@ const WishlistPage = () => {
     setSavedCreators(Array.from(map.values()));
   }, [data]);
 
-  const handleUnsaveCreator = async (creatorUserId: string) => {
+  const handleUnsaveCreator = async (creatorId: string) => {
     try {
       const res = await apiPost({
         url: API_UNSAVE_CREATOR,
-        values: { creatorId: creatorUserId },
+        values: { creatorId }, // send the correct creatorId
       });
 
       if (res?.success) {
-        setSavedCreators((prev) =>
-          prev.filter((creator) => creator.creatorUserId !== creatorUserId),
-        );
+        queryClient.setQueryData(["wishlist", searchTerm], (oldData: any) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              creators: page.creators.filter(
+                (c: any) => c.creatorId !== creatorId, // filter by correct creatorId
+              ),
+            })),
+          };
+        });
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleUnsavePost = async (postId: string) => {
+  const handleUnsaveFreeCreator = async (creatorUserId: string) => {
     try {
       const res = await apiPost({
-        url: API_UNSAVE_POST,
-        values: { postId },
+        url: API_UNSAVE_FREE_CREATOR,
+        values: { creatorUserId },
       });
 
       if (res?.success) {
-        setSavedPosts((prev) => prev.filter((post) => post._id !== postId));
+        setRemovedCreatorIds((prev) => new Set(prev).add(creatorUserId));
+
+        queryClient.setQueryData(["wishlist", searchTerm], (oldData: any) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              creators: page.creators.filter(
+                (c: any) => c._id !== creatorUserId,
+              ),
+            })),
+          };
+        });
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -371,16 +412,18 @@ const WishlistPage = () => {
                                       </div>
                                     </div>
 
-                                    <div className="user-profile-card__wishlist-btn">
+                                    {/* <div className="user-profile-card__wishlist-btn">
                                       <button
                                         type="button"
                                         onClick={() => {
-                                          if (creator.type === "CREATOR") {
-                                            handleUnsaveCreator(
-                                              creator.creatorUserId,
-                                            );
-                                          } else if (creator.type === "POST") {
-                                            handleUnsavePost(creator._id); // or post._id if you are iterating posts
+                                          if (creator.savedFrom === "CREATOR") {
+                                            handleUnsaveCreator(creator.creatorId);
+                                          }
+
+                                          if (creator.savedFrom === "ITEM") {
+                                            handleUnsaveFreeCreator(
+                                              creator._id,
+                                            ); // or itemId if backend expects itemId
                                           }
                                         }}
                                         className="focus:outline-none"
@@ -397,6 +440,53 @@ const WishlistPage = () => {
                                           <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" />
                                         </svg>
                                       </button>
+                                    </div> */}
+
+                                    <div
+                                      className="user-profile-card__wishlist-btn"
+                                      onClick={() => {
+                                        if (creator.savedFrom === "CREATOR") {
+                                          handleUnsaveCreator(
+                                            creator.creatorId,
+                                          );
+                                        }
+
+                                        if (creator.savedFrom === "ITEM") {
+                                          handleUnsaveFreeCreator(creator._id); // or itemId if backend expects itemId
+                                        }
+                                      }}
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="21"
+                                        height="20"
+                                        viewBox="0 0 21 20"
+                                        fill={
+                                          creator.isSaved ? "#6c5ce7" : "none"
+                                        }
+                                      >
+                                        <path
+                                          d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                          stroke="none"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
                                     </div>
                                   </div>
                                 </div>
