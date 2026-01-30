@@ -37,7 +37,19 @@ export const API_GET_FEATURED_MONEYBOYS = "/social/featuredmoneysGet";
 export const API_CREATOR_PROFILE_BY_ID = "/creator/profile"; 
 export const API_GET_POST_BY_PUBLIC_ID = "/post/public"; 
 export const API_GET_DISCOVER_CREATORS = "/social/discover";
+
+// Post
+export const API_GET_POSTS_BY_CREATOR = "/creator/by-creator";
+
+//Subscription
 export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";
+export const API_UPGRADE_SUBSCRIPTION: string = "/subscription/upgrade-subscription";
+export const API_MY_SUBSCRIPTIONS: string = "/subscription/my-subscriptions";
+export const API_MY_SUBSCRIBERS: string = "/subscription/my-subscribers";
+
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";
+export const API_GET_SAVED_ITEMS = "/post/saved";
+export const API_GET_SAVED_CREATORS = "/creator/saved-creators";
+
 

@@ -1065,8 +1065,8 @@
                                 stroke: white;
 
                                 &:nth-child(1) {
-                                    fill: #46a0e3;
-                                    stroke: #46a0e3;
+                                    fill: #2979ff;
+                                    stroke: #2979ff;
                                 }
                             }
                         }

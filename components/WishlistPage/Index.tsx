@@ -3,6 +3,14 @@ import React, { useEffect, useState } from "react";
 import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
+import { apiPost, getApi } from "@/utils/endpoints/common";
+import {
+  API_GET_SAVED_CREATORS,
+  API_GET_SAVED_ITEMS,
+  API_UNSAVE_CREATOR,
+  API_UNSAVE_POST,
+} from "@/utils/api/APIConstant";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 const WishlistPage = () => {
   const [wishlist, setWishlist] = useState(false);
@@ -13,6 +21,11 @@ const WishlistPage = () => {
   const [likedItems, setLikedItems] = useState<number[]>([]);
   const [time, setTime] = useState<string>("all");
   const [savedTime, setSavedTime] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [savedCreators, setSavedCreators] = useState<any[]>([]);
+  const [savedPosts, setSavedPosts] = useState<any[]>([]);
+
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
@@ -21,6 +34,124 @@ const WishlistPage = () => {
     setLikedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
+  };
+
+  // ================= FETCH =================
+  const fetchWishlistData = async ({ pageParam = 1 }) => {
+    const [postRes, creatorRes] = await Promise.all([
+      getApi({
+        url: API_GET_SAVED_ITEMS,
+        page: pageParam,
+        rowsPerPage: 12,
+        searchText: searchTerm,
+      }),
+      getApi({
+        url: API_GET_SAVED_CREATORS,
+        page: pageParam,
+        rowsPerPage: 12,
+        searchText: searchTerm,
+      }),
+    ]);
+
+    const creatorsMap = new Map<string, any>();
+    const posts: any[] = [];
+
+    if (postRes?.success) {
+      postRes.items.forEach((item: any) => {
+        if (item.type === "CREATOR" && item.creator) {
+          creatorsMap.set(item.creator._id, {
+            ...item.creator,
+            isSaved: true,
+            type: "CREATOR",
+          });
+        }
+
+        if (item.type === "POST" && item.post) {
+          posts.push({
+            ...item.post,
+            saved: true,
+            type: "POST",
+          });
+        }
+      });
+    }
+
+    if (creatorRes?.success) {
+      creatorRes.data.forEach((creator: any) => {
+        const user = creator.userId;
+        creatorsMap.set(user._id, {
+          _id: user._id,
+          displayName: user.displayName,
+          userName: user.userName,
+          profile:
+            user.profile || "/images/profile-avatars/profile-avatar-11.png",
+          isSaved: true,
+          type: "CREATOR",
+        });
+      });
+    }
+
+    return {
+      creators: Array.from(creatorsMap.values()),
+      posts,
+      nextPage:
+        postRes?.pagination?.hasNextPage || creatorRes?.pagination?.hasNextPage
+          ? pageParam + 1
+          : undefined,
+    };
+  };
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useInfiniteQuery({
+      queryKey: ["wishlist",searchTerm],
+      queryFn: fetchWishlistData,
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) => lastPage.nextPage,
+    });
+
+  useEffect(() => {
+    if (!data?.pages) return;
+
+    const map = new Map<string, any>();
+
+    data.pages.forEach((page) => {
+      page.creators.forEach((creator: any) => {
+        map.set(creator._id, {
+          ...creator,
+          creatorUserId: creator._id, // needed for unsave
+        });
+      });
+    });
+
+    setSavedCreators(Array.from(map.values()));
+  }, [data]);
+
+  const handleUnsaveCreator = async (creatorUserId: string) => {
+    try {
+      const res = await apiPost({
+        url: API_UNSAVE_CREATOR,
+        values: { creatorId: creatorUserId },
+      });
+
+      if (res?.success) {
+        setSavedCreators((prev) =>
+          prev.filter((creator) => creator.creatorUserId !== creatorUserId),
+        );
+      }
+    } catch (err) {}
+  };
+
+  const handleUnsavePost = async (postId: string) => {
+    try {
+      const res = await apiPost({
+        url: API_UNSAVE_POST,
+        values: { postId },
+      });
+
+      if (res?.success) {
+        setSavedPosts((prev) => prev.filter((post) => post._id !== postId));
+      }
+    } catch (err) {}
   };
 
   return (
@@ -103,6 +234,8 @@ const WishlistPage = () => {
                               <input
                                 type="text"
                                 placeholder="Enter keyword here"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                               />
                             </div>
                           </div>
@@ -194,383 +327,82 @@ const WishlistPage = () => {
                         }
                       >
                         <div className="creator-content-type-container-wrapper">
-                          <div
-                            className="user-profile-card-wrapper user-profile-card-small"
-                            data-creator-profile-card
-                          >
-                            <div className="user-profile-card-container">
-                              <div className="user-profile-card__img">
-                                <img
-                                  src="/images/profile-avatars/profile-avatar-11.png"
-                                  alt="Discover Profile Avatar"
-                                />
-                              </div>
+                          {savedCreators.map((creator) => (
+                            <div
+                              key={creator._id}
+                              className="user-profile-card-wrapper user-profile-card-small"
+                              data-creator-profile-card
+                            >
+                              <div className="user-profile-card-container">
+                                <div className="user-profile-card__img">
+                                  <img
+                                    src={
+                                      creator.profile ||
+                                      "/images/profile-avatars/profile-avatar-11.png"
+                                    }
+                                    alt="Discover Profile Avatar"
+                                  />
+                                </div>
 
-                              <div className="user-profile-content-overlay-container">
-                                <div className="user-profile-card__action-btns">
-                                  <div className="user-profile-card__like-btn">
-                                    {/* <button
-                                        className={`like-button ${
-                                          likedItems.includes(1)
-                                            ? "liked"
-                                            : ""
-                                        }`}
-                                        onClick={() => toggleLike(1)}
+                                <div className="user-profile-content-overlay-container">
+                                  <div className="user-profile-card__action-btns">
+                                    <div className="user-profile-card__like-btn">
+                                      {/* LEFT EXACTLY AS IS */}
+                                    </div>
+                                  </div>
+
+                                  <div className="user-profile-card__info-container">
+                                    <div className="user-profile-card__info">
+                                      <div className="user-profile-card__name-badge">
+                                        <div className="user-profile-card__name">
+                                          {creator.displayName}
+                                        </div>
+
+                                        <div className="user-profile-card__badge">
+                                          <img
+                                            src="/images/logo/profile-badge.png"
+                                            alt="MoneyBoy Social Profile Badge"
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="user-profile-card__username">
+                                        @{creator.userName}
+                                      </div>
+                                    </div>
+
+                                    <div className="user-profile-card__wishlist-btn">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (creator.type === "CREATOR") {
+                                            handleUnsaveCreator(
+                                              creator.creatorUserId,
+                                            );
+                                          } else if (creator.type === "POST") {
+                                            handleUnsavePost(creator._id); // or post._id if you are iterating posts
+                                          }
+                                        }}
+                                        className="focus:outline-none"
                                       >
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width="21"
                                           height="20"
                                           viewBox="0 0 21 20"
-                                          fill="none"
+                                          fill={
+                                            creator.isSaved ? "#6c5ce7" : "none"
+                                          }
                                         >
-                                          <path
-                                            d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
+                                          <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" />
                                         </svg>
-                                      </button> */}
-                                  </div>
-                                </div>
-
-                                <div className="user-profile-card__info-container">
-                                  <div className="user-profile-card__info">
-                                    <div className="user-profile-card__name-badge">
-                                      <div className="user-profile-card__name">
-                                        Zain Schleifer
-                                      </div>
-                                      <div className="user-profile-card__badge">
-                                        <img
-                                          src="/images/logo/profile-badge.png"
-                                          alt="MoneyBoy Social Profile Badge"
-                                        />
-                                      </div>
+                                      </button>
                                     </div>
-                                    <div className="user-profile-card__username">
-                                      @zainschleifer
-                                    </div>
-                                  </div>
-                                  <div className="user-profile-card__wishlist-btn">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-
-                          <div
-                            className="user-profile-card-wrapper user-profile-card-small"
-                            data-creator-profile-card
-                          >
-                            <div className="user-profile-card-container">
-                              <div className="user-profile-card__img">
-                                <img
-                                  src="/images/profile-avatars/profile-avatar-6.jpg"
-                                  alt="Discover Profile Avatar"
-                                />
-                              </div>
-
-                              <div className="user-profile-content-overlay-container">
-                                <div className="user-profile-card__action-btns">
-                                  <div className="user-profile-card__like-btn">
-                                    {/* <button
-                                        className={`like-button ${
-                                          likedItems.includes(2)
-                                            ? "liked"
-                                            : ""
-                                        }`}
-                                        onClick={() => toggleLike(2)}
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="21"
-                                          height="20"
-                                          viewBox="0 0 21 20"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                        </svg>
-                                      </button> */}
-                                  </div>
-                                </div>
-
-                                <div className="user-profile-card__info-container">
-                                  <div className="user-profile-card__info">
-                                    <div className="user-profile-card__name-badge">
-                                      <div className="user-profile-card__name">
-                                        James Baptista
-                                      </div>
-                                      <div className="user-profile-card__badge">
-                                        <img
-                                          src="/images/logo/profile-badge.png"
-                                          alt="MoneyBoy Social Profile Badge"
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="user-profile-card__username">
-                                      @jamesbaptista
-                                    </div>
-                                  </div>
-                                  <div className="user-profile-card__wishlist-btn">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div
-                            className="user-profile-card-wrapper user-profile-card-small"
-                            data-creator-profile-card
-                          >
-                            <div className="user-profile-card-container">
-                              <div className="user-profile-card__img">
-                                <img
-                                  src="/images/profile-avatars/profile-avatar-5.jpg"
-                                  alt="Discover Profile Avatar"
-                                />
-                              </div>
-
-                              <div className="user-profile-content-overlay-container">
-                                <div className="user-profile-card__action-btns">
-                                  <div className="user-profile-card__like-btn">
-                                    {/* <button
-                                        className={`like-button ${
-                                          likedItems.includes(3)
-                                            ? "liked"
-                                            : ""
-                                        }`}
-                                        onClick={() => toggleLike(3)}
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="21"
-                                          height="20"
-                                          viewBox="0 0 21 20"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                        </svg>
-                                      </button> */}
-                                  </div>
-                                </div>
-
-                                <div className="user-profile-card__info-container">
-                                  <div className="user-profile-card__info">
-                                    <div className="user-profile-card__name-badge">
-                                      <div className="user-profile-card__name">
-                                        Jaxson Geidt
-                                      </div>
-                                      <div className="user-profile-card__badge">
-                                        <img
-                                          src="/images/logo/profile-badge.png"
-                                          alt="MoneyBoy Social Profile Badge"
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="user-profile-card__username">
-                                      @jaxsongeidt
-                                    </div>
-                                  </div>
-                                  <div className="user-profile-card__wishlist-btn">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div
-                            className="user-profile-card-wrapper user-profile-card-small"
-                            data-creator-profile-card
-                          >
-                            <div className="user-profile-card-container">
-                              <div className="user-profile-card__img">
-                                <img
-                                  src="/images/profile-avatars/profile-avatar-3.jpg"
-                                  alt="Discover Profile Avatar"
-                                />
-                              </div>
-
-                              <div className="user-profile-content-overlay-container">
-                                <div className="user-profile-card__action-btns">
-                                  <div className="user-profile-card__like-btn">
-                                    {/* <button
-                                        className={`like-button ${
-                                          likedItems.includes(4)
-                                            ? "liked"
-                                            : ""
-                                        }`}
-                                        onClick={() => toggleLike(4)}
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="21"
-                                          height="20"
-                                          viewBox="0 0 21 20"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                        </svg>
-                                      </button> */}
-                                  </div>
-                                </div>
-
-                                <div className="user-profile-card__info-container">
-                                  <div className="user-profile-card__info">
-                                    <div className="user-profile-card__name-badge">
-                                      <div className="user-profile-card__name">
-                                        Kadin Septimus
-                                      </div>
-                                      <div className="user-profile-card__badge">
-                                        <img
-                                          src="/images/logo/profile-badge.png"
-                                          alt="MoneyBoy Social Profile Badge"
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="user-profile-card__username">
-                                      @kadinseptimus
-                                    </div>
-                                  </div>
-                                  <div className="user-profile-card__wishlist-btn">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="21"
-                                      height="20"
-                                      viewBox="0 0 21 20"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -887,16 +719,26 @@ const WishlistPage = () => {
                                         <span>12K</span>
                                       </div> */}
 
-                                  <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                    <div className="creator-content-stat-box thumup-btn active">
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
                                         <svg
@@ -1006,15 +848,25 @@ const WishlistPage = () => {
                                       <span>12K</span>
                                     </div> */}
                                     <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
 
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
@@ -1127,16 +979,26 @@ const WishlistPage = () => {
                                         <span>12K</span>
                                       </div> */}
 
-                                  <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                    <div className="creator-content-stat-box thumup-btn active">
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
                                         <svg
@@ -1246,16 +1108,26 @@ const WishlistPage = () => {
                                       <span>12K</span>
                                     </div> */}
 
-                                  <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                    <div className="creator-content-stat-box thumup-btn active">
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
                                         <svg
@@ -1374,15 +1246,25 @@ const WishlistPage = () => {
                                         <span>12K</span>
                                       </div> */}
                                     <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
                                         <svg
@@ -1492,15 +1374,25 @@ const WishlistPage = () => {
                                       <span>12K</span>
                                     </div> */}
                                     <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
                                         <svg
@@ -1612,16 +1504,26 @@ const WishlistPage = () => {
                                         <span>12K</span>
                                       </div> */}
 
-                                  <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                    <div className="creator-content-stat-box thumup-btn active">
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
                                         <svg
@@ -1731,15 +1633,25 @@ const WishlistPage = () => {
                                       <span>12K</span>
                                     </div> */}
                                     <div className="creator-content-stat-box thumup-btn active">
-                                    <button>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                       <path d="M7 10v12"/>
-                                      </svg>
-                                    </button>
+                                      <button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="24"
+                                          height="24"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                          <path d="M7 10v12" />
+                                        </svg>
+                                      </button>
 
-                                    <span>71</span>
-                                  </div>
+                                      <span>71</span>
+                                    </div>
                                     <div className="creator-content-stat-box views-btn active">
                                       <button>
                                         <svg

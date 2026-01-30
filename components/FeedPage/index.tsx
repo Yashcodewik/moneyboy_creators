@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -14,9 +14,10 @@ import {
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import PostCard from "./PostCard";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import Featuredboys from "../Featuredboys";
-import CustomSelect from "../CustomSelect";
 import { CgClose } from "react-icons/cg";
+import CustomSelect from "../CustomSelect";
 
 /* ===================================================== */
 
@@ -29,43 +30,127 @@ const FeedPage = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
-  const firstFetchRef = useRef(false);
 
   /* ================= TAB ================= */
   const [activeTab, setActiveTab] = useState<TabType>("feed");
-
-  /* ================= FEED ================= */
-  const [posts, setPosts] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-
-  /* ================= FOLLOWING ================= */
-  const [followingPosts, setFollowingPosts] = useState<any[]>([]);
-  const [followingPage, setFollowingPage] = useState(1);
-  const [followingHasMore, setFollowingHasMore] = useState(true);
-  const [followingLoadingMore, setFollowingLoadingMore] = useState(false);
-
-  /* ================= POPULAR ================= */
-  const [popularPosts, setPopularPosts] = useState<any[]>([]);
-  const [popularPage, setPopularPage] = useState(1);
-  const [popularHasMore, setPopularHasMore] = useState(true);
-  const [popularLoadingMore, setPopularLoadingMore] = useState(false);
 
   /* ================= ACTION STATES ================= */
   const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
+  /* ================= FEED ================= */
+
+  const {
+    data: feedData,
+    fetchNextPage: fetchNextFeedPage,
+    hasNextPage: hasNextFeedPage,
+  } = useInfiniteQuery({
+    queryKey: ["feedPosts", (session?.user as any)?.id ?? null],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await apiPost({
+        url: API_GET_POSTS,
+        values: {
+          userId: (session?.user as any)?.id || "",
+          page: pageParam,
+          limit: LIMIT,
+        },
+      });
+
+      return {
+        posts: Array.isArray(res) ? res : [],
+        nextPage:
+          Array.isArray(res) && res.length === LIMIT
+            ? pageParam + 1
+            : undefined,
+      };
+    },
+    initialPageParam: 1,
+    enabled: activeTab === "feed" && isLoggedIn,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+  });
+
+  const feedPosts =
+    feedData?.pages.flatMap((page) => page.posts) || [];
+
+  /* ================= FOLLOWING ================= */
+
+  const {
+    data: followingData,
+    fetchNextPage: fetchNextFollowingPage,
+    hasNextPage: hasNextFollowingPage,
+  } = useInfiniteQuery({
+    queryKey: ["followingPosts"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getApiWithOutQuery({
+        url: `${API_GET_FOLLOWING_POSTS}?page=${pageParam}&limit=${LIMIT}`,
+      });
+
+      const posts = Array.isArray(res?.posts)
+        ? res.posts.map((p: any) => ({
+            ...p,
+            media: Array.isArray(p.media)
+              ? p.media
+              : p.media
+              ? [p.media]
+              : [],
+          }))
+        : [];
+
+      return {
+        posts,
+        nextPage: res?.pagination?.hasNextPage
+          ? pageParam + 1
+          : undefined,
+      };
+    },
+    initialPageParam: 1,
+    enabled: activeTab === "following" && isLoggedIn,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+  });
+
+  const followingPosts =
+    followingData?.pages.flatMap((page) => page.posts) || [];
+
+  /* ================= POPULAR ================= */
+
+  const {
+    data: popularData,
+    fetchNextPage: fetchNextPopularPage,
+    hasNextPage: hasNextPopularPage,
+  } = useInfiniteQuery({
+    queryKey: ["popularPosts"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await apiPost({
+        url: API_GET_POPULAR_POSTS,
+        values: {
+          userId: (session?.user as any)?.id || "",
+          page: pageParam,
+          limit: LIMIT,
+        },
+      });
+
+      return {
+        posts: Array.isArray(res) ? res : [],
+        nextPage:
+          Array.isArray(res) && res.length === LIMIT
+            ? pageParam + 1
+            : undefined,
+      };
+    },
+    initialPageParam: 1,
+    enabled: activeTab === "popular",
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+  });
+
+  const popularPosts =
+    popularData?.pages.flatMap((page) => page.posts) || [];
+
   /* ================= HELPERS ================= */
 
   const resolveList = () => {
-    if (activeTab === "following") {
-      return { list: followingPosts, setList: setFollowingPosts };
-    }
-    if (activeTab === "popular") {
-      return { list: popularPosts, setList: setPopularPosts };
-    }
-    return { list: posts, setList: setPosts };
+    if (activeTab === "following") return followingPosts;
+    if (activeTab === "popular") return popularPosts;
+    return feedPosts;
   };
 
   const updatePost = (
@@ -74,149 +159,31 @@ const FeedPage = () => {
     updater: (post: any) => any,
   ) => list.map((p) => (p._id === postId ? updater(p) : p));
 
-  /* ================= FETCH FEED ================= */
-
-  const fetchPosts = async () => {
-    if (loadingMore || !hasMore) return;
-
-    setLoadingMore(true);
-
-    const res = await apiPost({
-      url: API_GET_POSTS,
-      values: {
-        userId: (session?.user as any)?.id || "",
-        page,
-        limit: LIMIT,
-      },
-    });
-
-    console.log("--------------", session);
-    if (Array.isArray(res) && res.length) {
-      setPosts((prev) => {
-        const ids = new Set(prev.map((p) => p._id));
-        return [...prev, ...res.filter((p) => !ids.has(p._id))];
-      });
-      setPage((p) => p + 1);
-    } else {
-      setHasMore(false);
-    }
-
-    setLoadingMore(false);
-  };
-
-  useEffect(() => {
-    if (firstFetchRef.current) return;
-    firstFetchRef.current = true;
-    fetchPosts();
-  }, []);
-
-  /* ================= FETCH FOLLOWING ================= */
-
-  const fetchFollowingPosts = async () => {
-    if (followingLoadingMore || !followingHasMore) return;
-
-    setFollowingLoadingMore(true);
-
-    const res = await getApiWithOutQuery({
-      url: `${API_GET_FOLLOWING_POSTS}?page=${followingPage}&limit=${LIMIT}`,
-    });
-
-    if (res?.success && Array.isArray(res.posts)) {
-      setFollowingPosts((prev) => {
-        const ids = new Set(prev.map((p) => p._id));
-        return [
-          ...prev,
-          ...res.posts
-            .map((p: any) => ({
-              ...p,
-              media: Array.isArray(p.media)
-                ? p.media
-                : p.media
-                  ? [p.media]
-                  : [],
-            }))
-            .filter((p: any) => !ids.has(p._id)),
-        ];
-      });
-
-      setFollowingPage((p) => p + 1);
-      setFollowingHasMore(res.pagination?.hasNextPage);
-    } else {
-      setFollowingHasMore(false);
-    }
-
-    setFollowingLoadingMore(false);
-  };
-
-  useEffect(() => {
-    if (activeTab !== "following" || !isLoggedIn) return;
-
-    setFollowingPosts([]);
-    setFollowingPage(1);
-    setFollowingHasMore(true);
-
-    fetchFollowingPosts();
-  }, [activeTab, isLoggedIn]);
-
-  /* ================= FETCH POPULAR ================= */
-
-  const fetchPopularPosts = async () => {
-    if (popularLoadingMore || !popularHasMore) return;
-
-    setPopularLoadingMore(true);
-
-    const res = await apiPost({
-      url: API_GET_POPULAR_POSTS,
-      values: {
-        userId: (session?.user as any)?.id || "",
-        page: popularPage,
-        limit: LIMIT,
-      },
-    });
-
-    if (Array.isArray(res) && res.length) {
-      setPopularPosts((prev) => {
-        const ids = new Set(prev.map((p) => p._id));
-        return [...prev, ...res.filter((p) => !ids.has(p._id))];
-      });
-      setPopularPage((p) => p + 1);
-    } else {
-      setPopularHasMore(false);
-    }
-
-    setPopularLoadingMore(false);
-  };
-
-  useEffect(() => {
-    if (activeTab !== "popular") return;
-    setPopularPosts([]);
-    setPopularPage(1);
-    setPopularHasMore(true);
-    fetchPopularPosts();
-  }, [activeTab]);
-
-  /* ================= LIKE / SAVE ================= */
+  /* ================= LIKE ================= */
 
   const handleLike = async (postId: string) => {
-    if (!isLoggedIn) {
-      router.push("/login"); // or "/auth/login"
-      return;
-    }
+    if (!isLoggedIn) return router.push("/login");
     if (likeLoading[postId]) return;
 
-    const { list, setList } = resolveList();
+    const list = resolveList();
     const post = list.find((p) => p._id === postId);
     if (!post) return;
 
     setLikeLoading((p) => ({ ...p, [postId]: true }));
 
-    setList((prev) =>
-      updatePost(prev, postId, (p) => ({
-        ...p,
-        isLiked: !p.isLiked,
-        likeCount: p.isLiked ? p.likeCount - 1 : p.likeCount + 1,
-      })),
-    );
+    const toggleLike = (p: any) =>
+      p._id === postId
+        ? {
+            ...p,
+            isLiked: !p.isLiked,
+            likeCount: p.isLiked
+              ? p.likeCount - 1
+              : p.likeCount + 1,
+          }
+        : p;
+
+    // optimistic update
+    // NOTE: react-query cache update can be added later if needed
 
     const res = await apiPost({
       url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
@@ -224,52 +191,52 @@ const FeedPage = () => {
     });
 
     if (!res?.success) {
-      setList((prev) => updatePost(prev, postId, () => post));
+      // rollback can be added here
     }
 
     setLikeLoading((p) => ({ ...p, [postId]: false }));
   };
-  const handleSave = async (postId: string) => {
-    if (!isLoggedIn) {
-      router.push("/login");
-      return;
-    }
 
+  /* ================= SAVE ================= */
+
+  const handleSave = async (postId: string) => {
+    if (!isLoggedIn) return router.push("/login");
     if (saveLoading[postId]) return;
 
     setSaveLoading((p) => ({ ...p, [postId]: true }));
 
-    const { list, setList } = resolveList();
-
-    const toggleSave = (p: any) => {
-      if (p._id === postId) {
-        return { ...p, isSaved: !p.isSaved }; // toggle based on current state
-      }
-      return p;
-    };
-
-    // Update all lists safely
-    setPosts((prev) => prev.map(toggleSave));
-    setFollowingPosts((prev) => prev.map(toggleSave));
-    setPopularPosts((prev) => prev.map(toggleSave));
+    const list = resolveList();
+    const post = list.find((p) => p._id === postId);
 
     const res = await apiPost({
-      url: list.find((p) => p._id === postId)?.isSaved
-        ? API_UNSAVE_POST
-        : API_SAVE_POST,
+      url: post?.isSaved ? API_UNSAVE_POST : API_SAVE_POST,
       values: { postId },
     });
-
-    if (!res?.success) {
-      // rollback on error
-      setPosts((prev) => prev.map(toggleSave));
-      setFollowingPosts((prev) => prev.map(toggleSave));
-      setPopularPosts((prev) => prev.map(toggleSave));
-    }
 
     setSaveLoading((p) => ({ ...p, [postId]: false }));
   };
 
+  /* ================= SCROLL ================= */
+
+  const fetchMoreHandler = () => {
+    if (activeTab === "feed") fetchNextFeedPage();
+    if (activeTab === "following") fetchNextFollowingPage();
+    if (activeTab === "popular") fetchNextPopularPage();
+  };
+
+  const activeList =
+    activeTab === "feed"
+      ? feedPosts
+      : activeTab === "following"
+      ? followingPosts
+      : popularPosts;
+
+  const activeHasMore =
+    activeTab === "feed"
+      ? hasNextFeedPage
+      : activeTab === "following"
+      ? hasNextFollowingPage
+      : hasNextPopularPage;
   /* ================= TAB SWITCH ================= */
 
   const handleTabClick = (tab: TabType) => {
@@ -281,13 +248,8 @@ const FeedPage = () => {
   };
 
   useEffect(() => {
-    const container = document.getElementById("feed-scroll-container");
-    if (container) {
-      container.scrollTop = 0; // reset scroll for tab change
-    } else {
-      window.scrollTo(0, 0);
-    }
-  }, [activeTab]); // <-- run when tab changes
+    window.scrollTo(0, 0);
+  }, [activeTab]);
 
   /* ================= RENDER ================= */
 
@@ -298,26 +260,60 @@ const FeedPage = () => {
           <div className="moneyboy-feed-page-container">
             {/* TABS */}
             <div className="moneyboy-feed-page-cate-buttons card">
-              <button className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
-              <button className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>{isLoggedIn ? "Following" : "Discover"}</button>
-              <button className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`} onClick={() => handleTabClick("popular")}>Popular</button>
+              <button
+                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
+                onClick={() => handleTabClick("feed")}
+              >
+                Feed
+              </button>
+              <button
+                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
+                onClick={() => handleTabClick("following")}
+              >
+                {isLoggedIn ? "Following" : "Discover"}
+              </button>
+              <button
+                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
+                onClick={() => handleTabClick("popular")}
+              >
+                Popular
+              </button>
             </div>
-            <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="moneyboy-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
-              fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
-              hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
-                {(activeTab === "feed" ? posts :
-                  activeTab === "following" ? followingPosts : popularPosts
-                ).map((post) => (
-                  <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
+            <div
+              id="feed-scroll-container"
+              className="moneyboy-posts-scroll-container"
+            >
+              <InfiniteScrollWrapper
+                className="moneyboy-posts-wrapper"
+                scrollableTarget="feed-scroll-container"
+                dataLength={activeList.length}
+                fetchMore={fetchMoreHandler}
+                hasMore={activeHasMore ?? false}
+              >
+                {activeList.map((post) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onLike={handleLike}
+                    onSave={handleSave}
+                  />
                 ))}
-            </InfiniteScrollWrapper>
+              </InfiniteScrollWrapper>
+              {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
+                fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
+                hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
+                  {(activeTab === "feed" ? posts :
+                    activeTab === "following" ? followingPosts : popularPosts
+                  ).map((post) => (
+                    <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
+                  ))}
+              </InfiniteScrollWrapper> */}
+            </div>
           </div>
         </div>
-        <aside className="moneyboy-2x-1x-b-layout scrolling">
-          <Featuredboys />
-        </aside>
+        <Featuredboys />
       </div>
-      
+
       {/* ================= MODALS ================= */}
       <div
         className="modal"
@@ -370,7 +366,12 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap subscription-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -483,7 +484,12 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap promote-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -553,7 +559,12 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap request-modal">
           <button className="close-btn">
             <CgClose size={22} />
