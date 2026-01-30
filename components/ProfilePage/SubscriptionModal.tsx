@@ -51,7 +51,7 @@ const finalPrice =
   return (
     <>
      <div
-        className="modal"
+        className="modal show"
         role="dialog"
         aria-modal="true"
         aria-labelledby="age-modal-title"

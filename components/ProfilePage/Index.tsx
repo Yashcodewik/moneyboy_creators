@@ -23,6 +23,7 @@ import {
 } from "../redux/other/followActions";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
+import TipModal from "./TipModal";
 
 interface User {
   _id: string;
@@ -104,7 +105,7 @@ const ProfilePage = () => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY" | null>(null);
 const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew" | null>(null);
-
+const [showTipModal, setShowTipModal] = useState(false);
 
 
   const params = useParams();
@@ -294,6 +295,10 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
   }
 };
 
+const openTipModal = () => {
+  setShowTipModal(true);
+};
+
 
   const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
     if (!profile?.user?._id || subLoading) return;
@@ -319,71 +324,72 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
   plan: "MONTHLY" | "YEARLY",
   action: "subscribe" | "upgrade" | "renew"
 ) => {
+    console.log("Opening modal with:", { plan, action }); 
   setSelectedPlan(plan);
   setModalAction(action);
   setShowSubscriptionModal(true);
 };
 
 
-  const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
-    if (!subStatus) return null;
+const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
+  if (!subStatus) return null;
 
-    const { isSubscribed, currentPlan, isExpiringSoon } = subStatus;
+  const { isSubscribed, currentPlan, isExpiringSoon } = subStatus;
 
-    if (!isSubscribed) {
+  if (!isSubscribed) {
+    return (
+      <button
+        className="btn-txt-gradient btn-outline p-sm"
+        disabled={subLoading}
+        onClick={() => openSubscriptionModal(targetPlan, "subscribe")}
+      >
+        <span>{subLoading ? "Processing..." : "Subscribe"}</span>
+      </button>
+    );
+  }
+
+  if (currentPlan === targetPlan) {
+    if (isExpiringSoon) {
       return (
         <button
           className="btn-txt-gradient btn-outline p-sm"
           disabled={subLoading}
-          onClick={() => openSubscriptionModal(targetPlan, "subscribe")}
+          onClick={() => openSubscriptionModal(targetPlan, "renew")}
         >
-          <span>{subLoading ? "Processing..." : "Subscribe"}</span>
+          <span>{subLoading ? "Processing..." : "Renew"}</span>
         </button>
       );
     }
 
-    if (currentPlan === targetPlan) {
-      if (isExpiringSoon) {
-        return (
-          <button
-            className="btn-txt-gradient btn-outline p-sm"
-            disabled={subLoading}
-            onClick={() => openSubscriptionModal(targetPlan, "renew")}
-          >
-            <span>{subLoading ? "Processing..." : "Renew"}</span>
-          </button>
-        );
-      }
+    return (
+      <button className="btn-txt-gradient btn-outline p-sm" disabled>
+        <span>Subscribed</span>
+      </button>
+    );
+  }
 
-      return (
-        <button className="btn-txt-gradient btn-outline p-sm" disabled>
-          <span>Subscribed</span>
-        </button>
-      );
-    }
+  if (currentPlan === "YEARLY" && targetPlan === "MONTHLY") {
+    return (
+      <button className="btn-txt-gradient btn-outline p-sm" disabled>
+        <span>Subscribed</span>
+      </button>
+    );
+  }
 
-    if (currentPlan === "YEARLY" && targetPlan === "MONTHLY") {
-      return (
-        <button className="btn-txt-gradient btn-outline p-sm" disabled>
-          <span>Subscribed</span>
-        </button>
-      );
-    }
+  if (currentPlan === "MONTHLY" && targetPlan === "YEARLY") {
+    return (
+      <button
+        className="btn-txt-gradient btn-outline p-sm"
+        disabled={subLoading}
+        onClick={() => openSubscriptionModal(targetPlan, "upgrade")}
+      >
+        <span>{subLoading ? "Processing..." : "Upgrade"}</span>
+      </button>
+    );
+  }
 
-    if (currentPlan === "MONTHLY" && targetPlan === "YEARLY") {
-      return (
-        <button
-          className="btn-txt-gradient btn-outline p-sm"
-          disabled={subLoading}
-          onClick={() => openSubscriptionModal("YEARLY", "upgrade")}
-        >
-          <span>{subLoading ? "Processing..." : "Upgrade"}</span>
-        </button>
-      );
-    }
-
-    return null;
-  };
+  return null;
+};
 
   const truncateText = (text: string, limit = 50) =>
     text?.length > limit ? text.slice(0, limit) : text;
@@ -680,7 +686,7 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
                         </a>
                       </li>
                       <li>
-                        <a href="#" className="tip-btn">
+                        <a href="#" className="tip-btn" onClick={openTipModal}>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -1259,30 +1265,37 @@ const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew"
         </div>
       </div>
 
-      {showSubscriptionModal && selectedPlan && (
-       <SubscriptionModal
-        onClose={() => setShowSubscriptionModal(false)}
-        plan={selectedPlan}
-        action={modalAction}
-        creator={{
-          displayName: profile?.user?.displayName,
-          userName: profile?.user?.userName,
-          profile: profile?.user?.profile,
-        }}
-        subscription={profile?.subscription}
-        onConfirm={async () => {
-          if (modalAction === "subscribe") {
-            await handleSubscribe(selectedPlan);
-          } else {
-            await handleUpgrade(selectedPlan);
-          }
-
-          setShowSubscriptionModal(false);
-        }}
-      />
-
-      )}
-
+        {showSubscriptionModal && selectedPlan && modalAction && (
+          <SubscriptionModal
+            onClose={() => setShowSubscriptionModal(false)}
+            plan={selectedPlan}
+            action={modalAction}
+            creator={{
+              displayName: profile?.user?.displayName,
+              userName: profile?.user?.userName,
+              profile: profile?.user?.profile,
+            }}
+            subscription={profile?.subscription}
+            onConfirm={async () => {
+              if (modalAction === "subscribe") {
+                await handleSubscribe(selectedPlan);
+              } else if (modalAction === "upgrade" || modalAction === "renew") {
+                await handleUpgrade(selectedPlan);
+              }
+              setShowSubscriptionModal(false);
+            }}
+          />
+        )}
+        {showTipModal && (
+          <TipModal
+            onClose={() => setShowTipModal(false)}
+            creator={{
+              displayName: profile?.user?.displayName,
+              userName: profile?.user?.userName,
+              profile: profile?.user?.profile,
+            }}
+          />
+        )}
     </div>
   );
 };
