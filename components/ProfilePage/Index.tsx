@@ -9,6 +9,7 @@ import {
   API_GET_POSTS_BY_CREATOR,
   API_SAVE_POST,
   API_SUBSCRIBE_CREATOR,
+  API_UNLOCK_POST,
   API_UNSAVE_POST,
   API_UPGRADE_SUBSCRIPTION,
 } from "@/utils/api/APIConstant";
@@ -25,6 +26,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
 import PPVRequestModal from "./PPVRequestModal";
+import UnlockContentModal from "./UnlockContentModal";
 
 interface User {
   _id: string;
@@ -111,6 +113,11 @@ const [showTipModal, setShowTipModal] = useState(false);
 const [selectedPost, setSelectedPost] = useState<any | null>(null);
 const [showPPVRequestModal, setShowPPVRequestModal] = useState(false);
 const [showTransactionModal, setShowTransactionModal] = useState(false);
+const [unlockLoading, setUnlockLoading] = useState(false);
+
+const [showUnlockModal, setShowUnlockModal] = useState(false);
+const [unlockPost, setUnlockPost] = useState<any>(null);
+
 const [transactionData, setTransactionData] = useState<{
   postId?: string;
   creatorId?: string;
@@ -323,6 +330,36 @@ const handleFollowToggle = async () => {
 const openTipModal = () => {
   setShowTipModal(true);
 };
+const confirmUnlockPost = async () => {
+  if (!unlockPost) return;
+
+  try {
+    setUnlockLoading(true);
+
+    const res = await apiPost({
+      url: API_UNLOCK_POST,
+      values: {
+        postId: unlockPost._id,
+        creatorId: profile?.user?._id,
+      },
+    });
+
+    if (res?.success) {
+      // update local post
+      unlockPost.isUnlocked = true;
+
+      setShowUnlockModal(false);
+      setUnlockPost(null);
+
+      // redirect to post
+      router.push(`/post?page&publicId=${unlockPost.publicId}`);
+    } else {
+      alert(res?.message || "Failed to unlock post");
+    }
+  } finally {
+    setUnlockLoading(false);
+  }
+};
 
 
   const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
@@ -424,15 +461,14 @@ const handlePPVClick = (post: any) => {
   }
 
   const isOwner = session.user.publicId === profile?.user?.publicId;
-  const isPurchased = post?.isPurchased;
+ const isUnlocked = post?.isUnlocked;
 
-  if (isOwner || isPurchased) {
-    return;
-  }
-
-  // 3. Everyone else → PPV request
-  setSelectedPost(post);
-  setShowPPVRequestModal(true);
+if (isOwner || isUnlocked) {
+  router.push(`/post?page&publicId=${post.publicId}`);
+  return;
+}
+  setUnlockPost(post);
+  setShowUnlockModal(true);
 };
 
 
@@ -446,7 +482,8 @@ const handlePPVClick = (post: any) => {
     const canViewContent =
     isOwner ||
     post.accessType === "free" ||
-    (post.accessType === "pay_per_view" && post?.isPurchased);
+    (post.accessType === "subscriber" && isSubscribedUser) ||
+    (post.accessType === "pay_per_view" && post.isUnlocked);
 
     const isSubscriber = post?.accessType === "subscriber";
     const isPPV = post?.accessType === "pay_per_view";
@@ -457,6 +494,7 @@ const handlePPVClick = (post: any) => {
       <div className="creator-content-card-container" key={post?.publicId}>
         <div className="creator-content-card">
           <div className="creator-content-card__media">
+            
             <div className={`creator-card__img ${!firstMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
@@ -467,7 +505,7 @@ const handlePPVClick = (post: any) => {
                 </video>
               )}
             </div>
-            {!canViewContent && isPPV && (
+            {!canViewContent && (
               <div className="content-locked-label" onClick={() => handlePPVClick(post)}>
                 {isSubscriber && (
                   <>
@@ -1368,6 +1406,25 @@ const handlePPVClick = (post: any) => {
           }}
         />
       )}
+
+  {showUnlockModal && unlockPost && (
+  <UnlockContentModal
+    onClose={() => {
+      setShowUnlockModal(false);
+      setUnlockPost(null);
+    }}
+    creator={{
+      displayName: profile?.user?.displayName,
+      userName: profile?.user?.userName,
+      profile: profile?.user?.profile,
+    }}
+    post={unlockPost}
+    onConfirm={confirmUnlockPost}
+    loading={unlockLoading}
+  />
+)}
+
+
     </div>
   );
 };
