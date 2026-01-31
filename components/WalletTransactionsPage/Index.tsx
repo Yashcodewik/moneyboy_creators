@@ -1,14 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Featuredboys from '../Featuredboys';
 import CustomSelect from '../CustomSelect';
 import Link from "next/link";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getApi } from "@/utils/endpoints/common";
+import { API_ADD_COMMENT, API_GET_TRANSACTIONS } from "@/utils/api/APIConstant";
 
 const WalletTransactionsPage = () => {
   const { session } = useDecryptedSession();
   const searchParams = useSearchParams();
+  const [page, setPage] = useState(1);
+  const [mode, setMode] = useState<string>("");
+  const [searchText, setSearchText] = useState("");
+
   const initialTab =
     searchParams.get("tab") === "orders"
       ? "orders"
@@ -19,6 +26,75 @@ const WalletTransactionsPage = () => {
   const [activeTab, setActiveTab] = useState<
     "wallet" | "orders" | "payments" | "details"
   >(initialTab);
+
+  useEffect(() => {
+    if (!session?.user?.role) return;
+  if (session?.user?.role === 2) {
+    // CREATOR
+    if (activeTab === "wallet") setMode("earnings");
+    if (activeTab === "orders") setMode("sales");
+    if (activeTab === "payments") setMode("received");
+  }
+
+  if (session?.user?.role === 1) {
+    // USER
+    if (activeTab === "wallet") setMode("expenses");
+    if (activeTab === "orders") setMode("purchases");
+    if (activeTab === "payments") setMode("sent");
+  }
+}, [activeTab, session?.user?.role]);
+
+const rowsPerPage = 10;
+
+const { data, isLoading } = useQuery({
+  queryKey: ["wallet-transactions", activeTab, mode,searchText, page],
+  queryFn: () =>
+    getApi({
+      url: `${API_GET_TRANSACTIONS}?tab=${activeTab}&mode=${mode}`,
+      page,
+      rowsPerPage,
+      searchText,
+    })
+});
+const transactions = data?.data || [];
+const summary = data?.summary;
+
+const getModeOptions = () => {
+  // WALLET
+  if (activeTab === "wallet") {
+    if (session?.user?.role === 2) {
+      return [
+        { label: "Earnings", value: "earnings" },
+        { label: "Expenses", value: "expenses" },
+      ];
+    }
+    return [{ label: "Expenses", value: "expenses" }];
+  }
+
+  // ORDERS
+  if (activeTab === "orders") {
+    if (session?.user?.role === 2) {
+      return [
+        { label: "Sales", value: "sales" },
+        { label: "Purchases", value: "purchases" },
+      ];
+    }
+    return [{ label: "Purchases", value: "purchases" }];
+  }
+
+  // PAYMENTS
+  if (activeTab === "payments") {
+    if (session?.user?.role === 2) {
+      return [
+        { label: "Received", value: "received" },
+        { label: "Sent", value: "sent" },
+      ];
+    }
+    return [{ label: "Sent", value: "sent" }];
+  }
+
+  return [];
+};
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -62,16 +138,38 @@ const WalletTransactionsPage = () => {
                           <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </div>
-                      <input type="text" placeholder="Enter keyword here" />
+                      <input type="text" placeholder="Enter name here"  
+                      value={searchText}
+                        onChange={(e) => {
+                          setSearchText(e.target.value);
+                          setPage(1);
+                        }} />
                     </div>
                   </div>
 
                   <div className="creater-content-filters-layouts">
                     <div className="creator-content-select-filter">
                       <div className="custom-select-element bg-white p-sm size-sm">
+                        <div className="creator-content-select-filter">
+                          <CustomSelect
+                            className="bg-white p-sm size-sm"
+                            label="Filter"
+                            options={getModeOptions()}
+                            value={mode}
+                            searchable={false}
+                            onChange={(val) => {
+                              setMode(val as string);
+                              setPage(1);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="creator-content-select-filter">
+                      <div className="custom-select-element bg-white p-sm size-sm">
                         <div className="custom-select-label-wrapper">
                           <div className="custom-select-icon-txt">
-                            <span className="custom-select-label-txt">All Time</span>
+                            <span className="custom-select-label-txt">All Creators</span>
                           </div>
                           <div className="custom-select-chevron">
                             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
@@ -93,25 +191,26 @@ const WalletTransactionsPage = () => {
                         </div>
                       </div>
                     </div>
+                    
                   </div>
                   </div>
                   {activeTab !== "details" && (
                   <div className="creator-content-cards-wrapper wtransactions_containt">
                     <div className="rel-users-wrapper">
                       {session?.user?.role === 2 && (
-  <>
+                    <>
                     <div className="history_wrap">
                       <div className="rline">
                         <p>Total Earned</p>
-                        <h3>$ 1,598.61</h3>
+                       <h3>$ {summary?.totalEarned?.toFixed(2) || "0.00"}</h3>
                       </div>
                       <div className="rline">
                         <p>Withdrew</p>
-                        <h3>$ 150.00</h3>
+                        <h3>$ {summary?.totalWithdrawn?.toFixed(2) || "0.00"}</h3>
                       </div>
                       <div className="">
                         <p>Wallet Balance</p>
-                        <h3>$ 1,429.42</h3>
+                        <h3>$ {summary?.walletBalance?.toFixed(2) || "0.00"}</h3>
                       </div>
                     </div>
                     <div className="payout_wrap">
@@ -126,123 +225,97 @@ const WalletTransactionsPage = () => {
                     <div className="payout_wrap">
                       <div>
                         <p>Current Balance</p>
-                        <h3>$ 1,598.61</h3>
+                        <h3>$ {summary?.totalSpent?.toFixed(2) || "0.00"}</h3>
                       </div>
+                      <Link href="#">
                       <button className="btn-txt-gradient" type="button"><span>Add Funds</span> </button>
+                        </Link>
                     </div>
                       )}
-                    <div className="rel-user-box">
-                      <div className="rel-user-profile-action">
-                        <div className="rel-user-profile">
-                          <div className="profile-card">
-                            <Link href="#" className="profile-card__main">
-                              <div className="profile-card__avatar-settings">
-                                <div className="profile-card__avatar">
-                                  <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="User profile avatar" />
+                   {transactions.map((txn: any) => {
+                        const isIncoming = txn.toUser?._id === session?.user?.id;
+                        const otherUser = isIncoming ? txn.fromUser : txn.toUser;
+
+                        return (
+                          <div className="rel-user-box" key={txn._id}>
+                            <div className="rel-user-profile-action">
+                              <div className="rel-user-profile">
+                                <div className="profile-card">
+                                  <Link href="#" className="profile-card__main">
+                                    <div className="profile-card__avatar-settings">
+                                      <div className="profile-card__avatar">
+                                        <img
+                                          src={otherUser?.profile || "/images/profile-avatars/profile-avatar-6.jpg"}
+                                          alt="User profile avatar"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="profile-card__info">
+                                      <div className="profile-card__username tphead">
+                                        {isIncoming ? "From" : "To"}
+                                      </div>
+                                      <div className="profile-card__name-badge">
+                                        <div className="profile-card__name">
+                                          {otherUser?.displayName}
+                                        </div>
+                                      </div>
+                                      <div className="profile-card__username">
+                                        {txn.status === "SUCCESS" && (
+                                          <span className="badge success">Success</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </Link>
                                 </div>
                               </div>
-                              <div className="profile-card__info">
-                                <div className="profile-card__username tphead">{session?.user?.role === 2 ? "From" : "To"}</div>
-                                <div className="profile-card__name-badge">
-                                  <div className="profile-card__name">Zain Schleifer</div>
-                                  <div className="profile-card__badge"><img src="/images/logo/profile-badge.png" alt="Verified badge" /></div>
+                              <div className="date_box">
+                                <div className="date_wrap">
+                                  <svg className="icons currency" />
+                                  <div className="containt">
+                                    <span>Amount</span>
+                                    <p className={isIncoming ? "text-green" : ""}>
+                                      ${txn.amount}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="profile-card__username">cae38e45 <span className="badge success">Success</span></div>
-                              </div>
-                            </Link>
-                          </div>
-                        </div>
-                        <div className="date_box">
-                          <div className="date_wrap">
-                            <svg className="icons currency"/>
-                            <div className="containt">
-                              <span>Amount</span>
-                              <p className="text-green">Apr 25, 2025</p>
-                            </div>
-                          </div>
-                          <div className="date_wrap">
-                            <svg className="icons noteDocument"/>
-                            <div className="containt">
-                              <span>Type</span>
-                              <p>Streaming Tip</p>
-                            </div>
-                          </div>
-                          <div className="date_wrap">
-                            <svg className="icons calendarNote"/>
-                            <div className="containt">
-                              <span>Date</span>
-                              <p>30/09/2025</p>
-                              <p>19:06:28</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="rel-user-desc">
-                        <div className="">
-                          <p className="heading">Discription</p>
-                          <p>A jazzy Lofi/neo soul-esque guitar part as shown in my video.</p>
-                        </div>
-                        <div className="rel-user-actions">
-                          <button className="btn-txt-gradient" type="button"  onClick={() => setActiveTab("details")}><span>View</span> </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rel-user-box">
-                      <div className="rel-user-profile-action">
-                        <div className="rel-user-profile">
-                          <div className="profile-card">
-                            <Link href="#" className="profile-card__main">
-                              <div className="profile-card__avatar-settings">
-                                <div className="profile-card__avatar">
-                                  <img src="/images/profile-avatars/profile-avatar-5.jpg" alt="User profile avatar" />
+
+                                <div className="date_wrap">
+                                  <svg className="icons noteDocument" />
+                                  <div className="containt">
+                                    <span>Type</span>
+                                    <p>{txn.type.replace("_", " ")}</p>
+                                  </div>
+                                </div>
+
+                                <div className="date_wrap">
+                                  <svg className="icons calendarNote" />
+                                  <div className="containt">
+                                    <span>Date</span>
+                                    <p>{new Date(txn.createdAt).toLocaleDateString()}</p>
+                                    <p>{new Date(txn.createdAt).toLocaleTimeString()}</p>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="profile-card__info">
-                                <div className="profile-card__username tphead">{session?.user?.role === 2 ? "From" : "To"}</div>
-                                <div className="profile-card__name-badge">
-                                  <div className="profile-card__name">Gustavo Stanton</div>
-                                  <div className="profile-card__badge"><img src="/images/logo/profile-badge.png" alt="Verified badge" /></div>
-                                </div>
-                                <div className="profile-card__username">cae388e1 <span className="badge success">Success</span></div>
+                            </div>
+
+                            <div className="rel-user-desc">
+                              <div>
+                                <p className="heading">Discription</p>
+                                <p>{txn.type}</p>
                               </div>
-                            </Link>
-                          </div>
-                        </div>
-                        <div className="date_box">
-                          <div className="date_wrap">
-                            <svg className="icons currency"/>
-                            <div className="containt">
-                              <span>Amount</span>
-                              <p className="text-green">$100</p>
+                              <div className="rel-user-actions">
+                                <button
+                                  className="btn-txt-gradient"
+                                  type="button"
+                                  onClick={() => setActiveTab("details")}
+                                >
+                                  <span>View</span>
+                                </button>
+                              </div>
                             </div>
                           </div>
-                          <div className="date_wrap">
-                            <svg className="icons noteDocument"/>
-                            <div className="containt">
-                              <span>Type</span>
-                              <p>Creator Tip</p>
-                            </div>
-                          </div>
-                          <div className="date_wrap">
-                            <svg className="icons calendarNote"/>
-                            <div className="containt">
-                              <span>Date</span>
-                              <p>30/09/2025</p>
-                              <p>19:06:28</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="rel-user-desc">
-                        <div className="">
-                          <p className="heading">Discription</p>
-                          <p>purchase product ZACH KING SNAPBACK HAT x1</p>
-                        </div>
-                        <div className="rel-user-actions">
-                          <button className="btn-txt-gradient" type="button"  onClick={() => setActiveTab("details")}><span>View</span> </button>
-                        </div>
-                      </div>
-                    </div>
+                        );
+                      })}
                     </div>
                   </div>
                   )}

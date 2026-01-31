@@ -48,6 +48,8 @@ export const API_UPGRADE_SUBSCRIPTION: string = "/subscription/upgrade-subscript
 export const API_MY_SUBSCRIPTIONS: string = "/subscription/my-subscriptions";
 export const API_MY_SUBSCRIBERS: string = "/subscription/my-subscribers";
 export const API_CREATE_PPV_REQUEST: string = "/subscription/ppv/request";
+export const API_GET_TRANSACTIONS: string = "/subscription/get-transactions";
+export const API_UNLOCK_POST: string = "/subscription/unlock-post";
 
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";
