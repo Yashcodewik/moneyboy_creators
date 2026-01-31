@@ -17,6 +17,15 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useSession } from "next-auth/react";
+import { useAppDispatch, useAppSelector } from "../redux/store";
+import {
+  dislikeComment,
+  fetchComments,
+  likeComment,
+} from "../redux/other/commentSlice";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { addComment } from "../redux/other/commentSlice";
 
 const PostPage = () => {
   const router = useRouter();
@@ -31,9 +40,27 @@ const PostPage = () => {
   const [open, setOpen] = useState(false);
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const [newComment, setNewComment] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const emojiRef = useRef<HTMLDivElement | null>(null);
+  const emojiButtonRef = useRef<HTMLDivElement | null>(null);
 
   const [likeLoading, setLikeLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const dispatch = useAppDispatch();
+
+  const [showComment, setShowComment] = useState(false);
+
+  const commentsState = useAppSelector((state) => state.comments);
+  const postComments = commentsState.comments[post?._id] || [];
+
+  useEffect(() => {
+    if (showComment && post?._id) {
+      dispatch(fetchComments(post._id));
+    }
+  }, [showComment, post?._id, dispatch]);
 
   useEffect(() => {
     if (!publicId) return;
@@ -55,25 +82,27 @@ const PostPage = () => {
 
     fetchPost();
   }, [publicId]);
-const formatRelativeTime = (dateString: string) => {
-  const postDate = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - postDate.getTime();
+  const formatRelativeTime = (dateString: string) => {
+    const postDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - postDate.getTime();
 
-  const seconds = Math.floor(diffMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-  if (seconds < 60) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  if (hours < 24) return `${hours} hr ago`;
-  if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
-  if (days < 30) return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
-  if (days < 365) return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
+    if (seconds < 60) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    if (hours < 24) return `${hours} hr ago`;
+    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (days < 30)
+      return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
+    if (days < 365)
+      return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
 
-  return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
-};
+    return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
+  };
 
   const handleLike = async () => {
     if (!isLoggedIn) return router.push("/login");
@@ -131,6 +160,59 @@ const formatRelativeTime = (dateString: string) => {
     setSaveLoading(false);
   };
 
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const updatedText =
+      newComment.substring(0, start) +
+      emojiData.emoji +
+      newComment.substring(end);
+
+    setNewComment(updatedText);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd =
+        start + emojiData.emoji.length;
+    });
+
+    setShowEmojiPicker(false);
+  };
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    if (!post?._id) return;
+
+    const res = await dispatch(
+      addComment({ postId: post._id, comment: newComment }),
+    );
+
+    if (res?.meta?.requestStatus === "fulfilled") {
+      setNewComment("");
+      dispatch(fetchComments(post._id)); // refresh list
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (
+        emojiRef.current &&
+        !emojiRef.current.contains(target) &&
+        !textareaRef.current?.contains(target) &&
+        !emojiButtonRef.current?.contains(target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const handleCopy = () => {
     const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
     navigator.clipboard.writeText(url);
@@ -148,6 +230,12 @@ const formatRelativeTime = (dateString: string) => {
       </div>
     );
   }
+
+  const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
+    const aLikes = a.likeCount ?? a.likes?.length ?? 0;
+    const bLikes = b.likeCount ?? b.likes?.length ?? 0;
+    return bLikes - aLikes;
+  });
 
   if (!post) {
     return <div className="nodeta">Post not found</div>;
@@ -426,7 +514,13 @@ const formatRelativeTime = (dateString: string) => {
 
                     {/* Comment */}
                     <li>
-                      <Link href="#">
+                      <Link
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowComment((prev) => !prev);
+                        }}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -537,6 +631,168 @@ const formatRelativeTime = (dateString: string) => {
                   </ul>
                 </div>
               </div>
+
+              {showComment && (
+                <div className="flex flex-column gap-20">
+                  {/* ================= Add Comment ================= */}
+                  <div className="moneyboy-comment-wrap">
+                    <div className="comment-wrap">
+                      <div className="label-input">
+                        <textarea
+                          ref={textareaRef}
+                          placeholder="Add a comment here"
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                        />
+                        <div
+                          ref={emojiButtonRef}
+                          className="input-placeholder-icon"
+                          onClick={() => setShowEmojiPicker((prev) => !prev)}
+                        >
+                          <i className="icons emojiSmile svg-icon"></i>
+                        </div>
+                      </div>
+
+                      {showEmojiPicker && (
+                        <div ref={emojiRef} className="emoji-picker-wrapper">
+                          <EmojiPicker
+                            onEmojiClick={onEmojiClick}
+                            autoFocusSearch={false}
+                            skinTonesDisabled
+                            previewConfig={{ showPreview: false }}
+                            height={360}
+                            width={340}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      className="premium-btn active-down-effect"
+                      onClick={handleAddComment}
+                    >
+                     <svg
+                width="40"
+                height="35"
+                viewBox="0 0 40 35"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
+                  fill="url(#paint0_linear_4464_314)"
+                />
+                <defs>
+                  <linearGradient
+                    id="paint0_linear_4464_314"
+                    x1="2.37044"
+                    y1="-1.89024e-06"
+                    x2="54.674"
+                    y2="14.6715"
+                    gradientUnits="userSpaceOnUse"
+                  >
+                    <stop stopColor="#FECE26" />
+                    <stop offset="1" stopColor="#E5741F" />
+                  </linearGradient>
+                </defs>
+              </svg>
+                    </button>
+                  </div>
+
+                  {/* ================= Render ALL Comments ================= */}
+                  {sortedComments.map((comment: any) => (
+                    <div
+                      key={comment._id}
+                      className="moneyboy-post__container card gap-15"
+                    >
+                      <div className="moneyboy-post__header">
+                        <a href="#" className="profile-card">
+                          <div className="profile-card__main">
+                            <div className="profile-card__avatar-settings">
+                              <div className="profile-card__avatar">
+                                <img
+                                  src={
+                                    comment.userId?.profile?.trim()
+                                      ? comment.userId.profile
+                                      : "/images/profile-avatars/profile-avatar-6.jpg"
+                                  }
+                                  alt="User profile"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="profile-card__info">
+                              <div className="profile-card__name-badge">
+                                <div className="profile-card__name">
+                                  {comment.userId?.displayName}
+                                </div>
+                              </div>
+                              <div className="profile-card__username">
+                                @{comment.userId?.userName}
+                              </div>
+                            </div>
+                          </div>
+                        </a>
+
+                        <div className="moneyboy-post__upload-more-info">
+                          <div className="moneyboy-post__upload-time">
+                            {formatRelativeTime(comment.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="moneyboy-post__desc">
+                        <p>{comment.comment}</p>
+                      </div>
+
+                      <div
+                        className="like-deslike-wrap"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <ul style={{ display: "flex", gap: "10px" }}>
+                          <li>
+                            <Link
+                              href="#"
+                              className={`comment-like-btn ${
+                                comment.isLiked ? "active" : ""
+                              }`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                dispatch(
+                                  likeComment({ commentId: comment._id }),
+                                );
+                              }}
+                            >
+                              <ThumbsUp color="black" strokeWidth={2} />
+                            </Link>
+                          </li>
+
+                          <li>
+                            <Link
+                              href="#"
+                              className={`comment-dislike-btn ${
+                                comment.isDisliked ? "active" : ""
+                              }`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                dispatch(
+                                  dislikeComment({ commentId: comment._id }),
+                                );
+                              }}
+                            >
+                              <ThumbsDown color="black" strokeWidth={2} />
+                            </Link>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

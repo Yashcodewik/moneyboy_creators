@@ -8,7 +8,12 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../redux/store";
-import { addComment, dislikeComment, fetchComments, likeComment,} from "../redux/other/commentSlice";
+import {
+  addComment,
+  dislikeComment,
+  fetchComments,
+  likeComment,
+} from "../redux/other/commentSlice";
 
 interface PostCardProps {
   post: any;
@@ -19,6 +24,8 @@ interface PostCardProps {
 
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
 
 const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [open, setOpen] = useState(false);
@@ -34,6 +41,15 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const postComments = commentsState.comments[post._id] || [];
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
+  const firstMedia =
+    post?.media?.[0]?.mediaFiles?.[0] ||
+    "/images/profile-avatars/profile-avatar-6.jpg";
+  const router = useRouter();
+
+  const { session } = useDecryptedSession();
+
   const desktopStyle: React.CSSProperties = {
     transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
     height: open ? "auto" : "0px",
@@ -104,26 +120,27 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     };
   }, [open, isMobile]);
 
-const formatRelativeTime = (dateString: string) => {
-  const postDate = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - postDate.getTime();
+  const formatRelativeTime = (dateString: string) => {
+    const postDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - postDate.getTime();
 
-  const seconds = Math.floor(diffMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-  if (seconds < 60) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  if (hours < 24) return `${hours} hr ago`;
-  if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
-  if (days < 30) return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
-  if (days < 365) return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
+    if (seconds < 60) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    if (hours < 24) return `${hours} hr ago`;
+    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (days < 30)
+      return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
+    if (days < 365)
+      return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
 
-  return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
-};
-
+    return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
+  };
 
   useEffect(() => {
     if (showComment && post._id) {
@@ -135,14 +152,13 @@ const formatRelativeTime = (dateString: string) => {
     if (!newComment.trim()) return;
 
     const res = await dispatch(
-      addComment({ postId: post._id, comment: newComment })
+      addComment({ postId: post._id, comment: newComment }),
     );
 
     if (res?.meta?.requestStatus === "fulfilled") {
       onCommentAdded?.(post._id); // ✅ only runs if provided
       setNewComment("");
     }
-
   };
   const handleLikeComment = (commentId: string) => {
     dispatch(likeComment({ commentId }));
@@ -154,32 +170,29 @@ const formatRelativeTime = (dateString: string) => {
   const onEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-  
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-  
+
     const updatedText =
       newComment.substring(0, start) +
       emojiData.emoji +
       newComment.substring(end);
-  
+
     setNewComment(updatedText);
-  
+
     requestAnimationFrame(() => {
       textarea.focus();
       textarea.selectionStart = textarea.selectionEnd =
         start + emojiData.emoji.length;
     });
-  
+
     setShowEmojiPicker(false);
   };
-  
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        emojiRef.current &&
-        !emojiRef.current.contains(e.target as Node)
-      ) {
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
         setShowEmojiPicker(false);
       }
     };
@@ -188,11 +201,77 @@ const formatRelativeTime = (dateString: string) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleVideoClick = (
+    e: React.MouseEvent<HTMLVideoElement>,
+    videoId: string,
+  ) => {
+    const video = videoRefs.current[videoId];
+    if (!video) return;
+
+    // ⛔ Ignore clicks on native controls
+    if ((e.target as HTMLElement).tagName !== "VIDEO") return;
+
+    Object.entries(videoRefs.current).forEach(([id, v]) => {
+      if (!v) return;
+
+      if (id === videoId) {
+        if (v.paused) {
+          v.play();
+          setActiveVideo(videoId);
+        } else {
+          v.pause();
+        }
+      } else {
+        v.pause();
+      }
+    });
+  };
+
+  const handleProfileClick = (publicId: string) => {
+    if (!session?.user?.id) {
+      router.push("/login"); // or "/auth/login"
+      return;
+    }
+
+    router.push(`/profile/${publicId}`);
+  };
+
+  const handlePostRedirect = () => {
+    router.push(`/post?page&publicId=${post.publicId}`);
+  };
+
+  const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
+    const aLikes = a.likeCount ?? a.likes?.length ?? 0;
+    const bLikes = b.likeCount ?? b.likes?.length ?? 0;
+    return bLikes - aLikes;
+  });
+
+  const topComment = sortedComments[0];
+  const hasMoreComments = sortedComments.length > 1;
+
+  useEffect(() => {
+  const handleScroll = () => {
+    if (showComment) {
+      setShowComment(false);
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => {
+    window.removeEventListener("scroll", handleScroll);
+  };
+}, [showComment]);
+
   return (
     <>
       <div className="moneyboy-post__container card">
         <div className="moneyboy-post__header">
-          <Link href="#" className="profile-card">
+          <div
+            className="profile-card"
+            onClick={() => handleProfileClick(post.creatorInfo?.publicId)}
+            style={{ cursor: "pointer" }}
+          >
             <div className="profile-card__main">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar">
@@ -220,7 +299,7 @@ const formatRelativeTime = (dateString: string) => {
                 </div>
               </div>
             </div>
-          </Link>
+          </div>
           <div className="moneyboy-post__upload-more-info">
             <div className="moneyboy-post__upload-time">
               {formatRelativeTime(post.createdAt)}
@@ -290,7 +369,11 @@ const formatRelativeTime = (dateString: string) => {
             </div>
           </div>
         </div>
-        <div className="moneyboy-post__desc">
+        <div
+          className="moneyboy-post__desc"
+          onClick={handlePostRedirect}
+          style={{ cursor: "pointer" }}
+        >
           {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>{post.text} {!expanded && (<span className="active-down-effect-2x post-more" onClick={() => setExpanded(true)}>more</span>)}</p> */}
           <p className="post-text">
             {post?.text ? (
@@ -301,7 +384,10 @@ const formatRelativeTime = (dateString: string) => {
                 {post.text.length > 150 && (
                   <span
                     className="active-down-effect-2x post-more"
-                    onClick={() => setExpanded(!expanded)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // ⛔ stop redirect
+                      setExpanded(!expanded);
+                    }}
                   >
                     {expanded ? " less" : " more"}
                   </span>
@@ -327,7 +413,13 @@ const formatRelativeTime = (dateString: string) => {
                   return (
                     <SwiperSlide key={i}>
                       {isVideo ? (
-                        <video src={file} autoPlay muted loop playsInline />
+                        <video
+                          src={firstMedia}
+                          controls
+                          preload="metadata"
+                          playsInline
+                          style={{ width: "100%" }}
+                        />
                       ) : (
                         <img src={file} alt="MoneyBoy Post Image" />
                       )}
@@ -544,20 +636,57 @@ const formatRelativeTime = (dateString: string) => {
           <div className="moneyboy-comment-wrap">
             <div className="comment-wrap">
               <div className="label-input">
-                <textarea ref={textareaRef} placeholder="Add a comment here" value={newComment} onChange={(e) => setNewComment(e.target.value)}/>
-                <div ref={emojiButtonRef} className="input-placeholder-icon" onClick={() => setShowEmojiPicker((prev) => !prev)}><i className="icons emojiSmile svg-icon"></i></div>
+                <textarea
+                  ref={textareaRef}
+                  placeholder="Add a comment here"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                />
+                <div
+                  ref={emojiButtonRef}
+                  className="input-placeholder-icon"
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                >
+                  <i className="icons emojiSmile svg-icon"></i>
+                </div>
               </div>
               {showEmojiPicker && (
                 <div ref={emojiRef} className="emoji-picker-wrapper">
-                  <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={360} width={340}/>
+                  <EmojiPicker
+                    onEmojiClick={onEmojiClick}
+                    autoFocusSearch={false}
+                    skinTonesDisabled
+                    previewConfig={{ showPreview: false }}
+                    height={360}
+                    width={340}
+                  />
                 </div>
               )}
             </div>
-            <button className="premium-btn active-down-effect" onClick={handleAddComment}>
-              <svg width="40" height="35" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z" fill="url(#paint0_linear_4464_314)"/>
+            <button
+              className="premium-btn active-down-effect"
+              onClick={handleAddComment}
+            >
+              <svg
+                width="40"
+                height="35"
+                viewBox="0 0 40 35"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
+                  fill="url(#paint0_linear_4464_314)"
+                />
                 <defs>
-                  <linearGradient id="paint0_linear_4464_314" x1="2.37044" y1="-1.89024e-06" x2="54.674" y2="14.6715" gradientUnits="userSpaceOnUse">
+                  <linearGradient
+                    id="paint0_linear_4464_314"
+                    x1="2.37044"
+                    y1="-1.89024e-06"
+                    x2="54.674"
+                    y2="14.6715"
+                    gradientUnits="userSpaceOnUse"
+                  >
                     <stop stopColor="#FECE26" />
                     <stop offset="1" stopColor="#E5741F" />
                   </linearGradient>
@@ -567,50 +696,85 @@ const formatRelativeTime = (dateString: string) => {
           </div>
 
           {/* ================= Render Comments ================= */}
-          {postComments.filter(Boolean).map((comment) => (
-            <div key={comment._id} className="moneyboy-post__container card gap-15">
-              <div className="moneyboy-post__header">
-                <a href="#" className="profile-card">
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img src={comment.userId?.profile} alt={comment.userId?.userName}/>
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">{comment.userId?.displayName}</div>
-                      </div>
-                      <div className="profile-card__username">@{comment.userId?.userName}</div>
-                    </div>
-                  </div>
-                </a>
-                <div className="moneyboy-post__upload-more-info">
-                  <div className="moneyboy-post__upload-time">{formatRelativeTime(comment.createdAt)}</div>
-                </div>
-              </div>
-              <div className="moneyboy-post__desc"><p>{comment.comment}</p></div>
-              <div className="like-deslike-wrap">
-                <ul>
-                  <li>
-                    <Link href="#" className={`comment-like-btn ${comment.isLiked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); dispatch(likeComment({ commentId: comment._id }));}}>
-                      <ThumbsUp color="black" strokeWidth={2}/>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#" className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); dispatch(dislikeComment({ commentId: comment._id }));}}>
-                      <ThumbsDown color="black" strokeWidth={2}/>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#">
-                      <span className="active-down-effect-2x">Reply</span>
-                    </Link>
-                  </li>
-                </ul>
+         {/* ================= Render Top Comment Only ================= */}
+{topComment && (
+  <div className="moneyboy-post__container card gap-15">
+    <div className="moneyboy-post__header">
+      <a href="#" className="profile-card">
+        <div className="profile-card__main">
+          <div className="profile-card__avatar-settings">
+            <div className="profile-card__avatar">
+              <img
+                src={
+                  topComment.userId?.profile?.trim()
+                    ? topComment.userId.profile
+                    : "/images/profile-avatars/profile-avatar-6.jpg"
+                }
+                alt={topComment.userId?.userName || "User profile"}
+              />
+            </div>
+          </div>
+          <div className="profile-card__info">
+            <div className="profile-card__name-badge">
+              <div className="profile-card__name">
+                {topComment.userId?.displayName}
               </div>
             </div>
-          ))}
+            <div className="profile-card__username">
+              @{topComment.userId?.userName}
+            </div>
+          </div>
+        </div>
+      </a>
+      <div className="moneyboy-post__upload-more-info">
+        <div className="moneyboy-post__upload-time">
+          {formatRelativeTime(topComment.createdAt)}
+        </div>
+      </div>
+    </div>
+    <div className="moneyboy-post__desc">
+      <p>{topComment.comment}</p>
+    </div>
+    <div className="like-deslike-wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <ul style={{ display: "flex", gap: "10px" }}>
+        <li>
+          <Link
+            href="#"
+            className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
+            onClick={(e) => {
+              e.preventDefault();
+              dispatch(likeComment({ commentId: topComment._id }));
+            }}
+          >
+            <ThumbsUp color="black" strokeWidth={2} />
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="#"
+            className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
+            onClick={(e) => {
+              e.preventDefault();
+              dispatch(dislikeComment({ commentId: topComment._id }));
+            }}
+          >
+            <ThumbsDown color="black" strokeWidth={2} />
+          </Link>
+        </li>
+      </ul>
+      {hasMoreComments && (
+        <button
+          onClick={handlePostRedirect}
+          className="active-down-effect-2x"
+          style={{ background: "transparent", border: "none", cursor: "pointer" }}
+        >
+          See more
+        </button>
+      )}
+    </div>
+  </div>
+)}
+
         </div>
       )}
     </>

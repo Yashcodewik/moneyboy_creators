@@ -474,7 +474,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         <div className="menu-profile-stats-txt">
                           <div className="stats-label"> Wallet </div>
                           <div className="stats-value">
-                            <span> $ 1429.43 </span>
+                            <span> 0 </span>
                             <a href="#" className="load-wallet-btn">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -617,7 +617,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                               : "Subscriptions"}
                           </div>
                           <div className="stats-value">
-                            <span>10K</span>
+                            <span>0</span>
                           </div>
                         </div>
                       </div>
