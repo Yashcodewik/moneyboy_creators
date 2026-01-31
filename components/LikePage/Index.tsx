@@ -24,6 +24,8 @@ const LikePage = () => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [time, setTime] = useState<string>("all_time");
+   const [post, setPost] = useState<any>(null);
+   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>(
     {},
@@ -232,6 +234,12 @@ const LikePage = () => {
     return () => clearTimeout(timer);
   }, [searchText]);
 
+   const handleCopy = () => {
+    const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
@@ -427,7 +435,7 @@ const LikePage = () => {
                               <ul>
                                 <li
                                   data-copy-post-link={post._id}
-                                  // onClick={() => handleCopyPostLink(post)}
+                                  onClick={handleCopy}
                                 >
                                   <div className="icon copy-link-icon">
                                     <svg

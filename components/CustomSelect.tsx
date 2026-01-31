@@ -49,7 +49,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+useEffect(() => {
+  if (!open) {
+    setSearch(""); // clear search when dropdown closes
+  }
+}, [open]);
  
   const selectedOption = Array.isArray(internalValue)
     ? options.filter((opt) => internalValue.includes(opt.value))

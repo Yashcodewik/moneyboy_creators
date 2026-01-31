@@ -104,24 +104,26 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     };
   }, [open, isMobile]);
 
-  const formatRelativeTime = (dateString: string) => {
-    const now = new Date();
-    const postDate = new Date(dateString);
-    const diffMs = now.getTime() - postDate.getTime();
+const formatRelativeTime = (dateString: string) => {
+  const postDate = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - postDate.getTime();
 
-    const seconds = Math.floor(diffMs / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
-    if (seconds < 60) return "just now";
-    if (minutes < 60) return `${minutes} min ago`;
-    if (hours < 24) return `${hours} hr ago`;
-    if (days === 1) return "yesterday";
-    if (days < 7) return `${days} days ago`;
+  if (seconds < 60) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours} hr ago`;
+  if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+  if (days < 30) return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
+  if (days < 365) return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
 
-    return postDate.toLocaleDateString();
-  };
+  return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
+};
+
 
   useEffect(() => {
     if (showComment && post._id) {
