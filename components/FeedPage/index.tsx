@@ -352,25 +352,10 @@ const handleSave = async (postId: string) => {
                 Popular
               </button>
             </div>
-            <div
-              id="feed-scroll-container"
-              className="moneyboy-posts-scroll-container"
-            >
-              <InfiniteScrollWrapper
-                className="moneyboy-posts-wrapper"
-                scrollableTarget="feed-scroll-container"
-                dataLength={activeList.length}
-                fetchMore={fetchMoreHandler}
-                hasMore={activeHasMore ?? false}
-              >
+            <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
+              <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={activeList.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore ?? false}>
                 {activeList.map((post) => (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    onLike={handleLike}
-                    onSave={handleSave}
-                    onCommentAdded={incrementCommentCount}
-                  />
+                  <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount}/>
                 ))}
               </InfiniteScrollWrapper>
               {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}

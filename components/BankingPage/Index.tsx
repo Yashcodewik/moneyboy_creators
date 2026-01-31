@@ -8,15 +8,31 @@ import { IoSearch } from "react-icons/io5";
 import { BsThreeDotsVertical } from "react-icons/bs";
 
 const BankingPage = () => {
+   const [activeTab, setActiveTab] = useState("bank");
   return (
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
           <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            {/* <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
               <button className="page-content-type-button active-down-effect active"><svg className="icons storeBox"/>Bank transfer</button>
               <button className="page-content-type-button active-down-effect"><img src="/images/paypal_icons.png" className="paypal_icons mx-auto"/></button>
-            </div>
+            </div> */}
+                 <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            <button
+              className={`page-content-type-button active-down-effect ${activeTab === "bank" ? "active" : ""}`}
+              onClick={() => setActiveTab("bank")}
+            >
+              <svg className="icons storeBox" />Bank transfer
+            </button>
+            <button
+              className={`page-content-type-button active-down-effect ${activeTab === "paypal" ? "active" : ""}`}
+              onClick={() => setActiveTab("paypal")}
+            >
+              <img src="/images/paypal_icons.png" className="paypal_icons mx-auto" />
+            </button>
+          </div>
             <div className="creator-content-filter-grid-container">
+              {activeTab === "bank" && (
               <div className="card filters-card-wrapper">
                 <div className="creator-content-cards-wrapper rqstpayout_containt bank_pay_wrap">
                   <div className="label-input">
@@ -70,6 +86,8 @@ const BankingPage = () => {
                   </div>
                 </div>
               </div>
+              )}
+                {activeTab === "paypal" && (
               <div className="card filters-card-wrapper">
                <div className="creator-content-cards-wrapper rqstpayout_containt pay_wrap">
                 <p className="top_space">Paypal account email</p>
@@ -81,6 +99,7 @@ const BankingPage = () => {
                 </div>
                </div>
               </div>
+                )}
             </div>
           </div>
         </div>

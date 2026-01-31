@@ -8,23 +8,19 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../redux/store";
-import {
-  addComment,
-  dislikeComment,
-  fetchComments,
-  likeComment,
-} from "../redux/other/commentSlice";
+import { addComment, dislikeComment, fetchComments, likeComment,} from "../redux/other/commentSlice";
 
 interface PostCardProps {
   post: any;
   onLike: (postId: string) => void;
   onSave: (postId: string) => void;
-  onCommentAdded?: (postId: string) => void; // ✅ optional
+  onCommentAdded?: (postId: string) => void;
 }
 
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 
-const PostCard = ({ post, onLike, onSave ,onCommentAdded}: PostCardProps) => {
+const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -60,7 +56,6 @@ const PostCard = ({ post, onLike, onSave ,onCommentAdded}: PostCardProps) => {
     overflow: "hidden",
     transition: "transform 0.25s ease",
   };
-
   const handleCopy = () => {
     const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
     navigator.clipboard.writeText(url);
@@ -68,16 +63,22 @@ const PostCard = ({ post, onLike, onSave ,onCommentAdded}: PostCardProps) => {
     setTimeout(() => setCopied(false), 1200);
   };
 
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const emojiRef = useRef<HTMLDivElement | null>(null);
+  const emojiButtonRef = useRef<HTMLDivElement | null>(null);
+
   /* Close menu on outside click */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
       if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target as Node)
+        emojiRef.current &&
+        !emojiRef.current.contains(target) &&
+        !textareaRef.current?.contains(target) &&
+        !emojiButtonRef.current?.contains(target)
       ) {
-        setOpen(false);
+        setShowEmojiPicker(false);
       }
     };
 
@@ -128,19 +129,19 @@ const PostCard = ({ post, onLike, onSave ,onCommentAdded}: PostCardProps) => {
     }
   }, [showComment, post._id, dispatch]);
 
-const handleAddComment = async () => {
-  if (!newComment.trim()) return;
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
 
-  const res = await dispatch(
-    addComment({ postId: post._id, comment: newComment })
-  );
+    const res = await dispatch(
+      addComment({ postId: post._id, comment: newComment })
+    );
 
- if (res?.meta?.requestStatus === "fulfilled") {
-  onCommentAdded?.(post._id); // ✅ only runs if provided
-  setNewComment("");
-}
+    if (res?.meta?.requestStatus === "fulfilled") {
+      onCommentAdded?.(post._id); // ✅ only runs if provided
+      setNewComment("");
+    }
 
-};
+  };
   const handleLikeComment = (commentId: string) => {
     dispatch(likeComment({ commentId }));
   };
@@ -149,9 +150,41 @@ const handleAddComment = async () => {
     dispatch(dislikeComment({ commentId }));
   };
   const onEmojiClick = (emojiData: EmojiClickData) => {
-    setNewComment((prev) => prev + emojiData.emoji);
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+  
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+  
+    const updatedText =
+      newComment.substring(0, start) +
+      emojiData.emoji +
+      newComment.substring(end);
+  
+    setNewComment(updatedText);
+  
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd =
+        start + emojiData.emoji.length;
+    });
+  
     setShowEmojiPicker(false);
   };
+  
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        emojiRef.current &&
+        !emojiRef.current.contains(e.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <>
@@ -505,69 +538,24 @@ const handleAddComment = async () => {
         </div>
       </div>
       {showComment && (
-        <>
+        <div className="flex flex-column gap-20">
           <div className="moneyboy-comment-wrap">
             <div className="comment-wrap">
-              {/* <div className="label-input">
-  <textarea
-    placeholder="Add a comment here"
-    value={newComment}
-    onChange={(e) => setNewComment(e.target.value)}
-  />
-
-  <div
-    className="input-placeholder-icon"
-    onClick={() => setShowEmojiPicker((prev) => !prev)}
-  >
-    <i className="icons emojiSmile svg-icon"></i>
-  </div>
-</div>
-
-{showEmojiPicker && (
-  <div className="emoji-picker-wrapper">
-    <EmojiPicker
-      onEmojiClick={onEmojiClick}
-      autoFocusSearch={false}
-      height={350}
-    />
-  </div>
-)} */}
-
               <div className="label-input">
-                <textarea
-                  placeholder="Add a comment here"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                />
-                <div className="input-placeholder-icon">
-                  <i className="icons emojiSmile svg-icon"></i>
-                </div>
+                <textarea ref={textareaRef} placeholder="Add a comment here" value={newComment} onChange={(e) => setNewComment(e.target.value)}/>
+                <div ref={emojiButtonRef} className="input-placeholder-icon" onClick={() => setShowEmojiPicker((prev) => !prev)}><i className="icons emojiSmile svg-icon"></i></div>
               </div>
+              {showEmojiPicker && (
+                <div ref={emojiRef} className="emoji-picker-wrapper">
+                  <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={360} width={340}/>
+                </div>
+              )}
             </div>
-            <button
-              className="premium-btn active-down-effect"
-              onClick={handleAddComment}
-            >
-              <svg
-                width="40"
-                height="35"
-                viewBox="0 0 40 35"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
-                  fill="url(#paint0_linear_4464_314)"
-                />
+            <button className="premium-btn active-down-effect" onClick={handleAddComment}>
+              <svg width="40" height="35" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z" fill="url(#paint0_linear_4464_314)"/>
                 <defs>
-                  <linearGradient
-                    id="paint0_linear_4464_314"
-                    x1="2.37044"
-                    y1="-1.89024e-06"
-                    x2="54.674"
-                    y2="14.6715"
-                    gradientUnits="userSpaceOnUse"
-                  >
+                  <linearGradient id="paint0_linear_4464_314" x1="2.37044" y1="-1.89024e-06" x2="54.674" y2="14.6715" gradientUnits="userSpaceOnUse">
                     <stop stopColor="#FECE26" />
                     <stop offset="1" stopColor="#E5741F" />
                   </linearGradient>
@@ -577,98 +565,41 @@ const handleAddComment = async () => {
           </div>
 
           {/* ================= Render Comments ================= */}
-          {/* ================= Render Comments ================= */}
           {postComments.filter(Boolean).map((comment) => (
-            <div
-              key={comment._id}
-              className="moneyboy-post__container card gap-15"
-            >
+            <div key={comment._id} className="moneyboy-post__container card gap-15">
               <div className="moneyboy-post__header">
                 <a href="#" className="profile-card">
                   <div className="profile-card__main">
                     <div className="profile-card__avatar-settings">
                       <div className="profile-card__avatar">
-                        <img
-                          src={comment.userId?.profile}
-                          alt={comment.userId?.userName}
-                        />
+                        <img src={comment.userId?.profile} alt={comment.userId?.userName}/>
                       </div>
                     </div>
-
                     <div className="profile-card__info">
                       <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          {comment.userId?.displayName}
-                        </div>
+                        <div className="profile-card__name">{comment.userId?.displayName}</div>
                       </div>
-                      <div className="profile-card__username">
-                        @{comment.userId?.userName}
-                      </div>
+                      <div className="profile-card__username">@{comment.userId?.userName}</div>
                     </div>
                   </div>
                 </a>
-
                 <div className="moneyboy-post__upload-more-info">
-                  <div className="moneyboy-post__upload-time">
-                    {formatRelativeTime(comment.createdAt)}
-                  </div>
+                  <div className="moneyboy-post__upload-time">{formatRelativeTime(comment.createdAt)}</div>
                 </div>
               </div>
-
-              <div className="moneyboy-post__desc">
-                <p>{comment.comment}</p>
-              </div>
-
+              <div className="moneyboy-post__desc"><p>{comment.comment}</p></div>
               <div className="like-deslike-wrap">
                 <ul>
                   <li>
-                    <Link
-                      href="#"
-                      className={`comment-like-btn ${comment.isLiked ? "active" : ""}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        dispatch(likeComment({ commentId: comment._id }));
-                      }}
-                    >
-                      <svg
-                        width="32"
-                        height="32"
-                        viewBox="0 0 32 32"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M32 18.6929C32 19.9368 31.2769 21.0144 30.229 21.5288C30.5076 21.999 30.6682 22.5471 30.6682 23.1323C30.6682 24.4802 29.8188 25.6331 28.6272 26.085C28.865 26.5283 29.0002 27.0347 29.0002 27.5718C29.0002 29.3127 27.584 30.729 25.843 30.729H11.53L7.79907 29.3218V31H0V9.98413H7.79907V11.7739H8.87134L14.7607 4.96069L15.2668 2.17236C15.427 1.29077 16.1934 0.650879 17.0896 0.650879H18.1729C20.2585 0.650879 21.9556 2.3479 21.9556 4.43359C21.9556 5.74463 21.7034 7.02393 21.2058 8.23682L20.0818 11.0962H27.8955C29.6365 11.0962 31.053 12.5125 31.053 14.2534C31.053 14.9055 30.854 15.5122 30.5139 16.0159C31.4055 16.5745 32 17.5654 32 18.6929ZM1.875 29.125H5.92407V11.8591H1.875V29.125ZM27.8955 12.9712H17.3301L19.4634 7.54443L19.4688 7.53076C19.8748 6.54346 20.0806 5.50122 20.0806 4.43359C20.0806 3.38159 19.2249 2.52588 18.1729 2.52588H17.1084L16.5142 5.79932L9.729 13.6489H7.79907V27.3179L11.8718 28.854H25.843C26.55 28.854 27.1252 28.2788 27.1252 27.5718C27.1252 26.8647 26.55 26.2896 25.843 26.2896H21.1458V24.4146H27.511C28.218 24.4146 28.7932 23.8394 28.7932 23.1323C28.7932 22.4253 28.218 21.8501 27.511 21.8501H22.8137V19.9751H28.8428C29.5498 19.9751 30.125 19.3999 30.125 18.6929C30.125 17.9856 29.5498 17.4106 28.8428 17.4106H22.9639V15.5356H27.8955C28.6028 15.5356 29.178 14.9604 29.178 14.2534C29.178 13.5461 28.6028 12.9712 27.8955 12.9712Z"
-                          fill="black"
-                        />
-                      </svg>
+                    <Link href="#" className={`comment-like-btn ${comment.isLiked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); dispatch(likeComment({ commentId: comment._id }));}}>
+                      <ThumbsUp color="black" strokeWidth={2}/>
                     </Link>
                   </li>
-
                   <li>
-                    <Link
-                      href="#"
-                      className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        dispatch(dislikeComment({ commentId: comment._id }));
-                      }}
-                    >
-                      <svg
-                        width="32"
-                        height="32"
-                        viewBox="0 0 32 32"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M32 13.3071C32 12.0632 31.2769 10.9856 30.229 10.4712C30.5076 10.001 30.6682 9.45288 30.6682 8.86768C30.6682 7.51978 29.8188 6.36694 28.6272 5.91504C28.865 5.47168 29.0002 4.96533 29.0002 4.42822C29.0002 2.68726 27.584 1.271 25.843 1.271H11.53L7.79907 2.67822V1H0V22.0159H7.79907V20.2261H8.87134L14.7607 27.0393L15.2668 29.8276C15.427 30.7092 16.1934 31.3491 17.0896 31.3491H18.1729C20.2585 31.3491 21.9556 29.6521 21.9556 27.5664C21.9556 26.2554 21.7034 24.9761 21.2058 23.7632L20.0818 20.9038H27.8955C29.6365 20.9038 31.053 19.4875 31.053 17.7466C31.053 17.0945 30.854 16.4878 30.5139 15.9841C31.4055 15.4255 32 14.4346 32 13.3071ZM1.875 2.875H5.92407V20.1409H1.875V2.875ZM27.8955 19.0288H17.3301L19.4634 24.4556L19.4688 24.4692C19.8748 25.4565 20.0806 26.4988 20.0806 27.5664C20.0806 28.6184 19.2249 29.4741 18.1729 29.4741H17.1084L16.5142 26.2007L9.729 18.3511H7.79907V4.68213L11.8718 3.146H25.843C26.55 3.146 27.1252 3.72119 27.1252 4.42822C27.1252 5.13525 26.55 5.71045 25.843 5.71045H21.1458V7.58545H27.511C28.218 7.58545 28.7932 8.16064 28.7932 8.86768C28.7932 9.57471 28.218 10.1499 27.511 10.1499H22.8137V12.0249H28.8428C29.5498 12.0249 30.125 12.6001 30.125 13.3071C30.125 14.0144 29.5498 14.5894 28.8428 14.5894H22.9639V16.4644H27.8955C28.6028 16.4644 29.178 17.0396 29.178 17.7466C29.178 18.4539 28.6028 19.0288 27.8955 19.0288Z"
-                          fill="black"
-                        />
-                      </svg>
+                    <Link href="#" className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); dispatch(dislikeComment({ commentId: comment._id }));}}>
+                      <ThumbsDown color="black" strokeWidth={2}/>
                     </Link>
                   </li>
-
                   <li>
                     <Link href="#">
                       <span className="active-down-effect-2x">Reply</span>
@@ -678,7 +609,7 @@ const handleAddComment = async () => {
               </div>
             </div>
           ))}
-        </>
+        </div>
       )}
     </>
   );

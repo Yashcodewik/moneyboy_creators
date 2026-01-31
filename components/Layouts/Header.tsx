@@ -934,7 +934,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                       )}
                       {session?.user?.role === 1 && (
                         <a
-                          href="#"
+                          href="/add-funds"
                           className="menu-link add-payment-method-link"
                         >
                           <svg
