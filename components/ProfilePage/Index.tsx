@@ -95,7 +95,7 @@ interface ApiCreatorProfileResponse {
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [profile, setProfile] = useState<ApiCreatorProfileResponse | null>(null);
-  const [postCount, setPostCount] = useState<number>(0);
+  // const [postCount, setPostCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [layoutTab, setLayoutTab] = useState("grid");
@@ -156,7 +156,7 @@ const [transactionData, setTransactionData] = useState<{
         if (response?.user && response?.creator) {
           setProfile(response);
           setIsFollowing(Boolean(response.isFollowing));
-          setPostCount(response.postCount ?? 0);
+          // setPostCount(response.postCount ?? 0);
         }
       } catch (err: any) {
         console.error("Error fetching profile:", err);
@@ -173,7 +173,7 @@ const [transactionData, setTransactionData] = useState<{
 
   useEffect(() => {
     if (profile) {
-      setPostCount(profile.postCount || 0);
+      // setPostCount(profile.postCount || 0);
       setProfileStats({
         followerCount: profile.followerCount || 0,
         followingCount: profile.followingCount || 0,
@@ -186,50 +186,65 @@ const [transactionData, setTransactionData] = useState<{
     dispatch(fetchFollowerCounts());
   }, [dispatch, profilePublicId]);
 
-  const handleFollowToggle = async () => {
-    if (!profilePublicId || isFollowLoading || sessionPublicId === profilePublicId) return;
+const handleFollowToggle = async () => {
+  const targetUserId = profile?.user?._id;
+  const sessionUserId = session?.user?.id;
 
-    setIsFollowLoading(true);
+  if (!targetUserId || !sessionUserId || isFollowLoading) return;
+  if (targetUserId === sessionUserId) return;
 
-    const previousState = {
-      isFollowing,
-      followerCount: profileStats.followerCount,
-    };
+  setIsFollowLoading(true);
 
-    const newFollowingState = !isFollowing;
-    setIsFollowing(newFollowingState);
-    setProfileStats((prev) => ({
-      ...prev,
-      followerCount: newFollowingState ? prev.followerCount + 1 : prev.followerCount - 1,
-    }));
+  const previousState = {
+    isFollowing,
+    followerCount: profileStats.followerCount,
+  };
 
-    try {
-      let result;
-      if (isFollowing) {
-        result = await dispatch(unfollowUserAction(profilePublicId)).unwrap();
-      } else {
-        result = await dispatch(followUserAction(profilePublicId)).unwrap();
-      }
+  const newFollowingState = !isFollowing;
+  setIsFollowing(newFollowingState);
+  setProfileStats((prev) => ({
+    ...prev,
+    followerCount: newFollowingState
+      ? prev.followerCount + 1
+      : prev.followerCount - 1,
+  }));
 
-      if (result?.followerCount !== undefined) {
-        setProfileStats((prev) => ({
-          ...prev,
-          followerCount: result.followerCount,
-        }));
-      }
+  try {
+    let result;
 
-      dispatch(fetchFollowerCounts());
-    } catch (error) {
-      console.error("Error toggling follow:", error);
-      setIsFollowing(previousState.isFollowing);
+    if (isFollowing) {
+      result = await dispatch(
+        unfollowUserAction(targetUserId)
+      ).unwrap();
+    } else {
+      result = await dispatch(
+        followUserAction(targetUserId)
+      ).unwrap();
+    }
+
+    // Sync count from backend if returned
+    if (result?.followerCount !== undefined) {
       setProfileStats((prev) => ({
         ...prev,
-        followerCount: previousState.followerCount,
+        followerCount: result.followerCount,
       }));
-    } finally {
-      setIsFollowLoading(false);
     }
-  };
+
+    dispatch(fetchFollowerCounts());
+  } catch (error) {
+    console.error("Error toggling follow:", error);
+
+    // Rollback optimistic UI on failure
+    setIsFollowing(previousState.isFollowing);
+    setProfileStats((prev) => ({
+      ...prev,
+      followerCount: previousState.followerCount,
+    }));
+  } finally {
+    setIsFollowLoading(false);
+  }
+};
+
 
   const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
     if (!profile?.user?._id || subLoading) return;
@@ -339,7 +354,7 @@ const openTipModal = () => {
   setModalAction(action);
   setShowSubscriptionModal(true);
 };
-
+const postCount = posts.length;
 
 const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
   if (!subStatus) return null;
@@ -847,7 +862,10 @@ const handlePPVClick = (post: any) => {
                           </svg>
                         </a>
                       </li>
-                      {profile && session?.user?.id !== profile.user._id && (
+                      {profile &&
+  session?.user?.id &&
+  profile?.user?._id &&
+  session.user.id !== profile.user._id && (
                         <li>
                           <button
                             className="btn-txt-gradient"
