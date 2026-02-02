@@ -72,8 +72,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
 
       <div className="creater-content-filters-layouts">
         <div className="creator-content-select-filter">
-          <CustomSelect
-            className="bg-white p-sm size-sm"
+          <CustomSelect className="bg-white p-sm size-sm"
             label="All Time"
             options={timeOptions}
             value={time}
