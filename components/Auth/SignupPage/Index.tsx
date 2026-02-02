@@ -122,7 +122,7 @@ const SignupPage = () => {
         <div className="main_cont">
           <img src="/images/logo.svg" className="logo_wrap" />
           <div className="moneyboy-post__container card">
-            <h3 className="heading">Fan Sign up</h3>
+            <h3 className="heading">User Sign up</h3>
             <p>Sign up to interact with your idols!</p>
             <div className="loginbtn_wrap">
               <button className="google-button active-down-effect ">

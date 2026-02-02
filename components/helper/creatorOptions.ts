@@ -218,10 +218,11 @@ export const typeOptions = [
 export const timeOptions = [
   { label: "Most Recent", value: "most_recent" },
   { label: "Today", value: "today" },
-  { label: "This Week", value: "this_week" },
-  { label: "This Month", value: "this_month" },
+  { label: "Last Week", value: "last_7_days" },
+  { label: "Last Month", value: "last_30_days" },
   { label: "All Time", value: "all_time" },
 ];
+
 export const creatorsOptions = [
   { label: "option 1", value: "option 1" },
   { label: "option 2", value: "option 2" },
