@@ -27,7 +27,9 @@ import {
   dislikeComment,
   fetchComments,
   likeComment,
-} from "../../redux/other/commentSlice";
+} from "../redux/other/commentSlice";
+import { Plyr } from "plyr-react";
+import "plyr-react/plyr.css";
 
 const LikePage = () => {
   type FilterType = "like" | "video" | "photos" | null;
@@ -383,17 +385,9 @@ const LikePage = () => {
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
-        <div
-          className="moneyboy-feed-page-container"
-          data-multiple-tabs-section
-          data-scroll-zero
-        >
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            <button
-              className={`page-content-type-button active-down-effect ${
+        <div className="moneyboy-feed-page-container" data-multiple-tabs-section data-scroll-zero>
+          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            <button className={`page-content-type-button active-down-effect ${
                 activeTab === "posts" ? "active" : ""
               }`}
               onClick={() => handleTabClick("posts")}
@@ -418,10 +412,7 @@ const LikePage = () => {
             </button>
           </div>
           {activeTab === "posts" && (
-            <div
-              className="moneyboy-posts-wrapper moneyboy-diff-content-wrappers"
-              data-multi-tabs-content-tabdata__active
-            >
+            <div className="moneyboy-posts-wrapper moneyboy-diff-content-wrappers" data-multi-tabs-content-tabdata__active >
               <div className="creator-content-filter-grid-container">
                 <div className="card filters-card-wrapper">
                   <div className="search-features-grid-btns">
@@ -491,10 +482,7 @@ const LikePage = () => {
               </div>
 
               {posts.map((post, index) => (
-                <div
-                  key={post._id || index}
-                  className="moneyboy-post__container card"
-                >
+                <div key={post._id || index} className="moneyboy-post__container card" >
                   <div className="moneyboy-post__header">
                     <a
                       href="#"
@@ -655,13 +643,8 @@ const LikePage = () => {
                               return (
                                 <SwiperSlide key={i}>
                                   {isVideo ? (
-                                    <video
-                                      src={file}
-                                      controls
-                                      preload="metadata"
-                                      playsInline
-                                      style={{ width: "100%" }}
-                                    />
+                                    <Plyr source={{ type: "video", sources: [{ src: file, type: "video/mp4", },], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
+                                    
                                   ) : (
                                     <img src={file} alt="MoneyBoy Post Image" />
                                   )}
@@ -947,7 +930,6 @@ const LikePage = () => {
                       </div>
 
                       {/* ================= Render Comments ================= */}
-                      {/* ================= Render Top Comment Only ================= */}
                       {topComment && (
                         <div className="moneyboy-post__container card gap-15">
                           <div className="moneyboy-post__header">
@@ -989,29 +971,11 @@ const LikePage = () => {
                           <div className="moneyboy-post__desc">
                             <p>{topComment.comment}</p>
                           </div>
-                          <div
-                            className="like-deslike-wrap"
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <ul style={{ display: "flex", gap: "10px" }}>
+                          <div className="like-deslike-wrap">
+                            <ul>
                               <li>
-                                <Link
-                                  href="#"
-                                  className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    dispatch(
-                                      likeComment({
-                                        commentId: topComment._id,
-                                      }),
-                                    );
-                                  }}
-                                >
-                                  <ThumbsUp color="black" strokeWidth={2} />
+                                <Link href="#" className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); dispatch(likeComment({commentId: topComment._id,}),);}}>
+                                  <ThumbsUp color="black" />
                                 </Link>
                               </li>
                               <li>
@@ -1032,19 +996,7 @@ const LikePage = () => {
                               </li>
                             </ul>
                             {hasMoreComments && (
-                              <button
-                                onClick={() =>
-                                  handlePostRedirect(post.publicId)
-                                }
-                                className="active-down-effect-2x"
-                                style={{
-                                  background: "transparent",
-                                  border: "none",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                See more
-                              </button>
+                              <button onClick={() => handlePostRedirect(post.publicId)} className="active-down-effect-2x">See more</button>
                             )}
                           </div>
                         </div>

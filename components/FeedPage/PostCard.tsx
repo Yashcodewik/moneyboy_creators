@@ -13,7 +13,9 @@ import {
   dislikeComment,
   fetchComments,
   likeComment,
-} from "../../redux/other/commentSlice";
+} from "../redux/other/commentSlice";
+import { Plyr } from "plyr-react";
+import "plyr-react/plyr.css";
 
 interface PostCardProps {
   post: any;
@@ -26,6 +28,8 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import CustomSelect from "../CustomSelect";
+import { CgClose } from "react-icons/cg";
 
 const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [open, setOpen] = useState(false);
@@ -43,9 +47,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [newComment, setNewComment] = useState("");
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
-  const firstMedia =
-    post?.media?.[0]?.mediaFiles?.[0] ||
-    "/images/profile-avatars/profile-avatar-6.jpg";
+  const firstMedia = post?.media?.[0]?.mediaFiles?.[0] || "/images/profile-avatars/profile-avatar-6.jpg";
   const router = useRouter();
 
   const { session } = useDecryptedSession();
@@ -208,7 +210,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     const video = videoRefs.current[videoId];
     if (!video) return;
 
-    // ⛔ Ignore clicks on native controls
     if ((e.target as HTMLElement).tagName !== "VIDEO") return;
 
     Object.entries(videoRefs.current).forEach(([id, v]) => {
@@ -229,7 +230,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
 
   const handleProfileClick = (publicId: string) => {
     if (!session?.user?.id) {
-      router.push("/login"); // or "/auth/login"
+      router.push("/login");
       return;
     }
 
@@ -250,18 +251,18 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const hasMoreComments = sortedComments.length > 1;
 
   useEffect(() => {
-  const handleScroll = () => {
-    if (showComment) {
-      setShowComment(false);
-    }
-  };
+    const handleScroll = () => {
+      if (showComment) {
+        setShowComment(false);
+      }
+    };
 
-  window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
-  return () => {
-    window.removeEventListener("scroll", handleScroll);
-  };
-}, [showComment]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [showComment]);
 
 const isSaved = useAppSelector(
   (state) => !!state.savedPosts.savedPosts[post._id]
@@ -417,13 +418,7 @@ const isSaved = useAppSelector(
                   return (
                     <SwiperSlide key={i}>
                       {isVideo ? (
-                        <video
-                          src={firstMedia}
-                          controls
-                          preload="metadata"
-                          playsInline
-                          style={{ width: "100%" }}
-                        />
+                        <Plyr source={{ type: "video", sources: [{ src: firstMedia, type: "video/mp4", },], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
                       ) : (
                         <img src={file} alt="MoneyBoy Post Image" />
                       )}
@@ -700,85 +695,84 @@ const isSaved = useAppSelector(
             </button>
           </div>
 
-          {/* ================= Render Comments ================= */}
-         {/* ================= Render Top Comment Only ================= */}
-{topComment && (
-  <div className="moneyboy-post__container card gap-15">
-    <div className="moneyboy-post__header">
-      <a href="#" className="profile-card">
-        <div className="profile-card__main">
-          <div className="profile-card__avatar-settings">
-            <div className="profile-card__avatar">
-              <img
-                src={
-                  topComment.userId?.profile?.trim()
-                    ? topComment.userId.profile
-                    : "/images/profile-avatars/profile-avatar-6.jpg"
-                }
-                alt={topComment.userId?.userName || "User profile"}
-              />
-            </div>
-          </div>
-          <div className="profile-card__info">
-            <div className="profile-card__name-badge">
-              <div className="profile-card__name">
-                {topComment.userId?.displayName}
+          {/* ================= Render Top Comment Only ================= */}
+          {topComment && (
+            <div className="moneyboy-post__container card gap-15">
+              <div className="moneyboy-post__header">
+                <a href="#" className="profile-card">
+                  <div className="profile-card__main">
+                    <div className="profile-card__avatar-settings">
+                      <div className="profile-card__avatar">
+                        <img
+                          src={
+                            topComment.userId?.profile?.trim()
+                              ? topComment.userId.profile
+                              : "/images/profile-avatars/profile-avatar-6.jpg"
+                          }
+                          alt={topComment.userId?.userName || "User profile"}
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-card__info">
+                      <div className="profile-card__name-badge">
+                        <div className="profile-card__name">
+                          {topComment.userId?.displayName}
+                        </div>
+                      </div>
+                      <div className="profile-card__username">
+                        @{topComment.userId?.userName}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+                <div className="moneyboy-post__upload-more-info">
+                  <div className="moneyboy-post__upload-time">
+                    {formatRelativeTime(topComment.createdAt)}
+                  </div>
+                </div>
+              </div>
+              <div className="moneyboy-post__desc">
+                <p>{topComment.comment}</p>
+              </div>
+              <div className="like-deslike-wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <ul style={{ display: "flex", gap: "10px" }}>
+                  <li>
+                    <Link
+                      href="#"
+                      className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        dispatch(likeComment({ commentId: topComment._id }));
+                      }}
+                    >
+                      <ThumbsUp color="black" strokeWidth={2} />
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="#"
+                      className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        dispatch(dislikeComment({ commentId: topComment._id }));
+                      }}
+                    >
+                      <ThumbsDown color="black" strokeWidth={2} />
+                    </Link>
+                  </li>
+                </ul>
+                {hasMoreComments && (
+                  <button
+                    onClick={handlePostRedirect}
+                    className="active-down-effect-2x"
+                    style={{ background: "transparent", border: "none", cursor: "pointer" }}
+                  >
+                    See more
+                  </button>
+                )}
               </div>
             </div>
-            <div className="profile-card__username">
-              @{topComment.userId?.userName}
-            </div>
-          </div>
-        </div>
-      </a>
-      <div className="moneyboy-post__upload-more-info">
-        <div className="moneyboy-post__upload-time">
-          {formatRelativeTime(topComment.createdAt)}
-        </div>
-      </div>
-    </div>
-    <div className="moneyboy-post__desc">
-      <p>{topComment.comment}</p>
-    </div>
-    <div className="like-deslike-wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <ul style={{ display: "flex", gap: "10px" }}>
-        <li>
-          <Link
-            href="#"
-            className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
-            onClick={(e) => {
-              e.preventDefault();
-              dispatch(likeComment({ commentId: topComment._id }));
-            }}
-          >
-            <ThumbsUp color="black" strokeWidth={2} />
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="#"
-            className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
-            onClick={(e) => {
-              e.preventDefault();
-              dispatch(dislikeComment({ commentId: topComment._id }));
-            }}
-          >
-            <ThumbsDown color="black" strokeWidth={2} />
-          </Link>
-        </li>
-      </ul>
-      {hasMoreComments && (
-        <button
-          onClick={handlePostRedirect}
-          className="active-down-effect-2x"
-          style={{ background: "transparent", border: "none", cursor: "pointer" }}
-        >
-          See more
-        </button>
-      )}
-    </div>
-  </div>
-)}
+          )}
 
         </div>
       )}

@@ -396,12 +396,7 @@ const handleSave = async (postId: string) => {
       </div>
 
       {/* ================= MODALS ================= */}
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap tip-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -447,12 +442,7 @@ const handleSave = async (postId: string) => {
           </div>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap subscription-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -515,12 +505,7 @@ const handleSave = async (postId: string) => {
           </p>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap tip-modal unlockmodal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -565,12 +550,7 @@ const handleSave = async (postId: string) => {
           </div>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap promote-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -640,12 +620,7 @@ const handleSave = async (postId: string) => {
           </div>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap request-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -655,29 +630,21 @@ const handleSave = async (postId: string) => {
             <div className="profile-card__main justify-center">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar">
-                  <img
-                    src="/images/profile-avatars/profile-avatar-1.png"
-                    alt="MoneyBoy Social Profile Avatar"
-                  />
+                  <img src="/images/profile-avatars/profile-avatar-1.png" alt="MoneyBoy Social Profile Avatar" />
                 </div>
               </div>
               <div className="profile-card__info">
                 <div className="profile-card__name-badge">
                   <div className="profile-card__name">Gogo</div>
                   <div className="profile-card__badge">
-                    <img
-                      src="/images/logo/profile-badge.png"
-                      alt="MoneyBoy Social Profile Badge"
-                    />
+                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge"/>
                   </div>
                 </div>
                 <div className="profile-card__username">@gogo</div>
               </div>
             </div>
           </div>
-          <p className="small">
-            Request a personalized video or photo directly from this MoneyBoy.
-          </p>
+          <p className="small">Request a personalized video or photo directly from this MoneyBoy.</p>
           <div>
             <label>Request type</label>
             <CustomSelect
@@ -721,6 +688,41 @@ const handleSave = async (postId: string) => {
             <button className="active-down-effect">
               <span>Cancel</span>
             </button>
+          </div>
+        </div>
+      </div>
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+        <div className="modal-wrap report-modal">
+          <button className="close-btn">
+            <CgClose size={22} />
+          </button>
+          <h3 className="title">Report Pop-Up</h3>
+          <div className="img_wrap">
+            <img src="/images/profile-avatars/profile-avatar-1.png" alt="MoneyBoy Social Profile Avatar" />
+          </div>
+          <div>
+            <label>Tital <span>*</span></label>
+            <CustomSelect searchable={false} label="Violent Or Repulsive Content"
+              options={[
+                { label: "Violent or repulsive content", value: "violent_or_repulsive" },
+                { label: "Hateful or abusive content", value: "hateful_or_abusive" },
+                { label: "Harassment or bullying", value: "harassment_or_bullying" },
+                { label: "Harmful or dangerous acts", value: "harmful_or_dangerous" },
+                { label: "Child abuse", value: "child_abuse" },
+                { label: "Promotes terrorism", value: "promotes_terrorism" },
+                { label: "Spam or misleading", value: "spam_or_misleading" },
+                { label: "Infringes my rights", value: "infringes_my_rights" },
+                { label: "Others", value: "others" },
+              ]}
+            />
+          </div>
+          <div className="input-wrap">
+            <label>Description</label>
+            <textarea rows={3} placeholder="Tell Us Whay You Report?" />
+            <label className="right">0/300</label>
+          </div>
+          <div className="actions">
+            <button className="premium-btn active-down-effect"><span>Submit</span></button>
           </div>
         </div>
       </div>

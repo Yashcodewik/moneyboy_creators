@@ -19,6 +19,7 @@ import {
 import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
+import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 
 interface Creator {
   _id: string;
@@ -542,7 +543,7 @@ const FollowersPage = () => {
           disabled={page === 1}
           onClick={() => fetchFollowing(page - 1, followingSearchQuery)}
         >
-          ‹
+          <CircleArrowLeft color="#000" />
         </button>
 
         {pages.map((p, i) =>
@@ -564,9 +565,9 @@ const FollowersPage = () => {
         <button
           className="btn-next"
           disabled={page === totalPages}
-          onClick={() => fetchFollowing(page + 1, followingSearchQuery)}
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
         >
-          ›
+          <CircleArrowRight color="#000" />
         </button>
       </div>
     );

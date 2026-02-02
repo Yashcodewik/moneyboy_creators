@@ -23,7 +23,7 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
-import { Smile } from "lucide-react";
+import { CirclePlus, CircleX, Smile } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 type feedParams = {
@@ -400,6 +400,17 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             )}
           </div>
         )}
+
+        <div className="upload-wrapper">
+          <div className="img_wrap pointer" onClick={() => thumbnailInputRef.current?.click()}>
+            <svg className="icons idshape size-45"></svg>
+            <div className="imgicons"><CirclePlus size="16"/></div>
+          </div>
+          <div className="img_wrap">
+            <img src="/images/grow-network-bg-image.png" className="img-fluid upldimg"/>
+            <button className="btn-danger"><CircleX size="16"/></button>
+          </div>
+        </div>
 
         {/* <div
           className="upload-wrapper"
