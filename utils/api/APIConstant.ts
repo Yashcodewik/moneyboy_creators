@@ -66,7 +66,8 @@ export const API_ADD_REPLY = "/post/comment";
 export const API_LIKE_COMMENT = "/post/comment"; 
 export const API_DISLIKE_COMMENT = "/post/comment";
 export const API_GET_SAVED_FREE_ITEMS = "/post/saved/free";
-
+export const API_FREE_SAVE_POST = "/post/freepost/save";
+export const API_FREE_UNSAVE_POST = "/post/freepost/unsave";
 
 
 

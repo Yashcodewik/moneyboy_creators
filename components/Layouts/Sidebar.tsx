@@ -10,8 +10,8 @@ import {
   API_FOLLOWER_COUNT,
   API_USER_PROFILE,
 } from "@/utils/api/APIConstant";
-import { useAppDispatch, useAppSelector } from "../redux/store";
-import { fetchFollowerCounts } from "../redux/other/followActions";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
+import { fetchFollowerCounts } from "../../redux/other/followActions";
 import AddFeedModal from "../FeedPage/AddFeedModal";
 
 const Sidebar: React.FC = () => {
@@ -33,7 +33,7 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     const pathToPageMap: Record<string, string> = {
-       "/": "feed",  
+      "/": "feed",
       "/discover": "discover",
       "/feed": "feed",
       "/like": "likes",
@@ -48,8 +48,8 @@ const Sidebar: React.FC = () => {
       "/follower": "follower",
       "/creator-edit-profile": "creator-edit-profile",
       "/user-edit-profile": "user-edit-profile",
-      "/blacklist":"blacklist",
-      "/block-countries":"block-countries"
+      "/blacklist": "blacklist",
+      "/block-countries": "block-countries",
     };
 
     const currentPage = Object.keys(pathToPageMap).find(
@@ -99,6 +99,7 @@ const Sidebar: React.FC = () => {
           if (session?.user?.role === 2) {
             if (profileResponse.user) {
               userData = {
+                publicId: profileResponse.user.publicId,
                 displayName: profileResponse.user.displayName,
                 username: profileResponse.user.userName,
                 firstName: profileResponse.user.firstName,
@@ -110,6 +111,7 @@ const Sidebar: React.FC = () => {
           } else {
             if (profileResponse.success && profileResponse.data) {
               userData = {
+                publicId: profileResponse.user.publicId,
                 displayName: profileResponse.data.displayName,
                 username: profileResponse.data.userName,
                 firstName: profileResponse.data.firstName,
@@ -160,47 +162,54 @@ const Sidebar: React.FC = () => {
                 <div className="profile-card">
                   <a href="#" className="profile-card__main">
                     <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        <img
-                          src={
-                            userProfile?.profile
-                              ? userProfile.profile
-                              : session?.user?.role === 2
-                                ? "/images/profile-avatars/profile-avatar-1.png"
-                                : "/images/profile-avatars/profile-avatar-13.jpg"
-                          }
-                          alt="MoneyBoy Social Profile Avatar"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src =
-                              "/images/profile-avatars/profile-avatar-13.jpg";
-                          }}
-                        />
-                      </div>
-                      <div className="profile-card__settings active-down-effect-2x">
-                        <svg
-                          className="svg-icon"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                        >
-                          <path
-                            d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z"
-                            strokeWidth="1.5"
-                            strokeMiterlimit="10"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M1.66666 10.7333V9.26666C1.66666 8.4 2.37499 7.68333 3.24999 7.68333C4.75832 7.68333 5.37499 6.61666 4.61666 5.30833C4.18332 4.55833 4.44166 3.58333 5.19999 3.15L6.64166 2.325C7.29999 1.93333 8.14999 2.16666 8.54166 2.825L8.63332 2.98333C9.38332 4.29166 10.6167 4.29166 11.375 2.98333L11.4667 2.825C11.8583 2.16666 12.7083 1.93333 13.3667 2.325L14.8083 3.15C15.5667 3.58333 15.825 4.55833 15.3917 5.30833C14.6333 6.61666 15.25 7.68333 16.7583 7.68333C17.625 7.68333 18.3417 8.39166 18.3417 9.26666V10.7333C18.3417 11.6 17.6333 12.3167 16.7583 12.3167C15.25 12.3167 14.6333 13.3833 15.3917 14.6917C15.825 15.45 15.5667 16.4167 14.8083 16.85L13.3667 17.675C12.7083 18.0667 11.8583 17.8333 11.4667 17.175L11.375 17.0167C10.625 15.7083 9.39166 15.7083 8.63332 17.0167L8.54166 17.175C8.14999 17.8333 7.29999 18.0667 6.64166 17.675L5.19999 16.85C4.44166 16.4167 4.18332 15.4417 4.61666 14.6917C5.37499 13.3833 4.75832 12.3167 3.24999 12.3167C2.37499 12.3167 1.66666 11.6 1.66666 10.7333Z"
-                            strokeWidth="1.5"
-                            strokeMiterlimit="10"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
+                      {userProfile?.publicId && (
+                        <Link href={`/profile/${userProfile.publicId}`}>
+                          <div className="profile-card__avatar">
+                            <img
+                              src={
+                                userProfile?.profile
+                                  ? userProfile.profile
+                                  : session?.user?.role === 2
+                                    ? "/images/profile-avatars/profile-avatar-1.png"
+                                    : "/images/profile-avatars/profile-avatar-13.jpg"
+                              }
+                              alt="MoneyBoy Social Profile Avatar"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src =
+                                  "/images/profile-avatars/profile-avatar-13.jpg";
+                              }}
+                            />
+                          </div>
+                        </Link>
+                      )}
+
+                      <Link href="/creator-edit-profile">
+                        <div className="profile-card__settings active-down-effect-2x">
+                          <svg
+                            className="svg-icon"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                          >
+                            <path
+                              d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z"
+                              strokeWidth="1.5"
+                              strokeMiterlimit="10"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M1.66666 10.7333V9.26666C1.66666 8.4 2.37499 7.68333 3.24999 7.68333C4.75832 7.68333 5.37499 6.61666 4.61666 5.30833C4.18332 4.55833 4.44166 3.58333 5.19999 3.15L6.64166 2.325C7.29999 1.93333 8.14999 2.16666 8.54166 2.825L8.63332 2.98333C9.38332 4.29166 10.6167 4.29166 11.375 2.98333L11.4667 2.825C11.8583 2.16666 12.7083 1.93333 13.3667 2.325L14.8083 3.15C15.5667 3.58333 15.825 4.55833 15.3917 5.30833C14.6333 6.61666 15.25 7.68333 16.7583 7.68333C17.625 7.68333 18.3417 8.39166 18.3417 9.26666V10.7333C18.3417 11.6 17.6333 12.3167 16.7583 12.3167C15.25 12.3167 14.6333 13.3833 15.3917 14.6917C15.825 15.45 15.5667 16.4167 14.8083 16.85L13.3667 17.675C12.7083 18.0667 11.8583 17.8333 11.4667 17.175L11.375 17.0167C10.625 15.7083 9.39166 15.7083 8.63332 17.0167L8.54166 17.175C8.14999 17.8333 7.29999 18.0667 6.64166 17.675L5.19999 16.85C4.44166 16.4167 4.18332 15.4417 4.61666 14.6917C5.37499 13.3833 4.75832 12.3167 3.24999 12.3167C2.37499 12.3167 1.66666 11.6 1.66666 10.7333Z"
+                              strokeWidth="1.5"
+                              strokeMiterlimit="10"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      </Link>
                     </div>
                     <div className="profile-card__info">
                       <div className="profile-card__name-badge">
@@ -213,12 +222,12 @@ const Sidebar: React.FC = () => {
                               "Corey Bergson"}
                         </div>
                         {session?.user?.role === 2 && (
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
+                          <div className="profile-card__badge">
+                            <img
+                              src="/images/logo/profile-badge.png"
+                              alt="MoneyBoy Social Profile Badge"
+                            />
+                          </div>
                         )}
                       </div>
                       <div className="profile-card__username">
@@ -610,14 +619,57 @@ const Sidebar: React.FC = () => {
 
                     {session?.user?.role === 1 && (
                       <li>
-                        <Link href="#" className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""}`} onClick={(e) => handleNavClick("subscriptions", "/subscriptions", e)}>
+                        <Link
+                          href="#"
+                          className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""}`}
+                          onClick={(e) =>
+                            handleNavClick("subscriptions", "/subscriptions", e)
+                          }
+                        >
                           <div>
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M11.3599 2.8125V9.2925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                            <svg
+                              width="32"
+                              height="32"
+                              viewBox="0 0 32 32"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z"
+                                stroke="black"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M3.35986 9.48047H28.6399"
+                                stroke="black"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M11.3599 2.8125V9.2925"
+                                stroke="black"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M20.6401 2.8125V8.6925"
+                                stroke="black"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z"
+                                stroke="black"
+                                stroke-width="2"
+                                stroke-miterlimit="10"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
                             </svg>
                             <span>Subscriptions</span>
                           </div>
@@ -671,63 +723,63 @@ const Sidebar: React.FC = () => {
                         </div>
                       </Link>
                     </li>
-                    
-                      <li>
-                        <Link
-                          href="/store"
-                          className={`active-down-effect ${
-                            activePage === "store" ? "active" : ""
-                          }`}
-                          onClick={(e) => handleNavClick("store", "/store", e)}
-                        >
-                          <div>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="32"
-                              height="32"
-                              viewBox="0 0 32 32"
-                              fill="none"
-                            >
-                              <path
-                                d="M4.01334 14.96V20.9467C4.01334 26.9334 6.41334 29.3334 12.4 29.3334H19.5867C25.5733 29.3334 27.9733 26.9334 27.9733 20.9467V14.96"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M16 16C18.44 16 20.24 14.0134 20 11.5734L19.12 2.66669H12.8933L12 11.5734C11.76 14.0134 13.56 16 16 16Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M24.4133 16C27.1067 16 29.08 13.8134 28.8133 11.1334L28.44 7.46669C27.96 4.00002 26.6267 2.66669 23.1333 2.66669H19.0667L20 12.0134C20.2267 14.2134 22.2133 16 24.4133 16Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7.52 16C9.72 16 11.7067 14.2134 11.92 12.0134L12.2133 9.06669L12.8533 2.66669H8.78666C5.29333 2.66669 3.96 4.00002 3.48 7.46669L3.12 11.1334C2.85333 13.8134 4.82666 16 7.52 16Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M16 22.6667C13.7733 22.6667 12.6667 23.7734 12.6667 26V29.3334H19.3333V26C19.3333 23.7734 18.2267 22.6667 16 22.6667Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span>Store</span>
-                          </div>
-                        </Link>
-                      </li>
+
+                    <li>
+                      <Link
+                        href="/store"
+                        className={`active-down-effect ${
+                          activePage === "store" ? "active" : ""
+                        }`}
+                        onClick={(e) => handleNavClick("store", "/store", e)}
+                      >
+                        <div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 32 32"
+                            fill="none"
+                          >
+                            <path
+                              d="M4.01334 14.96V20.9467C4.01334 26.9334 6.41334 29.3334 12.4 29.3334H19.5867C25.5733 29.3334 27.9733 26.9334 27.9733 20.9467V14.96"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M16 16C18.44 16 20.24 14.0134 20 11.5734L19.12 2.66669H12.8933L12 11.5734C11.76 14.0134 13.56 16 16 16Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M24.4133 16C27.1067 16 29.08 13.8134 28.8133 11.1334L28.44 7.46669C27.96 4.00002 26.6267 2.66669 23.1333 2.66669H19.0667L20 12.0134C20.2267 14.2134 22.2133 16 24.4133 16Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M7.52 16C9.72 16 11.7067 14.2134 11.92 12.0134L12.2133 9.06669L12.8533 2.66669H8.78666C5.29333 2.66669 3.96 4.00002 3.48 7.46669L3.12 11.1334C2.85333 13.8134 4.82666 16 7.52 16Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M16 22.6667C13.7733 22.6667 12.6667 23.7734 12.6667 26V29.3334H19.3333V26C19.3333 23.7734 18.2267 22.6667 16 22.6667Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Store</span>
+                        </div>
+                      </Link>
+                    </li>
                     {/* <li>
                     <Link
                       href="/"

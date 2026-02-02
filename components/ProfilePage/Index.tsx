@@ -18,7 +18,7 @@ import {
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useParams, useRouter } from "next/navigation";
-import { AppDispatch, RootState } from "../redux/store";
+import { AppDispatch, RootState } from "../../redux/store";
 import {
   fetchFollowerCounts,
   followUserAction,

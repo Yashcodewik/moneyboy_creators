@@ -20,7 +20,7 @@ import "swiper/css/navigation";
 import { useRouter } from "next/navigation";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Link } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../redux/store";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import {
   addComment,
