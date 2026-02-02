@@ -6,15 +6,31 @@ import {
   API_UNLIKE_POST,
   API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
-import { apiPost, getApi } from "@/utils/endpoints/common";
+import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
 import Featuredboys from "../Featuredboys";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import { useRouter } from "next/navigation";
+import { Link, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../redux/store";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import {
+  addComment,
+  dislikeComment,
+  fetchComments,
+  likeComment,
+} from "../redux/other/commentSlice";
 
 const LikePage = () => {
   type FilterType = "like" | "video" | "photos" | null;
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -24,15 +40,28 @@ const LikePage = () => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [time, setTime] = useState<string>("all_time");
+  const [post, setPost] = useState<any>(null);
+  const [showComment, setShowComment] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>(
     {},
   );
+  const dispatch = useAppDispatch();
+
   const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
   const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
   const setMenuRef = (id: number, element: HTMLDivElement | null) => {
     menuRefs.current.set(id, element);
   };
+  const commentsState = useAppSelector((state) => state.comments);
+  const postComments = commentsState.comments[post?._id] || [];
+
+  const [newComment, setNewComment] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const emojiRef = useRef<HTMLDivElement | null>(null);
+  const emojiButtonRef = useRef<HTMLDivElement | null>(null);
 
   const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
     buttonRefs.current.set(id, element);
@@ -45,6 +74,11 @@ const LikePage = () => {
     photos: "grid",
   });
   const [searchText, setSearchText] = useState("");
+  const router = useRouter();
+
+  const handlePostRedirect = (publicId: string) => {
+    router.push(`/post?page&publicId=${publicId}`);
+  };
 
   const toggleMenu = (id: number) => {
     setOpenMenuId((prev) => (prev === id ? null : id));
@@ -125,43 +159,6 @@ const LikePage = () => {
     };
   }, [openMenuId]);
 
-  const fetchLikedPosts = async (pageNo = 1) => {
-    if (loading) return;
-
-    setLoading(true);
-    try {
-      const res = await getApi({
-        url: API_GET_LIKED_POSTS,
-        page: pageNo,
-        rowsPerPage: 10,
-        searchText,
-      });
-
-      if (res?.success) {
-        const mappedPosts = res.posts.map((post: any) => ({
-          ...post,
-          liked: post.isLiked,
-          saved: post.isSaved,
-        }));
-
-        setPosts((prev) =>
-          pageNo === 1 ? mappedPosts : [...prev, ...mappedPosts],
-        );
-
-        setHasNextPage(res.pagination.hasNextPage);
-        setPage(pageNo);
-      }
-    } catch (err) {
-      console.error("Failed to fetch liked posts", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLikedPosts(1);
-  }, []);
-
   const timeAgo = (date: string) => {
     const diff = Date.now() - new Date(date).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -224,14 +221,156 @@ const LikePage = () => {
     }));
   };
 
+  const fetchLikedPostsApi = async ({
+    page,
+    type,
+    searchText,
+    time,
+  }: {
+    page: number;
+    type: "all" | "video" | "photo";
+    searchText: string;
+    time: string;
+  }) => {
+    const baseUrl = API_GET_LIKED_POSTS.split("?")[0];
+
+    const url = `${baseUrl}?page=${page}&rowsPerPage=10&q=${searchText}&type=${type}&time=${time}`;
+
+    const res = await getApiWithOutQuery({ url });
+
+    if (!res?.success) {
+      throw new Error("Failed to fetch liked posts");
+    }
+
+    return res;
+  };
+  const type =
+    activeTab === "videos" ? "video" : activeTab === "photos" ? "photo" : "all";
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["likedPosts", activeTab, time, searchText, page],
+    queryFn: () =>
+      fetchLikedPostsApi({
+        page,
+        type,
+        searchText,
+        time,
+      }),
+    placeholderData: keepPreviousData,
+  });
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchLikedPosts(1);
-    }, 400);
+    setPage(1);
+  }, [activeTab, time, searchText]);
 
-    return () => clearTimeout(timer);
-  }, [searchText]);
+  useEffect(() => {
+    if (data?.success) {
+      const mappedPosts = data.posts.map((post: any) => ({
+        ...post,
+        liked: post.isLiked,
+        saved: post.isSaved,
+      }));
 
+      setPosts(mappedPosts);
+      setHasNextPage(data.pagination.hasNextPage);
+    }
+  }, [data]);
+
+  const handleCopy = (publicId: string) => {
+    const url = `${window.location.origin}/post?page&publicId=${publicId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
+  const handleProfileClick = (publicId: string) => {
+    router.push(`/profile/${publicId}`);
+  };
+
+  const videoPosts = posts.filter((p) => p.media?.[0]?.type === "video");
+
+  const photoPosts = posts.filter((p) => p.media?.[0]?.type === "photo");
+
+  const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
+    const aLikes = a.likeCount ?? a.likes?.length ?? 0;
+    const bLikes = b.likeCount ?? b.likes?.length ?? 0;
+    return bLikes - aLikes;
+  });
+
+  const formatRelativeTime = (dateString: string) => {
+    const postDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - postDate.getTime();
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    if (hours < 24) return `${hours} hr ago`;
+    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (days < 30)
+      return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
+    if (days < 365)
+      return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
+
+    return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
+  };
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const updatedText =
+      newComment.substring(0, start) +
+      emojiData.emoji +
+      newComment.substring(end);
+
+    setNewComment(updatedText);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd =
+        start + emojiData.emoji.length;
+    });
+
+    setShowEmojiPicker(false);
+  };
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    if (!post?._id) return;
+
+    const res = await dispatch(
+      addComment({ postId: post._id, comment: newComment }),
+    );
+
+    if (res?.meta?.requestStatus === "fulfilled") {
+      setNewComment("");
+      dispatch(fetchComments(post._id)); // refresh list
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (
+        emojiRef.current &&
+        !emojiRef.current.contains(target) &&
+        !textareaRef.current?.contains(target) &&
+        !emojiButtonRef.current?.contains(target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
@@ -333,7 +472,7 @@ const LikePage = () => {
                           searchable={false}
                           onChange={(val) => {
                             setTime(val as string);
-                            fetchLikedPosts(1);
+                            // fetchLikedPosts(1);
                           }}
                         />
                       </div>
@@ -348,7 +487,14 @@ const LikePage = () => {
                   className="moneyboy-post__container card"
                 >
                   <div className="moneyboy-post__header">
-                    <a href="#" className="profile-card">
+                    <a
+                      href="#"
+                      className="profile-card"
+                      onClick={() =>
+                        handleProfileClick(post.creatorInfo?.publicId)
+                      }
+                      style={{ cursor: "pointer" }}
+                    >
                       <div className="profile-card__main">
                         <div className="profile-card__avatar-settings">
                           <div className="profile-card__avatar">
@@ -427,7 +573,7 @@ const LikePage = () => {
                               <ul>
                                 <li
                                   data-copy-post-link={post._id}
-                                  // onClick={() => handleCopyPostLink(post)}
+                                  onClick={() => handleCopy(post.publicId)}
                                 >
                                   <div className="icon copy-link-icon">
                                     <svg
@@ -445,7 +591,9 @@ const LikePage = () => {
                                       />
                                     </svg>
                                   </div>
-                                  <span>Copy Link</span>
+                                  <span>
+                                    {copied ? "Copied!" : "Copy Link"}
+                                  </span>
                                 </li>
                               </ul>
                             </div>
@@ -455,7 +603,11 @@ const LikePage = () => {
                     </div>
                   </div>
 
-                  <div className="moneyboy-post__desc">
+                  <div
+                    className="moneyboy-post__desc"
+                    onClick={() => handlePostRedirect(post.publicId)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <p>
                       {expandedPosts[post._id]
                         ? post.text
@@ -474,26 +626,46 @@ const LikePage = () => {
                   </div>
 
                   <div className="moneyboy-post__media">
-                    <div className="moneyboy-post__img">
-                      {post.media?.[0]?.type === "video" ? (
-                        <video
-                          src={post.media[0].mediaFiles[0]}
-                          controls
-                          muted
-                          playsInline
-                          className="moneyboy-post__video"
-                        />
-                      ) : (
-                        <img
-                          src={
-                            post.thumbnail?.trim()
-                              ? post.thumbnail
-                              : post.media?.[0]?.mediaFiles?.[0] ||
-                                "/images/post-images/post-img-10.jpg"
-                          }
-                          alt="MoneyBoy Post Image"
-                        />
-                      )}
+                    <div
+                      className="moneyboy-post__img"
+                      // onClick={() => handlePostRedirect(post.publicId)}
+                      // style={{ cursor: "pointer" }}
+                    >
+                      <Swiper
+                        slidesPerView={1}
+                        spaceBetween={15}
+                        navigation
+                        modules={[Navigation]}
+                        className="post_swiper"
+                      >
+                        {post.media?.[0]?.mediaFiles?.length > 0 ? (
+                          post.media[0].mediaFiles.map(
+                            (file: string, i: number) => {
+                              const isVideo = post.media?.[0]?.type === "video";
+
+                              return (
+                                <SwiperSlide key={i}>
+                                  {isVideo ? (
+                                    <video
+                                      src={file}
+                                      controls
+                                      preload="metadata"
+                                      playsInline
+                                      style={{ width: "100%" }}
+                                    />
+                                  ) : (
+                                    <img src={file} alt="MoneyBoy Post Image" />
+                                  )}
+                                </SwiperSlide>
+                              );
+                            },
+                          )
+                        ) : (
+                          <SwiperSlide>
+                            <div className="nomedia"></div>
+                          </SwiperSlide>
+                        )}
+                      </Swiper>
                     </div>
 
                     <div className="moneyboy-post__actions">
@@ -576,7 +748,15 @@ const LikePage = () => {
                           </a>
                         </li>
                         <li>
-                          <a href="#">
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPost(post); // 🔥 SET CURRENT POST
+                              setShowComment((prev) => !prev);
+                              dispatch(fetchComments(post._id)); // 🔥 LOAD COMMENTS
+                            }}
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
@@ -607,7 +787,7 @@ const LikePage = () => {
                                 strokeLinejoin="round"
                               />
                             </svg>
-                            <span>{post.comment || 0}</span>
+                            <span>{post.commentCount || 0}</span>
                           </a>
                         </li>
                       </ul>
@@ -866,579 +1046,131 @@ const LikePage = () => {
                         }
                       >
                         <div className="creator-content-type-container-wrapper">
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-10.jpg"
-                                  alt="Post Image"
-                                />
+                          {videoPosts.map((post: any, index: number) => (
+                            <div
+                              key={post._id || index}
+                              className="creator-media-card card"
+                              onClick={() => handlePostRedirect(post.publicId)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              <div className="creator-media-card__media-wrapper">
+                                <div className="creator-media-card__media">
+                                  <video
+                                    src={post.media?.[0]?.mediaFiles?.[0]}
+                                    muted
+                                    controls
+                                    playsInline
+                                  />
+                                </div>
+
+                                <div className="creator-media-card__overlay"></div>
+
+                                <div className="creator-media-card__stats-overlay">
+                                  <div className="creator-media-card__post-stats">
+                                    <ul>
+                                      <li>
+                                        <a href="#" className="post-like-btn">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                          <span>{post.likeCount || 0}</span>
+                                        </a>
+                                      </li>
+                                      <li>
+                                        <a
+                                          href="#"
+                                          className="post-comment-btn"
+                                        >
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeMiterlimit="10"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                            <path
+                                              d="M7 8H17"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                            <path
+                                              d="M7 13H13"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                          <span>{post.commentCount || 0}</span>
+                                        </a>
+                                      </li>
+                                    </ul>
+                                  </div>
+
+                                  <div className="creator-media-card__overlay-profile-wrapper">
+                                    <a href="#" className="profile-card">
+                                      <div className="profile-card__main">
+                                        <div className="profile-card__avatar-settings">
+                                          <div className="profile-card__avatar">
+                                            <img
+                                              src={
+                                                post.creatorInfo?.profile ||
+                                                "/images/profile-avatars/profile-avatar-1.png"
+                                              }
+                                              alt="Profile"
+                                            />
+                                          </div>
+                                        </div>
+                                        <div className="profile-card__info">
+                                          <div className="profile-card__name">
+                                            {post.creatorInfo?.displayName}
+                                          </div>
+                                          <div className="profile-card__username">
+                                            @{post.creatorInfo?.userName}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
                               </div>
 
-                              <div className="creator-media-card__overlay">
-                                {/* <div className="creator-media-card__stats">
-                                  <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div>
-                                </div> */}
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Corey Bergson
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </a>
-                                </div>
+                              <div className="creator-media-card__desc">
+                                <p
+                                  style={{
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  {post.text}
+                                </p>
                               </div>
                             </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-7.jpg"
-                                  alt="Post Image"
-                                />
-                              </div>
-                              <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
-                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div> */}
-                                </div>
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Corey Bergson
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-9.jpg"
-                                  alt="Post Image"
-                                />
-                              </div>
-                              <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
-                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div> */}
-                                </div>
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Corey Bergson
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-8.jpg"
-                                  alt="Post Image"
-                                />
-                              </div>
-                              <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
-                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div> */}
-                                </div>
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Corey Bergson
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -1598,578 +1330,133 @@ const LikePage = () => {
                         }
                       >
                         <div className="creator-content-type-container-wrapper">
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-8.jpg"
-                                  alt="Post Image"
-                                />
-                              </div>
-                              <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
-                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div> */}
+                          {photoPosts.map((post: any, index: number) => (
+                            <div
+                              key={post._id || index}
+                              className="creator-media-card card"
+                              onClick={() => handlePostRedirect(post.publicId)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              <div className="creator-media-card__media-wrapper">
+                                <div className="creator-media-card__media">
+                                  <img
+                                    src={
+                                      post.thumbnail?.trim()
+                                        ? post.thumbnail
+                                        : post.media?.[0]?.mediaFiles?.[0]
+                                    }
+                                    alt="Post Image"
+                                  />
                                 </div>
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
+
+                                <div className="creator-media-card__overlay"></div>
+
+                                <div className="creator-media-card__stats-overlay">
+                                  <div className="creator-media-card__post-stats">
+                                    <ul>
+                                      <li>
+                                        <a href="#" className="post-like-btn">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                          <span>{post.likeCount || 0}</span>
+                                        </a>
+                                      </li>
+                                      <li>
+                                        <a
+                                          href="#"
+                                          className="post-comment-btn"
                                         >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Corey Bergson
-                                          </div>
-                                          <div className="profile-card__badge">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                          >
+                                            <path
+                                              d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeMiterlimit="10"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                            <path
+                                              d="M7 8H17"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                            <path
+                                              d="M7 13H13"
+                                              stroke="white"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                          <span>{post.commentCount || 0}</span>
+                                        </a>
+                                      </li>
+                                    </ul>
+                                  </div>
+
+                                  <div className="creator-media-card__overlay-profile-wrapper">
+                                    <a href="#" className="profile-card">
+                                      <div className="profile-card__main">
+                                        <div className="profile-card__avatar-settings">
+                                          <div className="profile-card__avatar">
                                             <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
+                                              src={
+                                                post.creatorInfo?.profile ||
+                                                "/images/profile-avatars/profile-avatar-1.png"
+                                              }
+                                              alt="Profile"
                                             />
                                           </div>
                                         </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-9.jpg"
-                                  alt="Post Image"
-                                />
-                              </div>
-                              <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
-                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div> */}
-                                </div>
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
+                                        <div className="profile-card__info">
                                           <div className="profile-card__name">
-                                            Corey Bergson
+                                            {post.creatorInfo?.displayName}
                                           </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
+                                          <div className="profile-card__username">
+                                            @{post.creatorInfo?.userName}
                                           </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
                                         </div>
                                       </div>
-                                    </div>
-                                  </a>
+                                    </a>
+                                  </div>
                                 </div>
+                              </div>
+
+                              <div className="creator-media-card__desc">
+                                <p
+                                  style={{
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  {post.text}
+                                </p>
                               </div>
                             </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-10.jpg"
-                                  alt="Post Image"
-                                />
-                              </div>
-                              <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
-                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div> */}
-                                </div>
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Corey Bergson
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="creator-media-card card">
-                            <div className="creator-media-card__media-wrapper">
-                              <div className="creator-media-card__media">
-                                <img
-                                  src="/images/post-images/post-img-7.jpg"
-                                  alt="Post Image"
-                                />
-                              </div>
-                              <div className="creator-media-card__overlay">
-                                <div className="creator-media-card__stats">
-                                  {/* <div className="creator-media-card__stats-btn wishlist-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                      <path
-                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                        stroke="white"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      ></path>
-                                    </svg>
-                                    <span> 13 </span>
-                                  </div> */}
-                                </div>
-                              </div>
-                              <div className="creator-media-card__stats-overlay">
-                                <div className="creator-media-card__post-stats">
-                                  <ul>
-                                    <li>
-                                      <a href="#" className="post-like-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>12K</span>
-                                      </a>
-                                    </li>
-                                    <li>
-                                      <a href="#" className="post-comment-btn">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 8H17"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                          <path
-                                            d="M7 13H13"
-                                            stroke="white"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          ></path>
-                                        </svg>
-                                        <span>15</span>
-                                      </a>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <div className="creator-media-card__overlay-profile-wrapper">
-                                  <a href="#" className="profile-card">
-                                    <div className="profile-card__main">
-                                      <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                          <img
-                                            src="/images/profile-avatars/profile-avatar-1.png"
-                                            alt="MoneyBoy Social Profile Avatar"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                          <div className="profile-card__name">
-                                            Corey Bergson
-                                          </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="MoneyBoy Social Profile Badge"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="profile-card__username">
-                                          @coreybergson
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="creator-media-card__desc">
-                              <p>
-                                Today, I experienced the most blissful ride
-                                outside.
-                              </p>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     </div>

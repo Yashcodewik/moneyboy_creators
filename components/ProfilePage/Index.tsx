@@ -9,12 +9,13 @@ import {
   API_GET_POSTS_BY_CREATOR,
   API_SAVE_POST,
   API_SUBSCRIBE_CREATOR,
+  API_UNLOCK_POST,
   API_UNSAVE_POST,
   API_UPGRADE_SUBSCRIPTION,
 } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AppDispatch, RootState } from "../redux/store";
 import {
   fetchFollowerCounts,
@@ -24,9 +25,12 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
+import PPVRequestModal from "./PPVRequestModal";
+import UnlockContentModal from "./UnlockContentModal";
 
 interface User {
   _id: string;
+  userId: string;
   publicId: string;
   firstName: string;
   lastName: string;
@@ -93,7 +97,7 @@ interface ApiCreatorProfileResponse {
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [profile, setProfile] = useState<ApiCreatorProfileResponse | null>(null);
-  const [postCount, setPostCount] = useState<number>(0);
+  // const [postCount, setPostCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [layoutTab, setLayoutTab] = useState("grid");
@@ -106,8 +110,21 @@ const ProfilePage = () => {
 const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY" | null>(null);
 const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew" | null>(null);
 const [showTipModal, setShowTipModal] = useState(false);
+const [selectedPost, setSelectedPost] = useState<any | null>(null);
+const [showPPVRequestModal, setShowPPVRequestModal] = useState(false);
+const [showTransactionModal, setShowTransactionModal] = useState(false);
+const [unlockLoading, setUnlockLoading] = useState(false);
 
+const [showUnlockModal, setShowUnlockModal] = useState(false);
+const [unlockPost, setUnlockPost] = useState<any>(null);
 
+const [transactionData, setTransactionData] = useState<{
+  postId?: string;
+  creatorId?: string;
+  amount?: number;
+} | null>(null);
+
+  const router = useRouter();
   const params = useParams();
   const profilePublicId = params.id as string;
   const { session, status } = useDecryptedSession();
@@ -146,7 +163,7 @@ const [showTipModal, setShowTipModal] = useState(false);
         if (response?.user && response?.creator) {
           setProfile(response);
           setIsFollowing(Boolean(response.isFollowing));
-          setPostCount(response.postCount ?? 0);
+          // setPostCount(response.postCount ?? 0);
         }
       } catch (err: any) {
         console.error("Error fetching profile:", err);
@@ -163,7 +180,7 @@ const [showTipModal, setShowTipModal] = useState(false);
 
   useEffect(() => {
     if (profile) {
-      setPostCount(profile.postCount || 0);
+      // setPostCount(profile.postCount || 0);
       setProfileStats({
         followerCount: profile.followerCount || 0,
         followingCount: profile.followingCount || 0,
@@ -176,50 +193,65 @@ const [showTipModal, setShowTipModal] = useState(false);
     dispatch(fetchFollowerCounts());
   }, [dispatch, profilePublicId]);
 
-  const handleFollowToggle = async () => {
-    if (!profilePublicId || isFollowLoading || sessionPublicId === profilePublicId) return;
+const handleFollowToggle = async () => {
+  const targetUserId = profile?.user?._id;
+  const sessionUserId = session?.user?.id;
 
-    setIsFollowLoading(true);
+  if (!targetUserId || !sessionUserId || isFollowLoading) return;
+  if (targetUserId === sessionUserId) return;
 
-    const previousState = {
-      isFollowing,
-      followerCount: profileStats.followerCount,
-    };
+  setIsFollowLoading(true);
 
-    const newFollowingState = !isFollowing;
-    setIsFollowing(newFollowingState);
-    setProfileStats((prev) => ({
-      ...prev,
-      followerCount: newFollowingState ? prev.followerCount + 1 : prev.followerCount - 1,
-    }));
+  const previousState = {
+    isFollowing,
+    followerCount: profileStats.followerCount,
+  };
 
-    try {
-      let result;
-      if (isFollowing) {
-        result = await dispatch(unfollowUserAction(profilePublicId)).unwrap();
-      } else {
-        result = await dispatch(followUserAction(profilePublicId)).unwrap();
-      }
+  const newFollowingState = !isFollowing;
+  setIsFollowing(newFollowingState);
+  setProfileStats((prev) => ({
+    ...prev,
+    followerCount: newFollowingState
+      ? prev.followerCount + 1
+      : prev.followerCount - 1,
+  }));
 
-      if (result?.followerCount !== undefined) {
-        setProfileStats((prev) => ({
-          ...prev,
-          followerCount: result.followerCount,
-        }));
-      }
+  try {
+    let result;
 
-      dispatch(fetchFollowerCounts());
-    } catch (error) {
-      console.error("Error toggling follow:", error);
-      setIsFollowing(previousState.isFollowing);
+    if (isFollowing) {
+      result = await dispatch(
+        unfollowUserAction(targetUserId)
+      ).unwrap();
+    } else {
+      result = await dispatch(
+        followUserAction(targetUserId)
+      ).unwrap();
+    }
+
+    // Sync count from backend if returned
+    if (result?.followerCount !== undefined) {
       setProfileStats((prev) => ({
         ...prev,
-        followerCount: previousState.followerCount,
+        followerCount: result.followerCount,
       }));
-    } finally {
-      setIsFollowLoading(false);
     }
-  };
+
+    dispatch(fetchFollowerCounts());
+  } catch (error) {
+    console.error("Error toggling follow:", error);
+
+    // Rollback optimistic UI on failure
+    setIsFollowing(previousState.isFollowing);
+    setProfileStats((prev) => ({
+      ...prev,
+      followerCount: previousState.followerCount,
+    }));
+  } finally {
+    setIsFollowLoading(false);
+  }
+};
+
 
   const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
     if (!profile?.user?._id || subLoading) return;
@@ -298,6 +330,36 @@ const [showTipModal, setShowTipModal] = useState(false);
 const openTipModal = () => {
   setShowTipModal(true);
 };
+const confirmUnlockPost = async () => {
+  if (!unlockPost) return;
+
+  try {
+    setUnlockLoading(true);
+
+    const res = await apiPost({
+      url: API_UNLOCK_POST,
+      values: {
+        postId: unlockPost._id,
+        creatorId: profile?.user?._id,
+      },
+    });
+
+    if (res?.success) {
+      // update local post
+      unlockPost.isUnlocked = true;
+
+      setShowUnlockModal(false);
+      setUnlockPost(null);
+
+      // redirect to post
+      router.push(`/post?page&publicId=${unlockPost.publicId}`);
+    } else {
+      alert(res?.message || "Failed to unlock post");
+    }
+  } finally {
+    setUnlockLoading(false);
+  }
+};
 
 
   const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
@@ -329,7 +391,7 @@ const openTipModal = () => {
   setModalAction(action);
   setShowSubscriptionModal(true);
 };
-
+const postCount = posts.length;
 
 const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
   if (!subStatus) return null;
@@ -391,6 +453,25 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
   return null;
 };
 
+const handlePPVClick = (post: any) => {
+  // 1. Not logged in
+  if (!session?.user) {
+    router.push("/login");
+    return;
+  }
+
+  const isOwner = session.user.publicId === profile?.user?.publicId;
+ const isUnlocked = post?.isUnlocked;
+
+if (isOwner || isUnlocked) {
+  router.push(`/post?page&publicId=${post.publicId}`);
+  return;
+}
+  setUnlockPost(post);
+  setShowUnlockModal(true);
+};
+
+
   const truncateText = (text: string, limit = 50) =>
     text?.length > limit ? text.slice(0, limit) : text;
 
@@ -398,7 +479,12 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
   const PostCard = ({ post }: { post: any }) => {
     const isOwner = session?.user?.publicId === profile?.user?.publicId;
     const isSubscribedUser = profile?.subscriptionStatus?.isSubscribed;
-    const canViewContent = isOwner || isSubscribedUser || post.accessType === "free";
+    const canViewContent =
+    isOwner ||
+    post.accessType === "free" ||
+    (post.accessType === "subscriber" && isSubscribedUser) ||
+    (post.accessType === "pay_per_view" && post.isUnlocked);
+
     const isSubscriber = post?.accessType === "subscriber";
     const isPPV = post?.accessType === "pay_per_view";
     const mediaType = post?.media?.[0]?.type;
@@ -408,6 +494,7 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
       <div className="creator-content-card-container" key={post?.publicId}>
         <div className="creator-content-card">
           <div className="creator-content-card__media">
+            
             <div className={`creator-card__img ${!firstMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
@@ -419,7 +506,7 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
               )}
             </div>
             {!canViewContent && (
-              <div className="content-locked-label">
+              <div className="content-locked-label" onClick={() => handlePPVClick(post)}>
                 {isSubscriber && (
                   <>
                     <svg
@@ -813,7 +900,10 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
                           </svg>
                         </a>
                       </li>
-                      {profile && session?.user?.id !== profile.user._id && (
+                      {profile &&
+  session?.user?.id &&
+  profile?.user?._id &&
+  session.user.id !== profile.user._id && (
                         <li>
                           <button
                             className="btn-txt-gradient"
@@ -1296,6 +1386,45 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
             }}
           />
         )}
+       {showPPVRequestModal && selectedPost && (
+        <PPVRequestModal
+          onClose={() => {
+            setShowPPVRequestModal(false);
+            setSelectedPost(null);
+          }}
+          creator={{
+            userId: profile?.user?._id as any,
+            displayName: profile?.user?.displayName,
+            userName: profile?.user?.userName,
+            profile: profile?.user?.profile,
+          }}
+          post={selectedPost}
+          onSuccess={() => {
+            setShowPPVRequestModal(false);
+            setSelectedPost(null);
+            // later → open transaction modal
+          }}
+        />
+      )}
+
+  {showUnlockModal && unlockPost && (
+  <UnlockContentModal
+    onClose={() => {
+      setShowUnlockModal(false);
+      setUnlockPost(null);
+    }}
+    creator={{
+      displayName: profile?.user?.displayName,
+      userName: profile?.user?.userName,
+      profile: profile?.user?.profile,
+    }}
+    post={unlockPost}
+    onConfirm={confirmUnlockPost}
+    loading={unlockLoading}
+  />
+)}
+
+
     </div>
   );
 };
