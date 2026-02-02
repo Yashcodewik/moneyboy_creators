@@ -27,7 +27,7 @@ import {
   dislikeComment,
   fetchComments,
   likeComment,
-} from "../redux/other/commentSlice";
+} from "../../redux/other/commentSlice";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 

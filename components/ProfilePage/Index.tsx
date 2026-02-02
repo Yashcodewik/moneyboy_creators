@@ -23,7 +23,7 @@ import {
   fetchFollowerCounts,
   followUserAction,
   unfollowUserAction,
-} from "../redux/other/followActions";
+} from "../../redux/other/followActions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
