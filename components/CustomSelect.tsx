@@ -96,7 +96,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       >
         <div className="custom-select-icon-txt">
           {icon && icon}
-          <div className="custom-select-label-txt">
+          <span className="custom-select-label-txt">
             {multiple &&
             Array.isArray(selectedOption) &&
             selectedOption.length > 0 ? (
@@ -107,7 +107,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                     <span
                       className="remove-tag"
                       onClick={(e) => {
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                         handleSelect(opt.value);
                       }}
                     >
@@ -121,7 +121,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             ) : (
               label
             )}
-          </div>
+          </span>
         </div>
         <div className="custom-select-chevron">
           <svg className="icons chevronDown svg-icon"></svg>

@@ -8,7 +8,7 @@ import {
   API_GET_POPULAR_POSTS,
   API_LIKE_POST,
   API_UNLIKE_POST,
-  API_SAVE_POST,
+  // API_SAVE_POST,
   API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
@@ -18,6 +18,9 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import Featuredboys from "../Featuredboys";
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "../CustomSelect";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "@/redux/store";
+import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 
 /* ===================================================== */
 
@@ -30,6 +33,9 @@ const FeedPage = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+   const dispatch = useDispatch<AppDispatch>(); 
+  const savedPostsState = useSelector((state: any) => state.savedPosts.savedPosts);
+  const saveLoadingState = useSelector((state: any) => state.savedPosts.loading);
 
   /* ================= TAB ================= */
   const [activeTab, setActiveTab] = useState<TabType>("feed");
@@ -216,13 +222,17 @@ const handleLike = async (postId: string) => {
 
 
   /* ================= SAVE ================= */
-
+// In FeedPage.tsx - Update handleSave function
 const handleSave = async (postId: string) => {
   if (!isLoggedIn) return router.push("/login");
   if (saveLoading[postId]) return;
 
   setSaveLoading((p) => ({ ...p, [postId]: true }));
 
+  // 🔥 source of truth: Redux - check if post is currently saved
+  const isCurrentlySaved = !!savedPostsState[postId]?.saved;
+
+  // Decide query key
   const queryKey =
     activeTab === "feed"
       ? ["feedPosts", (session?.user as any)?.id ?? null]
@@ -230,36 +240,46 @@ const handleSave = async (postId: string) => {
       ? ["followingPosts"]
       : ["popularPosts"];
 
-  const oldData = queryClient.getQueryData<any>(queryKey);
-
+  // Optimistic update
   queryClient.setQueryData(queryKey, (data: any) => {
     if (!data) return data;
 
-    const updatedPages = data.pages.map((page: any) => ({
-      ...page,
-      posts: page.posts.map((p: any) =>
-        p._id === postId ? { ...p, isSaved: !p.isSaved } : p
-      ),
-    }));
-
-    return { ...data, pages: updatedPages };
+    return {
+      ...data,
+      pages: data.pages.map((page: any) => ({
+        ...page,
+        posts: page.posts.map((p: any) =>
+          p._id === postId ? { ...p, isSaved: !isCurrentlySaved } : p
+        ),
+      })),
+    };
   });
 
-  const post = oldData?.pages
-    .flatMap((page: any) => page.posts)
-    .find((p: any) => p._id === postId);
-
-  const res = await apiPost({
-    url: post?.isSaved ? API_UNSAVE_POST : API_SAVE_POST,
-    values: { postId },
-  });
-
-  if (!res?.success) {
-    // Rollback
-    queryClient.setQueryData(queryKey, oldData);
+  // API call
+  try {
+    if (isCurrentlySaved) {
+      await dispatch(unsavePost({ postId })).unwrap();
+    } else {
+      await dispatch(savePost({ postId })).unwrap();
+    }
+  } catch (error) {
+    // Rollback on error
+    queryClient.setQueryData(queryKey, (data: any) => {
+      if (!data) return data;
+      return {
+        ...data,
+        pages: data.pages.map((page: any) => ({
+          ...page,
+          posts: page.posts.map((p: any) =>
+            p._id === postId ? { ...p, isSaved: isCurrentlySaved } : p
+          ),
+        })),
+      };
+    });
+    console.error("Save/Unsave failed:", error);
+  } finally {
+    setSaveLoading((p) => ({ ...p, [postId]: false }));
   }
-
-  setSaveLoading((p) => ({ ...p, [postId]: false }));
 };
 
 

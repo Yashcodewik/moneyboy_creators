@@ -16,12 +16,12 @@ import {
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useParams, useRouter } from "next/navigation";
-import { AppDispatch, RootState } from "../redux/store";
+import { AppDispatch, RootState } from "../../redux/store";
 import {
   fetchFollowerCounts,
   followUserAction,
   unfollowUserAction,
-} from "../redux/other/followActions";
+} from "../../redux/other/followActions";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";

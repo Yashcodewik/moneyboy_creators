@@ -20,14 +20,14 @@ import "swiper/css/navigation";
 import { useRouter } from "next/navigation";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Link } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../redux/store";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import {
   addComment,
   dislikeComment,
   fetchComments,
   likeComment,
-} from "../redux/other/commentSlice";
+} from "../../redux/other/commentSlice";
 
 const LikePage = () => {
   type FilterType = "like" | "video" | "photos" | null;

@@ -7,13 +7,13 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 
 import "swiper/css";
 import "swiper/css/navigation";
-import { useAppDispatch, useAppSelector } from "../redux/store";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
 import {
   addComment,
   dislikeComment,
   fetchComments,
   likeComment,
-} from "../redux/other/commentSlice";
+} from "../../redux/other/commentSlice";
 
 interface PostCardProps {
   post: any;
@@ -262,6 +262,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     window.removeEventListener("scroll", handleScroll);
   };
 }, [showComment]);
+
+const isSaved = useAppSelector(
+  (state) => !!state.savedPosts.savedPosts[post._id]
+);
 
   return (
     <>
@@ -590,10 +594,11 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               <li>
                 <Link
                   href="#"
-                  className={`post-save-btn ${post.isSaved ? "active" : ""}`}
+                  
+                  className={`post-save-btn ${isSaved ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    onSave(post._id);
+                   onSave(post._id);
                   }}
                 >
                   <svg

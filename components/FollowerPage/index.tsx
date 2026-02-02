@@ -10,12 +10,12 @@ import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { useAppDispatch } from "../redux/store";
+import { useAppDispatch } from "../../redux/store";
 import {
   fetchFollowerCounts,
   followUserAction,
   unfollowUserAction,
-} from "../redux/other/followActions";
+} from "../../redux/other/followActions";
 import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";

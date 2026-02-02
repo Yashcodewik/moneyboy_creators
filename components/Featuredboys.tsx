@@ -182,6 +182,7 @@ const Featuredboys = () => {
 
                       <div className="profile-card__main">
                         <div className="profile-card__avatar-settings">
+                          
                           <div className="profile-card__avatar">
                             <img
                               src={
