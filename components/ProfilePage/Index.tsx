@@ -476,33 +476,79 @@ if (isOwner || isUnlocked) {
   const truncateText = (text: string, limit = 50) =>
     text?.length > limit ? text.slice(0, limit) : text;
 
-  // Reusable component for post cards
   const PostCard = ({ post }: { post: any }) => {
-    const isOwner = session?.user?.publicId === profile?.user?.publicId;
-    const isSubscribedUser = profile?.subscriptionStatus?.isSubscribed;
-    const canViewContent =
-    isOwner ||
-    post.accessType === "free" ||
-    (post.accessType === "subscriber" && isSubscribedUser) ||
-    (post.accessType === "pay_per_view" && post.isUnlocked);
+  const isOwner =
+    session?.user?.publicId === profile?.user?.publicId;
 
-    const isSubscriber = post?.accessType === "subscriber";
-    const isPPV = post?.accessType === "pay_per_view";
+  const isSubscribed =
+    !!profile?.subscriptionStatus?.isSubscribed;
+
+  const isFree = post.accessType === "free";
+  const isSubscriberPost = post.accessType === "subscriber";
+  const isPPVPost = post.accessType === "pay_per_view";
+
+  const canViewSubscriberPost =
+    isSubscriberPost && isSubscribed;
+
+  const canViewPPVPost =
+    isPPVPost && post.isUnlocked;
+
+  const canViewContent =
+    isOwner ||
+    isFree ||
+    canViewSubscriberPost ||
+    canViewPPVPost;
     const mediaType = post?.media?.[0]?.type;
     const firstMedia = post?.media?.[0]?.mediaFiles?.[0] || "/images/profile-avatars/profile-avatar-6.jpg";
+    const handlePostClick = (post: any) => {
+      if (isOwner || isFree) {
+        router.push(`/post?page&publicId=${post.publicId}`);
+        return;
+      }
+      if (isSubscriberPost) {
+        if (isSubscribed) {
+          router.push(`/post?page&publicId=${post.publicId}`);
+        }
+        return;
+      }
+      if (isPPVPost) {
+        if (post.isUnlocked) {
+          router.push(`/post?page&publicId=${post.publicId}`);
+        }
+        return;
+      }
+    };
 
     return (
       <div className="creator-content-card-container" key={post?.publicId}>
         <div className="creator-content-card h-full">
           <div className="creator-media-card__media-wrapper">
-            <div className="creator-content-card__media">
+            <div className="creator-content-card__media" onClick={() => handlePostClick(post)}>
               <div className={`creator-card__img ${!firstMedia ? "nomedia" : ""}`}>
                 {mediaType === "photo" && firstMedia && (<img src={firstMedia} alt="Creator Content" />)}
-                {mediaType === "video" && firstMedia && (<video controls={canViewContent} preload="metadata" style={{ width: "100%" }}><source src={firstMedia} /></video>)}
+                {mediaType === "video" && firstMedia && (
+                <video
+                  preload="metadata"
+                  controls={canViewContent}
+                  onClick={(e) => {
+                    if (!canViewContent) e.preventDefault();
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  <source src={firstMedia} />
+                </video>
+              )}
+
               </div>
               {!canViewContent && (
-                <div className="content-locked-label" onClick={() => handlePPVClick(post)}>
-                  {isSubscriber && (
+                <div className="content-locked-label" onClick={() => {
+                    // ONLY PPV opens modal
+                    if (isPPVPost && !post.isUnlocked) {
+                      setUnlockPost(post);
+                      setShowUnlockModal(true);
+                    }
+                  }}>
+                  {isSubscriberPost && !isSubscribed && (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
                         <path d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -512,7 +558,7 @@ if (isOwner || isUnlocked) {
                       <span> For Subscribers </span>
                     </>
                   )}
-                  {isPPV && (
+                  {isPPVPost && !post.isUnlocked && (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
                         <path d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1304,45 +1350,22 @@ if (isOwner || isUnlocked) {
             }}
           />
         )}
-       {showPPVRequestModal && selectedPost && (
-        <PPVRequestModal
+        {showUnlockModal && unlockPost && (
+        <UnlockContentModal
           onClose={() => {
-            setShowPPVRequestModal(false);
-            setSelectedPost(null);
+            setShowUnlockModal(false);
+            setUnlockPost(null);
           }}
           creator={{
-            userId: profile?.user?._id as any,
             displayName: profile?.user?.displayName,
             userName: profile?.user?.userName,
             profile: profile?.user?.profile,
           }}
-          post={selectedPost}
-          onSuccess={() => {
-            setShowPPVRequestModal(false);
-            setSelectedPost(null);
-            // later → open transaction modal
-          }}
+          post={unlockPost}
+          onConfirm={confirmUnlockPost}
+          loading={unlockLoading}
         />
       )}
-
-  {showUnlockModal && unlockPost && (
-  <UnlockContentModal
-    onClose={() => {
-      setShowUnlockModal(false);
-      setUnlockPost(null);
-    }}
-    creator={{
-      displayName: profile?.user?.displayName,
-      userName: profile?.user?.userName,
-      profile: profile?.user?.profile,
-    }}
-    post={unlockPost}
-    onConfirm={confirmUnlockPost}
-    loading={unlockLoading}
-  />
-)}
-
-
     </div>
   );
 };
