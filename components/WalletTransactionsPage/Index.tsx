@@ -66,15 +66,21 @@ const WalletTransactionsPage = () => {
 const rowsPerPage = 10;
 
 const { data, isLoading } = useQuery({
-  queryKey: ["wallet-transactions", activeTab, mode,searchText, page],
+  queryKey: ["wallet-transactions", activeTab, mode, searchText, page, startDate, endDate],
   queryFn: () =>
     getApi({
-      url: `${API_GET_TRANSACTIONS}?tab=${activeTab}&mode=${mode}`,
-      page,
-      rowsPerPage,
-      searchText,
-    })
+      url:
+        `${API_GET_TRANSACTIONS}` +
+        `?tab=${activeTab}` +
+        `&mode=${mode}` +
+        `&page=${page}` +
+        `&rowsPerPage=${rowsPerPage}` +
+        `&search=${encodeURIComponent(searchText || "")}` +
+        `${startDate ? `&startDate=${startDate.toISOString()}` : ""}` +
+        `${endDate ? `&endDate=${endDate.toISOString()}` : ""}`,
+    }),
 });
+
 const transactions = data?.data || [];
 const summary = data?.summary;
 
@@ -189,13 +195,13 @@ const getModeOptions = () => {
                       <div className="date-btn-wrapper">
                         <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "start" ? null : "start")}><span>{startDate ? startDate.toDateString() : "Start Date"}</span><svg className="icons calendarNoteSmall" /></button>
                         {activeField === "start" && (
-                          <div className="calendar-dropdown"><DatePicker selected={startDate} onChange={(date) => {setStartDate(date); setActiveField(null);}} inline/></div>
+                          <div className="calendar-dropdown"><DatePicker selected={startDate} onChange={(date: any) => {setStartDate(date); setActiveField(null);}} inline/></div>
                         )}
                       </div>
                       <div className="date-btn-wrapper">
                         <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "end" ? null : "end")}><span>{endDate ? endDate.toDateString() : "End Date"}</span> <svg className="icons calendarNoteSmall" /></button>
                         {activeField === "end" && (
-                          <div className="calendar-dropdown"><DatePicker selected={endDate} minDate={startDate ?? undefined} onChange={(date) => {setEndDate(date); setActiveField(null);}} inline/></div>
+                          <div className="calendar-dropdown"><DatePicker selected={endDate} minDate={startDate ?? undefined} onChange={(date: any) => {setEndDate(date); setActiveField(null);}} inline/></div>
                         )}
                       </div>
                     </div>
