@@ -14,6 +14,8 @@ import {
   fetchComments,
   likeComment,
 } from "../redux/other/commentSlice";
+import { Plyr } from "plyr-react";
+import "plyr-react/plyr.css";
 
 interface PostCardProps {
   post: any;
@@ -413,13 +415,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   return (
                     <SwiperSlide key={i}>
                       {isVideo ? (
-                        <video
-                          src={firstMedia}
-                          controls
-                          preload="metadata"
-                          playsInline
-                          style={{ width: "100%" }}
-                        />
+                        <Plyr source={{type: "video", sources: [{ src: firstMedia, type: "video/mp4",},],}} options={{controls: [ "play", "progress", "current-time", "mute", "volume", "fullscreen",],}}/>
                       ) : (
                         <img src={file} alt="MoneyBoy Post Image" />
                       )}
