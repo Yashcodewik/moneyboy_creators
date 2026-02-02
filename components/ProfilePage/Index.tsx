@@ -27,6 +27,7 @@ import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
 import PPVRequestModal from "./PPVRequestModal";
 import UnlockContentModal from "./UnlockContentModal";
+import { Trash2 } from "lucide-react";
 
 interface User {
   _id: string;
@@ -492,157 +493,74 @@ if (isOwner || isUnlocked) {
 
     return (
       <div className="creator-content-card-container" key={post?.publicId}>
-        <div className="creator-content-card">
-          <div className="creator-content-card__media">
-            
-            <div className={`creator-card__img ${!firstMedia ? "nomedia" : ""}`}>
-              {mediaType === "photo" && firstMedia && (
-                <img src={firstMedia} alt="Creator Content" />
-              )}
-              {mediaType === "video" && firstMedia && (
-                <video controls={canViewContent} preload="metadata" style={{ width: "100%" }}>
-                  <source src={firstMedia} />
-                </video>
+        <div className="creator-content-card h-full">
+          <div className="creator-media-card__media-wrapper">
+            <div className="creator-content-card__media">
+              <div className={`creator-card__img ${!firstMedia ? "nomedia" : ""}`}>
+                {mediaType === "photo" && firstMedia && (<img src={firstMedia} alt="Creator Content" />)}
+                {mediaType === "video" && firstMedia && (<video controls={canViewContent} preload="metadata" style={{ width: "100%" }}><source src={firstMedia} /></video>)}
+              </div>
+              {!canViewContent && (
+                <div className="content-locked-label" onClick={() => handlePPVClick(post)}>
+                  {isSubscriber && (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                        <path d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M6.04199 18.3333H15.2087" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M8.54199 11.6667H12.7087" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span> For Subscribers </span>
+                    </>
+                  )}
+                  {isPPV && (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                        <path d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span> ${post?.price?.toFixed(2)} </span>
+                    </>
+                  )}
+                </div>
               )}
             </div>
-            {!canViewContent && (
-              <div className="content-locked-label" onClick={() => handlePPVClick(post)}>
-                {isSubscriber && (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="21"
-                      height="20"
-                      viewBox="0 0 21 20"
-                      fill="none"
-                    >
-                      <path
-                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M6.04199 18.3333H15.2087"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M8.54199 11.6667H12.7087"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span> For Subscribers </span>
-                  </>
-                )}
-                {isPPV && (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="21"
-                      height="20"
-                      viewBox="0 0 21 20"
-                      fill="none"
-                    >
-                      <path
-                        d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
-                        stroke="none"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span> ${post?.price?.toFixed(2)} </span>
-                  </>
-                )}
+            <div className="creator-media-card__overlay">
+             <div className="creator-media-card__stats">
+              <div className="creator-media-card__stats-btn wishlist-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                {/* <span> 13 </span> */}
               </div>
-            )}
+             </div>
+            </div>
           </div>
-
           <div className="creator-content-card__description">
-            <p>
-              {expandedPosts[post.publicId]
-                ? post.text
-                : `${truncateText(post.text)}${post.text?.length > 50 ? "..." : ""}`}
-            </p>
+            <p>{expandedPosts[post.publicId] ? post.text : `${truncateText(post.text)}${post.text?.length > 50 ? "..." : ""}`}</p>
           </div>
-
           <div className="creator-content-card__stats">
             <div className="creator-content-stat-box">
               <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="21"
-                  height="20"
-                  viewBox="0 0 21 20"
-                  fill="none"
-                >
-                  <path
-                    d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
-                    stroke="none"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                  <path d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
               <span>{post?.likeCount}</span>
             </div>
             <div className="creator-content-stat-box">
               <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeMiterlimit="10"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M7 8H17"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M7 13H13"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z" stroke="white" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M7 8H17" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M7 13H13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
               <span>{post?.commentCount}</span>
             </div>
+            <button className="btn-danger icons"><Trash2 size={28} color="#FFF"/></button>
           </div>
         </div>
       </div>

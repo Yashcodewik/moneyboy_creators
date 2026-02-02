@@ -724,6 +724,9 @@ body {
 }
 
 /* Custome class Start  */
+.h-full {
+  height: 100%;
+}
 .mx-auto {margin: 0 auto;}
 .mt-0 {
   margin-top: 0px !important;
@@ -4819,4 +4822,143 @@ body {
   margin-left: 6px;
   cursor: pointer;
   font-weight: 500;
+}
+
+
+.creator-content-card-container {
+  .creator-content-card {
+    .creator-media-card__media-wrapper {
+      border-radius: 26px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      .creator-media-card__overlay {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        z-index: 2;
+
+        .creator-media-card__stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .creator-media-card__stats-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #ffffff4d;
+                background: #00000029;
+                backdrop-filter: blur(25px);
+                gap: 5px;
+                padding: 3px 6px;
+                border-radius: 12px;
+                cursor: pointer;
+
+                &.video-icon {
+                    aspect-ratio: 1/1;
+                    width: 36px;
+                    border-radius: 20px;
+
+                    &:hover {
+                        svg {
+                            path {
+
+                                &:nth-child(1),
+                                &:nth-child(2) {
+                                    stroke: #ff7b00;
+                                    fill: #ff7b00;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &.photo-icon {
+                    aspect-ratio: 1/1;
+                    width: 36px;
+                    border-radius: 20px;
+
+                    &:hover {
+                        svg {
+                            path {
+                                &:nth-child(1) {
+                                    stroke: #00c2ff;
+                                    fill: #00c2ff;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &.wishlist-icon {
+                    margin-left: auto;
+
+                    &:hover {
+                        svg {
+                            path {
+                                &:nth-child(1) {
+                                    stroke: #6C5CE7;
+                                    fill: #6C5CE7;
+                                    position: relative;
+                                    z-index: 2;
+                                }
+
+                                &:nth-child(2) {
+                                    stroke: #6C5CE7;
+                                    fill: #6C5CE7;
+                                }
+
+                                &:nth-child(3) {
+                                    stroke: #ffffff;
+                                    fill: #ffffff;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                svg {
+                    width: 20px;
+                    transition: var(--transition-fast);
+
+                    path {
+                        transition: var(--transition-fast);
+                        stroke: white;
+                    }
+                }
+
+                span {
+                    color: white;
+                    font-weight: 600;
+                    font-size: 14px;
+                    line-height: 14px;
+                }
+            }
+        }
+    }
+    }
+    .creator-content-card__stats {
+      margin-top: auto;
+      .btn-danger {
+        display: none;
+        align-self: center;
+        padding: 5px;
+        margin-left: auto;
+        cursor: pointer;
+        transition: var(--transition-fast);  
+        svg {
+          max-width: 24px;
+        }
+      }
+    }
+    &:hover {
+      .creator-content-card__stats {
+        .btn-danger {
+          display: block;
+        }
+      }
+    }
+  }
 }
