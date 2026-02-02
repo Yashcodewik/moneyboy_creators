@@ -39,7 +39,10 @@ type TagUser = {
 };
 
 const PostSchema = Yup.object({
-  text: Yup.string().required().max(300),
+  text: Yup.string()
+    .required("Post text is required")
+    .min(70, "Post must be at least 70 characters")
+    .max(300, "Post cannot exceed 300 characters"),
   accessType: Yup.string().required(),
   price: Yup.number().when("accessType", {
     is: "pay_per_view",

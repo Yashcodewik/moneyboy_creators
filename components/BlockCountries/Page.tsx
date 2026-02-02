@@ -1,16 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
-import {
-  apiPost,
-} from "@/utils/endpoints/common";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import {
   API_BLOCK_COUNTRIES,
+  API_GET_BLOCKED_COUNTRIES,
+  API_UNBLOCK_COUNTRIES,
 } from "@/utils/api/APIConstant";
-import {
-  countryOptions,
-} from "../helper/creatorOptions";
+import { countryOptions } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
+import { useRouter } from "next/navigation";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -21,28 +20,57 @@ export enum UserStatus {
   VERIFIED = 5,
 }
 
-
 const BlockCountriesPage = () => {
+  const router=useRouter();
   const [tab, setTab] = useState(0);
   const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
-
+  const prevBlockedCountriesRef = useRef<string[]>([]);
   const handleSaveBlockedCountries = async () => {
-    if (!blockedCountries.length) {
-      ShowToast("Please select at least one country", "error");
-      return;
-    }
+    const previous = prevBlockedCountriesRef.current;
+    const current = blockedCountries;
 
-    const res = await apiPost({
-      url: API_BLOCK_COUNTRIES,
-      values: { countryNames: blockedCountries },
-    });
+    const toBlock = current.filter((c) => !previous.includes(c));
+    const toUnblock = previous.filter((c) => !current.includes(c));
 
-    if (res?.success) {
+    try {
+      if (toBlock.length) {
+        await apiPost({
+          url: API_BLOCK_COUNTRIES,
+          values: { countryNames: toBlock },
+        });
+      }
+
+      if (toUnblock.length) {
+        await apiPost({
+          url: API_UNBLOCK_COUNTRIES,
+          values: { countryNames: toUnblock },
+        });
+      }
+
+      prevBlockedCountriesRef.current = current;
+
       ShowToast("Blocked countries updated successfully", "success");
-    } else {
-      ShowToast(res?.message || "Failed to update blocked countries", "error");
+    } catch (err: any) {
+      ShowToast(err?.message || "Failed to update blocked countries", "error");
     }
   };
+
+  useEffect(() => {
+    const fetchBlockedCountries = async () => {
+      const res = await getApiWithOutQuery({
+        url: API_GET_BLOCKED_COUNTRIES,
+      });
+
+      if (res?.success) {
+        setBlockedCountries(res.countryNames || []);
+        prevBlockedCountriesRef.current = res.countryNames || [];
+      }
+    };
+
+    if (tab === 0) {
+      fetchBlockedCountries();
+    }
+  }, [tab]);
 
   return (
     <>
@@ -69,9 +97,7 @@ const BlockCountriesPage = () => {
               className="moneyboy-feed-page-cate-buttons card"
               id="posts-tabs-btn-card"
             >
-              {/* <button className="cate-back-btn active-down-effect hide_mobail">
-                <span className="icons arrowLeft"></span>
-              </button> */}
+              <button className="cate-back-btn active-down-effect"  onClick={() => router.push("/feed")}><span className="icons arrowLeft hwhite"></span></button>
               <button
                 className={`page-content-type-button active-down-effect ${
                   tab === 0 ? "active" : ""
@@ -99,11 +125,10 @@ const BlockCountriesPage = () => {
             </div>
 
             <div className="creator-profile-page-container">
-              <div className="creator-profile-front-content-container">        
+              <div className="creator-profile-front-content-container">
                 {tab === 0 && (
                   <div className="creator-profile-card-container">
                     <div className="card filters-card-wrapper">
-                      
                       <div className="creator-content-cards-wrapper pricing_account_wrap select">
                         <div className="select_countries_wrap">
                           <h5>Block Countries</h5>

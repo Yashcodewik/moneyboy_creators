@@ -92,7 +92,7 @@ const BlacklistPage = () => {
                 ]}/>
             </div>
             <div className="">
-              <label>Reason *</label>
+              <label>Reason</label>
               <textarea rows={2} name="reason" placeholder="Enter your reason" />
             </div>
           </div>

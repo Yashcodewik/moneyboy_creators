@@ -193,6 +193,10 @@ useEffect(() => {
     }
   };
 
+        const handleProfileClick = (publicId: string) => {
+    router.push(`/profile/${publicId}`);
+  };
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
     const pages: (number | string)[] = [];
@@ -205,6 +209,9 @@ useEffect(() => {
       if (page < totalPages - 3) pages.push("...");
       pages.push(totalPages - 1, totalPages);
     }
+
+
+
 
     return (
       <div className="pagination_wrap">
@@ -254,12 +261,13 @@ useEffect(() => {
               setFilterValues={setFilterValues}
             />
             <div className="discovery-page-content-wrapper">
-              <div className="discovery-page-cards-layouts">
+              <div className="discovery-page-cards-layouts" >
                 {creators.map((creator) => (
                   <div
                     key={creator._id}
                     className="user-profile-card-wrapper"
                     data-creator-profile-card
+                    onClick={() => handleProfileClick(creator.publicId)}
                   >
                     <div className="user-profile-card-container">
                       <div className="user-profile-card__img">
@@ -313,11 +321,12 @@ useEffect(() => {
                           </div>
                           <div
                             className={`user-profile-card__wishlist-btn ${creator.isSaved ? "active" : ""}`}
-                            onClick={() =>
-                              creator.isSaved
-                                ? handleUnsaveCreator(creator._id)
-                                : handleSaveCreator(creator._id)
-                            }
+                             onClick={(e) => {
+    e.stopPropagation(); // ⛔ STOP redirect
+    creator.isSaved
+      ? handleUnsaveCreator(creator._id)
+      : handleSaveCreator(creator._id);
+  }}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

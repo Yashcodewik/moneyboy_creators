@@ -11,7 +11,7 @@ type CustomSelectProps = {
   className?: string;
   icon?: React.ReactNode;
   searchable?: boolean;
-  multiple?: boolean; 
+  multiple?: boolean;
 };
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -28,44 +28,43 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [internalValue, setInternalValue] = useState<string | string[] | null>(
-    value ?? (multiple ? [] : null)
+    value ?? (multiple ? [] : null),
   );
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
- 
   useEffect(() => {
     if (value !== undefined) {
       setInternalValue(value);
     }
   }, [value]);
 
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-useEffect(() => {
-  if (!open) {
-    setSearch(""); // clear search when dropdown closes
-  }
-}, [open]);
- 
+  useEffect(() => {
+    if (!open) {
+      setSearch(""); // clear search when dropdown closes
+    }
+  }, [open]);
+
   const selectedOption = Array.isArray(internalValue)
     ? options.filter((opt) => internalValue.includes(opt.value))
     : options.find((opt) => opt.value === internalValue);
 
-
   const filteredOptions = searchable
     ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(search.toLowerCase())
+        opt.label.toLowerCase().includes(search.toLowerCase()),
       )
     : options;
-
 
   const handleSelect = (val: string) => {
     if (multiple) {
@@ -90,7 +89,6 @@ useEffect(() => {
       data-custom-select-element=""
       data-custom-select-value={internalValue ? internalValue.toString() : ""}
     >
-     
       <div
         className="custom-select-label-wrapper"
         data-custom-select-triger=""
@@ -98,15 +96,32 @@ useEffect(() => {
       >
         <div className="custom-select-icon-txt">
           {icon && icon}
-          <span className="custom-select-label-txt">
-            {Array.isArray(selectedOption)
-              ? selectedOption.length
-                ? selectedOption.map((o) => o.label).join(", ")
-                : label
-              : selectedOption
-              ? selectedOption.label
-              : label}
-          </span>
+          <div className="custom-select-label-txt">
+            {multiple &&
+            Array.isArray(selectedOption) &&
+            selectedOption.length > 0 ? (
+              <div className="selected-tags">
+                {selectedOption.map((opt: Option) => (
+                  <span key={opt.value} className="selected-tag">
+                    {opt.label}
+                    <span
+                      className="remove-tag"
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        handleSelect(opt.value);
+                      }}
+                    >
+                      ×
+                    </span>
+                  </span>
+                ))}
+              </div>
+            ) : !Array.isArray(selectedOption) && selectedOption ? (
+              selectedOption.label
+            ) : (
+              label
+            )}
+          </div>
         </div>
         <div className="custom-select-chevron">
           <svg className="icons chevronDown svg-icon"></svg>
@@ -120,7 +135,6 @@ useEffect(() => {
           style={{ display: open ? "unset" : "none" }}
         >
           <div className="custom-select-options-dropdown-container">
-            
             {searchable && (
               <div className="custom-select-options-search">
                 <div className="label-input">
@@ -137,7 +151,6 @@ useEffect(() => {
               </div>
             )}
 
-        
             <div className="custom-select-options-lists-container">
               <ul
                 className="custom-select-options-list"
