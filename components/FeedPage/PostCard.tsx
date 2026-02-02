@@ -47,9 +47,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [newComment, setNewComment] = useState("");
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
-  const firstMedia =
-    post?.media?.[0]?.mediaFiles?.[0] ||
-    "/images/profile-avatars/profile-avatar-6.jpg";
+  const firstMedia = post?.media?.[0]?.mediaFiles?.[0] || "/images/profile-avatars/profile-avatar-6.jpg";
   const router = useRouter();
 
   const { session } = useDecryptedSession();
@@ -212,7 +210,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     const video = videoRefs.current[videoId];
     if (!video) return;
 
-    // ⛔ Ignore clicks on native controls
     if ((e.target as HTMLElement).tagName !== "VIDEO") return;
 
     Object.entries(videoRefs.current).forEach(([id, v]) => {
@@ -233,7 +230,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
 
   const handleProfileClick = (publicId: string) => {
     if (!session?.user?.id) {
-      router.push("/login"); // or "/auth/login"
+      router.push("/login");
       return;
     }
 
