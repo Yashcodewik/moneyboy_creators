@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Featuredboys from '../Featuredboys';
 import CustomSelect from '../CustomSelect';
 import Link from "next/link";
@@ -8,6 +8,8 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getApi } from "@/utils/endpoints/common";
 import { API_ADD_COMMENT, API_GET_TRANSACTIONS } from "@/utils/api/APIConstant";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const WalletTransactionsPage = () => {
   const { session } = useDecryptedSession();
@@ -15,6 +17,23 @@ const WalletTransactionsPage = () => {
   const [page, setPage] = useState(1);
   const [mode, setMode] = useState<string>("");
   const [searchText, setSearchText] = useState("");
+  
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [activeField, setActiveField] = useState<"start" | "end" | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
+        setActiveField(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const initialTab =
     searchParams.get("tab") === "orders"
@@ -147,51 +166,39 @@ const getModeOptions = () => {
                     </div>
                   </div>
 
-                  <div className="creater-content-filters-layouts">
-                    <div className="creator-content-select-filter">
+                  <div className="creater-content-filters-layouts gap-5">
+                    <div className="creator-content-select-filter gap-5">
                       <div className="custom-select-element bg-white p-sm size-sm">
                         <div className="creator-content-select-filter">
-                          <CustomSelect
-                            className="bg-white p-sm size-sm"
-                            label="Filter"
-                            options={getModeOptions()}
-                            value={mode}
-                            searchable={false}
-                            onChange={(val) => {
-                              setMode(val as string);
-                              setPage(1);
-                            }}
-                          />
+                          <CustomSelect className="bg-white p-sm size-sm" label="Filter" options={getModeOptions()} value={mode} searchable={false} onChange={(val) => {setMode(val as string); setPage(1);}}/>
                         </div>
                       </div>
-                    </div>
-                    <div className="creator-content-select-filter">
                       <div className="custom-select-element bg-white p-sm size-sm">
-                        <div className="custom-select-label-wrapper">
-                          <div className="custom-select-icon-txt">
-                            <span className="custom-select-label-txt">All Creators</span>
-                          </div>
-                          <div className="custom-select-chevron">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                              <path d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown style={{translate: "none", rotate: "none", scale: "none", overflow: "hidden", display: "none", opacity: 0, transform: "translate(0px, -10px)", height: "0px",}}>
-                          <div className="custom-select-options-dropdown-container">
-                            <div className="custom-select-options-lists-container">
-                              <ul className="custom-select-options-list" data-custom-select-options-list>
-                                <li className="custom-select-option"><span> Option 1</span></li>
-                                <li className="custom-select-option"><span> Option 2</span></li>
-                                <li className="custom-select-option"><span> Option 3</span></li>
-                                <li className="custom-select-option"><span> Option 4</span></li>
-                              </ul>
-                            </div>
-                          </div>
+                        <div className="creator-content-select-filter">
+                          <CustomSelect className="bg-white p-sm size-sm" label="All Creators" searchable={false}
+                          options={[
+                            { label: "Option 1", value: "optionone" }, 
+                            { label: "Option 2", value: "optiontwo" }, 
+                            { label: "Option 3", value: "optionthd" }, 
+                            { label: "Option 4", value: "optionfour" },
+                          ]}/>
                         </div>
                       </div>
                     </div>
-                    
+                    <div className="creator-content-grid-layout-options date-range-options" ref={wrapperRef}>
+                      <div className="date-btn-wrapper">
+                        <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "start" ? null : "start")}><span>{startDate ? startDate.toDateString() : "Start Date"}</span><svg className="icons calendarNoteSmall" /></button>
+                        {activeField === "start" && (
+                          <div className="calendar-dropdown"><DatePicker selected={startDate} onChange={(date) => {setStartDate(date); setActiveField(null);}} inline/></div>
+                        )}
+                      </div>
+                      <div className="date-btn-wrapper">
+                        <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "end" ? null : "end")}><span>{endDate ? endDate.toDateString() : "End Date"}</span> <svg className="icons calendarNoteSmall" /></button>
+                        {activeField === "end" && (
+                          <div className="calendar-dropdown"><DatePicker selected={endDate} minDate={startDate ?? undefined} onChange={(date) => {setEndDate(date); setActiveField(null);}} inline/></div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   </div>
                   {activeTab !== "details" && (
@@ -415,63 +422,6 @@ const getModeOptions = () => {
                           </div>
                         </div>
                       </div>
-
-                      {/* <div className="rel-user-box">
-                        <div className="rel-user-profile-action">
-                          <div className="rel-user-profile">
-                            <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
-                                <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="/images/profile-avatars/profile-avatar-5.jpg" alt="User profile avatar" />
-                                  </div>
-                                </div>
-                                <div className="profile-card__info">
-                                  <div className="profile-card__username tphead">From</div>
-                                  <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">Gustavo Stanton</div>
-                                    <div className="profile-card__badge"><img src="/images/logo/profile-badge.png" alt="Verified badge" /></div>
-                                  </div>
-                                  <div className="profile-card__username">cae388e1 <span className="badge success">Success</span></div>
-                                </div>
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="date_box">
-                            <div className="date_wrap">
-                              <svg className="icons currency"/>
-                              <div className="containt">
-                                <span>Amount</span>
-                                <p className="text-green">$100</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons noteDocument"/>
-                              <div className="containt">
-                                <span>Type</span>
-                                <p>Creator Tip</p>
-                              </div>
-                            </div>
-                            <div className="date_wrap">
-                              <svg className="icons calendarNote"/>
-                              <div className="containt">
-                                <span>Date</span>
-                                <p>30/09/2025</p>
-                                <p>19:06:28</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="rel-user-desc">
-                          <div className="">
-                            <p className="heading">Discription</p>
-                            <p>purchase product ZACH KING SNAPBACK HAT x1</p>
-                          </div>
-                          <div className="rel-user-actions">
-                            <button className="btn-txt-gradient" type="button"><span>View</span> </button>
-                          </div>
-                        </div>
-                      </div> */}
                     </div>
                   </div>
                 </div>

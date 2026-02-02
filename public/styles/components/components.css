@@ -2360,6 +2360,45 @@
            }
          }
        }
+       &.date-range-options {
+        position: relative;
+        box-shadow: inset 0 0 0 3px #fff;
+        background-color: #f9f9f9;
+        border: 1.5px solid #ebebeb;
+        padding: 6px 8px;
+        border-radius: 12px;
+        .date-btn-wrapper {
+          position: relative;
+          .calendar-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            z-index: 9999;
+            overflow: hidden;
+          }
+        }
+        button.creator-content-grid-layout-btn {
+          color: #444444;
+          font-size: 11px;
+          line-height: 100%;
+          font-weight: 500;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          span {
+            display: block;
+            max-width: 35px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+          svg.icons {
+            width: 14px !important;
+          }
+        }
+       }
      }
    }
  }
