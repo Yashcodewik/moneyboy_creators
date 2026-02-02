@@ -19,7 +19,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/auth";
 import Link from "next/link";
 import { CgClose } from "react-icons/cg";
-import ReduxProvider from "@/components/redux/ReduxProvider";
+import ReduxProvider from "@/redux/ReduxProvider";
 import ScrollToTop from "./ScrollToTop";
 
 export const metadata: Metadata = {

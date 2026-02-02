@@ -17,15 +17,15 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useSession } from "next-auth/react";
-import { useAppDispatch, useAppSelector } from "../redux/store";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
 import {
   dislikeComment,
   fetchComments,
   likeComment,
-} from "../redux/other/commentSlice";
+} from "../../redux/other/commentSlice";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
-import { addComment } from "../redux/other/commentSlice";
+import { addComment } from "../../redux/other/commentSlice";
 
 const PostPage = () => {
   const router = useRouter();
@@ -62,6 +62,7 @@ const PostPage = () => {
     }
   }, [showComment, post?._id, dispatch]);
 
+  
   useEffect(() => {
     if (!publicId) return;
 
@@ -406,26 +407,32 @@ const PostPage = () => {
                     modules={[Navigation]}
                     className="post_swiper"
                   >
-                    {post.media?.[0]?.mediaFiles?.map(
-                      (file: string, i: number) => {
-                        const isVideo = post.media?.[0]?.type === "video";
+                    {post.media?.[0]?.mediaFiles?.length > 0 ? (
+                      post.media[0].mediaFiles.map(
+                        (file: string, i: number) => {
+                          const isVideo = post.media?.[0]?.type === "video";
 
-                        return (
-                          <SwiperSlide key={i}>
-                            {isVideo ? (
-                              <video
-                                src={file}
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
-                              />
-                            ) : (
-                              <img src={file} alt="MoneyBoy Post Image" />
-                            )}
-                          </SwiperSlide>
-                        );
-                      },
+                          return (
+                            <SwiperSlide key={i}>
+                              {isVideo ? (
+                                <video
+                                  src={file}
+                                  autoPlay
+                                  muted
+                                  loop
+                                  playsInline
+                                />
+                              ) : (
+                                <img src={file} alt="MoneyBoy Post Image" />
+                              )}
+                            </SwiperSlide>
+                          );
+                        },
+                      )
+                    ) : (
+                      <SwiperSlide>
+                        <div className="nomedia"></div>
+                      </SwiperSlide>
                     )}
                   </Swiper>
                 </div>
@@ -671,31 +678,31 @@ const PostPage = () => {
                       className="premium-btn active-down-effect"
                       onClick={handleAddComment}
                     >
-                     <svg
-                width="40"
-                height="35"
-                viewBox="0 0 40 35"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
-                  fill="url(#paint0_linear_4464_314)"
-                />
-                <defs>
-                  <linearGradient
-                    id="paint0_linear_4464_314"
-                    x1="2.37044"
-                    y1="-1.89024e-06"
-                    x2="54.674"
-                    y2="14.6715"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop stopColor="#FECE26" />
-                    <stop offset="1" stopColor="#E5741F" />
-                  </linearGradient>
-                </defs>
-              </svg>
+                      <svg
+                        width="40"
+                        height="35"
+                        viewBox="0 0 40 35"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
+                          fill="url(#paint0_linear_4464_314)"
+                        />
+                        <defs>
+                          <linearGradient
+                            id="paint0_linear_4464_314"
+                            x1="2.37044"
+                            y1="-1.89024e-06"
+                            x2="54.674"
+                            y2="14.6715"
+                            gradientUnits="userSpaceOnUse"
+                          >
+                            <stop stopColor="#FECE26" />
+                            <stop offset="1" stopColor="#E5741F" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
                     </button>
                   </div>
 

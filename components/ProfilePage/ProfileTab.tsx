@@ -4,17 +4,22 @@ import { timeOptions } from "../helper/creatorOptions";
 
 type ProfileTabProps = {
   onChangeLayouts?: (layout: "grid" | "list") => void;
-  onChangeTab?: (tab: string) => void;
+  // onChangeTab?: (tab: string) => void;
+    onSearchChange?: (value: string) => void;
+  onTimeChange?: (value: string) => void;
 };
 
 const ProfileTab: React.FC<ProfileTabProps> = ({
   onChangeLayouts,
-  onChangeTab,
+  onSearchChange,
+  onTimeChange,
 }) => {
   const [tab, setTab] = useState(false);
   const [selectedOption, setSelectedOption] = useState("All Time");
   const [layout, setLayout] = useState("grid");
   const [time, setTime] = useState<string>("all_time");
+
+
   const handleLayoutChange = (value: "grid" | "list") => {
     setLayout(value);
     onChangeLayouts?.(value);
@@ -22,7 +27,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
 
   const handleTabChange = (value: string) => {
     setSelectedOption(value);
-    onChangeTab?.(value);
+    // onChangeTab?.(value);
     setTab(false);
   };
 
@@ -66,7 +71,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             </svg>
           </div>
 
-          <input type="text" placeholder="Search here" />
+          <input type="text" 
+           placeholder="Search here"
+          onChange={(e) => onSearchChange?.(e.target.value)} />
         </div>
       </div>
 
@@ -77,6 +84,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             options={timeOptions}
             value={time}
             searchable={false}
+          onChange={(val: string | string[]) => {
+            const finalValue = Array.isArray(val) ? val[0] : val;
+            setTime(finalValue);
+            onTimeChange?.(finalValue);
+          }}
           />
         </div>
         <div

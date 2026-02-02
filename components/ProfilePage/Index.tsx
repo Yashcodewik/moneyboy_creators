@@ -5,9 +5,11 @@ import { apiPost, getApiByParams, getApiWithOutQuery } from "@/utils/endpoints/c
 import {
   API_CREATOR_PROFILE,
   API_CREATOR_PROFILE_BY_ID,
+  API_DELETE_POST,
   API_FOLLOWER_COUNT,
   API_GET_POSTS_BY_CREATOR,
   API_SAVE_POST,
+  API_SEND_TIP,
   API_SUBSCRIBE_CREATOR,
   API_UNLOCK_POST,
   API_UNSAVE_POST,
@@ -16,18 +18,20 @@ import {
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useParams, useRouter } from "next/navigation";
-import { AppDispatch, RootState } from "../redux/store";
+import { AppDispatch, RootState } from "../../redux/store";
 import {
   fetchFollowerCounts,
   followUserAction,
   unfollowUserAction,
 } from "../redux/other/followActions";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
 import PPVRequestModal from "./PPVRequestModal";
 import UnlockContentModal from "./UnlockContentModal";
-import { Trash2 } from "lucide-react";
+import {Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
+import Link from "next/link";
 
 interface User {
   _id: string;
@@ -115,21 +119,26 @@ const [selectedPost, setSelectedPost] = useState<any | null>(null);
 const [showPPVRequestModal, setShowPPVRequestModal] = useState(false);
 const [showTransactionModal, setShowTransactionModal] = useState(false);
 const [unlockLoading, setUnlockLoading] = useState(false);
+const [search, setSearch] = useState("");
+const [timeFilter, setTimeFilter] = useState<string>("all_time");
 
 const [showUnlockModal, setShowUnlockModal] = useState(false);
 const [unlockPost, setUnlockPost] = useState<any>(null);
-
-const [transactionData, setTransactionData] = useState<{
-  postId?: string;
-  creatorId?: string;
-  amount?: number;
-} | null>(null);
-
   const router = useRouter();
   const params = useParams();
   const profilePublicId = params.id as string;
   const { session, status } = useDecryptedSession();
   const sessionPublicId = session?.user?.publicId;
+
+  const copyProfileLink = async () => {
+    const profileLink = `${window.location.origin}/profile/${profilePublicId}`;
+    try {
+      await navigator.clipboard.writeText(profileLink);
+      toast.success("Profile link copied!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
 
   const [profileStats, setProfileStats] = useState({
     followerCount: 0,
@@ -142,7 +151,7 @@ const [transactionData, setTransactionData] = useState<{
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
-
+const isOwnProfile = sessionPublicId === profilePublicId;
   useEffect(() => {
     if (!profilePublicId || status !== "authenticated") return;
     if (!sessionPublicId) return;
@@ -274,15 +283,19 @@ const handleFollowToggle = async () => {
     setSubLoading(false);
   };
 
-  const { data: postsData, isLoading: postsLoading } = useQuery({
-    queryKey: ["creator-posts", profilePublicId],
-    queryFn: () =>
-      getApiByParams({
-        url: API_GET_POSTS_BY_CREATOR,
-        params: profilePublicId,
-      }),
-    enabled: !!profilePublicId,
-  });
+const { data: postsData, isLoading: postsLoading } = useQuery({
+  queryKey: ["creator-posts", profilePublicId, search, timeFilter],
+  queryFn: () =>
+    getApiByParams({
+      url: API_GET_POSTS_BY_CREATOR,
+      params: `${profilePublicId}?search=${encodeURIComponent(
+        search || ""
+      )}&time=${timeFilter}`,
+    }),
+  enabled: !!profilePublicId,
+});
+
+
 
   const posts = postsData?.posts || [];
   const photoPosts = posts?.filter((post: any) =>
@@ -383,6 +396,21 @@ const confirmUnlockPost = async () => {
     setSubLoading(false);
   };
 
+const handleSendTip = async (amount: number) => {
+  if (!amount || amount <= 0) {
+    alert("Please enter a valid amount");
+    return;
+  }
+  await apiPost({
+    url: API_SEND_TIP,  
+    values: {
+      creatorId: profile?.user?._id,
+      amount,
+    },
+  });
+  setShowTipModal(false);
+};
+
   const openSubscriptionModal = (
   plan: "MONTHLY" | "YEARLY",
   action: "subscribe" | "upgrade" | "renew"
@@ -454,25 +482,6 @@ const renderSubscriptionButton = (targetPlan: "MONTHLY" | "YEARLY") => {
   return null;
 };
 
-const handlePPVClick = (post: any) => {
-  // 1. Not logged in
-  if (!session?.user) {
-    router.push("/login");
-    return;
-  }
-
-  const isOwner = session.user.publicId === profile?.user?.publicId;
- const isUnlocked = post?.isUnlocked;
-
-if (isOwner || isUnlocked) {
-  router.push(`/post?page&publicId=${post.publicId}`);
-  return;
-}
-  setUnlockPost(post);
-  setShowUnlockModal(true);
-};
-
-
   const truncateText = (text: string, limit = 50) =>
     text?.length > limit ? text.slice(0, limit) : text;
 
@@ -518,7 +527,43 @@ if (isOwner || isUnlocked) {
         return;
       }
     };
+    const queryClient = useQueryClient();
+        const handleDeletePost = async (postId: string) => {
+      if (!postId) return;
 
+      if (!window.confirm("Are you sure you want to delete this post?")) {
+        return;
+      }
+
+      try {
+        const res = await apiPost({
+          url: API_DELETE_POST,   
+          values: { postId },
+        });
+
+        if (res?.success) {
+          toast.success("Post deleted successfully");
+          const updatedPosts = posts.filter((p: any) => p._id !== postId);
+          queryClient.setQueryData(
+            ["creator-posts", profilePublicId],
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              return {
+                ...oldData,
+                posts: oldData.posts.filter(
+                  (p: any) => p._id !== postId
+                ),
+              };
+            }
+          );
+        } else {
+          toast.error(res?.message || "Failed to delete post");
+        }
+      } catch (err) {
+        console.error("Delete post error:", err);
+        toast.error("Something went wrong");
+      }
+    };
     return (
       <div className="creator-content-card-container" key={post?.publicId}>
         <div className="creator-content-card h-full">
@@ -573,6 +618,7 @@ if (isOwner || isUnlocked) {
             </div>
             <div className="creator-media-card__overlay">
              <div className="creator-media-card__stats">
+              {!isOwnProfile && (
               <div className="creator-media-card__stats-btn wishlist-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -581,6 +627,7 @@ if (isOwner || isUnlocked) {
                 </svg>
                 {/* <span> 13 </span> */}
               </div>
+              )}
              </div>
             </div>
           </div>
@@ -606,7 +653,9 @@ if (isOwner || isUnlocked) {
               </button>
               <span>{post?.commentCount}</span>
             </div>
-            <button className="btn-danger icons"><Trash2 size={28} color="#FFF"/></button>
+            {isOwner && (
+            <button className="btn-danger icons" onClick={() => handleDeletePost(post._id)}><Trash2 size={28} color="#FFF"/></button>
+            )}
           </div>
         </div>
       </div>
@@ -628,14 +677,15 @@ if (isOwner || isUnlocked) {
         <div className="creator-content-filter-grid-container">
           <ProfileTab
             onChangeLayouts={(layout) => setLayoutTab(layout)}
-            onChangeTab={(tab) => console.log("Tab:", tab)}
+              onSearchChange={setSearch}
+  onTimeChange={setTimeFilter}
           />
+           {loading && posts.length === 0 &&<div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
           <div
             className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
             data-direct-cards-layout
             data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
           >
-            {postsLoading && <p>Loading posts...</p>}
             {!postsLoading && filteredPosts?.map((post: any) => <PostCard key={post.publicId} post={post} />)}
           </div>
         </div>
@@ -703,6 +753,7 @@ if (isOwner || isUnlocked) {
                   </div>
                   <div className="creator-profile-buttons">
                     <ul>
+                      {!isOwnProfile && (
                       <li>
                         <a href="#" className="save-btn">
                           <svg
@@ -736,6 +787,8 @@ if (isOwner || isUnlocked) {
                           </svg>
                         </a>
                       </li>
+                      )}
+                      {!isOwnProfile && (
                       <li>
                         <a href="#" className="tip-btn" onClick={openTipModal}>
                           <svg
@@ -783,8 +836,13 @@ if (isOwner || isUnlocked) {
                           </svg>
                         </a>
                       </li>
+                      )}
                       <li>
-                        <a href="#" className="share-btn">
+                        <a href="#" className="share-btn" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          copyProfileLink();
+                        }}>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -865,9 +923,9 @@ if (isOwner || isUnlocked) {
                         </a>
                       </li>
                       {profile &&
-  session?.user?.id &&
-  profile?.user?._id &&
-  session.user.id !== profile.user._id && (
+                      session?.user?.id &&
+                      profile?.user?._id &&
+                      session.user.id !== profile.user._id && (
                         <li>
                           <button
                             className="btn-txt-gradient"
@@ -887,6 +945,7 @@ if (isOwner || isUnlocked) {
                     </ul>
                   </div>
                 </div>
+                {profile && (
                 <div className="profile-card__geo-details">
                   <div className="profile-card__geo-detail">
                     <svg
@@ -970,6 +1029,7 @@ if (isOwner || isUnlocked) {
                     </span>
                   </div>
                 </div>
+                )}
                 <div className="creator-profile-stats-link">
                   <div className="profile-card__stats">
                     <div className="profile-card__stats-item posts-stats">
@@ -1014,6 +1074,7 @@ if (isOwner || isUnlocked) {
                         <span>Posts</span>
                       </div>
                     </div>
+                    <Link href={`/follower?tab=followers`}>
                     <div className="profile-card__stats-item followers-stats">
                       <div className="profile-card__stats-num">
                         {profileStats.followerCount.toLocaleString()}
@@ -1058,6 +1119,8 @@ if (isOwner || isUnlocked) {
                         <span>Followers</span>
                       </div>
                     </div>
+                    </Link>
+                    <Link href={`/follower?tab=followers`}>
                     <div className="profile-card__stats-item following-stats">
                       <div className="profile-card__stats-num">
                         {profileStats.followingCount.toLocaleString()}
@@ -1088,9 +1151,10 @@ if (isOwner || isUnlocked) {
                         <span>Following</span>
                       </div>
                     </div>
+                    </Link>
                   </div>
                   <div className="creator-profile-link">
-                    <a href="#">
+                    <a href="#"  onClick={(e) => { e.preventDefault(); copyProfileLink(); }}>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -1120,7 +1184,7 @@ if (isOwner || isUnlocked) {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span> moneyboy.com/coreybergson </span>
+                      <span> {`${window.location.origin}/profile/${profile?.user?.userName}`} </span>
                     </a>
                   </div>
                 </div>
@@ -1155,9 +1219,11 @@ if (isOwner || isUnlocked) {
                                 profile?.subscription?.monthlyPrice,
                                 profile?.subscription?.yearlyPrice
                               );
-
+ 
                               return savings ? (
-                                <div className="save-txt">(Save {savings}%)</div>
+                                <>
+                                (Save {savings}%)
+                                </>
                               ) : null;
                             })()}</div>
                           </div>
@@ -1343,6 +1409,7 @@ if (isOwner || isUnlocked) {
         {showTipModal && (
           <TipModal
             onClose={() => setShowTipModal(false)}
+            onConfirm={handleSendTip}
             creator={{
               displayName: profile?.user?.displayName,
               userName: profile?.user?.userName,

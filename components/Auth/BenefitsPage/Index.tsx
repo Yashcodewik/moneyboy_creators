@@ -35,7 +35,7 @@ const BenefitsPage = () => {
               }`}
               onClick={() => setActiveTab("fan")}
             >
-              Fan Signup
+              User Signup
             </button>
             <button
               className={`page-content-type-button active-down-effect ${
@@ -49,7 +49,7 @@ const BenefitsPage = () => {
           <div className="moneyboy-post__container card">
             {activeTab === "fan" && (
               <>
-                <h3 className="heading">Fan Benefits</h3>
+                <h3 className="heading">User Benefits</h3>
                 <ul className="benefitspoint">
                   <li>
                     Discover free and exclusive content from verified creators
@@ -69,7 +69,7 @@ const BenefitsPage = () => {
                 </ul>
                 <Link href="/signup">
                   <button className="premium-btn">
-                    <span>Fan Signup</span>
+                    <span>User Signup</span>
                   </button>
                 </Link>
               </>
@@ -87,7 +87,7 @@ const BenefitsPage = () => {
                   <li>
                     Access your wallet and analytics dashboard in real time
                   </li>
-                  <li>Chat privately and build loyal fan relationships</li>
+                  <li>Chat privately and build loyal User relationships</li>
                   <li>
                     Promote your free feed publicly and gain more followers
                   </li>
