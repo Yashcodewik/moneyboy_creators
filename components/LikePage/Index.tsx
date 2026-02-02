@@ -18,7 +18,8 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useRouter } from "next/navigation";
-import { Link, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { Link } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import {
@@ -41,7 +42,10 @@ const LikePage = () => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [time, setTime] = useState<string>("all_time");
   const [post, setPost] = useState<any>(null);
-  const [showComment, setShowComment] = useState(false);
+  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(
+    null,
+  );
+
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>(
@@ -220,6 +224,7 @@ const LikePage = () => {
       [postId]: !prev[postId],
     }));
   };
+  
 
   const fetchLikedPostsApi = async ({
     page,
@@ -371,6 +376,10 @@ const LikePage = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const topComment = sortedComments[0];
+  const hasMoreComments = sortedComments.length > 1;
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
@@ -470,10 +479,10 @@ const LikePage = () => {
                           options={timeOptions}
                           value={time}
                           searchable={false}
-                          onChange={(val) => {
-                            setTime(val as string);
-                            // fetchLikedPosts(1);
-                          }}
+                          // onChange={(val) => {
+                          //   setTime(val as string);
+                          //   fetchLikedPosts(1);
+                          // }}
                         />
                       </div>
                     </div>
@@ -753,7 +762,11 @@ const LikePage = () => {
                             onClick={(e) => {
                               e.preventDefault();
                               setPost(post); // 🔥 SET CURRENT POST
-                              setShowComment((prev) => !prev);
+                              setActiveCommentPostId(
+                                activeCommentPostId === post._id
+                                  ? null
+                                  : post._id,
+                              );
                               dispatch(fetchComments(post._id)); // 🔥 LOAD COMMENTS
                             }}
                           >
@@ -864,6 +877,180 @@ const LikePage = () => {
                       </ul>
                     </div>
                   </div>
+                  {activeCommentPostId === post._id && (
+                    <div className="flex flex-column gap-20">
+                      <div className="moneyboy-comment-wrap">
+                        <div className="comment-wrap">
+                          <div className="label-input">
+                            <textarea
+                              ref={textareaRef}
+                              placeholder="Add a comment here"
+                              value={newComment}
+                              onChange={(e) => setNewComment(e.target.value)}
+                            />
+                            <div
+                              ref={emojiButtonRef}
+                              className="input-placeholder-icon"
+                              onClick={() =>
+                                setShowEmojiPicker((prev) => !prev)
+                              }
+                            >
+                              <i className="icons emojiSmile svg-icon"></i>
+                            </div>
+                          </div>
+                          {showEmojiPicker && (
+                            <div
+                              ref={emojiRef}
+                              className="emoji-picker-wrapper"
+                            >
+                              <EmojiPicker
+                                onEmojiClick={onEmojiClick}
+                                autoFocusSearch={false}
+                                skinTonesDisabled
+                                previewConfig={{ showPreview: false }}
+                                height={360}
+                                width={340}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          className="premium-btn active-down-effect"
+                          onClick={handleAddComment}
+                        >
+                          <svg
+                            width="40"
+                            height="35"
+                            viewBox="0 0 40 35"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
+                              fill="url(#paint0_linear_4464_314)"
+                            />
+                            <defs>
+                              <linearGradient
+                                id="paint0_linear_4464_314"
+                                x1="2.37044"
+                                y1="-1.89024e-06"
+                                x2="54.674"
+                                y2="14.6715"
+                                gradientUnits="userSpaceOnUse"
+                              >
+                                <stop stopColor="#FECE26" />
+                                <stop offset="1" stopColor="#E5741F" />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* ================= Render Comments ================= */}
+                      {/* ================= Render Top Comment Only ================= */}
+                      {topComment && (
+                        <div className="moneyboy-post__container card gap-15">
+                          <div className="moneyboy-post__header">
+                            <a href="#" className="profile-card">
+                              <div className="profile-card__main">
+                                <div className="profile-card__avatar-settings">
+                                  <div className="profile-card__avatar">
+                                    <img
+                                      src={
+                                        topComment.userId?.profile?.trim()
+                                          ? topComment.userId.profile
+                                          : "/images/profile-avatars/profile-avatar-6.jpg"
+                                      }
+                                      alt={
+                                        topComment.userId?.userName ||
+                                        "User profile"
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="profile-card__info">
+                                  <div className="profile-card__name-badge">
+                                    <div className="profile-card__name">
+                                      {topComment.userId?.displayName}
+                                    </div>
+                                  </div>
+                                  <div className="profile-card__username">
+                                    @{topComment.userId?.userName}
+                                  </div>
+                                </div>
+                              </div>
+                            </a>
+                            <div className="moneyboy-post__upload-more-info">
+                              <div className="moneyboy-post__upload-time">
+                                {formatRelativeTime(topComment.createdAt)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="moneyboy-post__desc">
+                            <p>{topComment.comment}</p>
+                          </div>
+                          <div
+                            className="like-deslike-wrap"
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <ul style={{ display: "flex", gap: "10px" }}>
+                              <li>
+                                <Link
+                                  href="#"
+                                  className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    dispatch(
+                                      likeComment({
+                                        commentId: topComment._id,
+                                      }),
+                                    );
+                                  }}
+                                >
+                                  <ThumbsUp color="black" strokeWidth={2} />
+                                </Link>
+                              </li>
+                              <li>
+                                <Link
+                                  href="#"
+                                  className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    dispatch(
+                                      dislikeComment({
+                                        commentId: topComment._id,
+                                      }),
+                                    );
+                                  }}
+                                >
+                                  <ThumbsDown color="black" strokeWidth={2} />
+                                </Link>
+                              </li>
+                            </ul>
+                            {hasMoreComments && (
+                              <button
+                                onClick={() =>
+                                  handlePostRedirect(post.publicId)
+                                }
+                                className="active-down-effect-2x"
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                See more
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

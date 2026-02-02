@@ -59,7 +59,7 @@ const LoginPage = () => {
           <img src="/images/logo.svg" className="logo_wrap" />
           <form onSubmit={formik.handleSubmit}>
             <div className="moneyboy-post__container card">
-              <h3 className="heading">Fan Login</h3>
+              <h3 className="heading">Login</h3>
               <p>Welcome back! Sign in to your account</p>
               <div className="loginbtn_wrap">
                 <button className="google-button active-down-effect ">

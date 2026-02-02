@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import { TbCamera } from "react-icons/tb";
 import { GoDotFill } from "react-icons/go";
@@ -13,8 +13,10 @@ import {
   API_CHANGE_CREATOR_PASSWORD,
   API_CREATE_UPDATE_SUBSCRIPTION,
   API_CREATOR_PROFILE,
+  API_GET_BLOCKED_COUNTRIES,
   API_GET_MY_SUBSCRIPTION,
   API_TOGGLE_CREATOR_ACCOUNT,
+  API_UNBLOCK_COUNTRIES,
   API_UPDATE_CREATOR_PROFILE,
 } from "@/utils/api/APIConstant";
 import {
@@ -73,6 +75,7 @@ const EditProfilePage = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [blockedCountry, setBlockedCountry] = useState<string | null>(null);
   const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
+  const prevBlockedCountriesRef = useRef<string[]>([]);
   const [passwordData, setPasswordData] = useState({
     password: "",
     confirmPassword: "",
@@ -195,6 +198,23 @@ const EditProfilePage = () => {
     }
   }, [tab]);
 
+  useEffect(() => {
+  const fetchBlockedCountries = async () => {
+    const res = await getApiWithOutQuery({
+      url: API_GET_BLOCKED_COUNTRIES,
+    });
+
+    if (res?.success) {
+      setBlockedCountries(res.countryNames || []);
+      prevBlockedCountriesRef.current = res.countryNames || [];
+    }
+  };
+
+  if (tab === 2) {
+    fetchBlockedCountries();
+  }
+}, [tab]);
+
   const subscriptionFormik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -231,23 +251,35 @@ const EditProfilePage = () => {
     },
   });
 
-  const handleSaveBlockedCountries = async () => {
-    if (!blockedCountries.length) {
-      ShowToast("Please select at least one country", "error");
-      return;
+const handleSaveBlockedCountries = async () => {
+  const previous = prevBlockedCountriesRef.current;
+  const current = blockedCountries;
+
+  const toBlock = current.filter(c => !previous.includes(c));
+  const toUnblock = previous.filter(c => !current.includes(c));
+
+  try {
+    if (toBlock.length) {
+      await apiPost({
+        url: API_BLOCK_COUNTRIES,
+        values: { countryNames: toBlock },
+      });
     }
 
-    const res = await apiPost({
-      url: API_BLOCK_COUNTRIES,
-      values: { countryNames: blockedCountries },
-    });
-
-    if (res?.success) {
-      ShowToast("Blocked countries updated successfully", "success");
-    } else {
-      ShowToast(res?.message || "Failed to update blocked countries", "error");
+    if (toUnblock.length) {
+      await apiPost({
+        url: API_UNBLOCK_COUNTRIES,
+        values: { countryNames: toUnblock },
+      });
     }
-  };
+
+    prevBlockedCountriesRef.current = current;
+
+    ShowToast("Blocked countries updated successfully", "success");
+  } catch (err: any) {
+    ShowToast(err?.message || "Failed to update blocked countries", "error");
+  }
+};
 
   return (
     <>
