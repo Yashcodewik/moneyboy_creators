@@ -28,6 +28,8 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import CustomSelect from "../CustomSelect";
+import { CgClose } from "react-icons/cg";
 
 const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [open, setOpen] = useState(false);
@@ -252,18 +254,18 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const hasMoreComments = sortedComments.length > 1;
 
   useEffect(() => {
-  const handleScroll = () => {
-    if (showComment) {
-      setShowComment(false);
-    }
-  };
+    const handleScroll = () => {
+      if (showComment) {
+        setShowComment(false);
+      }
+    };
 
-  window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
-  return () => {
-    window.removeEventListener("scroll", handleScroll);
-  };
-}, [showComment]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [showComment]);
 
   return (
     <>
@@ -415,7 +417,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   return (
                     <SwiperSlide key={i}>
                       {isVideo ? (
-                        <Plyr source={{type: "video", sources: [{ src: firstMedia, type: "video/mp4",},],}} options={{controls: [ "play", "progress", "current-time", "mute", "volume", "fullscreen",],}}/>
+                        <Plyr source={{ type: "video", sources: [{ src: firstMedia, type: "video/mp4", },], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
                       ) : (
                         <img src={file} alt="MoneyBoy Post Image" />
                       )}
@@ -691,85 +693,84 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             </button>
           </div>
 
-          {/* ================= Render Comments ================= */}
-         {/* ================= Render Top Comment Only ================= */}
-{topComment && (
-  <div className="moneyboy-post__container card gap-15">
-    <div className="moneyboy-post__header">
-      <a href="#" className="profile-card">
-        <div className="profile-card__main">
-          <div className="profile-card__avatar-settings">
-            <div className="profile-card__avatar">
-              <img
-                src={
-                  topComment.userId?.profile?.trim()
-                    ? topComment.userId.profile
-                    : "/images/profile-avatars/profile-avatar-6.jpg"
-                }
-                alt={topComment.userId?.userName || "User profile"}
-              />
-            </div>
-          </div>
-          <div className="profile-card__info">
-            <div className="profile-card__name-badge">
-              <div className="profile-card__name">
-                {topComment.userId?.displayName}
+          {/* ================= Render Top Comment Only ================= */}
+          {topComment && (
+            <div className="moneyboy-post__container card gap-15">
+              <div className="moneyboy-post__header">
+                <a href="#" className="profile-card">
+                  <div className="profile-card__main">
+                    <div className="profile-card__avatar-settings">
+                      <div className="profile-card__avatar">
+                        <img
+                          src={
+                            topComment.userId?.profile?.trim()
+                              ? topComment.userId.profile
+                              : "/images/profile-avatars/profile-avatar-6.jpg"
+                          }
+                          alt={topComment.userId?.userName || "User profile"}
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-card__info">
+                      <div className="profile-card__name-badge">
+                        <div className="profile-card__name">
+                          {topComment.userId?.displayName}
+                        </div>
+                      </div>
+                      <div className="profile-card__username">
+                        @{topComment.userId?.userName}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+                <div className="moneyboy-post__upload-more-info">
+                  <div className="moneyboy-post__upload-time">
+                    {formatRelativeTime(topComment.createdAt)}
+                  </div>
+                </div>
+              </div>
+              <div className="moneyboy-post__desc">
+                <p>{topComment.comment}</p>
+              </div>
+              <div className="like-deslike-wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <ul style={{ display: "flex", gap: "10px" }}>
+                  <li>
+                    <Link
+                      href="#"
+                      className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        dispatch(likeComment({ commentId: topComment._id }));
+                      }}
+                    >
+                      <ThumbsUp color="black" strokeWidth={2} />
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="#"
+                      className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        dispatch(dislikeComment({ commentId: topComment._id }));
+                      }}
+                    >
+                      <ThumbsDown color="black" strokeWidth={2} />
+                    </Link>
+                  </li>
+                </ul>
+                {hasMoreComments && (
+                  <button
+                    onClick={handlePostRedirect}
+                    className="active-down-effect-2x"
+                    style={{ background: "transparent", border: "none", cursor: "pointer" }}
+                  >
+                    See more
+                  </button>
+                )}
               </div>
             </div>
-            <div className="profile-card__username">
-              @{topComment.userId?.userName}
-            </div>
-          </div>
-        </div>
-      </a>
-      <div className="moneyboy-post__upload-more-info">
-        <div className="moneyboy-post__upload-time">
-          {formatRelativeTime(topComment.createdAt)}
-        </div>
-      </div>
-    </div>
-    <div className="moneyboy-post__desc">
-      <p>{topComment.comment}</p>
-    </div>
-    <div className="like-deslike-wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <ul style={{ display: "flex", gap: "10px" }}>
-        <li>
-          <Link
-            href="#"
-            className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
-            onClick={(e) => {
-              e.preventDefault();
-              dispatch(likeComment({ commentId: topComment._id }));
-            }}
-          >
-            <ThumbsUp color="black" strokeWidth={2} />
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="#"
-            className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
-            onClick={(e) => {
-              e.preventDefault();
-              dispatch(dislikeComment({ commentId: topComment._id }));
-            }}
-          >
-            <ThumbsDown color="black" strokeWidth={2} />
-          </Link>
-        </li>
-      </ul>
-      {hasMoreComments && (
-        <button
-          onClick={handlePostRedirect}
-          className="active-down-effect-2x"
-          style={{ background: "transparent", border: "none", cursor: "pointer" }}
-        >
-          See more
-        </button>
-      )}
-    </div>
-  </div>
-)}
+          )}
 
         </div>
       )}

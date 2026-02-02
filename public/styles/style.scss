@@ -1828,6 +1828,7 @@ body {
       }
     }
     .close-btn {
+      cursor: pointer;
       display: block;
       margin-left: auto;
     }
@@ -2708,6 +2709,86 @@ body {
         }
       }
     }
+    &.report-modal {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 550px;
+      .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+      h3.title {
+        justify-content: start;
+        font-size: 28px;
+        margin-bottom: 0px;
+      }
+      .img_wrap {
+        width: 100%;
+        max-width: 130px;
+        aspect-ratio: 1;
+        margin: 0 auto;
+        img {
+          aspect-ratio: 1;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border: 2px solid #f4f4f4;
+          border-radius: 24px;
+          box-shadow: var(--card-shadow);
+          transition: var(--transition-normal);
+          display: block;
+        }
+      }
+      label {
+        color: #000;
+        font-size: 14px;
+        line-height: 18px;
+        margin-bottom: 6px;
+        display: inline-block;
+        span {
+          color: #CD3F3F;
+        }
+        &.right {
+          text-align: right;
+          justify-content: end;
+          width: 100%;
+          gap: 5px;
+          display: inline-flex;
+          color: #505050;
+          font-size: 12px;
+          line-height: 14px;
+          font-style: normal;
+          font-weight: 500;
+          margin-bottom: 0px;
+        }
+      }
+      input, textarea {
+        font-size: 14px;
+        padding: 12px;
+        background-color: #FFF;
+        &::placeholder {
+          color: #878787;
+        }
+      }
+      .custom-select-element  {
+        background-color: #FFF;
+        .custom-select-label-wrapper {
+          padding: 12px;
+        }
+      }
+      .actions {
+        button {
+          cursor: pointer;
+          width: 100%;
+          max-width: 50%;
+          padding: 14px 8px;
+          margin: 0 auto;
+        }
+      }
+    }
   }
   &.show {
     display: flex;
@@ -3037,6 +3118,30 @@ body {
           }
           .btn-primary {
             max-width: 100%;
+          }
+        }
+        .actions {
+          button {
+            padding: 12px 8px;
+          }
+        }
+      }
+      &.report-modal {
+        padding: 20px;
+        max-width: 90%;
+        h3.title {
+          justify-content: start;
+          font-size: 22px;
+          max-width: 93%;
+        }
+        .custom-select-element  {
+          .custom-select-label-wrapper {
+            .custom-select-chevron {
+              svg {
+                width: 16px !important;
+                height: 16px !important;
+              }
+            }
           }
         }
         .actions {
