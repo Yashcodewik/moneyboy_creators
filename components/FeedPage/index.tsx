@@ -199,18 +199,7 @@ const fetchMoreHandler = () => {
   };
 
   /* ================= RENDER ================= */
-
-  console.log({
-  tab: activeTab,
-  length: activeList.length,
-  hasMore: activeHasMore,
-  page:
-    activeTab === "feed"
-      ? feedPage
-      : activeTab === "following"
-      ? followingPage
-      : popularPage,
-});
+  
 
   return (
     <>

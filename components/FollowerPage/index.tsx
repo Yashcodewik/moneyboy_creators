@@ -176,6 +176,7 @@ const FollowersPage = () => {
         const followersWithStatus = res.data.map((follower: any) => ({
           ...follower,
           isFollowingYou: true,
+          isFollowing: false, // 👈 force default, sync will fix it
         }));
         setFollowers(followersWithStatus);
         setFollowersPage(pageNo);
@@ -208,7 +209,9 @@ const FollowersPage = () => {
         const followingWithStatus = res.data.map((follow: any) => ({
           ...follow,
           isFollowing: true,
+          isFollowingYou: false, // 👈 default
         }));
+
         setFollowing(followingWithStatus);
         setFollowingPage(pageNo);
         const total = res.meta?.total || 0;
@@ -253,23 +256,22 @@ const FollowersPage = () => {
   };
 
   const syncRelationships = () => {
-    if (followers.length === 0 || following.length === 0) return;
+    const followingIds = new Set(following.map((u) => u._id));
+    const followerIds = new Set(followers.map((u) => u._id));
 
-    const followingIds = new Set(following.map((user) => user._id));
-    const followerIds = new Set(followers.map((user) => user._id));
+    setFollowers((prev) =>
+      prev.map((u) => ({
+        ...u,
+        isFollowing: followingIds.has(u._id),
+      })),
+    );
 
-    const updatedFollowers = followers.map((follower) => ({
-      ...follower,
-      isFollowing: followingIds.has(follower._id),
-    }));
-
-    const updatedFollowing = following.map((follow) => ({
-      ...follow,
-      isFollowingYou: followerIds.has(follow._id),
-    }));
-
-    setFollowers(updatedFollowers);
-    setFollowing(updatedFollowing);
+    setFollowing((prev) =>
+      prev.map((u) => ({
+        ...u,
+        isFollowingYou: followerIds.has(u._id),
+      })),
+    );
   };
 
   const handleFollowToggle = async (
@@ -441,10 +443,8 @@ const FollowersPage = () => {
   };
 
   useEffect(() => {
-    if (followers.length > 0 && following.length > 0) {
-      syncRelationships();
-    }
-  }, [followers.length, following.length]);
+    syncRelationships();
+  }, [followers, following]);
 
   const getFollowButtonProps = (user: Follower | Creator) => {
     if (user.isFollowing) {

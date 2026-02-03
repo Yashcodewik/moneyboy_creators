@@ -6,9 +6,8 @@ import {
 } from "@/utils/api/APIConstant";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 
-
 interface FeedPostsState {
-  posts: Record<string, any>; 
+  posts: Record<string, any>;
   feedPage: number;
   followingPage: number;
   popularPage: number;
@@ -31,7 +30,7 @@ const initialState: FeedPostsState = {
   error: null,
 };
 
-
+/* ---------------- FETCH FEED POSTS ---------------- */
 
 export const fetchFeedPosts = createAsyncThunk(
   "feedPosts/fetchFeed",
@@ -42,7 +41,7 @@ export const fetchFeedPosts = createAsyncThunk(
     });
 
     const posts = Array.isArray(res) ? res : [];
-    const rawLength = Array.isArray(res) ? res.length : 0;
+    const rawLength = posts.length;
 
     return {
       posts,
@@ -53,6 +52,7 @@ export const fetchFeedPosts = createAsyncThunk(
   }
 );
 
+/* ---------------- FETCH FOLLOWING POSTS ---------------- */
 
 export const fetchFollowingPosts = createAsyncThunk(
   "feedPosts/fetchFollowing",
@@ -62,7 +62,7 @@ export const fetchFollowingPosts = createAsyncThunk(
     });
 
     const posts = Array.isArray(res?.posts) ? res.posts : [];
-    const rawLength = Array.isArray(res?.posts) ? res.posts.length : 0;
+    const rawLength = posts.length;
 
     return {
       posts,
@@ -73,6 +73,8 @@ export const fetchFollowingPosts = createAsyncThunk(
   }
 );
 
+/* ---------------- FETCH POPULAR POSTS ---------------- */
+
 export const fetchPopularPosts = createAsyncThunk(
   "feedPosts/fetchPopular",
   async ({ userId, page, limit }: any) => {
@@ -82,7 +84,7 @@ export const fetchPopularPosts = createAsyncThunk(
     });
 
     const posts = Array.isArray(res) ? res : [];
-    const rawLength = Array.isArray(res) ? res.length : 0;
+    const rawLength = posts.length;
 
     return {
       posts,
@@ -93,26 +95,27 @@ export const fetchPopularPosts = createAsyncThunk(
   }
 );
 
-
+/* ---------------- SLICE ---------------- */
 
 const feedPostsSlice = createSlice({
   name: "feedPosts",
   initialState,
   reducers: {
+    /* 🔥 Optimistic update reducer (used for save / unsave / like etc.) */
     updateFeedPost(
       state,
       action: PayloadAction<{ postId: string; data: any }>
     ) {
-      state.posts[action.payload.postId] = {
-        ...state.posts[action.payload.postId],
-        ...action.payload.data,
-      };
+      const post = state.posts[action.payload.postId];
+      if (post) {
+        state.posts[action.payload.postId] = {
+          ...post,
+          ...action.payload.data,
+        };
+      }
     },
 
-    incrementFeedPostCommentCount(
-      state,
-      action: PayloadAction<string>
-    ) {
+    incrementFeedPostCommentCount(state, action: PayloadAction<string>) {
       const post = state.posts[action.payload];
       if (post) {
         post.commentCount = (post.commentCount || 0) + 1;
@@ -127,6 +130,7 @@ const feedPostsSlice = createSlice({
       state.hasMoreFeed = true;
       state.hasMoreFollowing = true;
       state.hasMorePopular = true;
+      state.loading = false;
       state.error = null;
     },
   },
@@ -136,6 +140,7 @@ const feedPostsSlice = createSlice({
       .addCase(fetchFeedPosts.pending, (state) => {
         state.loading = true;
       })
+
       .addCase(fetchFeedPosts.fulfilled, (state, action) => {
         state.loading = false;
 
