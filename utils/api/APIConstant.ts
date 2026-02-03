@@ -54,6 +54,10 @@ export const API_CREATE_PPV_REQUEST: string = "/subscription/ppv/request";
 export const API_GET_TRANSACTIONS: string = "/subscription/get-transactions";
 export const API_UNLOCK_POST: string = "/subscription/unlock-post";
 export const API_SEND_TIP: string = "/subscription/send-tip";
+export const API_GET_TRANSACTION_CREATORS: string = "/subscription/transaction-creators";
+
+//Purchased media
+export const API_PURCHASED_MEDIA: string = "/subscription/get-purchasedMedia";
 
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";
