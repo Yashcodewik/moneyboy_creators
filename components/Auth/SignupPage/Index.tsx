@@ -305,8 +305,8 @@ const SignupPage = () => {
 
             <p>
               By signing up you agree to our{" "}
-              <Link href="#">Terms of Service</Link> and{" "}
-              <Link href="#">Privacy Policy</Link>, and confirm that you are at
+              <Link href="/terms">Terms of Service</Link> and{" "}
+              <Link href="/privacy">Privacy Policy</Link>, and confirm that you are at
               least 18 years old.
             </p>
             <p className="fs-18">

@@ -41,6 +41,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label = "Select", options, 
     onChange?.(updated);
   };
 
+  useEffect(() => {
+  if (!open) {
+    setSearch(""); 
+  }
+}, [open]);
   return (
     <div ref={wrapperRef} className={`custom-select-element ${className}`} data-custom-select-element data-custom-select-value={internalValue?.toString() ?? ""}>
       <div className="custom-select-label-wrapper" data-custom-select-triger onClick={() => setOpen((p) => !p)}>
