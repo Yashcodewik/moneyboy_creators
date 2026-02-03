@@ -69,7 +69,9 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
-
+  const [mediaPreviews, setMediaPreviews] = useState<
+    { url: string; type: "image" | "video" }[]
+  >([]);
   const [tagSearch, setTagSearch] = useState("");
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
   const [selectedTagUsers, setSelectedTagUsers] = useState<TagUser[]>([]);
@@ -84,30 +86,33 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const emojiRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
   const [showEmoji, setShowEmoji] = useState(false);
+  const hasMedia = mediaPreviews.length > 0;
+  const imageCount = mediaPreviews.filter((m) => m.type === "image").length;
+  const videoCount = mediaPreviews.filter((m) => m.type === "video").length;
 
   /* ---------- Emoji Insert ---------- */
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-  
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-  
+
     const newText =
       formik.values.text.slice(0, start) +
       emojiData.emoji +
       formik.values.text.slice(end);
-  
+
     formik.setFieldValue("text", newText);
-  
+
     requestAnimationFrame(() => {
       textarea.focus();
       textarea.setSelectionRange(
         start + emojiData.emoji.length,
-        start + emojiData.emoji.length
+        start + emojiData.emoji.length,
       );
     });
-  
+
     setShowEmoji(false);
   };
 
@@ -115,7 +120,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as Node;
-  
+
       if (
         emojiRef.current &&
         !emojiRef.current.contains(target) &&
@@ -124,7 +129,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
         setShowEmoji(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
@@ -205,6 +210,24 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           formData.append("thumbnail", thumbnailInputRef.current.files[0]);
         }
 
+        if (imageCount < 1) {
+          // ShowToast("At least 1 photo is required", "error");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (imageCount > 10) {
+          // ShowToast("Maximum 10 photos allowed", "error");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (videoCount > 3) {
+          // ShowToast("Maximum 3 videos allowed", "error");
+          setIsSubmitting(false);
+          return;
+        }
+
         const res = await apiPostWithMultiForm({
           url: API_CREATE_POST,
           values: formData,
@@ -235,9 +258,24 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       }
     },
   });
+
+  useEffect(() => {
+    return () => {
+      mediaPreviews.forEach((m) => URL.revokeObjectURL(m.url));
+    };
+  }, [mediaPreviews]);
+
   return (
-    <div className={`modal ${show ? "show" : ""} `} role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="modal-wrap post-modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className={`modal ${show ? "show" : ""} `}
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div
+        className="modal-wrap post-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal_head">
           <h3>New Post</h3>
           <button className="close-btn" onClick={onClose}>
@@ -258,9 +296,20 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             />
           </div>
           <span className="right">
-            <button type="button" ref={emojiBtnRef} className="emoji-btn" onClick={() => setShowEmoji((prev) => !prev)}><Smile size={20} stroke="black" strokeWidth={1} fill="#fece26" />{" "}</button>
+            <button
+              type="button"
+              ref={emojiBtnRef}
+              className="emoji-btn"
+              onClick={() => setShowEmoji((prev) => !prev)}
+            >
+              <Smile
+                size={20}
+                stroke="black"
+                strokeWidth={1}
+                fill="#fece26"
+              />{" "}
+            </button>
             {formik.values.text.length}/300
-
             {showEmoji && (
               <div ref={emojiRef} className="emoji-picker-wrapper">
                 <EmojiPicker
@@ -273,7 +322,6 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                 />
               </div>
             )}
-
           </span>
           {formik.touched.text && formik.errors.text && (
             <span className="error-message">{formik.errors.text}</span>
@@ -402,14 +450,32 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
         )}
 
         <div className="upload-wrapper">
-          <div className="img_wrap pointer" onClick={() => thumbnailInputRef.current?.click()}>
+          {/* <div className="img_wrap pointer" onClick={() => thumbnailInputRef.current?.click()}>
             <svg className="icons idshape size-45"></svg>
             <div className="imgicons"><CirclePlus size="16"/></div>
-          </div>
-          <div className="img_wrap">
-            <img src="/images/grow-network-bg-image.png" className="img-fluid upldimg"/>
-            <button className="btn-danger"><CircleX size="16"/></button>
-          </div>
+          </div> */}
+          {mediaPreviews.map((media, index) => (
+            <div className="img_wrap" key={index}>
+              {media.type === "image" ? (
+                <img
+                  src={media.url}
+                  className="img-fluid upldimg"
+                  alt="preview"
+                />
+              ) : (
+                <video src={media.url} className="img-fluid upldimg" controls />
+              )}
+
+              <button
+                className="btn-danger"
+                onClick={() =>
+                  setMediaPreviews((prev) => prev.filter((_, i) => i !== index))
+                }
+              >
+                <CircleX size="16" />
+              </button>
+            </div>
+          ))}
         </div>
 
         {/* <div
@@ -461,6 +527,24 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               hidden
               accept="video/*"
               multiple
+              onChange={(e) => {
+                const files = Array.from(e.target.files || []);
+
+                const remainingSlots = 3 - videoCount;
+                if (remainingSlots <= 0) {
+                  ShowToast("You can upload maximum 3 videos", "error");
+                  return;
+                }
+
+                const selected = files.slice(0, remainingSlots);
+
+                const previews = selected.map((file) => ({
+                  url: URL.createObjectURL(file),
+                  type: "video" as const,
+                }));
+
+                setMediaPreviews((prev) => [...prev, ...previews]);
+              }}
             />
           </div>
         )}
@@ -483,6 +567,24 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           ref={imageInputRef}
           accept="image/*"
           multiple
+          onChange={(e) => {
+            const files = Array.from(e.target.files || []);
+
+            const remainingSlots = 10 - imageCount;
+            if (remainingSlots <= 0) {
+              ShowToast("You can upload maximum 10 photos", "error");
+              return;
+            }
+
+            const selected = files.slice(0, remainingSlots);
+
+            const previews = selected.map((file) => ({
+              url: URL.createObjectURL(file),
+              type: "image" as const,
+            }));
+
+            setMediaPreviews((prev) => [...prev, ...previews]);
+          }}
         />
 
         <div className="actions">
@@ -519,20 +621,26 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           </button> */}
           <div className="hline" />
           <div className="icontext_wrap">
-            <button className="cate-back-btn active-down-effect btn_icons">
+            <button
+              className="cate-back-btn active-down-effect btn_icons"
+              disabled={!hasMedia}
+            >
               <FiAtSign size={20} />
             </button>
             <p>Tag</p>
           </div>
 
           <div className="right">
-            <button className="cate-back-btn active-down-effect btn_icons">
+            <button
+              className="cate-back-btn active-down-effect btn_icons"
+              disabled={!hasMedia}
+            >
               <FaXTwitter size={20} />
             </button>
             <button
               className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
               onClick={() => formik.handleSubmit()}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !hasMedia}
             >
               <span>{isSubmitting ? "Posting..." : "Post"}</span>
             </button>
