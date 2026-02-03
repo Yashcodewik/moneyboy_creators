@@ -76,54 +76,15 @@ const BlockCountriesPage = () => {
     <>
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-          <div
-            className="moneyboy-feed-page-container moneyboy-diff-content-wrappers"
-            data-scroll-zero
-            data-multiple-tabs-section
-            data-identifier="1"
-          >
-            <div
-              className="moneyboy-feed-page-cate-buttons card show_mobail"
-              id="posts-tabs-btn-card"
-            >
-              <button className="cate-back-btn active-down-effect">
-                <span className="icons arrowLeft"></span>
-              </button>
-              <button className="page-content-type-button active">
-                Block Countries
-              </button>
+          <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
+            <div className="moneyboy-feed-page-cate-buttons card show_mobail" id="posts-tabs-btn-card">
+              <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft"></span></button>
+              <button className="page-content-type-button active">Block Countries</button>
             </div>
-            <div
-              className="moneyboy-feed-page-cate-buttons card"
-              id="posts-tabs-btn-card"
-            >
+            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card" >
               <button className="cate-back-btn active-down-effect"  onClick={() => router.push("/feed")}><span className="icons arrowLeft hwhite"></span></button>
-              <button
-                className={`page-content-type-button active-down-effect ${
-                  tab === 0 ? "active" : ""
-                }`}
-                onClick={() => setTab(0)}
-              >
-                Block Countries
-              </button>
-              {/* <button
-                className={`page-content-type-button active-down-effect ${
-                  tab === 1 ? "active" : ""
-                }`}
-                onClick={() => setTab(1)}
-              >
-                Pricing settings
-              </button>
-              <button
-                className={`page-content-type-button active-down-effect ${
-                  tab === 2 ? "active" : ""
-                }`}
-                onClick={() => setTab(2)}
-              >
-                Account and security
-              </button> */}
+              <button className={`page-content-type-button active-down-effect max-w-50 ${tab === 0 ? "active" : ""}`} onClick={() => setTab(0)}>Block Countries</button>
             </div>
-
             <div className="creator-profile-page-container">
               <div className="creator-profile-front-content-container">
                 {tab === 0 && (
@@ -135,26 +96,11 @@ const BlockCountriesPage = () => {
                           <p>Select countries you want to block</p>
                           <div className="form_grid">
                             <div className="one">
-                              <CustomSelect
-                                label="Select Countries"
-                                options={countryOptions}
-                                value={blockedCountries}
-                                onChange={(value) =>
-                                  setBlockedCountries(value as string[])
-                                }
-                                multiple
-                                searchable
-                              />
+                              <CustomSelect label="Select Countries" options={countryOptions} value={blockedCountries} onChange={(value) => setBlockedCountries(value as string[])} multiple searchable />
                             </div>
                           </div>
                           <div className="btm_btn">
-                            <button
-                              type="button"
-                              className="premium-btn active-down-effect"
-                              onClick={handleSaveBlockedCountries}
-                            >
-                              <span>Save Changes</span>
-                            </button>
+                            <button type="button" className="premium-btn active-down-effect" onClick={handleSaveBlockedCountries}><span>Save Changes</span></button>
                           </div>
                         </div>
                       </div>
