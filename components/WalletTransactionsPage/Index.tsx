@@ -7,7 +7,7 @@ import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getApi } from "@/utils/endpoints/common";
-import { API_ADD_COMMENT, API_GET_TRANSACTIONS } from "@/utils/api/APIConstant";
+import { API_ADD_COMMENT, API_GET_TRANSACTION_CREATORS, API_GET_TRANSACTIONS } from "@/utils/api/APIConstant";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -47,42 +47,58 @@ const WalletTransactionsPage = () => {
   >(initialTab);
 
   useEffect(() => {
-    if (!session?.user?.role) return;
-  if (session?.user?.role === 2) {
+  if (!session?.user?.role) return;
+
+  if (session.user.role === 2) {
     // CREATOR
     if (activeTab === "wallet") setMode("earnings");
     if (activeTab === "orders") setMode("sales");
     if (activeTab === "payments") setMode("received");
   }
 
-  if (session?.user?.role === 1) {
+  if (session.user.role === 1) {
     // USER
     if (activeTab === "wallet") setMode("expenses");
     if (activeTab === "orders") setMode("purchases");
     if (activeTab === "payments") setMode("sent");
   }
+
+  setPage(1); 
 }, [activeTab, session?.user?.role]);
 
-const rowsPerPage = 10;
+  const rowsPerPage = 10;
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, mode]);
+
 
 const { data, isLoading } = useQuery({
   queryKey: ["wallet-transactions", activeTab, mode, searchText, page, startDate, endDate],
-  queryFn: () =>
-    getApi({
-      url:
-        `${API_GET_TRANSACTIONS}` +
-        `?tab=${activeTab}` +
-        `&mode=${mode}` +
-        `&page=${page}` +
-        `&rowsPerPage=${rowsPerPage}` +
-        `&search=${encodeURIComponent(searchText || "")}` +
-        `${startDate ? `&startDate=${startDate.toISOString()}` : ""}` +
-        `${endDate ? `&endDate=${endDate.toISOString()}` : ""}`,
-    }),
+  queryFn: () => {
+    const params = new URLSearchParams({
+      tab: activeTab,
+      mode: mode,
+    });
+
+    if (startDate) params.append("startDate", startDate.toISOString());
+    if (endDate) params.append("endDate", endDate.toISOString());
+
+    return getApi({
+      url: `${API_GET_TRANSACTIONS}?${params.toString()}&`,
+      page,
+      rowsPerPage,
+      searchText,
+    });
+  },
+  enabled: !!mode,
 });
 
-const transactions = data?.data || [];
-const summary = data?.summary;
+  const transactions = data?.data || [];
+  const summary = data?.summary;
+  const { data: creators } = useQuery({
+    queryKey: ["transaction-creators"],
+    queryFn: () => getApi({ url: API_GET_TRANSACTION_CREATORS }),
+  });
 
 const getModeOptions = () => {
   // WALLET
@@ -120,6 +136,7 @@ const getModeOptions = () => {
 
   return [];
 };
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -182,12 +199,13 @@ const getModeOptions = () => {
                       <div className="custom-select-element bg-white p-sm size-sm">
                         <div className="creator-content-select-filter">
                           <CustomSelect className="bg-white p-sm size-sm" label="All Creators" searchable={false}
-                          options={[
-                            { label: "Option 1", value: "optionone" }, 
-                            { label: "Option 2", value: "optiontwo" }, 
-                            { label: "Option 3", value: "optionthd" }, 
-                            { label: "Option 4", value: "optionfour" },
-                          ]}/>
+                          options={
+                            creators?.data?.map((u: any) => ({
+                              label: u.displayName,
+                              value: u._id,
+                            })) || []
+                          }
+                          />
                         </div>
                       </div>
                     </div>
@@ -195,13 +213,13 @@ const getModeOptions = () => {
                       <div className="date-btn-wrapper">
                         <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "start" ? null : "start")}><span>{startDate ? startDate.toDateString() : "Start Date"}</span><svg className="icons calendarNoteSmall" /></button>
                         {activeField === "start" && (
-                          <div className="calendar-dropdown"><DatePicker selected={startDate} onChange={(date: any) => {setStartDate(date); setActiveField(null);}} inline/></div>
+                          <div className="calendar-dropdown"><DatePicker selected={startDate} onChange={(date: any) => {setStartDate(date); setPage(1);  setActiveField(null);}} inline/></div>
                         )}
                       </div>
                       <div className="date-btn-wrapper">
                         <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "end" ? null : "end")}><span>{endDate ? endDate.toDateString() : "End Date"}</span> <svg className="icons calendarNoteSmall" /></button>
                         {activeField === "end" && (
-                          <div className="calendar-dropdown"><DatePicker selected={endDate} minDate={startDate ?? undefined} onChange={(date: any) => {setEndDate(date); setActiveField(null);}} inline/></div>
+                          <div className="calendar-dropdown"><DatePicker selected={endDate} minDate={startDate ?? undefined} onChange={(date: any) => {setEndDate(date); setPage(1); setActiveField(null);}} inline/></div>
                         )}
                       </div>
                     </div>
