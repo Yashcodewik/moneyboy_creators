@@ -25,7 +25,7 @@ interface PostCardProps {
 }
 
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowUpRight, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import CustomSelect from "../CustomSelect";
@@ -745,52 +745,21 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               <div className="moneyboy-post__desc">
                 <p>{topComment.comment}</p>
               </div>
-              <div
-                className="like-deslike-wrap"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <ul style={{ display: "flex", gap: "10px" }}>
+              <div className="like-deslike-wrap">
+                <ul>
                   <li>
-                    <Link
-                      href="#"
-                      className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        dispatch(likeComment({ commentId: topComment._id }));
-                      }}
-                    >
+                    <Link href="#" className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); dispatch(likeComment({ commentId: topComment._id }));}}>
                       <ThumbsUp color="black" strokeWidth={2} />
                     </Link>
                   </li>
                   <li>
-                    <Link
-                      href="#"
-                      className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        dispatch(dislikeComment({ commentId: topComment._id }));
-                      }}
-                    >
+                    <Link href="#" className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`} onClick={(e) => { e.preventDefault(); dispatch(dislikeComment({ commentId: topComment._id }));}}>
                       <ThumbsDown color="black" strokeWidth={2} />
                     </Link>
                   </li>
                 </ul>
                 {hasMoreComments && (
-                  <button
-                    onClick={handlePostRedirect}
-                    className="active-down-effect-2x"
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    See more
-                  </button>
+                  <button onClick={handlePostRedirect} className="btn-primary active-down-effect-2x">See more <ArrowUpRight size={14}/></button>
                 )}
               </div>
             </div>

@@ -75,6 +75,11 @@ body {
   75% {transform: translateX(-3%) rotate(-1deg);}
   100% {transform: translateX(0);}
 }
+@keyframes arrowAutoFloat {
+  0% {transform: translateX(0);opacity: 0.9;}
+  50% {transform: translateX(-10px);opacity: 1;}
+  100% {transform: translateX(0);opacity: 0.9;}
+}
 
 .link-gradint {
   span {
@@ -931,6 +936,9 @@ body {
 .pointer {
   cursor: pointer;
 }
+.max-w-22 {
+  max-width: 22px;
+}
 .h-full {
   height: 100%;
 }
@@ -958,6 +966,9 @@ body {
 }
 .items-center {
   align-items: center;
+}
+.items-end {
+  align-items: end;
 }
 .justify-center {
   justify-content: center;
@@ -5086,6 +5097,12 @@ body {
       }
     }
   }
+  .btn-primary {
+    width: fit-content;
+    max-width: fit-content;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
 }
 
 .infinite-scroll-component__outerdiv .infinite-scroll-component  {
@@ -5326,6 +5343,221 @@ body {
         .creator-card__img {
           &.nomedia  {
             min-width: 250px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Marketplace Start
+.marketplace_wrap {
+  width: 100%;
+  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  .story_wrap {
+    .st_head {
+      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      .head_text {
+        gap: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        h5 {
+          gap: 3px;
+          font-size: 14px;
+          font-weight: 500;
+        }
+        .btn-controls {
+          gap: 5px;
+          display: flex;
+          align-items: center;
+          button {
+            aspect-ratio: 1;
+            place-items: center;
+            display: grid;
+            cursor: pointer;
+            width: 26px;
+            background: #000;
+            border-radius: 100%;
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 9px #0000000f; 
+            svg {
+              color: #FFF;
+              max-width: 18px;
+            }
+            &:hover {
+              svg {
+                color: #fece26;
+              }
+            }
+          }
+        }
+      }
+      ul {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-behavior: smooth;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 0px;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-user-drag: none;
+        user-drag: none;
+        &::-webkit-scrollbar {
+          display: none;
+        }
+        li {
+          flex: 0 0 auto;
+          scroll-snap-align: start;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          text-align: center;
+          color: #505050;
+          font-size: 12px;
+          line-height: 16px;
+          font-weight: 500;
+          font-family: var(--font-family-base);
+          transition: var(--transition-fast);
+          &:hover {
+            .icons_wrap {
+              &::after {
+                opacity: 1;
+              }
+              img {
+                transform: scale(1.035);
+              }
+              .btn_close {
+                opacity: 1;
+              }
+            }
+          }
+          .icons_wrap {
+            width: 64px;
+            height: 64px;
+            border-radius: 30px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-fast);
+            &::after {
+              content: "";
+              position: absolute;
+              inset: 0;
+              background: #0000007a;
+              opacity: 0;
+              transition: var(--transition-fast);
+              z-index: 1;
+            }
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              border-radius: 30px;
+              transition: var(--transition-fast);
+            }
+            .btn_close {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              opacity: 0;
+              z-index: 2;
+              transition: var(--transition-fast);
+            }
+          }
+          span {
+            width: 85px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      }
+    }
+  }
+  .store-page-wrapper {
+    .hero-type-card-wrapper {
+      .hero-type-card-container {
+        min-height: 280px;
+        .hero-type-card--bg-img {
+          background-image: url('/images/marketplace_poster.png');
+          background-repeat: no-repeat;
+          background-position: center;
+          background-size: cover;
+          transition: var(--transition-normal);
+          -webkit-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+          -webkit-user-drag: none;
+          user-drag: none;
+          &::before {
+            opacity: 0.3;
+            z-index: 0;
+          }
+          &::after {
+            content: "";
+            z-index: 1;
+            pointer-events: none;
+            background-image: url('/images/mrkt_postarrow.png');
+            background-repeat: no-repeat;
+            background-size: cover;
+            width: 55%;
+            height: 100%;
+            position: absolute;
+            top: auto;
+            bottom: 0px;
+            right: -20px;
+            margin-top: 0;
+            pointer-events: none;
+            animation: arrowAutoFloat 3s ease-in-out infinite;
+          }
+          img {
+            position: relative;
+            z-index: 2;
+            object-fit: contain;
+            object-position: 85% 20%;
+            width: 100%;
+            height: 90%;
+            align-self: flex-end;
+            transition: var(--transition-normal);
+          }
+        }
+        .hero-type-card--content-container {
+          align-self: center;
+          max-width: 50%;
+          position: relative;
+          z-index: 3;      
+          h2 {
+            text-shadow: 0px 4.41px 4.41px rgba(0, 0, 0, 0.25);
+          }
+          .hero-type-card--desc p {
+            line-height: normal;
+          }
+          button {
+            min-width: 220px;
+            max-width: max-content;
+            border-radius: 12px;
+          }
+        }
+      }
+      &:hover {
+        .hero-type-card-container {
+          .hero-type-card--bg-img {
+            transform: unset;
+            img {
+              height: 93.5%;
+            }
           }
         }
       }
