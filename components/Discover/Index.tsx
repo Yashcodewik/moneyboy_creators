@@ -11,10 +11,12 @@ import { useQuery } from "@tanstack/react-query";
 import Filter from "./Filter";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 
 const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
-   const router = useRouter();
+  const router = useRouter();
   type FilterType =
     | "category"
     | "feature"
@@ -40,6 +42,9 @@ const Dashboard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const dispatch = useDispatch();
+
+  const savedPosts = useSelector((state: any) => state.savedPosts.savedPosts);
   const dropdownRefs = useRef<{
     [key in Exclude<FilterType, null>]?: HTMLDivElement | null;
   }>({});
@@ -50,7 +55,7 @@ const Dashboard = () => {
   useEffect(() => {
     const loadSession = async () => {
       const s = await getDecryptedSession();
-      setSession(s); 
+      setSession(s);
     };
     loadSession();
   }, []);
@@ -94,35 +99,35 @@ const Dashboard = () => {
     };
   }, []);
   console.log("=============", session);
-const fetchCreators = async ({ queryKey }: any) => {
-  const [_key, page, search, userPublicId, filtersString] = queryKey;
-  const filters = JSON.parse(filtersString);
+  const fetchCreators = async ({ queryKey }: any) => {
+    const [_key, page, search, userPublicId, filtersString] = queryKey;
+    const filters = JSON.parse(filtersString);
 
-  const params = new URLSearchParams();
+    const params = new URLSearchParams();
 
-  if (userPublicId) {
-    params.append("userPublicId", userPublicId);
-  }
-
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value && value !== "all") {
-      params.append(key, value as string);
+    if (userPublicId) {
+      params.append("userPublicId", userPublicId);
     }
-  });
 
-  if (search) {
-    params.append("q", search);
-  }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== "all") {
+        params.append(key, value as string);
+      }
+    });
 
-  params.append("page", String(page));
-  params.append("rowsPerPage", "8");
+    if (search) {
+      params.append("q", search);
+    }
 
-  const finalUrl = `${API_GET_DISCOVER_CREATORS}?${params.toString()}`;
+    params.append("page", String(page));
+    params.append("rowsPerPage", "8");
 
-  return getApiWithOutQuery({
-    url: finalUrl,
-  });
-};
+    const finalUrl = `${API_GET_DISCOVER_CREATORS}?${params.toString()}`;
+
+    return getApiWithOutQuery({
+      url: finalUrl,
+    });
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -133,67 +138,52 @@ const fetchCreators = async ({ queryKey }: any) => {
       JSON.stringify(filterValues),
     ],
     queryFn: fetchCreators,
-    enabled: true, 
+    enabled: true,
   });
   console.log("FILTER VALUES:", filterValues);
   // console.log("API URL:", `${API_GET_DISCOVER_CREATORS}?${params.toString()}`);
 
-useEffect(() => {
-  setPage(1); 
-}, [filterValues, search]);
-
+  useEffect(() => {
+    setPage(1);
+  }, [filterValues, search]);
 
   useEffect(() => {
     if (data?.success) {
       setCreators(
         data.data.map((c: any) => ({
           ...c,
-          isSaved: c.issaved, 
+          isSaved: savedPosts[c._id]?.saved ?? c.issaved ?? false,
         })),
       );
       setTotalPages(data.meta.totalPages);
     }
   }, [data]);
 
-  const handleSaveCreator = async (creatorId: string) => {
-       if (!session?.user) {
-      router.push("/login"); 
-      return;
-    }
-    try {
-      const res = await apiPost({
-        url: API_SAVE_CREATOR,
-        values: { creatorId },
-      });
-      if (res.success) {
-        // ShowToast(res.message, "success");
-        setCreators((prev) =>
-          prev.map((c) => (c._id === creatorId ? { ...c, isSaved: true } : c)),
-        );
-      }
-    } catch (err: any) {
-      // ShowToast(err?.message || "Failed to save creator", "error");
-    }
-  };
+const handleSaveCreator = (creatorId: string) => {
+  if (!session?.user) {
+    router.push("/login");
+    return;
+  }
 
-  const handleUnsaveCreator = async (creatorId: string) => {
-    try {
-      const res = await apiPost({
-        url: API_UNSAVE_CREATOR, 
-        values: { creatorId },
-      });
-      if (res.success) {
-        // ShowToast(res.message, "success");
-        setCreators((prev) =>
-          prev.map((c) => (c._id === creatorId ? { ...c, isSaved: false } : c)),
-        );
-      }
-    } catch (err: any) {
-      // ShowToast(err?.message || "Failed to unsave creator", "error");
-    }
-  };
+  dispatch(savePost({ creatorUserId: creatorId }) as any);
 
-        const handleProfileClick = (publicId: string) => {
+  // Optimistic UI
+  setCreators((prev) =>
+    prev.map((c) => (c._id === creatorId ? { ...c, isSaved: true } : c))
+  );
+};
+
+const handleUnsaveCreator = (creatorId: string) => {
+  dispatch(unsavePost({ creatorUserId: creatorId }) as any);
+
+  setCreators((prev) =>
+    prev.map((c) => (c._id === creatorId ? { ...c, isSaved: false } : c))
+  );
+};
+
+
+
+  const handleProfileClick = (publicId: string) => {
     router.push(`/profile/${publicId}`);
   };
 
@@ -209,9 +199,6 @@ useEffect(() => {
       if (page < totalPages - 3) pages.push("...");
       pages.push(totalPages - 1, totalPages);
     }
-
-
-
 
     return (
       <div className="pagination_wrap">
@@ -261,7 +248,7 @@ useEffect(() => {
               setFilterValues={setFilterValues}
             />
             <div className="discovery-page-content-wrapper">
-              <div className="discovery-page-cards-layouts" >
+              <div className="discovery-page-cards-layouts">
                 {creators.map((creator) => (
                   <div
                     key={creator._id}
@@ -321,12 +308,12 @@ useEffect(() => {
                           </div>
                           <div
                             className={`user-profile-card__wishlist-btn ${creator.isSaved ? "active" : ""}`}
-                             onClick={(e) => {
-    e.stopPropagation(); // ⛔ STOP redirect
-    creator.isSaved
-      ? handleUnsaveCreator(creator._id)
-      : handleSaveCreator(creator._id);
-  }}
+                            onClick={(e) => {
+                              e.stopPropagation(); // ⛔ STOP redirect
+                              creator.isSaved
+                                ? handleUnsaveCreator(creator._id)
+                                : handleSaveCreator(creator._id);
+                            }}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
