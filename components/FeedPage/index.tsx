@@ -8,8 +8,6 @@ import {
   API_GET_POPULAR_POSTS,
   API_LIKE_POST,
   API_UNLIKE_POST,
-  // API_SAVE_POST,
-  API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
@@ -21,275 +19,162 @@ import CustomSelect from "../CustomSelect";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-
-/* ===================================================== */
+import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost } from "@/redux/other/feedPostsSlice";
 
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
-
-/* ===================================================== */
 
 const FeedPage = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
-   const dispatch = useDispatch<AppDispatch>(); 
-  const savedPostsState = useSelector((state: any) => state.savedPosts.savedPosts);
-  const saveLoadingState = useSelector((state: any) => state.savedPosts.loading);
+  const dispatch = useDispatch<AppDispatch>();
 
-  /* ================= TAB ================= */
   const [activeTab, setActiveTab] = useState<TabType>("feed");
-
-  /* ================= ACTION STATES ================= */
   const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
-  /* ================= FEED ================= */
-const queryClient = useQueryClient();
-  const {
-    data: feedData,
-    fetchNextPage: fetchNextFeedPage,
-    hasNextPage: hasNextFeedPage,
-  } = useInfiniteQuery({
-    queryKey: ["feedPosts", (session?.user as any)?.id ?? null],
-    queryFn: async ({ pageParam = 1 }) => {
-      const res = await apiPost({
-        url: API_GET_POSTS,
-        values: {
-          userId: (session?.user as any)?.id || "",
-          page: pageParam,
-          limit: LIMIT,
-        },
-      });
-
-      return {
-        posts: Array.isArray(res) ? res : [],
-        nextPage:
-          Array.isArray(res) && res.length === LIMIT
-            ? pageParam + 1
-            : undefined,
-      };
-    },
-    initialPageParam: 1,
-    // enabled: activeTab === "feed" && isLoggedIn,
-    getNextPageParam: (lastPage) => lastPage.nextPage,
-  });
-
-  const feedPosts =
-    feedData?.pages.flatMap((page) => page.posts) || [];
-
-  /* ================= FOLLOWING ================= */
 
   const {
-    data: followingData,
-    fetchNextPage: fetchNextFollowingPage,
-    hasNextPage: hasNextFollowingPage,
-  } = useInfiniteQuery({
-    queryKey: ["followingPosts"],
-    queryFn: async ({ pageParam = 1 }) => {
-      const res = await getApiWithOutQuery({
-        url: `${API_GET_FOLLOWING_POSTS}?page=${pageParam}&limit=${LIMIT}`,
-      });
+    posts,
+    feedPage,
+    followingPage,
+    popularPage,
+    hasMoreFeed,
+    hasMoreFollowing,
+    hasMorePopular,
+    loading,
+  } = useSelector((state: any) => state.feedPosts);
 
-      const posts = Array.isArray(res?.posts)
-        ? res.posts.map((p: any) => ({
-            ...p,
-            media: Array.isArray(p.media)
-              ? p.media
-              : p.media
-              ? [p.media]
-              : [],
-          }))
-        : [];
+  const allPosts = Object.values(posts);
 
-      return {
-        posts,
-        nextPage: res?.pagination?.hasNextPage
-          ? pageParam + 1
-          : undefined,
-      };
-    },
-    initialPageParam: 1,
-    enabled: activeTab === "following" && isLoggedIn,
-    getNextPageParam: (lastPage) => lastPage.nextPage,
-  });
+  const feedPosts = allPosts.filter((p: any) => p.source === "feed");
+  const followingPosts = allPosts.filter((p: any) => p.source === "following");
+  const popularPosts = allPosts.filter((p: any) => p.source === "popular");
 
-  const followingPosts =
-    followingData?.pages.flatMap((page) => page.posts) || [];
+  /* ================= INITIAL LOAD / TAB CHANGE ================= */
 
-  /* ================= POPULAR ================= */
+useEffect(() => {
+  if (activeTab === "feed" && feedPosts.length === 0) {
+    dispatch(fetchFeedPosts({
+      userId: (session?.user as any)?.id,
+      page: 1,
+      limit: LIMIT,
+    }));
+  }
 
-  const {
-    data: popularData,
-    fetchNextPage: fetchNextPopularPage,
-    hasNextPage: hasNextPopularPage,
-  } = useInfiniteQuery({
-    queryKey: ["popularPosts"],
-    queryFn: async ({ pageParam = 1 }) => {
-      const res = await apiPost({
-        url: API_GET_POPULAR_POSTS,
-        values: {
-          userId: (session?.user as any)?.id || "",
-          page: pageParam,
-          limit: LIMIT,
-        },
-      });
+  if (activeTab === "following" && followingPosts.length === 0 && isLoggedIn) {
+    dispatch(fetchFollowingPosts({
+      page: 1,
+      limit: LIMIT,
+    }));
+  }
 
-      return {
-        posts: Array.isArray(res) ? res : [],
-        nextPage:
-          Array.isArray(res) && res.length === LIMIT
-            ? pageParam + 1
-            : undefined,
-      };
-    },
-    initialPageParam: 1,
-    enabled: activeTab === "popular",
-    getNextPageParam: (lastPage) => lastPage.nextPage,
-  });
+  if (activeTab === "popular" && popularPosts.length === 0) {
+    dispatch(fetchPopularPosts({
+      userId: (session?.user as any)?.id,
+      page: 1,
+      limit: LIMIT,
+    }));
+  }
+}, [activeTab]);
 
-  const popularPosts =
-    popularData?.pages.flatMap((page) => page.posts) || [];
 
-  /* ================= HELPERS ================= */
+  /* ================= INFINITE SCROLL ================= */
 
-  const resolveList = () => {
-    if (activeTab === "following") return followingPosts;
-    if (activeTab === "popular") return popularPosts;
-    return feedPosts;
-  };
+const fetchMoreHandler = () => {
+  if (loading) return;
 
-  const updatePost = (
-    list: any[],
-    postId: string,
-    updater: (post: any) => any,
-  ) => list.map((p) => (p._id === postId ? updater(p) : p));
+  if (activeTab === "feed" && hasMoreFeed) {
+    dispatch(fetchFeedPosts({
+      userId: (session?.user as any)?.id,
+      page: feedPage + 1,
+      limit: LIMIT,
+    }));
+  }
+
+  if (activeTab === "following" && hasMoreFollowing) {
+    dispatch(fetchFollowingPosts({
+      page: followingPage + 1,
+      limit: LIMIT,
+    }));
+  }
+
+  if (activeTab === "popular" && hasMorePopular) {
+    dispatch(fetchPopularPosts({
+      userId: (session?.user as any)?.id,
+      page: popularPage + 1,
+      limit: LIMIT,
+    }));
+  }
+};
+
+
 
   /* ================= LIKE ================= */
 
-const handleLike = async (postId: string) => {
-  if (!isLoggedIn) return router.push("/login");
-  if (likeLoading[postId]) return;
+  const handleLike = async (postId: string) => {
+    if (!isLoggedIn) return router.push("/login");
+    if (likeLoading[postId]) return;
 
-  setLikeLoading((p) => ({ ...p, [postId]: true }));
+    const post = posts[postId];
+    setLikeLoading((p) => ({ ...p, [postId]: true }));
 
-  // Optimistic update: update React Query cache immediately
-  const queryKey =
-    activeTab === "feed"
-      ? ["feedPosts", (session?.user as any)?.id ?? null]
-      : activeTab === "following"
-      ? ["followingPosts"]
-      : ["popularPosts"];
+    // optimistic update
+    dispatch(
+      updateFeedPost({
+        postId,
+        data: {
+          isLiked: !post.isLiked,
+          likeCount: post.isLiked
+            ? post.likeCount - 1
+            : post.likeCount + 1,
+        },
+      })
+    );
 
-  const oldData = queryClient.getQueryData<any>(queryKey);
-
-  queryClient.setQueryData(queryKey, (data: any) => {
-    if (!data) return data;
-
-    const updatedPages = data.pages.map((page: any) => ({
-      ...page,
-      posts: page.posts.map((p: any) =>
-        p._id === postId
-          ? {
-              ...p,
-              isLiked: !p.isLiked,
-              likeCount: p.isLiked ? p.likeCount - 1 : p.likeCount + 1,
-            }
-          : p
-      ),
-    }));
-
-    return { ...data, pages: updatedPages };
-  });
-
-  // Call API in background
-  const post = oldData?.pages
-    .flatMap((page: any) => page.posts)
-    .find((p: any) => p._id === postId);
-
-  const res = await apiPost({
-    url: post?.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
-    values: { postId },
-  });
-
-  if (!res?.success) {
-    // Rollback if API failed
-    queryClient.setQueryData(queryKey, oldData);
-  }
-
-  setLikeLoading((p) => ({ ...p, [postId]: false }));
-};
-
-
-  /* ================= SAVE ================= */
-// In FeedPage.tsx - Update handleSave function
-const handleSave = async (postId: string) => {
-  if (!isLoggedIn) return router.push("/login");
-  if (saveLoading[postId]) return;
-
-  setSaveLoading((p) => ({ ...p, [postId]: true }));
-
-  // 🔥 source of truth: Redux - check if post is currently saved
-  const isCurrentlySaved = !!savedPostsState[postId]?.saved;
-
-  // Decide query key
-  const queryKey =
-    activeTab === "feed"
-      ? ["feedPosts", (session?.user as any)?.id ?? null]
-      : activeTab === "following"
-      ? ["followingPosts"]
-      : ["popularPosts"];
-
-  // Optimistic update
-  queryClient.setQueryData(queryKey, (data: any) => {
-    if (!data) return data;
-
-    return {
-      ...data,
-      pages: data.pages.map((page: any) => ({
-        ...page,
-        posts: page.posts.map((p: any) =>
-          p._id === postId ? { ...p, isSaved: !isCurrentlySaved } : p
-        ),
-      })),
-    };
-  });
-
-  // API call
-  try {
-    if (isCurrentlySaved) {
-      await dispatch(unsavePost({ postId })).unwrap();
-    } else {
-      await dispatch(savePost({ postId })).unwrap();
-    }
-  } catch (error) {
-    // Rollback on error
-    queryClient.setQueryData(queryKey, (data: any) => {
-      if (!data) return data;
-      return {
-        ...data,
-        pages: data.pages.map((page: any) => ({
-          ...page,
-          posts: page.posts.map((p: any) =>
-            p._id === postId ? { ...p, isSaved: isCurrentlySaved } : p
-          ),
-        })),
-      };
+    const res = await apiPost({
+      url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
+      values: { postId },
     });
-    console.error("Save/Unsave failed:", error);
-  } finally {
-    setSaveLoading((p) => ({ ...p, [postId]: false }));
-  }
-};
 
+    if (!res?.success) {
+      dispatch(updateFeedPost({ postId, data: post }));
+    }
 
-  /* ================= SCROLL ================= */
-
-  const fetchMoreHandler = () => {
-    if (activeTab === "feed") fetchNextFeedPage();
-    if (activeTab === "following") fetchNextFollowingPage();
-    if (activeTab === "popular") fetchNextPopularPage();
+    setLikeLoading((p) => ({ ...p, [postId]: false }));
   };
+
+  /* ================= SAVE / UNSAVE ================= */
+
+  const handleSave = async (postId: string, isSaved: boolean) => {
+    if (!isLoggedIn) return router.push("/login");
+    if (saveLoading[postId]) return;
+
+    setSaveLoading((p) => ({ ...p, [postId]: true }));
+
+    dispatch(updateFeedPost({ postId, data: { isSaved: !isSaved } }));
+
+    try {
+      if (isSaved) {
+        await dispatch(unsavePost({ postId })).unwrap();
+      } else {
+        await dispatch(savePost({ postId })).unwrap();
+      }
+    } catch {
+      dispatch(updateFeedPost({ postId, data: { isSaved } }));
+    } finally {
+      setSaveLoading((p) => ({ ...p, [postId]: false }));
+    }
+  };
+
+  /* ================= COMMENTS ================= */
+
+  const incrementCommentCount = (postId: string) => {
+    dispatch(incrementFeedPostCommentCount(postId));
+  };
+
+  /* ================= UI HELPERS ================= */
 
   const activeList =
     activeTab === "feed"
@@ -300,11 +185,10 @@ const handleSave = async (postId: string) => {
 
   const activeHasMore =
     activeTab === "feed"
-      ? hasNextFeedPage
+      ? hasMoreFeed
       : activeTab === "following"
-      ? hasNextFollowingPage
-      : hasNextPopularPage;
-  /* ================= TAB SWITCH ================= */
+      ? hasMoreFollowing
+      : hasMorePopular;
 
   const handleTabClick = (tab: TabType) => {
     if (!isLoggedIn && tab === "following") {
@@ -314,37 +198,19 @@ const handleSave = async (postId: string) => {
     setActiveTab(tab);
   };
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [activeTab]);
-
-
-  const incrementCommentCount = (postId: string) => {
-  const queryKey =
-    activeTab === "feed"
-      ? ["feedPosts", (session?.user as any)?.id ?? null]
-      : activeTab === "following"
-      ? ["followingPosts"]
-      : ["popularPosts"];
-
-  queryClient.setQueryData(queryKey, (data: any) => {
-    if (!data) return data;
-
-    return {
-      ...data,
-      pages: data.pages.map((page: any) => ({
-        ...page,
-        posts: page.posts.map((p: any) =>
-          p._id === postId
-            ? { ...p, commentCount: (p.commentCount || 0) + 1 }
-            : p
-        ),
-      })),
-    };
-  });
-};
-
   /* ================= RENDER ================= */
+
+  console.log({
+  tab: activeTab,
+  length: activeList.length,
+  hasMore: activeHasMore,
+  page:
+    activeTab === "feed"
+      ? feedPage
+      : activeTab === "following"
+      ? followingPage
+      : popularPage,
+});
 
   return (
     <>
@@ -372,12 +238,27 @@ const handleSave = async (postId: string) => {
                 Popular
               </button>
             </div>
-            <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
-              <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={activeList.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore ?? false}>
-                {activeList.map((post) => (
-                  <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount}/>
-                ))}
-              </InfiniteScrollWrapper>
+            <div
+              id="feed-scroll-container"
+              className="moneyboy-posts-scroll-container"
+            >
+                <InfiniteScrollWrapper
+              className="moneyboy-posts-wrapper"
+              scrollableTarget="feed-scroll-container"
+              dataLength={activeList.length}
+              fetchMore={fetchMoreHandler}
+              hasMore={activeHasMore}
+            >
+              {activeList.map((post: any) => (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  onLike={handleLike}
+                  onSave={handleSave}
+                  onCommentAdded={incrementCommentCount}
+                />
+              ))}
+            </InfiniteScrollWrapper>
               {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
                 fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
                 hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
@@ -396,7 +277,12 @@ const handleSave = async (postId: string) => {
       </div>
 
       {/* ================= MODALS ================= */}
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap tip-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -442,7 +328,12 @@ const handleSave = async (postId: string) => {
           </div>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap subscription-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -505,7 +396,12 @@ const handleSave = async (postId: string) => {
           </p>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap tip-modal unlockmodal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -550,7 +446,12 @@ const handleSave = async (postId: string) => {
           </div>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap promote-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -620,7 +521,12 @@ const handleSave = async (postId: string) => {
           </div>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap request-modal">
           <button className="close-btn">
             <CgClose size={22} />
@@ -630,21 +536,29 @@ const handleSave = async (postId: string) => {
             <div className="profile-card__main justify-center">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar">
-                  <img src="/images/profile-avatars/profile-avatar-1.png" alt="MoneyBoy Social Profile Avatar" />
+                  <img
+                    src="/images/profile-avatars/profile-avatar-1.png"
+                    alt="MoneyBoy Social Profile Avatar"
+                  />
                 </div>
               </div>
               <div className="profile-card__info">
                 <div className="profile-card__name-badge">
                   <div className="profile-card__name">Gogo</div>
                   <div className="profile-card__badge">
-                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge"/>
+                    <img
+                      src="/images/logo/profile-badge.png"
+                      alt="MoneyBoy Social Profile Badge"
+                    />
                   </div>
                 </div>
                 <div className="profile-card__username">@gogo</div>
               </div>
             </div>
           </div>
-          <p className="small">Request a personalized video or photo directly from this MoneyBoy.</p>
+          <p className="small">
+            Request a personalized video or photo directly from this MoneyBoy.
+          </p>
           <div>
             <label>Request type</label>
             <CustomSelect
@@ -691,23 +605,47 @@ const handleSave = async (postId: string) => {
           </div>
         </div>
       </div>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap report-modal">
           <button className="close-btn">
             <CgClose size={22} />
           </button>
           <h3 className="title">Report Pop-Up</h3>
           <div className="img_wrap">
-            <img src="/images/profile-avatars/profile-avatar-1.png" alt="MoneyBoy Social Profile Avatar" />
+            <img
+              src="/images/profile-avatars/profile-avatar-1.png"
+              alt="MoneyBoy Social Profile Avatar"
+            />
           </div>
           <div>
-            <label>Tital <span>*</span></label>
-            <CustomSelect searchable={false} label="Violent Or Repulsive Content"
+            <label>
+              Tital <span>*</span>
+            </label>
+            <CustomSelect
+              searchable={false}
+              label="Violent Or Repulsive Content"
               options={[
-                { label: "Violent or repulsive content", value: "violent_or_repulsive" },
-                { label: "Hateful or abusive content", value: "hateful_or_abusive" },
-                { label: "Harassment or bullying", value: "harassment_or_bullying" },
-                { label: "Harmful or dangerous acts", value: "harmful_or_dangerous" },
+                {
+                  label: "Violent or repulsive content",
+                  value: "violent_or_repulsive",
+                },
+                {
+                  label: "Hateful or abusive content",
+                  value: "hateful_or_abusive",
+                },
+                {
+                  label: "Harassment or bullying",
+                  value: "harassment_or_bullying",
+                },
+                {
+                  label: "Harmful or dangerous acts",
+                  value: "harmful_or_dangerous",
+                },
                 { label: "Child abuse", value: "child_abuse" },
                 { label: "Promotes terrorism", value: "promotes_terrorism" },
                 { label: "Spam or misleading", value: "spam_or_misleading" },
@@ -722,7 +660,9 @@ const handleSave = async (postId: string) => {
             <label className="right">0/300</label>
           </div>
           <div className="actions">
-            <button className="premium-btn active-down-effect"><span>Submit</span></button>
+            <button className="premium-btn active-down-effect">
+              <span>Submit</span>
+            </button>
           </div>
         </div>
       </div>

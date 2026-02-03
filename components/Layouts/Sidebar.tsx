@@ -165,7 +165,18 @@ const Sidebar: React.FC = () => {
                 <div className="profile-card">
                   <a href="#" className="profile-card__main">
                     <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
+                      <div className="profile-card__avatar"
+                        onClick={() => {
+    if (session?.user?.role === 1) {
+      console.log("role 1");
+      router.push("/userprofile");
+    } else if (session?.user?.role === 2) {
+      console.log("role 2");
+      router.push(`/profile/${session?.user?.publicId}`);
+    } else {
+      router.push("/profile");
+    }
+  }}>
                         <img
                           src={
                             userProfile?.profile
@@ -181,7 +192,14 @@ const Sidebar: React.FC = () => {
                           }}
                         />
                       </div>
-                      <div className="profile-card__settings active-down-effect-2x">
+                      <div className="profile-card__settings active-down-effect-2x"    onClick={(e) => {
+                          if (session?.user?.role === 1) {
+                            router.push("/user-edit-profile");
+                          } else if (session?.user?.role === 2) {
+                            router.push("/creator-edit-profile");
+                          }
+                        }}
+                       >
                         <svg
                           className="svg-icon"
                           xmlns="http://www.w3.org/2000/svg"

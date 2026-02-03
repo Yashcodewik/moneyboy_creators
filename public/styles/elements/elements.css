@@ -574,6 +574,40 @@
             }
         }
 
+        .custom-select-label-txt {
+            font-weight: 500;
+            font-size: 13px;
+            color: #444444;
+    
+            &.multi-select {
+              display: flex;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 6px;
+    
+              .multitext {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 2px 5px;
+                background-color: #eeeeee;
+                border-radius: 6px;
+                font-size: 12px;
+    
+                .multi-remove {
+                  display: inline-flex;
+                  align-items: center;
+                  cursor: pointer;
+    
+                  svg {
+                    width: 14px;
+                    height: 14px;
+                  }
+                }
+              }
+            }
+          }
+
         .custom-select-chevron {
             display: flex;
             align-items: center;

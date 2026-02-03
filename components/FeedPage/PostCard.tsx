@@ -20,7 +20,7 @@ import "plyr-react/plyr.css";
 interface PostCardProps {
   post: any;
   onLike: (postId: string) => void;
-  onSave: (postId: string) => void;
+  onSave: (postId: string, isSaved: boolean) => void;
   onCommentAdded?: (postId: string) => void;
 }
 
@@ -35,7 +35,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
-
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [showComment, setShowComment] = useState(false);
@@ -47,7 +46,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [newComment, setNewComment] = useState("");
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
-  const firstMedia = post?.media?.[0]?.mediaFiles?.[0] || "/images/profile-avatars/profile-avatar-6.jpg";
+  const firstMedia =
+    post?.media?.[0]?.mediaFiles?.[0] ||
+    "/images/profile-avatars/profile-avatar-6.jpg";
   const router = useRouter();
 
   const { session } = useDecryptedSession();
@@ -264,10 +265,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     };
   }, [showComment]);
 
-const isSaved = useAppSelector(
-  (state) => !!state.savedPosts.savedPosts[post._id]
-);
-
   return (
     <>
       <div className="moneyboy-post__container card">
@@ -418,7 +415,22 @@ const isSaved = useAppSelector(
                   return (
                     <SwiperSlide key={i}>
                       {isVideo ? (
-                        <Plyr source={{ type: "video", sources: [{ src: firstMedia, type: "video/mp4", },], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
+                        <Plyr
+                          source={{
+                            type: "video",
+                            sources: [{ src: firstMedia, type: "video/mp4" }],
+                          }}
+                          options={{
+                            controls: [
+                              "play",
+                              "progress",
+                              "current-time",
+                              "mute",
+                              "volume",
+                              "fullscreen",
+                            ],
+                          }}
+                        />
                       ) : (
                         <img src={file} alt="MoneyBoy Post Image" />
                       )}
@@ -589,11 +601,10 @@ const isSaved = useAppSelector(
               <li>
                 <Link
                   href="#"
-                  
-                  className={`post-save-btn ${isSaved ? "active" : ""}`}
+                  className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
-                   onSave(post._id);
+                    onSave(post._id, post.isSaved);
                   }}
                 >
                   <svg
@@ -734,7 +745,14 @@ const isSaved = useAppSelector(
               <div className="moneyboy-post__desc">
                 <p>{topComment.comment}</p>
               </div>
-              <div className="like-deslike-wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div
+                className="like-deslike-wrap"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <ul style={{ display: "flex", gap: "10px" }}>
                   <li>
                     <Link
@@ -765,7 +783,11 @@ const isSaved = useAppSelector(
                   <button
                     onClick={handlePostRedirect}
                     className="active-down-effect-2x"
-                    style={{ background: "transparent", border: "none", cursor: "pointer" }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
                   >
                     See more
                   </button>
@@ -773,7 +795,6 @@ const isSaved = useAppSelector(
               </div>
             </div>
           )}
-
         </div>
       )}
     </>
