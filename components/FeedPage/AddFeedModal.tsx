@@ -39,10 +39,14 @@ type TagUser = {
 };
 
 const PostSchema = Yup.object({
-  text: Yup.string()
-    .required("Post text is required")
-    .min(70, "Post must be at least 70 characters")
-    .max(300, "Post cannot exceed 300 characters"),
+  text: Yup.string().when("hasMedia", {
+    is: false,
+    then: (s) =>
+      s
+        .required("Post text is required")
+        .min(70, "Post must be at least 70 characters"),
+    otherwise: (s) => s.notRequired(),
+  }),
   accessType: Yup.string().required(),
   price: Yup.number().when("accessType", {
     is: "pay_per_view",
@@ -76,6 +80,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
   const [selectedTagUsers, setSelectedTagUsers] = useState<TagUser[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const MEDIA_TYPE_MAP: Record<string, string> = {
     image: "photo",
     video: "video",
@@ -166,6 +171,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       price: "",
       isScheduled: false,
       scheduledAt: "",
+      hasMedia: false,
     },
     validationSchema: PostSchema,
     onSubmit: async (values) => {
@@ -180,7 +186,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
         formData.append("text", values.text);
         formData.append("accessType", values.accessType);
-        formData.append("isScheduled", String(values.isScheduled));
+        formData.append("isScheduled", values.isScheduled ? "true" : "false");
 
         if (values.accessType === "pay_per_view") {
           formData.append("price", values.price);
@@ -190,44 +196,39 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           formData.append("scheduledAt", values.scheduledAt);
         }
 
-        if (activeTool && MEDIA_TYPE_MAP[activeTool]) {
-          formData.append("mediaType", MEDIA_TYPE_MAP[activeTool]);
-        }
-
-        if (imageInputRef.current?.files) {
-          Array.from(imageInputRef.current.files).forEach((file) =>
-            formData.append("mediaFiles", file),
-          );
-        }
-
-        if (videoInputRef.current?.files) {
-          Array.from(videoInputRef.current.files).forEach((file) =>
-            formData.append("mediaFiles", file),
-          );
-        }
+        mediaFiles.forEach((file) => {
+          formData.append("mediaFiles", file);
+        });
 
         if (thumbnailInputRef.current?.files?.[0]) {
           formData.append("thumbnail", thumbnailInputRef.current.files[0]);
         }
 
-        if (imageCount < 1) {
-          // ShowToast("At least 1 photo is required", "error");
+        if (mediaFiles.length < 1) {
+          ShowToast("At least 1 media file is required", "error");
           setIsSubmitting(false);
           return;
         }
 
         if (imageCount > 10) {
-          // ShowToast("Maximum 10 photos allowed", "error");
+          ShowToast("Maximum 10 photos allowed", "error");
           setIsSubmitting(false);
           return;
         }
 
         if (videoCount > 3) {
-          // ShowToast("Maximum 3 videos allowed", "error");
+          ShowToast("Maximum 3 videos allowed", "error");
           setIsSubmitting(false);
           return;
         }
 
+        const finalMediaType = mediaFiles.some((f) =>
+          f.type.startsWith("video"),
+        )
+          ? "video"
+          : "photo";
+
+        formData.append("mediaType", finalMediaType);
         const res = await apiPostWithMultiForm({
           url: API_CREATE_POST,
           values: formData,
@@ -467,10 +468,14 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               )}
 
               <button
+                type="button"
                 className="btn-danger"
-                onClick={() =>
-                  setMediaPreviews((prev) => prev.filter((_, i) => i !== index))
-                }
+                onClick={() => {
+                  setMediaPreviews((prev) =>
+                    prev.filter((_, i) => i !== index),
+                  );
+                  setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+                }}
               >
                 <CircleX size="16" />
               </button>
@@ -538,6 +543,8 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
                 const selected = files.slice(0, remainingSlots);
 
+                setMediaFiles((prev) => [...prev, ...selected]);
+
                 const previews = selected.map((file) => ({
                   url: URL.createObjectURL(file),
                   type: "video" as const,
@@ -577,6 +584,8 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             }
 
             const selected = files.slice(0, remainingSlots);
+
+            setMediaFiles((prev) => [...prev, ...selected]);
 
             const previews = selected.map((file) => ({
               url: URL.createObjectURL(file),
@@ -638,6 +647,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               <FaXTwitter size={20} />
             </button>
             <button
+              type="button"
               className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
               onClick={() => formik.handleSubmit()}
               disabled={isSubmitting || !hasMedia}
