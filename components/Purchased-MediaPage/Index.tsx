@@ -24,6 +24,7 @@ import { fetchPurchasedMedia } from "@/redux/purchasedMedia/Action";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 import { useRouter } from "next/navigation";
+import { PlayCircle } from "lucide-react";
 
 const getVideoDuration = (url: string): Promise<number> => {
   return new Promise((resolve, reject) => {
@@ -197,42 +198,19 @@ const formatDuration = (seconds: number) => {
       return (
         <div className="pm-page-content-card">
           <div className="pm-page-card-media-container">
-            <div
-                className="pm-page-card--img"
-                onClick={() => {
-                  if (isVideo) {
-                    toggleVideo(mediaUrl, item);
-                  } else {
-                    router.push(`/post?page&publicId=${item.publicId}`);
-                  }
-                }}
-                  onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                style={{ cursor: isVideo ? "pointer" : "default" }}
-              >
+            <div className="pm-page-card--img" onClick={() => {if (isVideo) {toggleVideo(mediaUrl, item);} else {router.push(`/post?page&publicId=${item.publicId}`);}}} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 {isVideo ? (
-                  <Plyr
-                        ref={plyrRef}
-                        source={{
-                          type: "video",
-                          sources: [{ src: mediaUrl, type: "video/mp4" }],
-                        }}
-                        options={{
-                          autoplay: false,
-                          muted: true,
-                          controls: [],
-                          clickToPlay: false,
-                          hideControls: true,
-                        }}
-                        onLoadedMetadata={handleLoadedMetadata}
-                      />
+                  <>
+                   <Link href="#" className="ply_btn"><PlayCircle strokeWidth={1} size={32}/></Link>
+                   <Plyr ref={plyrRef} source={{type: "video", sources: [{ src: mediaUrl, type: "video/mp4" }],}} options={{autoplay: false, muted: true, controls: [], clickToPlay: false,hideControls: true,}} onLoadedMetadata={handleLoadedMetadata}/>
+                  </>
                 ) : (
                   <img src={mediaUrl} alt={item.publicId} />
                 )}
               </div>
           <div className="pm-page-card-icons-wrapper">
             <div className="creator-content-card__stats">
-              <div className="creator-content-stat-box">
+              <div className="creator-content-stat-box mxw_50">
                 <div className="eye-icon">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -259,7 +237,7 @@ const formatDuration = (seconds: number) => {
                 <span>12k</span>
               </div>
               {isVideo && duration && (
-                <div className="creator-content-stat-box">
+                <div className="creator-content-stat-box mxw_50">
                   <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

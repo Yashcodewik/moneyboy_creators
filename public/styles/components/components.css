@@ -2989,7 +2989,7 @@
                        position: absolute;
                        inset: 0;
  
-                       img {
+                       img, video {
                          aspect-ratio: 1.16 / 1;
                          object-fit: cover;
                          width: 100%;
@@ -2997,6 +2997,29 @@
                          height: 100%;
                          transition: var(--transition-fast);
                        }
+                       .ply_btn {
+                        z-index: 5;
+                        position: absolute;
+                        top: 55%;
+                        left: 50%;
+                        margin-right: -50%;
+                        transform: translate(-50%, -50%);
+                        width: 36px;
+                        height: 36px;
+                        display: grid;
+                        place-items: center;
+                        border-radius: 30px;
+                        -webkit-backdrop-filter: blur(15px);
+                        backdrop-filter: blur(15px);
+                        transition: var(--transition-fast);
+                        border: 1px solid #fff3;
+                        svg {
+                          stroke: white;
+                          circle {
+                            stroke: transparent;
+                          }
+                        }
+                      }
                      }
  
                      .pm-page-card-icons-wrapper {
@@ -3018,6 +3041,9 @@
                            gap: 4px;
                            border-radius: 10px;
                            cursor: pointer;
+                           &.mxw_50 {
+                              max-width: 50%;
+                            }
  
                            &:nth-child(1) {
                              &:hover {

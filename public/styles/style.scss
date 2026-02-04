@@ -166,26 +166,55 @@ body {
   }
 }
 // Video Player Start
+/* Plyr root */
+.plyr {
+  --plyr-color-main: #e5741f;
+
+  /* Full UI sliders */
+  &.plyr--full-ui {
+    input[type="range"] {
+      color: #e5741f !important;
+    }
+  }
+}
+
+/* Controls wrapper */
 .plyr__controls {
-  svg {
-    width: 16px !important;
-    height: 16px !important;
-  }
-  button {
+  gap: 6px;
+  .plyr__control {
     border-radius: 12px;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
+    svg {
+      width: 16px !important;
+      height: 16px !important;
+    }
+    &:hover,
+    &:focus-visible,
+    &[aria-pressed="true"],
+    &[aria-expanded="true"] {
+      color: #fff;
+      background: linear-gradient( 93.25deg, #e5741f -49.57%, #fece26 98.1%) !important;
+    }
   }
-  .plyr--full-ui input[type="range"] {
-    color: #E5741F !important;
+  .plyr__progress {
+    input[type="range"] {height: 4px;}
+  }
+  .plyr__progress__buffer {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  .plyr__volume {
+    input[type="range"] {max-width: 80px;}
   }
   .plyr__control--overlaid {
+    border-radius: 50%;
     background: linear-gradient(93.25deg, #e5741f -49.57%, #fece26 98.1%) !important;
   }
-  .plyr__control:focus-visible,
-  .plyr__control:hover,
-  .plyr__control[aria-expanded="true"] {
+  .plyr__tooltip {
+    background: #111;
     color: #fff;
-    background: linear-gradient(93.25deg, #e5741f -49.57%, #fece26 98.1%) !important;
+    border-radius: 6px;
+    font-size: 11px;
+    padding: 4px 6px;
   }
 }
 
