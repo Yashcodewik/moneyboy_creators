@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import CustomSelect from "../CustomSelect";
 import { CgClose } from "react-icons/cg";
+import ReportModal from "../ReportModal";
 
 const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [open, setOpen] = useState(false);
@@ -45,6 +46,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [newComment, setNewComment] = useState("");
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const [showReportModal, setShowReportModal] = useState(false);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const firstMedia =
     post?.media?.[0]?.mediaFiles?.[0] ||
@@ -570,7 +572,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             <ul>
               {/* Share */}
               <li>
-                <Link href="#">
+                <Link href="#"
+                className={post.isReported ? "active" : ""}
+                onClick={(e) => { e.preventDefault(); setShowReportModal(true); }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -642,6 +646,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           </div>
         </div>
       </div>
+
+      {showReportModal  && <ReportModal postId={post._id} imageUrl={post.media?.[0]?.mediaFiles?.[0] || post.creatorInfo?.profile}   onClose={() => setShowReportModal(false)}/>}
       {showComment && (
         <div className="flex flex-column gap-20">
           <div className="moneyboy-comment-wrap">
