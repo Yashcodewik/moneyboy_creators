@@ -482,6 +482,7 @@ const handleSaveBlockedCountries = async () => {
                                   userName: e.target.value,
                                 })
                               }
+                              disabled
                             />
                           </div>
 
