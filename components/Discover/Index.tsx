@@ -56,13 +56,13 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (!session?.user) return;
+    // if (!session?.user) return;
 
     dispatch(
       fetchDiscoverCreators({
         page,
         search,
-        userPublicId: session.user.publicId,
+         userPublicId: session?.user?.publicId, 
         filters: filterValues,
       }) as any,
     );

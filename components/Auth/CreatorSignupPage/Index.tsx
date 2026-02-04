@@ -75,10 +75,10 @@ const CreatorSignupPage = () => {
   const [otpOpen, setOtpOpen] = useState(false);
   const [emailForOtp, setEmailForOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [idPreview, setIdPreview] = useState<string | null>(null);
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
-  const [governmentIdFile, setGovernmentIdFile] = useState<File | null>(null);
-  const [selfieWithIdFile, setSelfieWithIdFile] = useState<File | null>(null);
+  // const [idPreview, setIdPreview] = useState<string | null>(null);
+  // const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  // const [governmentIdFile, setGovernmentIdFile] = useState<File | null>(null);
+  // const [selfieWithIdFile, setSelfieWithIdFile] = useState<File | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -111,11 +111,11 @@ const CreatorSignupPage = () => {
         setLoading(true);
 
         // Check files before registration
-        if (!governmentIdFile || !selfieWithIdFile) {
-          ShowToast("Please upload both KYC documents", "error");
-          setLoading(false);
-          return;
-        }
+        // if (!governmentIdFile || !selfieWithIdFile) {
+        //   ShowToast("Please upload both KYC documents", "error");
+        //   setLoading(false);
+        //   return;
+        // }
 
         // Step 1: Register creator
         const res = await apiPost({ url: API_CREATOR_REGISTER, values });
@@ -127,7 +127,7 @@ const CreatorSignupPage = () => {
         }
 
         // Step 2: Upload KYC
-        await uploadCreatorKyc(values.email);
+        // await uploadCreatorKyc(values.email);
 
         ShowToast(res.message, "success");
         setEmailForOtp(values.email);
@@ -160,61 +160,61 @@ const CreatorSignupPage = () => {
       fileType: file.type,
     });
 
-    if (type === "id") {
-      setGovernmentIdFile(file);
-    } else {
-      setSelfieWithIdFile(file);
-    }
+    // if (type === "id") {
+    //   setGovernmentIdFile(file);
+    // } else {
+    //   setSelfieWithIdFile(file);
+    // }
 
-    if (file.type.startsWith("image/")) {
-      const previewUrl = URL.createObjectURL(file);
-      type === "id" ? setIdPreview(previewUrl) : setSelfiePreview(previewUrl);
-      console.log("🖼 Image preview generated");
-    } else {
-      type === "id" ? setIdPreview("pdf") : setSelfiePreview("pdf");
-      console.log("📄 PDF uploaded");
-    }
+    // if (file.type.startsWith("image/")) {
+    //   const previewUrl = URL.createObjectURL(file);
+    //   type === "id" ? setIdPreview(previewUrl) : setSelfiePreview(previewUrl);
+    //   console.log("🖼 Image preview generated");
+    // } else {
+    //   type === "id" ? setIdPreview("pdf") : setSelfiePreview("pdf");
+    //   console.log("📄 PDF uploaded");
+    // }
   };
 
-  const uploadCreatorKyc = async (email: string) => {
-    console.log("🚀 Uploading KYC for:", email);
-    console.log("🆔 Government ID:", governmentIdFile);
-    console.log("🤳 Selfie with ID:", selfieWithIdFile);
+  // const uploadCreatorKyc = async (email: string) => {
+  //   console.log("🚀 Uploading KYC for:", email);
+  //   console.log("🆔 Government ID:", governmentIdFile);
+  //   console.log("🤳 Selfie with ID:", selfieWithIdFile);
 
-    if (!governmentIdFile || !selfieWithIdFile) {
-      console.log("❌ KYC missing");
-      ShowToast("Please upload both KYC documents", "error");
-      throw new Error("Missing KYC");
-    }
+  //   if (!governmentIdFile || !selfieWithIdFile) {
+  //     console.log("❌ KYC missing");
+  //     ShowToast("Please upload both KYC documents", "error");
+  //     throw new Error("Missing KYC");
+  //   }
 
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("governmentId", governmentIdFile);
-    formData.append("selfieWithId", selfieWithIdFile);
+  //   const formData = new FormData();
+  //   formData.append("email", email);
+  //   formData.append("governmentId", governmentIdFile);
+  //   formData.append("selfieWithId", selfieWithIdFile);
 
-    console.log("📤 FormData prepared, sending request...");
+  //   console.log("📤 FormData prepared, sending request...");
 
-    const res = await apiPostWithMultiForm({
-      url: API_CREATOR_UPLOAD_KYC,
-      values: formData,
-    });
+  //   const res = await apiPostWithMultiForm({
+  //     url: API_CREATOR_UPLOAD_KYC,
+  //     values: formData,
+  //   });
 
-    console.log("📥 KYC upload response:", res);
+  //   console.log("📥 KYC upload response:", res);
 
-    if (!res?.success) {
-      throw new Error(res?.message || "KYC upload failed");
-    }
+  //   if (!res?.success) {
+  //     throw new Error(res?.message || "KYC upload failed");
+  //   }
 
-    return res;
-  };
+  //   return res;
+  // };
 
-  const handleRemoveFile = (type: "id" | "selfie") => {
-    if (type === "id") {
-      setIdPreview(null);
-    } else {
-      setSelfiePreview(null);
-    }
-  };
+  // const handleRemoveFile = (type: "id" | "selfie") => {
+  //   if (type === "id") {
+  //     setIdPreview(null);
+  //   } else {
+  //     setSelfiePreview(null);
+  //   }
+  // };
 
   const verifyOtp = async (otp: string) => {
     try {
@@ -676,7 +676,7 @@ const CreatorSignupPage = () => {
                     )}
                   </div>
                 </div>
-                <div className="right_wrap">
+                {/* <div className="right_wrap">
                   <div className="label-input one file-upload-wrapper">
                     <div className="input-placeholder-icon">
                       <svg className="icons idshape size-45"></svg>
@@ -754,7 +754,7 @@ const CreatorSignupPage = () => {
                       </div>
                     )}
                   </div>
-                </div>
+                </div> */}
               </div>
               <button
                 className="premium-btn"
