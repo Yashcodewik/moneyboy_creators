@@ -11,10 +11,27 @@ import {
   API_UNSAVE_FREE_CREATOR,
   API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchSavedFreeCreators,
+  removeSavedFreeCreator,
+  updateSavedFreeCreatorState,
+} from "@/redux/wishlist/savedFreeCreatorsSlice";
+import { unsavePost } from "@/redux/other/savedPostsSlice";
+import { updateCreatorSavedState } from "@/redux/discover/discoverCreatorsSlice";
+import { useRouter } from "next/navigation";
+import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 
+interface SavedCreator {
+  creatorUserId: string;
+  displayName: string;
+  userName: string;
+  profile?: string;
+  isSaved: boolean;
+  publicId: string;
+}
 const WishlistPage = () => {
+  const router = useRouter();
   const [wishlist, setWishlist] = useState(false);
   const [allTime, setAllTime] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("moneyboys");
@@ -24,12 +41,21 @@ const WishlistPage = () => {
   const [time, setTime] = useState<string>("all");
   const [savedTime, setSavedTime] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [removedCreatorIds, setRemovedCreatorIds] = useState<Set<string>>(
     new Set(),
   );
-  const [savedCreators, setSavedCreators] = useState<any[]>([]);
-  const [savedPosts, setSavedPosts] = useState<any[]>([]);
-  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+  const savedCreators = useSelector(
+    (state: {
+      savedFreeCreators: {
+        creators: SavedCreator[];
+      };
+    }) => state.savedFreeCreators.creators,
+  );
+  
+
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
@@ -40,159 +66,102 @@ const WishlistPage = () => {
     );
   };
 
-  // ================= FETCH =================
-  const fetchWishlistData = async ({ pageParam = 1 }) => {
-    const [postRes, creatorRes] = await Promise.all([
-      getApi({
-        url: API_GET_SAVED_ITEMS,
-        page: pageParam,
-        rowsPerPage: 12,
-        searchText: searchTerm,
-      }),
-      getApi({
-        url: API_GET_SAVED_CREATORS,
-        page: pageParam,
-        rowsPerPage: 12,
-        searchText: searchTerm,
-      }),
-    ]);
-
-    const creatorsMap = new Map<string, any>();
-    const posts: any[] = [];
-
-    if (postRes?.success) {
-      postRes.items.forEach((item: any) => {
-        if (
-          item.type === "CREATOR" &&
-          item.creator &&
-          !removedCreatorIds.has(item.creator._id)
-        ) {
-          creatorsMap.set(item.creator._id, {
-            ...item.creator,
-            isSaved: true,
-            type: "CREATOR",
-            savedFrom: "ITEM",
-            creatorId: item._id,
-          });
-        }
-
-        if (item.type === "POST" && item.post) {
-          posts.push({
-            ...item.post,
-            saved: true,
-            type: "POST",
-          });
-        }
-      });
-    }
-
-    if (creatorRes?.success) {
-      creatorRes.data.forEach((creator: any) => {
-        const user = creator.userId;
-        if (!creatorsMap.has(user._id)) {
-          creatorsMap.set(user._id, {
-            _id: user._id,
-            displayName: user.displayName,
-            userName: user.userName,
-            profile: user.profile,
-            isSaved: true,
-            type: "CREATOR",
-            savedFrom: "CREATOR",
-            creatorId: creator._id,
-          });
-        }
-      });
-    }
-
-    return {
-      creators: Array.from(creatorsMap.values()),
-      posts,
-      nextPage:
-        postRes?.pagination?.hasNextPage || creatorRes?.pagination?.hasNextPage
-          ? pageParam + 1
-          : undefined,
-    };
-  };
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useInfiniteQuery({
-      queryKey: ["wishlist", searchTerm],
-      queryFn: fetchWishlistData,
-      initialPageParam: 1,
-      getNextPageParam: (lastPage) => lastPage.nextPage,
-    });
-
   useEffect(() => {
-    if (!data?.pages) return;
+    const fetchCreators = async () => {
+      const response = await dispatch(
+        fetchSavedFreeCreators({
+          page,
+          limit: 9,
+          search: searchTerm,
+          time,
+        }) as any,
+      );
 
-    const map = new Map<string, any>();
-
-    data.pages.forEach((page) => {
-      page.creators.forEach((creator: any) => {
-        map.set(creator._id, {
-          ...creator,
-          creatorUserId: creator._id, // needed for unsave
-        });
-      });
-    });
-
-    setSavedCreators(Array.from(map.values()));
-  }, [data]);
-
-  const handleUnsaveCreator = async (creatorId: string) => {
-    try {
-      const res = await apiPost({
-        url: API_UNSAVE_CREATOR,
-        values: { creatorId }, // send the correct creatorId
-      });
-
-      if (res?.success) {
-        queryClient.setQueryData(["wishlist", searchTerm], (oldData: any) => {
-          if (!oldData) return oldData;
-
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page: any) => ({
-              ...page,
-              creators: page.creators.filter(
-                (c: any) => c.creatorId !== creatorId, // filter by correct creatorId
-              ),
-            })),
-          };
-        });
+      if (response?.payload?.pagination?.totalPages) {
+        setTotalPages(response.payload.pagination.totalPages);
       }
-    } catch (err) {
-      console.error(err);
-    }
+    };
+
+    fetchCreators();
+  }, [searchTerm, page,time]);
+
+  const handleUnsaveCreator = (creatorUserId: string) => {
+    // 1️⃣ Optimistic UI
+    dispatch(removeSavedFreeCreator({ creatorUserId }));
+
+    dispatch(
+      updateCreatorSavedState({
+        creatorId: creatorUserId,
+        saved: false,
+      }),
+    );
+
+    // 2️⃣ API call
+    dispatch(unsavePost({ creatorUserId }) as any);
+
+    // 3️⃣ 🔥 REFILL the page
+    dispatch(
+      fetchSavedFreeCreators({
+        page: 1,
+        limit: 9,
+        search: searchTerm,
+      }) as any,
+    );
   };
 
-  const handleUnsaveFreeCreator = async (creatorUserId: string) => {
-    try {
-      const res = await apiPost({
-        url: API_UNSAVE_FREE_CREATOR,
-        values: { creatorUserId },
-      });
+  const handleProfileClick = (publicId: string) => {
+    router.push(`/profile/${publicId}`);
+  };
 
-      if (res?.success) {
-        setRemovedCreatorIds((prev) => new Set(prev).add(creatorUserId));
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
 
-        queryClient.setQueryData(["wishlist", searchTerm], (oldData: any) => {
-          if (!oldData) return oldData;
-
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page: any) => ({
-              ...page,
-              creators: page.creators.filter(
-                (c: any) => c._id !== creatorUserId,
-              ),
-            })),
-          };
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    const pages: (number | string)[] = [];
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1, 2, 3);
+      if (page > 4) pages.push("...");
+      if (page > 3 && page < totalPages - 2) pages.push(page);
+      if (page < totalPages - 3) pages.push("...");
+      pages.push(totalPages - 1, totalPages);
     }
+
+    return (
+      <div className="pagination_wrap">
+        <button
+          className="btn-prev"
+          disabled={page === 1}
+          onClick={() => setPage((prev) => prev - 1)}
+        >
+          <CircleArrowLeft color="#000" />
+        </button>
+
+        {pages.map((p, i) =>
+          p === "..." ? (
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
+          ) : (
+            <button
+              key={i}
+              className={page === p ? "premium-btn" : "btn-primary"}
+              onClick={() => setPage(p as number)}
+            >
+              <span>{p}</span>
+            </button>
+          ),
+        )}
+
+        <button
+          className="btn-next"
+          disabled={page === totalPages}
+          onClick={() => setPage((prev) => prev + 1)}
+        >
+          <CircleArrowRight color="#000" />
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -288,10 +257,11 @@ const WishlistPage = () => {
                                 options={timeOptions}
                                 value={time}
                                 searchable={false}
-                                // onChange={(val) => {
-                                //   setTime(val);
-                                //   fetchLikedPosts(1);
-                                // }}
+                                onChange={(val) => {
+                                  // Ensure val is a string
+                                  setTime(Array.isArray(val) ? val[0] : val);
+                                  setPage(1); // reset to first page when filter changes
+                                }}
                               />
                             </div>
                             <div
@@ -370,9 +340,12 @@ const WishlistPage = () => {
                         <div className="creator-content-type-container-wrapper">
                           {savedCreators.map((creator) => (
                             <div
-                              key={creator._id}
+                              key={creator.creatorUserId}
                               className="user-profile-card-wrapper user-profile-card-small"
                               data-creator-profile-card
+                              onClick={() =>
+                                handleProfileClick(creator.publicId)
+                              }
                             >
                               <div className="user-profile-card-container">
                                 <div className="user-profile-card__img">
@@ -444,16 +417,11 @@ const WishlistPage = () => {
 
                                     <div
                                       className="user-profile-card__wishlist-btn"
-                                      onClick={() => {
-                                        if (creator.savedFrom === "CREATOR") {
-                                          handleUnsaveCreator(
-                                            creator.creatorId,
-                                          );
-                                        }
-
-                                        if (creator.savedFrom === "ITEM") {
-                                          handleUnsaveFreeCreator(creator._id); // or itemId if backend expects itemId
-                                        }
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUnsaveCreator(
+                                          creator.creatorUserId,
+                                        );
                                       }}
                                     >
                                       <svg
@@ -494,6 +462,7 @@ const WishlistPage = () => {
                             </div>
                           ))}
                         </div>
+                        {renderPagination()}
                       </div>
                     </div>
                   </div>
