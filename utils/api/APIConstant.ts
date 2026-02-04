@@ -72,6 +72,8 @@ export const API_DISLIKE_COMMENT = "/post/comment";
 export const API_GET_SAVED_FREE_ITEMS = "/post/saved/free";
 export const API_FREE_SAVE_POST = "/post/freepost/save";
 export const API_FREE_UNSAVE_POST = "/post/freepost/unsave";
+export const API_GET_SAVED_FREE_CREATORS = "/post/saved/free-creators";
+
 
 
 

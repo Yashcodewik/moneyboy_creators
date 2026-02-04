@@ -111,20 +111,24 @@ const Dashboard = () => {
     };
   }, []);
 
-  const handleSaveCreator = (creatorId: string) => {
-    if (!session?.user) {
-      router.push("/login");
-      return;
-    }
+const handleSaveCreator = (creatorId: string) => {
+  if (!session?.user) {
+    router.push("/login");
+    return;
+  }
 
-    dispatch(savePost({ creatorUserId: creatorId }) as any);
-    dispatch(updateCreatorSavedState({ creatorId, saved: true }));
-  };
+  // 🔥 instant UI update
+  dispatch(updateCreatorSavedState({ creatorId, saved: true }));
 
-  const handleUnsaveCreator = (creatorId: string) => {
-    dispatch(unsavePost({ creatorUserId: creatorId }) as any);
-    dispatch(updateCreatorSavedState({ creatorId, saved: false }));
-  };
+  // API call
+  dispatch(savePost({ creatorUserId: creatorId }) as any);
+};
+
+
+const handleUnsaveCreator = (creatorId: string) => {
+  dispatch(updateCreatorSavedState({ creatorId, saved: false }));
+  dispatch(unsavePost({ creatorUserId: creatorId }) as any);
+};
 
   const handleProfileClick = (publicId: string) => {
     router.push(`/profile/${publicId}`);
@@ -224,12 +228,11 @@ const Dashboard = () => {
             <div className="discovery-page-content-wrapper">
               <div className="discovery-page-cards-layouts">
                 {creators.map((creator: any) => {
-                  const isSaved =
-                    savedPosts[creator._id]?.saved ?? creator.issaved ?? false;
+                  const isSaved = creator.issaved;
 
                   return (
                     <div
-                      key={creator._id}
+                      key={creator.creatorUserId}
                       className="user-profile-card-wrapper"
                       data-creator-profile-card
                       onClick={() => handleProfileClick(creator.publicId)}
@@ -290,8 +293,8 @@ const Dashboard = () => {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 isSaved
-                                  ? handleUnsaveCreator(creator._id)
-                                  : handleSaveCreator(creator._id);
+                                  ? handleUnsaveCreator(creator.creatorUserId)
+                                  : handleSaveCreator(creator.creatorUserId);
                               }}
                             >
                               <svg
