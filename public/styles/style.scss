@@ -2047,6 +2047,13 @@ body {
     }
     ul {
       margin: 15px 0px;
+      &.custom-select-options-list {
+        margin: 0px;
+        li {
+          padding: 10px;
+          margin-bottom: 0px;
+        }
+      }
       &.points {
         li {
           padding-inline-start: 15px;
