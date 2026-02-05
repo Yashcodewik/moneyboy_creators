@@ -407,13 +407,21 @@ const UserProfilepage = () => {
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
-        <div className="moneyboy-feed-page-container" data-multiple-tabs-section >
-          <div id="feed-scroll-container" className="moneyboy-posts-scroll-container" >
-            <InfiniteScrollWrapper className="moneyboy-posts-wrapper notabes" scrollableTarget="feed-scroll-container" dataLength={activeList.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
+        <div
+          className="moneyboy-feed-page-container"
+          data-multiple-tabs-section
+        >
           <div className="creator-profile-card-container user-profile-card card">
             <div className="creator-profile-banner">
-              <img src={ userProfile?.coverImage || "/images/profile-banners/profile-banner-9.jpg" } alt="Creator Profile Banner Image"/>
+              <img
+                src={
+                  userProfile?.coverImage ||
+                  "/images/profile-banners/profile-banner-9.jpg"
+                }
+                alt="Creator Profile Banner Image"
+              />
             </div>
+
             <div className="creator-profile-info-container">
               <div className="profile-card">
                 <div className="profile-info-buttons">
@@ -664,43 +672,61 @@ const UserProfilepage = () => {
             </div>
           </div>
 
-          <div className="moneyboy-feed-page-cate-buttons card is-sticky">
-            <button
-              className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
-              onClick={() => handleTabClick("feed")}
+                <div className="moneyboy-feed-page-cate-buttons card">
+              <button
+                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
+                onClick={() => handleTabClick("feed")}
+              >
+                Feed
+              </button>
+              <button
+                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
+                onClick={() => handleTabClick("following")}
+              >
+                {isLoggedIn ? "Following" : "Discover"}
+              </button>
+              <button
+                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
+                onClick={() => handleTabClick("popular")}
+              >
+                Popular
+              </button>
+            </div>
+        <div
+              id="feed-scroll-container"
+              className="moneyboy-posts-scroll-container"
             >
-              Feed
-            </button>
-            <button
-              className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
-              onClick={() => handleTabClick("following")}
-            >
-              {isLoggedIn ? "Following" : "Discover"}
-            </button>
-            <button
-              className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
-              onClick={() => handleTabClick("popular")}
-            >
-              Popular
-            </button>
-          </div>
-              {activeList.map((post: any) => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  onLike={handleLike}
-                  onSave={handleSave}
-                  onCommentAdded={incrementCommentCount}
-                />
-              ))}
-            </InfiniteScrollWrapper>
-          </div>
+              <InfiniteScrollWrapper
+                className="moneyboy-posts-wrapper"
+                scrollableTarget="feed-scroll-container"
+                dataLength={activeList.length}
+                fetchMore={fetchMoreHandler}
+                hasMore={activeHasMore}
+              >
+                {activeList.map((post: any) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onLike={handleLike}
+                    onSave={handleSave}
+                    onCommentAdded={incrementCommentCount}
+                  />
+                ))}
+              </InfiniteScrollWrapper>
+              {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
+                fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
+                hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
+                  {(activeTab === "feed" ? posts :
+                    activeTab === "following" ? followingPosts : popularPosts
+                  ).map((post) => (
+                    <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
+                  ))}
+              </InfiniteScrollWrapper> */}
+            </div>
         </div>
       </div>
 
-      <aside className="moneyboy-2x-1x-b-layout scrolling">
-        <Featuredboys />
-      </aside>
+      <Featuredboys />
     </div>
   );
 };

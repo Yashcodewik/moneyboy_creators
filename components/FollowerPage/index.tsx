@@ -442,9 +442,11 @@ const FollowersPage = () => {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
+  if (followers.length > 0 && following.length > 0) {
     syncRelationships();
-  }, [followers, following]);
+  }
+}, []); 
 
   const getFollowButtonProps = (user: Follower | Creator) => {
     if (user.isFollowing) {
