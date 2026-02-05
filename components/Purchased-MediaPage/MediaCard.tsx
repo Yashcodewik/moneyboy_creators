@@ -15,14 +15,14 @@ const MediaCard = memo(function MediaCard({
   onNavigate: (publicId: string) => void;
   
 }) {
-      console.log("🔁 MediaCard render:", item._id);
+    //   console.log("🔁 MediaCard render:", item._id);
 
-  useEffect(() => {
-    console.log("🟢 MediaCard MOUNT:", item._id);
-    return () => {
-      console.log("🔴 MediaCard UNMOUNT:", item._id);
-    };
-  }, []);
+//   useEffect(() => {
+//     console.log("🟢 MediaCard MOUNT:", item._id);
+//     return () => {
+//       console.log("🔴 MediaCard UNMOUNT:", item._id);
+//     };
+//   }, []);
   const plyrRef = useRef<any>(null);
   const mediaUrl = item.media[0]?.mediaFiles?.[0];
   const isVideo = item.media[0]?.type === "video";
@@ -104,7 +104,11 @@ const [duration, setDuration] = useState<number | null>(null);
                     ></path>
                   </svg>
                 </div>
-                <span>12k</span>
+                {item.viewCount > 0 ? (
+                  <span>{item.viewCount}</span>
+                ):(
+                  <span>0</span>
+                )}
               </div>
               {isVideo && duration && (
                 <div className="creator-content-stat-box mxw_50">

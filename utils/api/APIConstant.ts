@@ -24,6 +24,9 @@ export const API_LIKE_POST = "/post/like";
 export const API_UNLIKE_POST = "/post/unlike";
 export const API_DISLIKE_POST = "/post/dislike";
 export const API_POST_VIEW = "/post/view";
+
+export const API_TOGGLE_FAVORITE = "/post/favorite/toggle";
+export const API_REPORT_POST = "/auth/report";
 //save
 export const API_SAVE_POST = "/post/save";
 export const API_UNSAVE_POST = "/post/unsave";

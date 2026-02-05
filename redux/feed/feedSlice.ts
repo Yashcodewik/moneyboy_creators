@@ -3,7 +3,9 @@ import {
   likePostAction,
   dislikePostAction,
   removeReactionAction,
-  addPostViewAction
+  addPostViewAction,
+  toggleFavoriteAction,
+  reportPostAction
 } from "./feedAction";
 
 export type ReactionType = "LIKE" | "DISLIKE" | null;
@@ -12,12 +14,14 @@ interface FeedReactionState {
   loading: Record<string, boolean>; // postId -> loading
   viewLoading: Record<string, boolean>; 
   viewed: Record<string, boolean>;
+  reported: Record<string, boolean>;
 }
 
 const initialState: FeedReactionState = {
   loading: {},
   viewLoading: {},
   viewed: {},
+  reported: {},
 };
 
 const feedSlice = createSlice({
@@ -66,21 +70,44 @@ const feedSlice = createSlice({
         delete state.loading[action.meta.arg];
       })
     .addCase(addPostViewAction.pending, (state, action) => {
-  const publicId = action.meta.arg;
-  state.viewLoading[publicId] = true;
-})
-.addCase(addPostViewAction.fulfilled, (state, action) => {
-  const { publicId } = action.payload;
-  delete state.viewLoading[publicId];
-  state.viewed[publicId] = true;
-})
-.addCase(addPostViewAction.rejected, (state, action) => {
-  const publicId = action.meta.arg;
-  delete state.viewLoading[publicId];
-});
+          console.log("⏳ View pending:", action.meta.arg);
+      const publicId = action.meta.arg;
+      state.viewLoading[publicId] = true;
+    })
+    .addCase(addPostViewAction.fulfilled, (state, action) => {
+        console.log("✅ View fulfilled:", action.payload.publicId);
+      const { publicId } = action.payload;
+      delete state.viewLoading[publicId];
+      state.viewed[publicId] = true;
+    })
+    .addCase(addPostViewAction.rejected, (state, action) => {
+      const publicId = action.meta.arg;
+      delete state.viewLoading[publicId];
+    })
+    .addCase(toggleFavoriteAction.pending, (state, action) => {
+      state.loading[action.meta.arg] = true;
+    })
+    .addCase(toggleFavoriteAction.fulfilled, (state, action) => {
+      const { postId } = action.payload;
+      delete state.loading[postId];
+    })
+    .addCase(toggleFavoriteAction.rejected, (state, action) => {
+      delete state.loading[action.meta.arg];
+    })
+    .addCase(reportPostAction.pending, (state, action) => {
+      state.loading[action.meta.arg.postId] = true;
+    })
 
+    .addCase(reportPostAction.fulfilled, (state, action) => {
+      const { postId } = action.payload;
+      delete state.loading[postId];
+      state.reported[postId] = true; 
+    })
 
-      
+    .addCase(reportPostAction.rejected, (state, action) => {
+      delete state.loading[action.meta.arg.postId];
+    });
+
   },
 });
 

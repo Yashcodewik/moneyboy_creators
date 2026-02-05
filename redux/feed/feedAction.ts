@@ -5,6 +5,8 @@ import {
   API_UNLIKE_POST,
   API_DISLIKE_POST,
   API_POST_VIEW,
+  API_TOGGLE_FAVORITE,
+  API_REPORT_POST,
 } from "@/utils/api/APIConstant";
 
 export const likePostAction = createAsyncThunk(
@@ -63,3 +65,43 @@ export const addPostViewAction = createAsyncThunk<
   }
 );
 
+export const toggleFavoriteAction = createAsyncThunk<
+  { postId: string; isFavorite: boolean },
+  string
+>(
+  'feed/toggleFavorite',
+  async (postId) => {
+    const res = await apiPost({
+      url: API_TOGGLE_FAVORITE,
+      values: { postId },
+    });
+
+    return {
+      postId,
+      isFavorite: res.isFavorite,
+    };
+  }
+);
+
+export const reportPostAction = createAsyncThunk<
+  { postId: string },
+  { postId: string; title: string; description?: string }
+>(
+  "feed/reportPost",
+  async ({ postId, title, description }, { rejectWithValue }) => {
+    try {
+      await apiPost({
+        url: API_REPORT_POST,
+        values: {
+          postId,
+          title,
+          description,
+        },
+      });
+
+      return { postId };
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);

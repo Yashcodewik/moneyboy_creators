@@ -20,7 +20,7 @@ import {
   timeOptions,
   typeOptions,
 } from "../helper/creatorOptions";
-import { FaStar } from "react-icons/fa6";
+import { FaRegStar, FaStar } from "react-icons/fa6";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPurchasedMedia } from "@/redux/purchasedMedia/Action";
@@ -28,7 +28,7 @@ import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 import { useRouter } from "next/navigation";
 import { PlayCircle } from "lucide-react";
-import { dislikePostAction, likePostAction, removeReactionAction } from "@/redux/feed/feedAction";
+import { dislikePostAction, likePostAction, removeReactionAction, toggleFavoriteAction } from "@/redux/feed/feedAction";
 import MediaCard from "./MediaCard";
 import VideoPlayer from "./VideoPlayer";
 
@@ -160,6 +160,11 @@ const selectedVideoUrl = useMemo(() => {
       dispatch(dislikePostAction(item._id));
     }
   };
+  const handleFavorite = (item: MediaItem) => {
+  if (reactionLoading[item._id]) return;
+  dispatch(toggleFavoriteAction(item._id));
+};
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -308,9 +313,9 @@ const selectedVideoUrl = useMemo(() => {
                       </Link>
                     </div>
                     <div className="meta-bar">
-                      {selectedItem.creator.viewCount > 0 && (
+                      {selectedItem.viewCount > 0 && (
                         <div className="meta-item view">
-                          <FaEye /> <span>{selectedItem.creator.viewCount}</span>
+                          <FaEye /> <span>{selectedItem.viewCount}</span>
                         </div>
                       )}
                       <div className="meta-item">
@@ -334,8 +339,18 @@ const selectedVideoUrl = useMemo(() => {
                           }}>
                           {selectedItem.isDisliked ? <FaThumbsDown /> : <FaRegThumbsDown />}
                         </Link>
-                        <Link href="#" className="favorite">
-                          <FaStar color="#e5741f" />
+                        <Link href="#" className="favorite"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleFavorite(selectedItem);
+                          }}
+                        >
+                          {selectedItem.isFavorite ? (
+                            <FaStar color="#e5741f" />
+                          ) : (
+                            <FaRegStar />
+                          )}
+                          {/* <FaStar color="#e5741f" /> */}
                         </Link>
                         <Link href="#">
                           <FaCommentAlt /> <span>{selectedItem.commentCount}</span>
