@@ -725,8 +725,9 @@ const formatDuration = (seconds: number) => {
                         )}
                         
                         {!loading && items.length === 0 && (
-                          <div style={{ textAlign: 'center', padding: '40px' }}>
-                            <p>No media found for this tab.</p>
+                          <div className="nofound">
+                            <h3 className="first">No media found</h3>
+                            <h3 className="second">No media found</h3>
                           </div>
                         )}
 

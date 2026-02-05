@@ -1,448 +1,175 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import ShowToast from "../common/ShowToast";
+import Featuredboys from "../Featuredboys";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
+import ShowToast from "../common/ShowToast";
+import PostCard from "../LikePage/PostCard";
+
 import {
   API_USER_PROFILE,
   API_FOLLOWER_COUNT,
+  API_GET_POSTS,
   API_GET_FOLLOWING_POSTS,
   API_GET_POPULAR_POSTS,
-  API_GET_POSTS,
-  API_LIKE_POST,
-  API_SAVE_POST,
-  API_UNLIKE_POST,
-  API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
+
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
-import Featuredboys from "../Featuredboys";
+
+/* ================= TYPES ================= */
 
 interface UserProfile {
-  id: number;
   userName: string;
   displayName: string;
-  avatarUrl: string;
-  bannerUrl: string;
-  location: string;
-  joinDate: string;
-  followersCount: number;
-  followingCount: number;
-  bio: string;
-  isFollowing?: boolean;
-  followers?: number;
-  following?: number;
+  bio?: string;
   profile?: string;
-  createdAt?: string;
+  coverImage?: string;
   city?: string;
   country?: string;
-  coverImage?: string;
+  createdAt?: string;
 }
 
-const UserProfilepage = () => {
-  const router = useRouter();
-  const { data: session, status }: any = useSession();
+/* ================= COMPONENT ================= */
+
+const UserProfilePage = () => {
+  const { status } = useSession();
   const isLoggedIn = status === "authenticated";
 
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [followerStats, setFollowerStats] = useState({
-    followerCount: 0,
-    followingCount: 0,
-  });
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [followers, setFollowers] = useState(0);
+  const [following, setFollowing] = useState(0);
 
-  const [activeTab, setActiveTab] = useState<string>("feed");
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
-  const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
-
-  const setMenuRef = (id: number, element: HTMLDivElement | null) => {
-    menuRefs.current.set(id, element);
-  };
-
-  const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
-    buttonRefs.current.set(id, element);
-  };
-
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prev) => (prev === id ? null : id));
-  };
-
-  const handleTabClick = (tabName: string) => {
-    if (!isLoggedIn && tabName === "discover") {
-      router.push("/discover");
-      return;
-    }
-    setActiveTab(tabName);
-  };
+  const [activeTab, setActiveTab] =
+    useState<"feed" | "following" | "popular">("feed");
 
   const [posts, setPosts] = useState<any[]>([]);
-  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
-  const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
-  const [followingPosts, setFollowingPosts] = useState<any[]>([]);
-  const [followingPage, setFollowingPage] = useState(1);
-  const [followingHasMore, setFollowingHasMore] = useState(true);
-  const [followingLoadingMore, setFollowingLoadingMore] = useState(false);
-
-  const [popularPosts, setPopularPosts] = useState<any[]>([]);
-  const [popularPage, setPopularPage] = useState(1);
-  const [popularHasMore, setPopularHasMore] = useState(true);
-  const [popularLoadingMore, setPopularLoadingMore] = useState(false);
-
   const [page, setPage] = useState(1);
-  const [limit] = useState(4);
   const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const limit = 5;
 
-  const [expandedPosts, setExpandedPosts] = useState<
-    Record<string, Record<string, boolean>>
-  >({
-    feed: {},
-    following: {},
-    popular: {},
-  });
+  const [loading, setLoading] = useState(true);
 
-  const hasFetchedRef = useRef(false);
+  /* ================= HELPERS ================= */
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setLoadingProfile(true);
-        setError(null);
-
-        const response = await getApiWithOutQuery({ url: API_USER_PROFILE });
-
-        if (response && response.success) {
-          setUserProfile(response.data);
-          if (response.data.followerStats) {
-            setFollowerStats(response.data.followerStats);
-          }
-        } else {
-          setError(response?.message || "Failed to load profile");
-          ShowToast(response?.message || "Failed to load profile", "error");
-        }
-      } catch (err: any) {
-        setError("An error occurred while fetching profile");
-        ShowToast("An error occurred while fetching profile", "error");
-        console.error("Error fetching user profile:", err);
-      } finally {
-        setLoadingProfile(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  useEffect(() => {
-    const fetchFollowerCounts = async () => {
-      try {
-        const response = await getApiWithOutQuery({ url: API_FOLLOWER_COUNT });
-        if (response?.success) {
-          setFollowerStats({
-            followerCount: response.data.followerCount,
-            followingCount: response.data.followingCount,
-          });
-        }
-      } catch (err: any) {
-        console.error("Error fetching follower counts:", err);
-      }
-    };
-    fetchFollowerCounts();
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId === null) return;
-
-      const menuElement = menuRefs.current.get(openMenuId);
-      const buttonElement = buttonRefs.current.get(openMenuId);
-      const target = event.target as Node;
-
-      if (
-        menuElement &&
-        !menuElement.contains(target) &&
-        buttonElement &&
-        !buttonElement.contains(target)
-      ) {
-        setOpenMenuId(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openMenuId]);
-
-  useEffect(() => {
-    const likeButtons = document.querySelectorAll("[data-like-button]");
-    const handleClick = (event: Event) => {
-      const button = event.currentTarget as HTMLElement;
-      button.classList.toggle("liked");
-    };
-    likeButtons.forEach((button) =>
-      button.addEventListener("click", handleClick),
-    );
-    return () =>
-      likeButtons.forEach((button) =>
-        button.removeEventListener("click", handleClick),
-      );
-  }, []);
-
-  const formatJoinedDate = (dateString?: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return `Joined ${date.toLocaleString("en-US", {
+  const formatJoinedDate = (date?: string) => {
+    if (!date) return "";
+    return `Joined ${new Date(date).toLocaleString("en-US", {
       month: "long",
       year: "numeric",
     })}`;
   };
 
-  const getTimeAgo = (dateString: string) => {
-    const postDate = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor(
-      (now.getTime() - postDate.getTime()) / 1000,
-    );
-
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
-    const diffInWeeks = Math.floor(diffInDays / 7);
-    const diffInMonths = Math.floor(diffInDays / 30);
-    const diffInYears = Math.floor(diffInDays / 365);
-
-    if (diffInSeconds < 60) return "Just now";
-    if (diffInMinutes < 60)
-      return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
-    if (diffInHours < 24)
-      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-    if (diffInDays < 7)
-      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-    if (diffInWeeks < 4)
-      return `${diffInWeeks} week${diffInWeeks > 1 ? "s" : ""} ago`;
-    if (diffInMonths < 12)
-      return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
-    return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
+  const handleTabClick = (tab: "feed" | "following" | "popular") => {
+    setActiveTab(tab);
   };
 
-  const updatePostInList = (
-    list: any[],
-    postId: string,
-    updater: (post: any) => any,
-  ) => list.map((p) => (p._id === postId ? updater(p) : p));
-
-  const handleLike = async (postId: string) => {
-    const isFollowingTab = activeTab === "following";
-    const list = isFollowingTab ? followingPosts : posts;
-    const setList = isFollowingTab ? setFollowingPosts : setPosts;
-    const post = list.find((p) => p._id === postId);
-    if (!post) return;
-
-    const currentLikeCount = post.likeCount || 0;
-    const isCurrentlyLiked = post.isLiked || false;
-
-    try {
-      setLikeLoading((prev) => ({ ...prev, [postId]: true }));
-      setList((prev) =>
-        updatePostInList(prev, postId, (p) => ({
-          ...p,
-          likeCount: isCurrentlyLiked ? p.likeCount - 1 : p.likeCount + 1,
-          isLiked: !isCurrentlyLiked,
-        })),
-      );
-      const endpoint = isCurrentlyLiked ? API_UNLIKE_POST : API_LIKE_POST;
-      const res = await apiPost({ url: endpoint, values: { postId } });
-      if (!res?.success) {
-        setList((prev) =>
-          updatePostInList(prev, postId, (p) => ({
-            ...p,
-            likeCount: currentLikeCount,
-            isLiked: isCurrentlyLiked,
-          })),
-        );
-      }
-    } catch (err) {
-      setList((prev) =>
-        updatePostInList(prev, postId, (p) => ({
-          ...p,
-          likeCount: currentLikeCount,
-          isLiked: isCurrentlyLiked,
-        })),
-      );
-    } finally {
-      setLikeLoading((prev) => ({ ...prev, [postId]: false }));
-    }
-  };
-
-  const handleSave = async (postId: string) => {
-    const isFollowingTab = activeTab === "following";
-    const list = isFollowingTab ? followingPosts : posts;
-    const setList = isFollowingTab ? setFollowingPosts : setPosts;
-    const post = list.find((p) => p._id === postId);
-    if (!post) return;
-
-    const isCurrentlySaved = post.isSaved || false;
-
-    try {
-      setSaveLoading((prev) => ({ ...prev, [postId]: true }));
-      setList((prev) =>
-        updatePostInList(prev, postId, (p) => ({
-          ...p,
-          isSaved: !isCurrentlySaved,
-        })),
-      );
-      const endpoint = isCurrentlySaved ? API_UNSAVE_POST : API_SAVE_POST;
-      const res = await apiPost({ url: endpoint, values: { postId } });
-      if (!res?.success) {
-        setList((prev) =>
-          updatePostInList(prev, postId, (p) => ({
-            ...p,
-            isSaved: isCurrentlySaved,
-          })),
-        );
-      }
-    } catch (err) {
-      setList((prev) =>
-        updatePostInList(prev, postId, (p) => ({
-          ...p,
-          isSaved: isCurrentlySaved,
-        })),
-      );
-    } finally {
-      setSaveLoading((prev) => ({ ...prev, [postId]: false }));
-    }
-  };
-
-  const toggleExpand = (postId: string, tab: string) => {
-    setExpandedPosts((prev) => ({
-      ...prev,
-      [tab]: { ...prev[tab], [postId]: !prev[tab]?.[postId] },
-    }));
-  };
-
-  const fetchPosts = async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    const res = await apiPost({
-      url: API_GET_POSTS,
-      values: { userId: session?.user?.id || "", page, limit },
-    });
-    if (Array.isArray(res) && res.length > 0) {
-      setPosts((prev) => {
-        const ids = new Set(prev.map((p) => p._id));
-        const unique = res.filter((p) => !ids.has(p._id));
-        return [...prev, ...unique];
-      });
-      setPage((prev) => prev + 1);
-    } else {
-      setHasMore(false);
-    }
-    setLoadingMore(false);
-  };
-
-  const fetchFollowingPosts = async () => {
-    if (followingLoadingMore || !followingHasMore) return;
-    setFollowingLoadingMore(true);
-    const res = await getApiWithOutQuery({
-      url: `${API_GET_FOLLOWING_POSTS}?page=${followingPage}&limit=${limit}`,
-    });
-    if (res?.success && Array.isArray(res.posts)) {
-      setFollowingPosts((prev) => {
-        const ids = new Set(prev.map((p) => p._id));
-        const unique = res.posts.filter((p: any) => !ids.has(p._id));
-        return [...prev, ...unique];
-      });
-      setFollowingPage((prev) => prev + 1);
-      setFollowingHasMore(res.pagination?.hasNextPage);
-    } else {
-      setFollowingHasMore(false);
-    }
-    setFollowingLoadingMore(false);
-  };
-
-  const fetchPopularPosts = async () => {
-    if (popularLoadingMore || !popularHasMore) return;
-    setPopularLoadingMore(true);
-    const res = await apiPost({
-      url: API_GET_POPULAR_POSTS,
-      values: { userId: session?.user?.id || "", page: popularPage, limit },
-    });
-    if (Array.isArray(res) && res.length > 0) {
-      setPopularPosts((prev) => {
-        const ids = new Set(prev.map((p) => p._id));
-        const unique = res.filter((p) => !ids.has(p._id));
-        return [...prev, ...unique];
-      });
-      setPopularPage((prev) => prev + 1);
-    } else {
-      setPopularHasMore(false);
-    }
-    setPopularLoadingMore(false);
-  };
+  /* ================= API CALLS ================= */
 
   useEffect(() => {
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-    fetchPosts();
+    fetchProfile();
+    fetchFollowerStats();
   }, []);
 
   useEffect(() => {
-    if (activeTab !== "following" || !isLoggedIn) return;
-    setFollowingPosts([]);
-    setFollowingPage(1);
-    setFollowingHasMore(true);
-    fetchFollowingPosts();
-  }, [activeTab, isLoggedIn]);
-
-  useEffect(() => {
-    if (activeTab !== "popular") return;
-    setPopularPosts([]);
-    setPopularPage(1);
-    setPopularHasMore(true);
-    fetchPopularPosts();
+    resetAndLoadPosts();
   }, [activeTab]);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await getApiWithOutQuery({ url: API_USER_PROFILE });
+      if (res?.success) setProfile(res.data);
+      else ShowToast("Failed to load profile", "error");
+    } catch {
+      ShowToast("Profile load error", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFollowerStats = async () => {
+    try {
+      const res = await getApiWithOutQuery({ url: API_FOLLOWER_COUNT });
+      if (res?.success) {
+        setFollowers(res.data.followerCount);
+        setFollowing(res.data.followingCount);
+      }
+    } catch {}
+  };
+
+  const resetAndLoadPosts = () => {
+    setPosts([]);
+    setPage(1);
+    setHasMore(true);
+    loadPosts(1, true);
+  };
+
+  const loadPosts = async (currentPage = page, reset = false) => {
+    if (!hasMore && !reset) return;
+
+    let res: any[] = [];
+
+    if (activeTab === "feed") {
+      res = await apiPost({
+        url: API_GET_POSTS,
+        values: { page: currentPage, limit },
+      });
+    }
+
+    if (activeTab === "following" && isLoggedIn) {
+      const response = await getApiWithOutQuery({
+        url: `${API_GET_FOLLOWING_POSTS}?page=${currentPage}&limit=${limit}`,
+      });
+      res = response?.success ? response.posts : [];
+    }
+
+    if (activeTab === "popular") {
+      res = await apiPost({
+        url: API_GET_POPULAR_POSTS,
+        values: { page: currentPage, limit },
+      });
+    }
+
+    if (Array.isArray(res) && res.length > 0) {
+      setPosts((prev) => (currentPage === 1 ? res : [...prev, ...res]));
+      setPage(currentPage + 1);
+    } else {
+      setHasMore(false);
+    }
+  };
+
+  /* ================= UI ================= */
+
+  if (loading) return null;
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
-        <div
-          className="moneyboy-feed-page-container"
-          data-multiple-tabs-section
-        >
+        <div className="moneyboy-feed-page-container">
+        <div className="moneyboy-posts-wrapper moneyboy-diff-content-wrappers">
+          <InfiniteScrollWrapper className="moneyboy-posts-wrapper notabes" scrollableTarget="feed-scroll-container" dataLength={posts.length} hasMore={hasMore} next={() => loadPosts(page)}>
+          {/* ================= PROFILE HEADER ================= */}
           <div className="creator-profile-card-container user-profile-card card">
             <div className="creator-profile-banner">
-              <img
-                src={
-                  userProfile?.coverImage ||
-                  "/images/profile-banners/profile-banner-9.jpg"
-                }
-                alt="Creator Profile Banner Image"
-              />
+              <img src={profile?.coverImage || "/images/profile-banners/profile-banner-9.jpg"} alt="Creator Profile Banner Image" />
             </div>
-
             <div className="creator-profile-info-container">
               <div className="profile-card">
                 <div className="profile-info-buttons">
                   <div className="profile-card__main">
                     <div className="profile-card__avatar-settings">
                       <div className="profile-card__avatar">
-                        <img
-                          src={
-                            userProfile?.profile
-                              ? userProfile.profile
-                              : "/images/profile-avatars/profile-avatar-13.jpg"
-                          }
-                          alt="MoneyBoy Social Profile Avatar"
-                        />
+                       <img src={profile?.profile || "/images/profile-avatars/profile-avatar-13.jpg"} />
                       </div>
                     </div>
                     <div className="profile-card__info">
                       <div className="profile-card__name-badge">
                         <div className="profile-card__name">
-                          {userProfile?.displayName || "Charlie Mango"}
+                        {profile?.displayName || "Charlie Mango"}
                         </div>
                       </div>
                       <div className="profile-card__username">
-                        @{userProfile?.userName || "charliemango"}
+                        @{profile?.userName || "charliemango"}
                       </div>
                     </div>
                   </div>
@@ -525,10 +252,10 @@ const UserProfilepage = () => {
                       />
                     </svg>
                     <span>
-                      {userProfile?.city
-                        ? `${userProfile.city}${userProfile.country ? `, ${userProfile.country}` : ""}`
-                        : "Location not set"}
-                    </span>
+                    {profile?.city
+                      ? `${profile.city}${profile.country ? `, ${profile.country}` : ""}`
+                      : "Location not set"}
+                  </span>
                   </div>
                   <div className="profile-card__geo-detail">
                     <svg
@@ -579,7 +306,7 @@ const UserProfilepage = () => {
                         stroke-linejoin="round"
                       />
                     </svg>
-                    <span>{formatJoinedDate(userProfile?.createdAt)}</span>
+                    <span>{formatJoinedDate(profile?.createdAt)}</span>
                   </div>
                 </div>
                 <div className="creator-profile-stats-link">
@@ -587,7 +314,7 @@ const UserProfilepage = () => {
                     <div className="profile-card__stats-item followers-stats">
                       <div className="profile-card__stats-num">
                         {" "}
-                        {followerStats.followerCount}{" "}
+                        {following}
                       </div>
                       <div className="profile-card__stats-label">
                         <svg
@@ -631,7 +358,7 @@ const UserProfilepage = () => {
                     </div>
                     <div className="profile-card__stats-item following-stats">
                       <div className="profile-card__stats-num">
-                        {followerStats.followingCount}
+                      {following}
                       </div>
                       <div className="profile-card__stats-label">
                         <svg
@@ -664,1005 +391,57 @@ const UserProfilepage = () => {
               </div>
 
               <div className="creator-profile-description">
-                <p>{userProfile?.bio || "No bio added yet."}</p>
+                <p>{profile?.bio || "No bio added yet."}</p>
               </div>
             </div>
           </div>
-
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            <button
-              className={`page-content-type-button active-down-effect ${
-                activeTab === "feed" ? "active" : ""
-              }`}
-              onClick={() => handleTabClick("feed")}
-            >
-              Feed
-            </button>
-            <button
-              className={`page-content-type-button active-down-effect ${
-                activeTab === "following" ? "active" : ""
-              }`}
-              onClick={() => handleTabClick("following")}
-            >
-              Following
-            </button>
-            <button
-              className={`page-content-type-button active-down-effect ${
-                activeTab === "popular" ? "active" : ""
-              }`}
-              onClick={() => handleTabClick("popular")}
-            >
-              Popular
-            </button>
+          {/* ================= TABS ================= */}
+          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            <button className={`page-content-type-button active-down-effect ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>Following</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "popular" ? "active" : ""}`} onClick={() => handleTabClick("popular")}>Popular</button>
           </div>
-          {activeTab === "feed" && (
-            <div
-              className="moneyboy-posts-wrapper"
-              data-multi-tabs-content-tabdata__active
-            >
-              {posts.map((post, index) => (
-                <div key={post._id} className="moneyboy-post__container card">
-                  <div className="moneyboy-post__header">
-                    <a href="#" className="profile-card">
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src={
-                                post.creatorInfo?.profile ||
-                                "/images/profile-avatars/profile-avatar-1.png"
-                              }
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              {post.creatorInfo?.displayName}
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @{post.creatorInfo?.userName}
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-
-                    <div className="moneyboy-post__upload-more-info">
-                      <div className="moneyboy-post__upload-time">
-                        {getTimeAgo(post.createdAt)}
-                      </div>
-
-                      <div
-                        className={`rel-user-more-opts-wrapper ${
-                          openMenuId === index ? "active" : ""
-                        }`}
-                        data-more-actions-toggle-element
-                        ref={(el) => setMenuRef(index, el)}
-                      >
-                        <button
-                          className="rel-user-more-opts-trigger-icon"
-                          onClick={() => toggleMenu(index)}
-                          ref={(el) => setButtonRef(index, el)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="25"
-                            viewBox="0 0 24 25"
-                            fill="none"
-                          >
-                            <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
-                            <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
-                            <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
-                          </svg>
-                        </button>
-
-                        {openMenuId === index && (
-                          <div className="rel-users-more-opts-popup-wrapper">
-                            <div className="rel-users-more-opts-popup-container">
-                              <ul>
-                                <li data-copy-post-link={post._id}>
-                                  <div className="icon copy-link-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke-width="1.5"
-                                      stroke="currentColor"
-                                      className="size-6"
-                                    >
-                                      <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                      ></path>
-                                    </svg>
-                                  </div>
-                                  <span>Copy Link</span>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="moneyboy-post__desc">
-                    <p>
-                      {expandedPosts.feed?.[post._id]
-                        ? post.text
-                        : `${post.text?.slice(0, 120)}...`}
-                      <span
-                        className="active-down-effect-2x"
-                        onClick={() => toggleExpand(post._id, "feed")}
-                      >
-                        more
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="moneyboy-post__media">
-                    <div className="moneyboy-post__img">
-                      <img
-                        src={
-                          post.thumbnail ||
-                          post.media?.[0]?.mediaFiles?.[0] ||
-                          "/images/post-images/post-img-1.png"
-                        }
-                        alt="MoneyBoy Post Image"
-                      />
-                    </div>
-
-                    <div className="moneyboy-post__actions">
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M10 12.85V13.59"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                className="dollar-sign"
-                                d="M10 6.40997V7.18997"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>Send Tip</span>
-                          </a>
-                        </li>
-
-                        <li>
-                          <a
-                            href="#"
-                            className={`post-like-btn ${post.isLiked ? "liked" : ""}`}
-                            data-like-button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleLike(post._id);
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>{post.likeCount || 0}</span>
-                          </a>
-                        </li>
-
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M7 8H17"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M7 13H13"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>{post.commentCount || 0}</span>
-                          </a>
-                        </li>
-                      </ul>
-
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M5.15002 2V22"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </a>
-                        </li>
-
-                        <li>
-                          <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleSave(post._id);
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill={post.isSaved ? "white" : "none"}
-                            >
-                              <path
-                                d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {activeTab === "following" && (
-            <div className="moneyboy-posts-wrapper" data-multi-tabs-content-tab>
-              {followingPosts.map((post, index) => (
-                <div key={post._id} className="moneyboy-post__container card">
-                  <div className="moneyboy-post__header">
-                    <a href="#" className="profile-card">
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src={
-                                post.creatorInfo?.profile ||
-                                "/images/profile-avatars/profile-avatar-2.jpg"
-                              }
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              {post.creatorInfo?.displayName}
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @{post.creatorInfo?.userName}
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-
-                    <div className="moneyboy-post__upload-more-info">
-                      <div className="moneyboy-post__upload-time">
-                        {getTimeAgo(post.createdAt)}
-                      </div>
-
-                      <div
-                        className={`rel-user-more-opts-wrapper ${
-                          openMenuId === index ? "active" : ""
-                        }`}
-                        data-more-actions-toggle-element
-                        ref={(el) => setMenuRef(index, el)}
-                      >
-                        <button
-                          className="rel-user-more-opts-trigger-icon"
-                          onClick={() => toggleMenu(index)}
-                          ref={(el) => setButtonRef(index, el)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="25"
-                            viewBox="0 0 24 25"
-                            fill="none"
-                          >
-                            <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
-                            <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
-                            <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
-                          </svg>
-                        </button>
-
-                        {openMenuId === index && (
-                          <div className="rel-users-more-opts-popup-wrapper">
-                            <div className="rel-users-more-opts-popup-container">
-                              <ul>
-                                <li data-copy-post-link={post._id}>
-                                  <div className="icon copy-link-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke-width="1.5"
-                                      stroke="currentColor"
-                                      className="size-6"
-                                    >
-                                      <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                      ></path>
-                                    </svg>
-                                  </div>
-                                  <span>Copy Link</span>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="moneyboy-post__desc">
-                    <p>
-                      {expandedPosts.following?.[post._id]
-                        ? post.text
-                        : `${post.text?.slice(0, 120)}...`}
-                      <span
-                        className="active-down-effect-2x"
-                        onClick={() => toggleExpand(post._id, "following")}
-                      >
-                        more
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="moneyboy-post__media">
-                    <div className="moneyboy-post__img">
-                      <img
-                        src={
-                          post.thumbnail ||
-                          post.media?.[0]?.mediaFiles?.[0] ||
-                          "/images/post-images/post-img-3.png"
-                        }
-                        alt="MoneyBoy Post Image"
-                      />
-                    </div>
-
-                    <div className="moneyboy-post__actions">
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M10 12.85V13.59"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                className="dollar-sign"
-                                d="M10 6.40997V7.18997"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>Send Tip</span>
-                          </a>
-                        </li>
-
-                        <li>
-                          <a
-                            href="#"
-                            className={`post-like-btn ${post.isLiked ? "liked" : ""}`}
-                            data-like-button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleLike(post._id);
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>{post.likeCount || 0}</span>
-                          </a>
-                        </li>
-
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M7 8H17"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M7 13H13"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>{post.commentCount || 0}</span>
-                          </a>
-                        </li>
-                      </ul>
-
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M5.15002 2V22"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleSave(post._id);
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill={post.isSaved ? "white" : "none"}
-                            >
-                              <path
-                                d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {activeTab === "popular" && (
-            <div className="moneyboy-posts-wrapper" data-multi-tabs-content-tab>
-              {popularPosts.map((post, index) => (
-                <div key={post._id} className="moneyboy-post__container card">
-                  <div className="moneyboy-post__header">
-                    <a href="#" className="profile-card">
-                      <div className="profile-card__main">
-                        <div className="profile-card__avatar-settings">
-                          <div className="profile-card__avatar">
-                            <img
-                              src={
-                                post.creatorInfo?.profile ||
-                                "/images/profile-avatars/profile-avatar-4.jpg"
-                              }
-                              alt="MoneyBoy Social Profile Avatar"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="profile-card__info">
-                          <div className="profile-card__name-badge">
-                            <div className="profile-card__name">
-                              {post.creatorInfo?.displayName}
-                            </div>
-                            <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
-                            </div>
-                          </div>
-                          <div className="profile-card__username">
-                            @{post.creatorInfo?.userName}
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-
-                    <div className="moneyboy-post__upload-more-info">
-                      <div className="moneyboy-post__upload-time">
-                        {getTimeAgo(post.createdAt)}
-                      </div>
-
-                      <div
-                        className={`rel-user-more-opts-wrapper ${
-                          openMenuId === index ? "active" : ""
-                        }`}
-                        data-more-actions-toggle-element
-                        ref={(el) => setMenuRef(index, el)}
-                      >
-                        <button
-                          className="rel-user-more-opts-trigger-icon"
-                          onClick={() => toggleMenu(index)}
-                          ref={(el) => setButtonRef(index, el)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="25"
-                            viewBox="0 0 24 25"
-                            fill="none"
-                          >
-                            <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
-                            <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
-                            <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
-                          </svg>
-                        </button>
-
-                        {openMenuId === index && (
-                          <div className="rel-users-more-opts-popup-wrapper">
-                            <div className="rel-users-more-opts-popup-container">
-                              <ul>
-                                <li data-copy-post-link={post._id}>
-                                  <div className="icon copy-link-icon">
-                                    {" "}
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke-width="1.5"
-                                      stroke="currentColor"
-                                      className="size-6"
-                                    >
-                                      <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                      ></path>
-                                    </svg>
-                                  </div>
-                                  <span>Copy Link</span>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="moneyboy-post__desc">
-                    <p>
-                      {expandedPosts.popular?.[post._id]
-                        ? post.text
-                        : `${post.text?.slice(0, 120)}...`}
-                      <span
-                        className="active-down-effect-2x"
-                        onClick={() => toggleExpand(post._id, "popular")}
-                      >
-                        more
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="moneyboy-post__media">
-                    <div className="moneyboy-post__img">
-                      <img
-                        src={
-                          post.thumbnail ||
-                          post.media?.[0]?.mediaFiles?.[0] ||
-                          "/images/post-images/post-img-2.png"
-                        }
-                        alt="MoneyBoy Post Image"
-                      />
-                    </div>
-
-                    <div className="moneyboy-post__actions">
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M10 12.85V13.59"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                className="dollar-sign"
-                                d="M10 6.40997V7.18997"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>Send Tip</span>
-                          </a>
-                        </li>
-
-                        <li>
-                          <a
-                            href="#"
-                            className={`post-like-btn ${post.isLiked ? "liked" : ""}`}
-                            data-like-button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleLike(post._id);
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>{post.likeCount || 0}</span>
-                          </a>
-                        </li>
-
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M7 8H17"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M7 13H13"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                            <span>{post.commentCount || 0}</span>
-                          </a>
-                        </li>
-                      </ul>
-
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M5.15002 2V22"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-miterlimit="10"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleSave(post._id);
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill={post.isSaved ? "white" : "none"}
-                            >
-                              <path
-                                d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                              <path
-                                d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                stroke="white"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              />
-                            </svg>
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* ================= POSTS ================= */}
+            {activeTab === "feed" && (
+              <PostCard
+                post={{
+                  id: "1",
+                  user: {
+                    name: "Corey Bergson",
+                    username: "coreybergson",
+                    avatar: "/images/profile-avatars/profile-avatar-1.png",
+                    badge: "/images/logo/profile-badge.png",
+                  },
+                  description:"Today, I experienced the most blissful ride outside...",
+                  createdAt: "1 Hour ago",
+                  media: [
+                    { type: "image", url: "/images/profile-avatars/profile-avatar-1.png" },
+                    {type: "video",url: "https://res.cloudinary.com/...mp4",},
+                  ],
+                  likes: 12000,
+                  comments: 15,
+                  isLiked: false,
+                  isSaved: false,
+                }}
+              />
+              )}
+              {activeTab === "following" && (
+                <>following</>
+              )}
+              {activeTab === "popular" && (
+                <>Popular Containt</>
+              )}
+          </InfiniteScrollWrapper>
+        </div>
         </div>
       </div>
 
-      <Featuredboys />
+      {/* ================= RIGHT SIDEBAR ================= */}
+      <aside className="moneyboy-2x-1x-b-layout scrolling">
+        <Featuredboys />
+      </aside>
     </div>
   );
 };
 
-export default UserProfilepage;
+export default UserProfilePage;
