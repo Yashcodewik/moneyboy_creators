@@ -2,8 +2,22 @@
 
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "../CustomSelect";
+import { AppDispatch } from "@/redux/store";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { reportPostAction } from "@/redux/feed/feedAction";
 
-const PromoteModal = ({onClose}: {onClose: () => void}) => {
+const ReportModal = ({ onClose,
+  postId,
+}: {
+  onClose: () => void;
+  postId: string;
+}) => {
+
+  const dispatch = useDispatch<AppDispatch>();
+
+const [title, setTitle] = useState("");
+const [description, setDescription] = useState("");
 
   return (
     <>
@@ -14,7 +28,7 @@ const PromoteModal = ({onClose}: {onClose: () => void}) => {
         aria-labelledby="age-modal-title"
       >
         <div className="modal-wrap report-modal">
-          <button className="close-btn">
+          <button className="close-btn" onClick={onClose}>
             <CgClose size={22} />
           </button>
           <h3 className="title">Report Pop-Up</h3>
@@ -31,6 +45,8 @@ const PromoteModal = ({onClose}: {onClose: () => void}) => {
             <CustomSelect
               searchable={false}
               label="Violent Or Repulsive Content"
+              value={title}
+              onChange={(value) => setTitle(value as string)}
               options={[
                 {
                   label: "Violent or repulsive content",
@@ -58,13 +74,34 @@ const PromoteModal = ({onClose}: {onClose: () => void}) => {
           </div>
           <div className="input-wrap">
             <label>Description</label>
-            <textarea rows={3} placeholder="Tell Us Whay You Report?" />
+            <textarea
+  rows={3}
+  placeholder="Tell us why you report?"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+/>
+
             <label className="right">0/300</label>
           </div>
           <div className="actions">
-            <button className="premium-btn active-down-effect">
-              <span>Submit</span>
-            </button>
+            <button
+  className="premium-btn active-down-effect"
+  onClick={() => {
+    if (!title) return;
+    dispatch(
+      reportPostAction({
+        postId,
+        title,
+        description,
+      })
+    );
+
+    onClose();
+  }}
+>
+  <span>Submit</span>
+</button>
+
           </div>
         </div>
       </div>
@@ -72,4 +109,4 @@ const PromoteModal = ({onClose}: {onClose: () => void}) => {
   );
 };
 
-export default PromoteModal;
+export default ReportModal;
