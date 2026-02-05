@@ -26,6 +26,7 @@ import {
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { addComment } from "../../redux/other/commentSlice";
+import ReportModal from "../ReportModal";
 
 const PostPage = () => {
   const router = useRouter();
@@ -42,11 +43,11 @@ const PostPage = () => {
   const isLoggedIn = status === "authenticated";
   const [newComment, setNewComment] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
+ const [showReportModal, setShowReportModal] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const emojiRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonRef = useRef<HTMLDivElement | null>(null);
-
+const [isReported, setIsReported] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const dispatch = useAppDispatch();
@@ -63,26 +64,33 @@ const PostPage = () => {
   }, [showComment, post?._id, dispatch]);
 
   
-  useEffect(() => {
-    if (!publicId) return;
+useEffect(() => {
+  if (!publicId) return;
 
-    const fetchPost = async () => {
-      try {
-        const data = await getApiByParams({
-          url: API_GET_POST_BY_PUBLIC_ID,
-          params: publicId as string, // send publicId as param
-        });
+  const fetchPost = async () => {
+    try {
+      const data = await apiPost({
+        url: API_GET_POST_BY_PUBLIC_ID,
+        values: {
+          publicId,
+          userId: (session?.user as any)?.id || "",
 
-        if (data.success) setPost(data.post);
-      } catch (err) {
-        console.error("Error fetching post:", err);
-      } finally {
-        setLoading(false);
+        },
+      });
+
+      if (data?.success) {
+        setPost(data.post);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching post:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchPost();
-  }, [publicId]);
+  fetchPost();
+}, [publicId, (session?.user as any)?.id || "",]);
+
   const formatRelativeTime = (dateString: string) => {
     const postDate = new Date(dateString);
     const now = new Date();
@@ -214,6 +222,13 @@ const PostPage = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+
+  useEffect(() => {
+  if (post?.isReported !== undefined) {
+    setIsReported(post.isReported);
+  }
+}, [post]);
   const handleCopy = () => {
     const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
     navigator.clipboard.writeText(url);
@@ -566,7 +581,17 @@ const PostPage = () => {
                   <ul>
                     {/* Share */}
                     <li>
-                      <Link href="#">
+                        <Link
+                  href="#"
+                  className={isReported ? "active" : ""}
+                  onClick={(e) => {
+                    e.preventDefault();
+
+                    if (isReported) return;
+
+                    setShowReportModal(true);
+                  }}
+                >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -639,6 +664,20 @@ const PostPage = () => {
                 </div>
               </div>
 
+    {showReportModal && (
+        <ReportModal
+          postId={post._id}
+          imageUrl={
+            post.media?.[0]?.mediaFiles?.[0] || post.creatorInfo?.profile
+          }
+          onClose={(reported = false) => {
+            if (reported) {
+              setIsReported(true); // 🔥 instant UI update
+            }
+            setShowReportModal(false);
+          }}
+        />
+      )}
               {showComment && (
                 <div className="flex flex-column gap-20">
                   {/* ================= Add Comment ================= */}
