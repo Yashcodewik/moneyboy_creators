@@ -9,6 +9,7 @@ import discoverCreatorsReducer from "@/redux/discover/discoverCreatorsSlice";
 import purchasedMediaReducer from "./purchasedMedia/Slice";
 import savedFreeCreatorsReducer from "@/redux/wishlist/savedFreeCreatorsSlice";
 import feedReducer from "./feed/feedSlice";
+import likedPostsReducer from "./likedPosts/Slice";
 
 const rootReducer = combineReducers({
  
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
    purchasedMedia: purchasedMediaReducer,
    savedFreeCreators: savedFreeCreatorsReducer, 
    feed: feedReducer,
+   likedPosts: likedPostsReducer, 
 
 });
 

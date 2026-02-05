@@ -34,7 +34,7 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     const pathToPageMap: Record<string, string> = {
-       "/": "feed",  
+      "/": "feed",
       "/discover": "discover",
       "/feed": "feed",
       "/like": "likes",
@@ -49,8 +49,8 @@ const Sidebar: React.FC = () => {
       "/follower": "follower",
       "/creator-edit-profile": "creator-edit-profile",
       "/user-edit-profile": "user-edit-profile",
-      "/blacklist":"blacklist",
-      "/block-countries":"block-countries"
+      "/blacklist": "blacklist",
+      "/block-countries": "block-countries"
     };
 
     const currentPage = Object.keys(pathToPageMap).find(
@@ -151,7 +151,7 @@ const Sidebar: React.FC = () => {
     router.push(`/follower?tab=${tab}`);
   };
 
-    const handleProfileClick = (publicId: string) => {
+  const handleProfileClick = (publicId: string) => {
     router.push(`/profile/${publicId}`);
   };
 
@@ -165,41 +165,53 @@ const Sidebar: React.FC = () => {
                 <div className="profile-card">
                   <a href="#" className="profile-card__main">
                     <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar"
+                      <div
+                        className="profile-card__avatar"
                         onClick={() => {
-    if (session?.user?.role === 1) {
-      console.log("role 1");
-      router.push("/userprofile");
-    } else if (session?.user?.role === 2) {
-      console.log("role 2");
-      router.push(`/profile/${session?.user?.publicId}`);
-    } else {
-      router.push("/profile");
-    }
-  }}>
-                        <img
-                          src={
-                            userProfile?.profile
-                              ? userProfile.profile
-                              : session?.user?.role === 2
-                                ? "/images/profile-avatars/profile-avatar-1.png"
-                                : "/images/profile-avatars/profile-avatar-13.jpg"
-                          }
-                          alt="MoneyBoy Social Profile Avatar"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src =
-                              "/images/profile-avatars/profile-avatar-13.jpg";
-                          }}
-                        />
-                      </div>
-                      <div className="profile-card__settings active-down-effect-2x"    onClick={(e) => {
                           if (session?.user?.role === 1) {
-                            router.push("/user-edit-profile");
+                            router.push("/userprofile");
                           } else if (session?.user?.role === 2) {
-                            router.push("/creator-edit-profile");
+                            router.push(`/profile/${session?.user?.publicId}`);
+                          } else {
+                            router.push("/profile");
                           }
                         }}
-                       >
+                      >
+                        {/* IMAGE */}
+                        {userProfile?.profile ? (
+                          <img
+                            src={userProfile.profile}
+                            alt="MoneyBoy Social Profile Avatar"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src =
+                                "/images/profile-avatars/profile-avatar-13.jpg";
+                            }}
+                          />
+                        ) : (
+                          <div className="noprofile">
+                            {/* <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><text x="50%" y="50%">m</text></svg> */}
+                            <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                              <defs>
+                                <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                  <stop stop-color="#FDAB0A" />
+                                  <stop offset="0.4" stop-color="#FECE26" />
+                                  <stop offset="1" stop-color="#FE990B" />
+                                </linearGradient>
+                              </defs>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="profile-card__settings active-down-effect-2x" onClick={(e) => {
+                        if (session?.user?.role === 1) {
+                          router.push("/user-edit-profile");
+                        } else if (session?.user?.role === 2) {
+                          router.push("/creator-edit-profile");
+                        }
+                      }}
+                      >
                         <svg
                           className="svg-icon"
                           xmlns="http://www.w3.org/2000/svg"
@@ -231,27 +243,26 @@ const Sidebar: React.FC = () => {
                           {profileLoading
                             ? "Loading..."
                             : userProfile?.displayName ||
-                              userProfile?.name ||
-                              session?.user?.name ||
-                              "Corey Bergson"}
+                            userProfile?.name ||
+                            session?.user?.name ||
+                            "Corey Bergson"}
                         </div>
                         {session?.user?.role === 2 && (
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
+                          <div className="profile-card__badge">
+                            <img
+                              src="/images/logo/profile-badge.png"
+                              alt="MoneyBoy Social Profile Badge"
+                            />
+                          </div>
                         )}
                       </div>
                       <div className="profile-card__username">
                         {profileLoading
                           ? "@loading"
-                          : `@${
-                              userProfile?.username ||
-                              session?.user?.username ||
-                              "coreybergson"
-                            }`}
+                          : `@${userProfile?.username ||
+                          session?.user?.username ||
+                          "coreybergson"
+                          }`}
                       </div>
                     </div>
                   </a>
@@ -437,9 +448,8 @@ const Sidebar: React.FC = () => {
                 <li>
                   <Link
                     href="/feed"
-                    className={`active-down-effect ${
-                      activePage === "feed" ? "active" : ""
-                    }`}
+                    className={`active-down-effect ${activePage === "feed" ? "active" : ""
+                      }`}
                     onClick={(e) => handleNavClick("feed", "/feed", e)}
                   >
                     <div>
@@ -474,9 +484,8 @@ const Sidebar: React.FC = () => {
                 <li>
                   <Link
                     href="/discover"
-                    className={`active-down-effect ${
-                      activePage === "discover" ? "active" : ""
-                    }`}
+                    className={`active-down-effect ${activePage === "discover" ? "active" : ""
+                      }`}
                     onClick={(e) => handleNavClick("discover", "/discover", e)}
                   >
                     <div>
@@ -512,9 +521,8 @@ const Sidebar: React.FC = () => {
                     <li>
                       <Link
                         href="/like"
-                        className={`active-down-effect ${
-                          activePage === "likes" ? "active" : ""
-                        }`}
+                        className={`active-down-effect ${activePage === "likes" ? "active" : ""
+                          }`}
                         onClick={(e) => handleNavClick("likes", "/like", e)}
                       >
                         <div>
@@ -542,9 +550,8 @@ const Sidebar: React.FC = () => {
                     <li>
                       <Link
                         href="/wishlist"
-                        className={`active-down-effect ${
-                          activePage === "wishlist" ? "active" : ""
-                        }`}
+                        className={`active-down-effect ${activePage === "wishlist" ? "active" : ""
+                          }`}
                         onClick={(e) =>
                           handleNavClick("wishlist", "/wishlist", e)
                         }
@@ -590,9 +597,8 @@ const Sidebar: React.FC = () => {
                       <li>
                         <Link
                           href="#"
-                          className={`active-down-effect ${
-                            activePage === "subscriptions" ? "active" : ""
-                          }`}
+                          className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""
+                            }`}
                           onClick={(e) =>
                             handleNavClick("subscriptions", "/subscriptions", e)
                           }
@@ -636,11 +642,11 @@ const Sidebar: React.FC = () => {
                         <Link href="#" className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""}`} onClick={(e) => handleNavClick("subscriptions", "/subscriptions", e)}>
                           <div>
                             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M11.3599 2.8125V9.2925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                              <path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                              <path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                              <path d="M11.3599 2.8125V9.2925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                              <path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                              <path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                             <span>Subscriptions</span>
                           </div>
@@ -652,9 +658,8 @@ const Sidebar: React.FC = () => {
                     <li>
                       <Link
                         href="/purchasemedia"
-                        className={`active-down-effect ${
-                          activePage === "purchased-media" ? "active" : ""
-                        }`}
+                        className={`active-down-effect ${activePage === "purchased-media" ? "active" : ""
+                          }`}
                         onClick={(e) =>
                           handleNavClick(
                             "purchased-media",
@@ -694,63 +699,62 @@ const Sidebar: React.FC = () => {
                         </div>
                       </Link>
                     </li>
-                    
-                      <li>
-                        <Link
-                          href="/store"
-                          className={`active-down-effect ${
-                            activePage === "store" ? "active" : ""
+
+                    <li>
+                      <Link
+                        href="/store"
+                        className={`active-down-effect ${activePage === "store" ? "active" : ""
                           }`}
-                          onClick={(e) => handleNavClick("store", "/store", e)}
-                        >
-                          <div>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="32"
-                              height="32"
-                              viewBox="0 0 32 32"
-                              fill="none"
-                            >
-                              <path
-                                d="M4.01334 14.96V20.9467C4.01334 26.9334 6.41334 29.3334 12.4 29.3334H19.5867C25.5733 29.3334 27.9733 26.9334 27.9733 20.9467V14.96"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M16 16C18.44 16 20.24 14.0134 20 11.5734L19.12 2.66669H12.8933L12 11.5734C11.76 14.0134 13.56 16 16 16Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M24.4133 16C27.1067 16 29.08 13.8134 28.8133 11.1334L28.44 7.46669C27.96 4.00002 26.6267 2.66669 23.1333 2.66669H19.0667L20 12.0134C20.2267 14.2134 22.2133 16 24.4133 16Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7.52 16C9.72 16 11.7067 14.2134 11.92 12.0134L12.2133 9.06669L12.8533 2.66669H8.78666C5.29333 2.66669 3.96 4.00002 3.48 7.46669L3.12 11.1334C2.85333 13.8134 4.82666 16 7.52 16Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M16 22.6667C13.7733 22.6667 12.6667 23.7734 12.6667 26V29.3334H19.3333V26C19.3333 23.7734 18.2267 22.6667 16 22.6667Z"
-                                stroke="none"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span>Store</span>
-                          </div>
-                        </Link>
-                      </li>
+                        onClick={(e) => handleNavClick("store", "/store", e)}
+                      >
+                        <div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 32 32"
+                            fill="none"
+                          >
+                            <path
+                              d="M4.01334 14.96V20.9467C4.01334 26.9334 6.41334 29.3334 12.4 29.3334H19.5867C25.5733 29.3334 27.9733 26.9334 27.9733 20.9467V14.96"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M16 16C18.44 16 20.24 14.0134 20 11.5734L19.12 2.66669H12.8933L12 11.5734C11.76 14.0134 13.56 16 16 16Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M24.4133 16C27.1067 16 29.08 13.8134 28.8133 11.1334L28.44 7.46669C27.96 4.00002 26.6267 2.66669 23.1333 2.66669H19.0667L20 12.0134C20.2267 14.2134 22.2133 16 24.4133 16Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M7.52 16C9.72 16 11.7067 14.2134 11.92 12.0134L12.2133 9.06669L12.8533 2.66669H8.78666C5.29333 2.66669 3.96 4.00002 3.48 7.46669L3.12 11.1334C2.85333 13.8134 4.82666 16 7.52 16Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M16 22.6667C13.7733 22.6667 12.6667 23.7734 12.6667 26V29.3334H19.3333V26C19.3333 23.7734 18.2267 22.6667 16 22.6667Z"
+                              stroke="none"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Store</span>
+                        </div>
+                      </Link>
+                    </li>
                     {/* <li>
                     <Link
                       href="/"

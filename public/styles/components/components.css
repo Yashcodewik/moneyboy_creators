@@ -133,6 +133,12 @@
            img {
              border-radius: inherit;
            }
+           .noprofile {
+            aspect-ratio: 1;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+           }
          }
  
          button {

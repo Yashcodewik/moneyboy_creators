@@ -62,6 +62,7 @@ const PurchasedMediaPage: React.FC = () => {
   const [time, setTime] = useState<string>("all_time");
  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const router = useRouter();
+  const [imgError, setImgError] = useState(false);
 
   // const [openDropdown, setOpenDropdown] = useState
   //   "status" | "type" | "creator" | "time" | null
@@ -559,8 +560,9 @@ const selectedVideoUrl = useMemo(() => {
                         )}
 
                         {!loading && items.length === 0 && (
-                          <div style={{ textAlign: 'center', padding: '40px' }}>
-                            <p>No media found for this tab.</p>
+                          <div className="nofound">
+                            <h3 className="first">No media found</h3>
+                            <h3 className="second">No media found</h3>
                           </div>
                         )}
 
