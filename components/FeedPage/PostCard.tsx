@@ -533,6 +533,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
+                    if (!session?.user?.id) {
+                      router.push("/login"); // ⬅ redirect if not logged in
+                      return;
+                    }
                     setShowComment((prev) => !prev);
                   }}
                 >
@@ -578,6 +582,11 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   className={isReported ? "active" : ""}
                   onClick={(e) => {
                     e.preventDefault();
+
+                    if (!session?.user?.id) {
+                      router.push("/login"); // ⬅ redirect if not logged in
+                      return;
+                    }
 
                     if (post.isReported) return;
 
