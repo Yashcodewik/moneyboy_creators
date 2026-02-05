@@ -87,6 +87,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const emojiRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonRef = useRef<HTMLDivElement | null>(null);
+  const [isReported, setIsReported] = useState(post.isReported);
 
   /* Close menu on outside click */
   useEffect(() => {
@@ -572,9 +573,17 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             <ul>
               {/* Share */}
               <li>
-                <Link href="#"
-                className={post.isReported ? "active" : ""}
-                onClick={(e) => { e.preventDefault(); setShowReportModal(true); }}>
+                <Link
+                  href="#"
+                  className={isReported ? "active" : ""}
+                  onClick={(e) => {
+                    e.preventDefault();
+
+                    if (post.isReported) return;
+
+                    setShowReportModal(true);
+                  }}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -647,7 +656,20 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         </div>
       </div>
 
-      {showReportModal  && <ReportModal postId={post._id} imageUrl={post.media?.[0]?.mediaFiles?.[0] || post.creatorInfo?.profile}   onClose={() => setShowReportModal(false)}/>}
+      {showReportModal && (
+        <ReportModal
+          postId={post._id}
+          imageUrl={
+            post.media?.[0]?.mediaFiles?.[0] || post.creatorInfo?.profile
+          }
+          onClose={(reported = false) => {
+            if (reported) {
+              setIsReported(true); // 🔥 instant UI update
+            }
+            setShowReportModal(false);
+          }}
+        />
+      )}
       {showComment && (
         <div className="flex flex-column gap-20">
           <div className="moneyboy-comment-wrap">
@@ -754,18 +776,37 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               <div className="like-deslike-wrap">
                 <ul>
                   <li>
-                    <Link href="#" className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`} onClick={(e) => {e.preventDefault(); dispatch(likeComment({ commentId: topComment._id }));}}>
+                    <Link
+                      href="#"
+                      className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        dispatch(likeComment({ commentId: topComment._id }));
+                      }}
+                    >
                       <ThumbsUp color="black" strokeWidth={2} />
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`} onClick={(e) => { e.preventDefault(); dispatch(dislikeComment({ commentId: topComment._id }));}}>
+                    <Link
+                      href="#"
+                      className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        dispatch(dislikeComment({ commentId: topComment._id }));
+                      }}
+                    >
                       <ThumbsDown color="black" strokeWidth={2} />
                     </Link>
                   </li>
                 </ul>
                 {hasMoreComments && (
-                  <button onClick={handlePostRedirect} className="btn-primary active-down-effect-2x">See more <ArrowUpRight size={14}/></button>
+                  <button
+                    onClick={handlePostRedirect}
+                    className="btn-primary active-down-effect-2x"
+                  >
+                    See more <ArrowUpRight size={14} />
+                  </button>
                 )}
               </div>
             </div>

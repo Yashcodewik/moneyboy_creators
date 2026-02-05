@@ -1,34 +1,36 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
-  API_GET_LIKED_POSTS,
   API_LIKE_POST,
   API_UNLIKE_POST,
   API_SAVE_POST,
   API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
-import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { apiPost } from "@/utils/endpoints/common";
 
 import { useAppDispatch, useAppSelector } from "../../redux/store";
-import {
-  addComment,
-  dislikeComment,
-  fetchComments,
-  likeComment,
-} from "../../redux/other/commentSlice";
+import { addComment, fetchComments } from "../../redux/other/commentSlice";
+import { fetchLikedPosts } from "../../redux/likedPosts/Action";
 
 import CustomSelect from "../CustomSelect";
-import { timeOptions } from "../helper/creatorOptions";
 import Featuredboys from "../Featuredboys";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import PostCard from "./PostCard";
-
-/* ========================== UTILITIES ========================== */
+import {
+  removeLikedPost,
+  resetLikedPosts,
+  updateLikedPost,
+} from "@/redux/likedPosts/Slice";
+import { useSession } from "next-auth/react";
+import {
+  incrementFeedPostCommentCount,
+  updateFeedPost,
+} from "@/redux/other/feedPostsSlice";
+import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
+import { timeOptions } from "../helper/creatorOptions";
 
 const getRelativeTime = (date: string) => {
   const diff = Date.now() - new Date(date).getTime();
@@ -42,68 +44,55 @@ const getRelativeTime = (date: string) => {
   return `${Math.floor(days / 7)} week ago`;
 };
 
-/* ========================== COMPONENT ========================== */
-
 const LikePage = () => {
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated";
 
-  /* ---------- STATE ---------- */
   const [activeTab, setActiveTab] = useState<"posts" | "videos" | "photos">(
     "posts",
   );
-  const [posts, setPosts] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
   const [time, setTime] = useState("all_time");
   const [searchText, setSearchText] = useState("");
 
-  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(
-    null,
-  );
   const [currentPost, setCurrentPost] = useState<any>(null);
   const [newComment, setNewComment] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
+  const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
-  /* ---------- REFS ---------- */
+  const {
+    items: posts,
+    pagination,
+    loading,
+  } = useAppSelector((state) => state.likedPosts);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLDivElement>(null);
 
-  /* ---------- TAB HANDLER ---------- */
   const handleTabClick = (tab: "posts" | "videos" | "photos") => {
     setActiveTab(tab);
   };
 
-  /* ---------- SCROLL RESET ON TAB CHANGE ---------- */
-  useEffect(() => {
-    const container = document.getElementById("feed-scroll-container");
-    if (container) container.scrollTop = 0;
-  }, [activeTab]);
-
-  /* ---------- QUERY ---------- */
   const type =
-    activeTab === "videos"
-      ? "video"
-      : activeTab === "photos"
-        ? "photo"
-        : "all";
+    activeTab === "videos" ? "video" : activeTab === "photos" ? "photo" : "all";
 
-  const { data } = useQuery({
-    queryKey: ["likedPosts", activeTab, time, searchText, page],
-    placeholderData: keepPreviousData,
-    queryFn: async () => {
-      const base = API_GET_LIKED_POSTS.split("?")[0];
-      const url = `${base}?page=${page}&rowsPerPage=10&q=${searchText}&type=${type}&time=${time}`;
-      const res = await getApiWithOutQuery({ url });
-      if (!res?.success) throw new Error("Fetch failed");
-      return res;
-    },
-  });
+  useEffect(() => {
+    dispatch(resetLikedPosts());
+    dispatch(
+      fetchLikedPosts({
+        page: 1,
+        limit: 10,
+        search: searchText,
+        time,
+        type,
+      }),
+    );
+  }, [activeTab, time, searchText]);
 
-  /* ---------- EFFECTS ---------- */
-
-  // Sync tab from URL
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "posts" || tab === "videos" || tab === "photos") {
@@ -111,71 +100,28 @@ const LikePage = () => {
     }
   }, [searchParams]);
 
-  // Reset pagination on filters
-  useEffect(() => {
-    setPage(1);
-  }, [activeTab, time, searchText]);
+  const fetchMore = () => {
+    if (!pagination.hasNextPage || loading) return;
 
-  // Normalize posts
-  useEffect(() => {
-    if (data?.success) {
-      setPosts(
-        data.posts.map((p: any) => ({
-          ...p,
-          liked: p.isLiked,
-          saved: p.isSaved,
-        })),
-      );
-    }
-  }, [data]);
-
-  // Close emoji picker on outside click
-  useEffect(() => {
-    const handleOutside = (e: MouseEvent) => {
-      if (
-        emojiRef.current &&
-        !emojiRef.current.contains(e.target as Node) &&
-        !emojiButtonRef.current?.contains(e.target as Node)
-      ) {
-        setShowEmojiPicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, []);
-
-  /* ---------- ACTIONS ---------- */
+    dispatch(
+      fetchLikedPosts({
+        page: pagination.page + 1,
+        limit: pagination.limit,
+        search: searchText,
+        time,
+        type,
+      }),
+    );
+  };
 
   const toggleLike = async (postId: string, liked: boolean) => {
     const url = liked ? API_UNLIKE_POST : API_LIKE_POST;
-    const res = await apiPost({ url, values: { postId } });
-    if (res?.success) {
-      setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId
-            ? {
-              ...p,
-              liked: !liked,
-              likeCount: liked
-                ? p.likeCount - 1
-                : p.likeCount + 1,
-            }
-            : p,
-        ),
-      );
-    }
+    await apiPost({ url, values: { postId } });
   };
 
   const toggleSave = async (postId: string, saved: boolean) => {
     const url = saved ? API_UNSAVE_POST : API_SAVE_POST;
-    const res = await apiPost({ url, values: { postId } });
-    if (res?.success) {
-      setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId ? { ...p, saved: !saved } : p,
-        ),
-      );
-    }
+    await apiPost({ url, values: { postId } });
   };
 
   const handleAddComment = async () => {
@@ -189,130 +135,246 @@ const LikePage = () => {
     }
   };
 
-  const onEmojiClick = (emoji: EmojiClickData) => {
-    setNewComment((prev) => prev + emoji.emoji);
-    setShowEmojiPicker(false);
-  };
+  const handleLike = async (postId: string) => {
+    if (loading) return;
+    if (!isLoggedIn) return router.push("/login");
+    if (likeLoading[postId]) return;
 
-  const handleCopy = (publicId: string) => {
-    navigator.clipboard.writeText(
-      `${window.location.origin}/post?page&publicId=${publicId}`,
+    const post = posts.find((p: any) => p._id === postId);
+    if (!post) return;
+
+    const isCurrentlyLiked = post.isLiked;
+
+    setLikeLoading((p) => ({ ...p, [postId]: true }));
+
+    // ✅ Optimistic UI toggle
+    dispatch(
+      updateLikedPost({
+        postId,
+        data: {
+          isLiked: !isCurrentlyLiked,
+          likeCount: isCurrentlyLiked
+            ? Math.max((post.likeCount || 1) - 1, 0)
+            : (post.likeCount || 0) + 1,
+        },
+      }),
     );
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+
+    const res = await apiPost({
+      url: isCurrentlyLiked ? API_UNLIKE_POST : API_LIKE_POST,
+      values: { postId },
+    });
+
+    if (!res?.success) {
+      // 🔁 rollback if API fails
+      dispatch(
+        updateLikedPost({
+          postId,
+          data: {
+            isLiked: isCurrentlyLiked,
+            likeCount: post.likeCount,
+          },
+        }),
+      );
+    }
+
+    setLikeLoading((p) => ({ ...p, [postId]: false }));
   };
 
-  /* ---------- DERIVED ---------- */
-  const commentsState = useAppSelector((s) => s.comments);
-  const postComments = commentsState.comments[currentPost?._id] || [];
+  const handleSave = async (postId: string, isSaved: boolean) => {
+    if (!isLoggedIn) return router.push("/login");
+    if (saveLoading[postId]) return;
 
-  const topComment = useMemo(() => {
-    return [...postComments]
-      .filter(Boolean)
-      .sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0))[0];
-  }, [postComments]);
+    setSaveLoading((p) => ({ ...p, [postId]: true }));
 
-  /* ========================== JSX ========================== */
+    dispatch(updateFeedPost({ postId, data: { isSaved: !isSaved } }));
+
+    try {
+      if (isSaved) {
+        await dispatch(unsavePost({ postId })).unwrap();
+      } else {
+        await dispatch(savePost({ postId })).unwrap();
+      }
+    } catch {
+      dispatch(updateFeedPost({ postId, data: { isSaved } }));
+    } finally {
+      setSaveLoading((p) => ({ ...p, [postId]: false }));
+    }
+  };
+
+  const incrementCommentCount = (postId: string) => {
+    dispatch(incrementFeedPostCommentCount(postId));
+  };
+
+  const filteredPosts = useMemo(() => {
+    if (activeTab === "videos") {
+      return posts.filter((post: any) => post.media?.[0]?.type === "video");
+    }
+
+    if (activeTab === "photos") {
+      return posts.filter((post: any) => post.media?.[0]?.type === "photo");
+    }
+
+    return posts; // posts tab → show all
+  }, [posts, activeTab]);
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
-        <div className="moneyboy-feed-page-container" data-multiple-tabs-section data-scroll-zero >
-          {/* ================= TABS ================= */}
-          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card" >
+        <div className="moneyboy-feed-page-container">
+          <div className="moneyboy-feed-page-cate-buttons card">
             {(["posts", "videos", "photos"] as const).map((tab) => (
-              <button key={tab} className={`page-content-type-button active-down-effect ${activeTab === tab ? "active" : ""}`}onClick={() => handleTabClick(tab)}>{tab.charAt(0).toUpperCase() + tab.slice(1)}</button>
+              <button
+                key={tab}
+                className={`page-content-type-button active-down-effect ${
+                  activeTab === tab ? "active" : ""
+                }`}
+                onClick={() => handleTabClick(tab)}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
             ))}
           </div>
 
-          <div className="moneyboy-posts-wrapper moneyboy-diff-content-wrappers">
-            {/* <PostCard /> */}
-            <div id="feed-scroll-container" className="moneyboy-posts-scroll-container" >
-             <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={posts.length} hasMore={data?.hasMore ?? false} next={() => setPage((prev) => prev + 1)}>
-              <div className="creator-content-filter-grid-container">
-                <div className="card filters-card-wrapper">
-                  <div className="search-features-grid-btns">
-                    <div className="creator-content-search-input">
-                      <div className="label-input">
-                        <div className="input-placeholder-icon">
-                          <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M14 5H20" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M14 8H17" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                          </svg>
-                        </div>
+          <div className="moneyboy-posts-wrapper">
+            <div
+              id="feed-scroll-container"
+              className="moneyboy-posts-scroll-container"
+            >
+              <InfiniteScrollWrapper
+                className="moneyboy-posts-wrapper"
+                scrollableTarget="feed-scroll-container"
+                dataLength={posts.length}
+                hasMore={pagination.hasNextPage}
+                fetchMore={fetchMore}
+              >
+                <div className="creator-content-filter-grid-container">
+                  <div className="card filters-card-wrapper">
+                    <div className="search-features-grid-btns">
+                      <div className="creator-content-search-input">
+                        <div className="label-input">
+                          <div className="input-placeholder-icon">
+                            <svg
+                              className="svg-icon"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                              <path
+                                d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                              <path
+                                d="M14 5H20"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                              <path
+                                d="M14 8H17"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                            </svg>
+                          </div>
 
-                        <input type="text" placeholder="Enter keyword here"/>
+                          <input
+                            type="text"
+                            placeholder="Enter keyword here"
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="creater-content-filters-layouts">
-                      <div className="creator-content-select-filter">
-                        <CustomSelect
-                          className="bg-white p-sm size-sm"
-                          label="All Time"
-                          searchable={false}
-                          options={[
-                            { label: " Option 1", value: " Optionone" },
-                            { label: " Option 2", value: " Optiontwo" },
-                            { label: " Option 3", value: " Optionthree" },
-                            { label: " Option 4", value: " Optionfour" },
-                          ]}
-                        />
-                      </div>
-                      <div className="creator-content-grid-layout-options">
-                        <button className="creator-content-grid-layout-btn active">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M22 8.52V3.98C22 2.57 21.36 2 19.77 2H15.73C14.14 2 13.5 2.57 13.5 3.98V8.51C13.5 9.93 14.14 10.49 15.73 10.49H19.77C21.36 10.5 22 9.93 22 8.52Z" fill="none"></path>
-                            <path d="M22 19.77V15.73C22 14.14 21.36 13.5 19.77 13.5H15.73C14.14 13.5 13.5 14.14 13.5 15.73V19.77C13.5 21.36 14.14 22 15.73 22H19.77C21.36 22 22 21.36 22 19.77Z" fill="none"></path>
-                            <path d="M10.5 8.52V3.98C10.5 2.57 9.86 2 8.27 2H4.23C2.64 2 2 2.57 2 3.98V8.51C2 9.93 2.64 10.49 4.23 10.49H8.27C9.86 10.5 10.5 9.93 10.5 8.52Z" fill="none"></path>
-                            <path d="M10.5 19.77V15.73C10.5 14.14 9.86 13.5 8.27 13.5H4.23C2.64 13.5 2 14.14 2 15.73V19.77C2 21.36 2.64 22 4.23 22H8.27C9.86 22 10.5 21.36 10.5 19.77Z" fill="none"></path>
-                          </svg>
-                        </button>
-                        <button className="creator-content-grid-layout-btn">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M19.9 13.5H4.1C2.6 13.5 2 14.14 2 15.73V19.77C2 21.36 2.6 22 4.1 22H19.9C21.4 22 22 21.36 22 19.77V15.73C22 14.14 21.4 13.5 19.9 13.5Z" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M19.9 2H4.1C2.6 2 2 2.64 2 4.23V8.27C2 9.86 2.6 10.5 4.1 10.5H19.9C21.4 10.5 22 9.86 22 8.27V4.23C22 2.64 21.4 2 19.9 2Z" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path>
-                          </svg>
-                        </button>
+                      <div className="creater-content-filters-layouts">
+                        <div className="creator-content-select-filter">
+                          <CustomSelect
+                            className="bg-white p-sm size-sm"
+                            label="All Time"
+                            searchable={false}
+                        options={timeOptions}
+                          />
+                        </div>
+                        <div className="creator-content-grid-layout-options">
+                          <button className="creator-content-grid-layout-btn active">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M22 8.52V3.98C22 2.57 21.36 2 19.77 2H15.73C14.14 2 13.5 2.57 13.5 3.98V8.51C13.5 9.93 14.14 10.49 15.73 10.49H19.77C21.36 10.5 22 9.93 22 8.52Z"
+                                fill="none"
+                              ></path>
+                              <path
+                                d="M22 19.77V15.73C22 14.14 21.36 13.5 19.77 13.5H15.73C14.14 13.5 13.5 14.14 13.5 15.73V19.77C13.5 21.36 14.14 22 15.73 22H19.77C21.36 22 22 21.36 22 19.77Z"
+                                fill="none"
+                              ></path>
+                              <path
+                                d="M10.5 8.52V3.98C10.5 2.57 9.86 2 8.27 2H4.23C2.64 2 2 2.57 2 3.98V8.51C2 9.93 2.64 10.49 4.23 10.49H8.27C9.86 10.5 10.5 9.93 10.5 8.52Z"
+                                fill="none"
+                              ></path>
+                              <path
+                                d="M10.5 19.77V15.73C10.5 14.14 9.86 13.5 8.27 13.5H4.23C2.64 13.5 2 14.14 2 15.73V19.77C2 21.36 2.64 22 4.23 22H8.27C9.86 22 10.5 21.36 10.5 19.77Z"
+                                fill="none"
+                              ></path>
+                            </svg>
+                          </button>
+                          <button className="creator-content-grid-layout-btn">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M19.9 13.5H4.1C2.6 13.5 2 14.14 2 15.73V19.77C2 21.36 2.6 22 4.1 22H19.9C21.4 22 22 21.36 22 19.77V15.73C22 14.14 21.4 13.5 19.9 13.5Z"
+                                stroke="none"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                              <path
+                                d="M19.9 2H4.1C2.6 2 2 2.64 2 4.23V8.27C2 9.86 2.6 10.5 4.1 10.5H19.9C21.4 10.5 22 9.86 22 8.27V4.23C22 2.64 21.4 2 19.9 2Z"
+                                stroke="none"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              {activeTab === "posts" &&
-                posts.map((post) => (
+                {filteredPosts.map((post: any) => (
                   <PostCard
-                      post={{
-                        id: "1",
-                        user: {
-                          name: "Corey Bergson",
-                          username: "coreybergson",
-                          avatar: "/images/profile-avatars/profile-avatar-1.png",
-                          badge: "/images/logo/profile-badge.png",
-                        },
-                        description:"Today, I experienced the most blissful ride outside...",
-                        createdAt: "1 Hour ago",
-                        media: [
-                          { type: "image", url: "/images/profile-avatars/profile-avatar-1.png" },
-                          {type: "video",url: "https://res.cloudinary.com/...mp4",},
-                        ],
-                        likes: 12000,
-                        comments: 15,
-                        isLiked: false,
-                        isSaved: false,
-                      }}
-                    />
-                ))
-              }
-              {activeTab === "videos" && <>Videos Content</>}
-              {activeTab === "photos" && <>Photos Content</>}
-             </InfiniteScrollWrapper>
+                    key={post._id}
+                    post={post}
+                    onLike={handleLike}
+                    onSave={handleSave}
+                    onCommentAdded={incrementCommentCount}
+                  />
+                ))}
+              </InfiniteScrollWrapper>
             </div>
-            
           </div>
         </div>
       </div>
+
       <aside className="moneyboy-2x-1x-b-layout scrolling">
         <Featuredboys />
       </aside>

@@ -8,7 +8,7 @@ import * as yup from "yup";
 import { useFormik } from "formik";
 
 interface ReportModalProps {
-  onClose: () => void;
+  onClose: (reported?: boolean) => void;
   postId: string;
   imageUrl?: string; 
 }
@@ -36,7 +36,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId ,imageUrl}) =
           url: API_REPOET_POST,
           values: {
             title: values.title,
-            description: values.description, // optional
+            description: values.description, 
             postId,
           },
         });
@@ -45,7 +45,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId ,imageUrl}) =
           ShowToast(res.error, "error");
         } else {
           ShowToast("Report submitted successfully", "success");
-          onClose();
+          onClose(true);
         }
       } catch (err: any) {
         ShowToast(err?.message || "Something went wrong", "error");
@@ -62,7 +62,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId ,imageUrl}) =
       aria-labelledby="age-modal-title"
     >
       <form className="modal-wrap report-modal" onSubmit={formik.handleSubmit}>
-        <button className="close-btn" onClick={onClose}>
+        <button className="close-btn" onClick={() => onClose(false)}>
           <CgClose size={22} />
         </button>
         <h3 className="title">Report Pop-Up</h3>

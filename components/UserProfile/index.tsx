@@ -29,6 +29,8 @@ interface UserProfile {
   country?: string;
   createdAt?: string;
 }
+type TabType = "feed" | "following" | "popular";
+const LIMIT = 4;
 
 /* ================= COMPONENT ================= */
 
