@@ -1,177 +1,451 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import Featuredboys from "../Featuredboys";
-import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import ShowToast from "../common/ShowToast";
-import PostCard from "../LikePage/PostCard";
-
+import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import {
   API_USER_PROFILE,
   API_FOLLOWER_COUNT,
-  API_GET_POSTS,
   API_GET_FOLLOWING_POSTS,
   API_GET_POPULAR_POSTS,
+  API_GET_POSTS,
+  API_LIKE_POST,
+  API_SAVE_POST,
+  API_UNLIKE_POST,
+  API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
-
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
-
-/* ================= TYPES ================= */
+import Featuredboys from "../Featuredboys";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "@/redux/store";
+import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost } from "@/redux/other/feedPostsSlice";
+import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
+import PostCard from "../FeedPage/PostCard";
 
 interface UserProfile {
+  id: number;
   userName: string;
   displayName: string;
-  bio?: string;
+  avatarUrl: string;
+  bannerUrl: string;
+  location: string;
+  joinDate: string;
+  followersCount: number;
+  followingCount: number;
+  bio: string;
+  isFollowing?: boolean;
+  followers?: number;
+  following?: number;
   profile?: string;
-  coverImage?: string;
+  createdAt?: string;
   city?: string;
   country?: string;
-  createdAt?: string;
+  coverImage?: string;
 }
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
 
-/* ================= COMPONENT ================= */
-
-const UserProfilePage = () => {
-  const { status } = useSession();
+const UserProfilepage = () => {
+  const router = useRouter();
+  const { data: session, status }: any = useSession();
   const isLoggedIn = status === "authenticated";
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [followers, setFollowers] = useState(0);
-  const [following, setFollowing] = useState(0);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [followerStats, setFollowerStats] = useState({
+    followerCount: 0,
+    followingCount: 0,
+  });
 
-  const [activeTab, setActiveTab] =
-    useState<"feed" | "following" | "popular">("feed");
+  const dispatch = useDispatch<AppDispatch>();
 
-  const [posts, setPosts] = useState<any[]>([]);
+
+  const {
+    posts,
+    feedPage,
+    followingPage,
+    popularPage,
+    hasMoreFeed,
+    hasMoreFollowing,
+    hasMorePopular,
+    loading,
+  } = useSelector((state: any) => state.feedPosts);
+
+  const allPosts = Object.values(posts);
+
+  const feedPosts = allPosts.filter((p: any) => p.source === "feed");
+  const followingPosts = allPosts.filter((p: any) => p.source === "following");
+  const popularPosts = allPosts.filter((p: any) => p.source === "popular");
+
+
+
+  const [activeTab, setActiveTab] = useState<string>("feed");
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+  const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
+
+  const setMenuRef = (id: number, element: HTMLDivElement | null) => {
+    menuRefs.current.set(id, element);
+  };
+
+  const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
+    buttonRefs.current.set(id, element);
+  };
+
+  const toggleMenu = (id: number) => {
+    setOpenMenuId((prev) => (prev === id ? null : id));
+  };
+
+
+  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
+  const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
+  const [followingHasMore, setFollowingHasMore] = useState(true);
+  const [followingLoadingMore, setFollowingLoadingMore] = useState(false);
+
+  const [popularHasMore, setPopularHasMore] = useState(true);
+  const [popularLoadingMore, setPopularLoadingMore] = useState(false);
+
   const [page, setPage] = useState(1);
+  const [limit] = useState(4);
   const [hasMore, setHasMore] = useState(true);
-  const limit = 5;
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const [loading, setLoading] = useState(true);
+  const [expandedPosts, setExpandedPosts] = useState<
+    Record<string, Record<string, boolean>>
+  >({
+    feed: {},
+    following: {},
+    popular: {},
+  });
 
-  /* ================= HELPERS ================= */
+  const hasFetchedRef = useRef(false);
 
-  const formatJoinedDate = (date?: string) => {
-    if (!date) return "";
-    return `Joined ${new Date(date).toLocaleString("en-US", {
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoadingProfile(true);
+        setError(null);
+
+        const response = await getApiWithOutQuery({ url: API_USER_PROFILE });
+
+        if (response && response.success) {
+          setUserProfile(response.data);
+          if (response.data.followerStats) {
+            setFollowerStats(response.data.followerStats);
+          }
+        } else {
+          setError(response?.message || "Failed to load profile");
+          ShowToast(response?.message || "Failed to load profile", "error");
+        }
+      } catch (err: any) {
+        setError("An error occurred while fetching profile");
+        ShowToast("An error occurred while fetching profile", "error");
+        console.error("Error fetching user profile:", err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  useEffect(() => {
+    const fetchFollowerCounts = async () => {
+      try {
+        const response = await getApiWithOutQuery({ url: API_FOLLOWER_COUNT });
+        if (response?.success) {
+          setFollowerStats({
+            followerCount: response.data.followerCount,
+            followingCount: response.data.followingCount,
+          });
+        }
+      } catch (err: any) {
+        console.error("Error fetching follower counts:", err);
+      }
+    };
+    fetchFollowerCounts();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId === null) return;
+
+      const menuElement = menuRefs.current.get(openMenuId);
+      const buttonElement = buttonRefs.current.get(openMenuId);
+      const target = event.target as Node;
+
+      if (
+        menuElement &&
+        !menuElement.contains(target) &&
+        buttonElement &&
+        !buttonElement.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
+
+  useEffect(() => {
+    const likeButtons = document.querySelectorAll("[data-like-button]");
+    const handleClick = (event: Event) => {
+      const button = event.currentTarget as HTMLElement;
+      button.classList.toggle("liked");
+    };
+    likeButtons.forEach((button) =>
+      button.addEventListener("click", handleClick),
+    );
+    return () =>
+      likeButtons.forEach((button) =>
+        button.removeEventListener("click", handleClick),
+      );
+  }, []);
+
+  const formatJoinedDate = (dateString?: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return `Joined ${date.toLocaleString("en-US", {
       month: "long",
       year: "numeric",
     })}`;
   };
 
-  const handleTabClick = (tab: "feed" | "following" | "popular") => {
+  const getTimeAgo = (dateString: string) => {
+    const postDate = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor(
+      (now.getTime() - postDate.getTime()) / 1000,
+    );
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    const diffInMonths = Math.floor(diffInDays / 30);
+    const diffInYears = Math.floor(diffInDays / 365);
+
+    if (diffInSeconds < 60) return "Just now";
+    if (diffInMinutes < 60)
+      return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+    if (diffInHours < 24)
+      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+    if (diffInDays < 7)
+      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+    if (diffInWeeks < 4)
+      return `${diffInWeeks} week${diffInWeeks > 1 ? "s" : ""} ago`;
+    if (diffInMonths < 12)
+      return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
+    return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
+  };
+
+  const updatePostInList = (
+    list: any[],
+    postId: string,
+    updater: (post: any) => any,
+  ) => list.map((p) => (p._id === postId ? updater(p) : p));
+
+  useEffect(() => {
+    if (activeTab === "feed" && feedPosts.length === 0) {
+      dispatch(
+        fetchFeedPosts({
+          userId: (session?.user as any)?.id,
+          page: 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+
+    if (
+      activeTab === "following" &&
+      followingPosts.length === 0 &&
+      isLoggedIn
+    ) {
+      dispatch(
+        fetchFollowingPosts({
+          page: 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+
+    if (activeTab === "popular" && popularPosts.length === 0) {
+      dispatch(
+        fetchPopularPosts({
+          userId: (session?.user as any)?.id,
+          page: 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+  }, [activeTab]);
+
+  /* ================= INFINITE SCROLL ================= */
+
+  const fetchMoreHandler = () => {
+    if (loading) return;
+
+    if (activeTab === "feed" && hasMoreFeed) {
+      dispatch(
+        fetchFeedPosts({
+          userId: (session?.user as any)?.id,
+          page: feedPage + 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+
+    if (activeTab === "following" && hasMoreFollowing) {
+      dispatch(
+        fetchFollowingPosts({
+          page: followingPage + 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+
+    if (activeTab === "popular" && hasMorePopular) {
+      dispatch(
+        fetchPopularPosts({
+          userId: (session?.user as any)?.id,
+          page: popularPage + 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+  };
+
+  /* ================= LIKE ================= */
+
+  const handleLike = async (postId: string) => {
+    if (!isLoggedIn) return router.push("/login");
+    if (likeLoading[postId]) return;
+
+    const post = posts[postId];
+    setLikeLoading((p) => ({ ...p, [postId]: true }));
+
+    // optimistic update
+    dispatch(
+      updateFeedPost({
+        postId,
+        data: {
+          isLiked: !post.isLiked,
+          likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1,
+        },
+      }),
+    );
+
+    const res = await apiPost({
+      url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
+      values: { postId },
+    });
+
+    if (!res?.success) {
+      dispatch(updateFeedPost({ postId, data: post }));
+    }
+
+    setLikeLoading((p) => ({ ...p, [postId]: false }));
+  };
+
+  /* ================= SAVE / UNSAVE ================= */
+
+  const handleSave = async (postId: string, isSaved: boolean) => {
+    if (!isLoggedIn) return router.push("/login");
+    if (saveLoading[postId]) return;
+
+    setSaveLoading((p) => ({ ...p, [postId]: true }));
+
+    dispatch(updateFeedPost({ postId, data: { isSaved: !isSaved } }));
+
+    try {
+      if (isSaved) {
+        await dispatch(unsavePost({ postId })).unwrap();
+      } else {
+        await dispatch(savePost({ postId })).unwrap();
+      }
+    } catch {
+      dispatch(updateFeedPost({ postId, data: { isSaved } }));
+    } finally {
+      setSaveLoading((p) => ({ ...p, [postId]: false }));
+    }
+  };
+
+  /* ================= COMMENTS ================= */
+
+  const incrementCommentCount = (postId: string) => {
+    dispatch(incrementFeedPostCommentCount(postId));
+  };
+
+  /* ================= UI HELPERS ================= */
+
+  const activeList =
+    activeTab === "feed"
+      ? feedPosts
+      : activeTab === "following"
+        ? followingPosts
+        : popularPosts;
+
+  const activeHasMore =
+    activeTab === "feed"
+      ? hasMoreFeed
+      : activeTab === "following"
+        ? hasMoreFollowing
+        : hasMorePopular;
+
+  const handleTabClick = (tab: TabType) => {
+    if (!isLoggedIn && tab === "following") {
+      router.push("/discover");
+      return;
+    }
     setActiveTab(tab);
   };
 
-  /* ================= API CALLS ================= */
-
-  useEffect(() => {
-    fetchProfile();
-    fetchFollowerStats();
-  }, []);
-
-  useEffect(() => {
-    resetAndLoadPosts();
-  }, [activeTab]);
-
-  const fetchProfile = async () => {
-    try {
-      const res = await getApiWithOutQuery({ url: API_USER_PROFILE });
-      if (res?.success) setProfile(res.data);
-      else ShowToast("Failed to load profile", "error");
-    } catch {
-      ShowToast("Profile load error", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchFollowerStats = async () => {
-    try {
-      const res = await getApiWithOutQuery({ url: API_FOLLOWER_COUNT });
-      if (res?.success) {
-        setFollowers(res.data.followerCount);
-        setFollowing(res.data.followingCount);
-      }
-    } catch {}
-  };
-
-  const resetAndLoadPosts = () => {
-    setPosts([]);
-    setPage(1);
-    setHasMore(true);
-    loadPosts(1, true);
-  };
-
-  const loadPosts = async (currentPage = page, reset = false) => {
-    if (!hasMore && !reset) return;
-
-    let res: any[] = [];
-
-    if (activeTab === "feed") {
-      res = await apiPost({
-        url: API_GET_POSTS,
-        values: { page: currentPage, limit },
-      });
-    }
-
-    if (activeTab === "following" && isLoggedIn) {
-      const response = await getApiWithOutQuery({
-        url: `${API_GET_FOLLOWING_POSTS}?page=${currentPage}&limit=${limit}`,
-      });
-      res = response?.success ? response.posts : [];
-    }
-
-    if (activeTab === "popular") {
-      res = await apiPost({
-        url: API_GET_POPULAR_POSTS,
-        values: { page: currentPage, limit },
-      });
-    }
-
-    if (Array.isArray(res) && res.length > 0) {
-      setPosts((prev) => (currentPage === 1 ? res : [...prev, ...res]));
-      setPage(currentPage + 1);
-    } else {
-      setHasMore(false);
-    }
-  };
-
-  /* ================= UI ================= */
-
-  if (loading) return null;
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
-        <div className="moneyboy-feed-page-container">
-        <div className="moneyboy-posts-wrapper moneyboy-diff-content-wrappers">
-          <InfiniteScrollWrapper className="moneyboy-posts-wrapper notabes" scrollableTarget="feed-scroll-container" dataLength={posts.length} hasMore={hasMore} next={() => loadPosts(page)}>
-          {/* ================= PROFILE HEADER ================= */}
+        <div
+          className="moneyboy-feed-page-container"
+          data-multiple-tabs-section
+        >
           <div className="creator-profile-card-container user-profile-card card">
             <div className="creator-profile-banner">
-              <img src={profile?.coverImage || "/images/profile-banners/profile-banner-9.jpg"} alt="Creator Profile Banner Image" />
+              <img
+                src={
+                  userProfile?.coverImage ||
+                  "/images/profile-banners/profile-banner-9.jpg"
+                }
+                alt="Creator Profile Banner Image"
+              />
             </div>
+
             <div className="creator-profile-info-container">
               <div className="profile-card">
                 <div className="profile-info-buttons">
                   <div className="profile-card__main">
                     <div className="profile-card__avatar-settings">
                       <div className="profile-card__avatar">
-                       <img src={profile?.profile || "/images/profile-avatars/profile-avatar-13.jpg"} />
+                        <img
+                          src={
+                            userProfile?.profile
+                              ? userProfile.profile
+                              : "/images/profile-avatars/profile-avatar-13.jpg"
+                          }
+                          alt="MoneyBoy Social Profile Avatar"
+                        />
                       </div>
                     </div>
                     <div className="profile-card__info">
                       <div className="profile-card__name-badge">
                         <div className="profile-card__name">
-                        {profile?.displayName || "Charlie Mango"}
+                          {userProfile?.displayName || "Charlie Mango"}
                         </div>
                       </div>
                       <div className="profile-card__username">
-                        @{profile?.userName || "charliemango"}
+                        @{userProfile?.userName || "charliemango"}
                       </div>
                     </div>
                   </div>
@@ -254,10 +528,10 @@ const UserProfilePage = () => {
                       />
                     </svg>
                     <span>
-                    {profile?.city
-                      ? `${profile.city}${profile.country ? `, ${profile.country}` : ""}`
-                      : "Location not set"}
-                  </span>
+                      {userProfile?.city
+                        ? `${userProfile.city}${userProfile.country ? `, ${userProfile.country}` : ""}`
+                        : "Location not set"}
+                    </span>
                   </div>
                   <div className="profile-card__geo-detail">
                     <svg
@@ -308,7 +582,7 @@ const UserProfilePage = () => {
                         stroke-linejoin="round"
                       />
                     </svg>
-                    <span>{formatJoinedDate(profile?.createdAt)}</span>
+                    <span>{formatJoinedDate(userProfile?.createdAt)}</span>
                   </div>
                 </div>
                 <div className="creator-profile-stats-link">
@@ -316,7 +590,7 @@ const UserProfilePage = () => {
                     <div className="profile-card__stats-item followers-stats">
                       <div className="profile-card__stats-num">
                         {" "}
-                        {following}
+                        {followerStats.followerCount}{" "}
                       </div>
                       <div className="profile-card__stats-label">
                         <svg
@@ -360,7 +634,7 @@ const UserProfilePage = () => {
                     </div>
                     <div className="profile-card__stats-item following-stats">
                       <div className="profile-card__stats-num">
-                      {following}
+                        {followerStats.followingCount}
                       </div>
                       <div className="profile-card__stats-label">
                         <svg
@@ -393,57 +667,68 @@ const UserProfilePage = () => {
               </div>
 
               <div className="creator-profile-description">
-                <p>{profile?.bio || "No bio added yet."}</p>
+                <p>{userProfile?.bio || "No bio added yet."}</p>
               </div>
             </div>
           </div>
-          {/* ================= TABS ================= */}
-          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className={`page-content-type-button active-down-effect ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
-            <button className={`page-content-type-button active-down-effect ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>Following</button>
-            <button className={`page-content-type-button active-down-effect ${activeTab === "popular" ? "active" : ""}`} onClick={() => handleTabClick("popular")}>Popular</button>
-          </div>
-          {/* ================= POSTS ================= */}
-            {activeTab === "feed" && (
-              <PostCard
-                post={{
-                  id: "1",
-                  user: {
-                    name: "Corey Bergson",
-                    username: "coreybergson",
-                    avatar: "/images/profile-avatars/profile-avatar-1.png",
-                    badge: "/images/logo/profile-badge.png",
-                  },
-                  description:"Today, I experienced the most blissful ride outside...",
-                  createdAt: "1 Hour ago",
-                  media: [
-                    { type: "image", url: "/images/profile-avatars/profile-avatar-1.png" },
-                    {type: "video",url: "https://res.cloudinary.com/...mp4",},
-                  ],
-                  likes: 12000,
-                  comments: 15,
-                  isLiked: false,
-                  isSaved: false,
-                }}
-              />
-              )}
-              {activeTab === "following" && (
-                <>following</>
-              )}
-              {activeTab === "popular" && (
-                <>Popular Containt</>
-              )}
-          </InfiniteScrollWrapper>
-        </div>
+
+                <div className="moneyboy-feed-page-cate-buttons card">
+              <button
+                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
+                onClick={() => handleTabClick("feed")}
+              >
+                Feed
+              </button>
+              <button
+                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
+                onClick={() => handleTabClick("following")}
+              >
+                {isLoggedIn ? "Following" : "Discover"}
+              </button>
+              <button
+                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
+                onClick={() => handleTabClick("popular")}
+              >
+                Popular
+              </button>
+            </div>
+        <div
+              id="feed-scroll-container"
+              className="moneyboy-posts-scroll-container"
+            >
+              <InfiniteScrollWrapper
+                className="moneyboy-posts-wrapper"
+                scrollableTarget="feed-scroll-container"
+                dataLength={activeList.length}
+                fetchMore={fetchMoreHandler}
+                hasMore={activeHasMore}
+              >
+                {activeList.map((post: any) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onLike={handleLike}
+                    onSave={handleSave}
+                    onCommentAdded={incrementCommentCount}
+                  />
+                ))}
+              </InfiniteScrollWrapper>
+              {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
+                fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
+                hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
+                  {(activeTab === "feed" ? posts :
+                    activeTab === "following" ? followingPosts : popularPosts
+                  ).map((post) => (
+                    <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
+                  ))}
+              </InfiniteScrollWrapper> */}
+            </div>
         </div>
       </div>
 
-      {/* ================= RIGHT SIDEBAR ================= */}
-      <aside className="moneyboy-2x-1x-b-layout scrolling">
-        <Featuredboys />
-      </aside>
+      <Featuredboys />
     </div>
   );
 };
 
-export default UserProfilePage;
+export default UserProfilepage;
