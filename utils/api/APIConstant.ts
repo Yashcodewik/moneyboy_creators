@@ -18,10 +18,16 @@ export const API_SEARCH_TAG_USERS = "/post/tag/search";
 export const API_TAG_USERS_TO_POST = "/post/tag";
 export const API_GET_POSTS = "/post/feedGet";
 export const API_GET_FOLLOWING_POSTS = "/post/following";
+
+//like
 export const API_LIKE_POST = "/post/like";
 export const API_UNLIKE_POST = "/post/unlike";
+export const API_DISLIKE_POST = "/post/dislike";
+export const API_POST_VIEW = "/post/view";
+//save
 export const API_SAVE_POST = "/post/save";
 export const API_UNSAVE_POST = "/post/unsave";
+
 export const API_GET_POPULAR_POSTS = "/post/popular";
 export const API_UPDATE_USER_PROFILE = "/auth/update-profile";
 export const API_CHANGE_PASSWORD = "/auth/change-password";
