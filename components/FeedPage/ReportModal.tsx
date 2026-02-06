@@ -15,6 +15,8 @@ interface MediaItem {
   text: string;
   likeCount: string;
   commentCount: string;
+  watchedSeconds: number;
+  videoDuration: number;
   userReaction?: "LIKE" | "DISLIKE" | null;
   media: Array<{
     type: "video" | "photo";
@@ -61,6 +63,9 @@ const [description, setDescription] = useState("");
                <VideoPlayer 
                 src={post.media[0].mediaFiles[0]}
                 publicId={post.publicId}
+                watchedSeconds={post.watchedSeconds}
+                postId={post._id}        // ▶️ progress
+                  duration={post.videoDuration}
                 
                 />
             </>
