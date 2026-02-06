@@ -96,6 +96,12 @@ useEffect(() => {
                 lastName: response.user.lastName,
                 email: response.user.email,
                 profile: response.user.profile,
+
+                walletBalance: response.summary?.walletBalance ?? 0,
+                totalSubscribers: response.totalSubscribers ?? 0,
+                totalSubscriptions: response.totalSubscriptions ?? 0,
+                totalSpent: response.summary?.totalSpent ?? 0,
+                totalEarned: response.summary?.totalEarned ?? 0,
               };
             }
           } else {
@@ -107,6 +113,12 @@ useEffect(() => {
                 lastName: response.data.lastName,
                 email: response.data.email,
                 profile: response.data.profile,
+
+                walletBalance: response.summary?.walletBalance ?? 0,
+                totalSubscribers: response.totalSubscribers ?? 0,
+                totalSubscriptions: response.totalSubscriptions ?? 0,
+                totalSpent: response.summary?.totalSpent ?? 0,
+               
               };
             }
           }
@@ -476,7 +488,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                         <div className="menu-profile-stats-txt">
                           <div className="stats-label"> Wallet </div>
                           <div className="stats-value">
-                            <span> 0 </span>
+                            <span> {userProfile?.walletBalance} </span>
                             <a href="#" className="load-wallet-btn">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -619,7 +631,9 @@ const handleStatsClick = (e: React.MouseEvent) => {
                               : "Subscriptions"}
                           </div>
                           <div className="stats-value">
-                            <span>0</span>
+                            {session?.user?.role === 2
+                              ? <span>{userProfile?.totalSubscribers}</span>
+                              : <span>{userProfile?.totalSubscriptions}</span>}
                           </div>
                         </div>
                       </div>
