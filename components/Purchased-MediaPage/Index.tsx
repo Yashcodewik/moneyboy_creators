@@ -31,6 +31,7 @@ import { PlayCircle } from "lucide-react";
 import { dislikePostAction, likePostAction, removeReactionAction, toggleFavoriteAction } from "@/redux/feed/feedAction";
 import MediaCard from "./MediaCard";
 import VideoPlayer from "./VideoPlayer";
+import ReportModal from "../FeedPage/ReportModal";
 
 // Define types for the API response
 interface MediaItem {
@@ -63,6 +64,9 @@ const PurchasedMediaPage: React.FC = () => {
  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const router = useRouter();
   const [imgError, setImgError] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+const [reportPostId, setReportPostId] = useState<string | null>(null);
+
 
   // const [openDropdown, setOpenDropdown] = useState
   //   "status" | "type" | "creator" | "time" | null
@@ -356,9 +360,16 @@ const selectedVideoUrl = useMemo(() => {
                         <Link href="#">
                           <FaCommentAlt /> <span>{selectedItem.commentCount}</span>
                         </Link>
-                        <Link href="#">
-                         {selectedItem.isReported ? <FaFlag /> : <FaRegFlag />}
-                        </Link>
+                        <Link
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setReportPostId(selectedItem._id);
+                          setShowReportModal(true);
+                        }}
+                      >
+                        {selectedItem.isReported ? <FaFlag /> : <FaRegFlag />}
+                      </Link>
                       </div>
                     </div>
                   </div>
@@ -592,7 +603,18 @@ const selectedVideoUrl = useMemo(() => {
           </div>
         </div>
       </div>
+      {showReportModal && reportPostId && (
+  <ReportModal
+    onClose={() => {
+      setShowReportModal(false);
+      setReportPostId(null);
+    }}
+    postId={reportPostId}
+  />
+)}
+
     </div>
+    
   );
 };
 
