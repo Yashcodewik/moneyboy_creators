@@ -5444,6 +5444,13 @@ body {
       width: 100%;
       position: relative;
       overflow: hidden;
+      .creator-card__img {
+        &.nomedia {
+          &::before {
+            background-size: 60%;
+          }
+        }
+      }
       .creator-media-card__overlay {
         position: absolute;
         top: 12px;
@@ -5549,6 +5556,14 @@ body {
             }
         }
     }
+    }
+    .creator-content-card__description {
+      p {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
     }
     .creator-content-card__stats {
       margin-top: auto;
