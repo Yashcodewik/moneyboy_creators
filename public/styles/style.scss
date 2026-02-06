@@ -1567,8 +1567,10 @@ body {
     max-height: unset;
     display: flex;
     .cont_wrap {
-        max-height: unset;
-        overflow: unset;
+      max-height: unset;
+      overflow: unset;
+      max-width: max-content;
+      margin: 0 auto;
       flex: auto;
       padding: 0px;
       scrollbar-width: none;
@@ -1588,7 +1590,7 @@ body {
         }
         .creator_maingrid {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 12px;
           margin-bottom: 15px;
           .form_grid {
@@ -1738,6 +1740,9 @@ body {
     }
     .cont_wrap .main_cont .account_login {
       margin-bottom: 10px;
+    }
+    &.creator_wrap {
+      height: calc(100vh - 95px);
     }
   }
   /* ========== Small Screen Size ========== */
@@ -5564,6 +5569,34 @@ body {
       .creator-content-card__stats {
         .btn-danger {
           display: block;
+        }
+      }
+    }
+  }
+  &.wishlist_card {
+    .creator-content-card {
+      height: 100%;
+      .creator-content-card__media {
+        aspect-ratio: 230 / 200;
+        .creator-media-card__overlay {
+          .creator-media-card__stats {
+            .creator-media-card__stats-btn {
+              padding: 4px;
+              border-radius: 8px;
+              svg {
+                width: 16px;
+                height: 16px;
+              }
+            }
+          }
+        }
+      }
+      .desc-btns {
+        p {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       }
     }

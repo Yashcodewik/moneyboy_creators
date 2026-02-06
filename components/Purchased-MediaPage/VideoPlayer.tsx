@@ -13,15 +13,15 @@ const VideoPlayer = memo(function VideoPlayer({
   publicId: string;
 }) {
   // console.log("🎥 VideoPlayer render");
-   const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<AppDispatch>();
   const viewed = useSelector((state: RootState) => state.feed.viewed);
   const hasFiredRef = useRef(false); // 🔒 extra safety (no double fire)
   useEffect(() => {
-  if (!viewed[publicId]) {
-    // console.log("👁 View fired on mount:", publicId);
-    dispatch(addPostViewAction(publicId));
-  }
-}, [publicId]);
+    if (!viewed[publicId]) {
+      // console.log("👁 View fired on mount:", publicId);
+      dispatch(addPostViewAction(publicId));
+    }
+  }, [publicId]);
 
   return (
     <Plyr
@@ -39,12 +39,12 @@ const VideoPlayer = memo(function VideoPlayer({
           "volume",
           "fullscreen",
         ],
-        
+
       }}
       onPlay={() => {
-          console.log("▶️ onPlay fired for:", publicId);
-  // console.log("hasFiredRef:", hasFiredRef.current);
-  // console.log("already viewed:", viewed[publicId]);
+        console.log("▶️ onPlay fired for:", publicId);
+        // console.log("hasFiredRef:", hasFiredRef.current);
+        // console.log("already viewed:", viewed[publicId]);
         if (!viewed[publicId] && !hasFiredRef.current) {
           hasFiredRef.current = true;
           console.log("👁 View fired from VideoPlayer:", publicId);
