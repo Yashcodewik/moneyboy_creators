@@ -32,6 +32,7 @@ import { dislikePostAction, likePostAction, removeReactionAction, toggleFavorite
 import MediaCard from "./MediaCard";
 import VideoPlayer from "./VideoPlayer";
 import ReportModal from "../FeedPage/ReportModal";
+import toast from "react-hot-toast";
 
 // Define types for the API response
 interface MediaItem {
@@ -66,6 +67,8 @@ const PurchasedMediaPage: React.FC = () => {
   const [imgError, setImgError] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
 const [reportPostId, setReportPostId] = useState<string | null>(null);
+const [reportPost, setReportPost] = useState<MediaItem | null>(null);
+
 
 
   // const [openDropdown, setOpenDropdown] = useState
@@ -104,6 +107,16 @@ const [reportPostId, setReportPostId] = useState<string | null>(null);
       })
     );
   }, [activeTab, dispatch]);
+
+  const refetchPurchasedMedia = () => {
+    dispatch(
+      fetchPurchasedMedia({
+        page: 1,
+        limit: 12,
+        tab: activeTab,
+      })
+    );
+  };
 
   const { items, loading } = useSelector(
     (state: RootState) => state.purchasedMedia
@@ -145,7 +158,6 @@ const selectedVideoUrl = useMemo(() => {
   };
 
   const handleLike = (item: MediaItem) => {
-     console.log("👍 LIKE clicked:", item._id);
     if (reactionLoading[item._id]) return;
 
     if (item.userReaction === "LIKE") {
@@ -153,10 +165,10 @@ const selectedVideoUrl = useMemo(() => {
     } else {
       dispatch(likePostAction(item._id));
     }
+    refetchPurchasedMedia();
   };
 
   const handleDislike = (item: MediaItem) => {
-    console.log("👎 DISLIKE clicked:", item._id);
     if (reactionLoading[item._id]) return;
 
     if (item.userReaction === "DISLIKE") {
@@ -164,10 +176,12 @@ const selectedVideoUrl = useMemo(() => {
     } else {
       dispatch(dislikePostAction(item._id));
     }
+    refetchPurchasedMedia();
   };
   const handleFavorite = (item: MediaItem) => {
   if (reactionLoading[item._id]) return;
   dispatch(toggleFavoriteAction(item._id));
+  refetchPurchasedMedia();
 };
 
 
@@ -360,16 +374,22 @@ const selectedVideoUrl = useMemo(() => {
                         <Link href="#">
                           <FaCommentAlt /> <span>{selectedItem.commentCount}</span>
                         </Link>
-                        <Link
+                       <Link
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
-                          setReportPostId(selectedItem._id);
+                          if (!selectedItem) return;
+                          if (selectedItem.isReported) {
+                            toast.success("You already reported this post");
+                            return;
+                          }
+                          setReportPost(selectedItem);
                           setShowReportModal(true);
                         }}
                       >
                         {selectedItem.isReported ? <FaFlag /> : <FaRegFlag />}
                       </Link>
+
                       </div>
                     </div>
                   </div>
@@ -603,16 +623,16 @@ const selectedVideoUrl = useMemo(() => {
           </div>
         </div>
       </div>
-      {showReportModal && reportPostId && (
-  <ReportModal
-    onClose={() => {
-      setShowReportModal(false);
-      setReportPostId(null);
-    }}
-    postId={reportPostId}
-  />
-)}
-
+      {showReportModal && reportPost && (
+      <ReportModal
+        post={reportPost}
+        onClose={() => {
+          setShowReportModal(false);
+          setReportPost(null);
+        }}
+        onReported={refetchPurchasedMedia}
+      />
+    )}
     </div>
     
   );

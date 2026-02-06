@@ -47,7 +47,6 @@ const VideoPlayer = memo(function VideoPlayer({
         // console.log("already viewed:", viewed[publicId]);
         if (!viewed[publicId] && !hasFiredRef.current) {
           hasFiredRef.current = true;
-          console.log("👁 View fired from VideoPlayer:", publicId);
           dispatch(addPostViewAction(publicId));
         }
       }}
