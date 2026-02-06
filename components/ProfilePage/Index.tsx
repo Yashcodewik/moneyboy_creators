@@ -32,6 +32,7 @@ import UnlockContentModal from "./UnlockContentModal";
 import { Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 
 interface User {
   _id: string;
@@ -173,6 +174,7 @@ const ProfilePage = () => {
         if (response?.user && response?.creator) {
           setProfile(response);
           setIsFollowing(Boolean(response.isFollowing));
+          setIsSaved(Boolean(response.isSaved));
           // setPostCount(response.postCount ?? 0);
         }
       } catch (err: any) {
@@ -297,6 +299,7 @@ const ProfilePage = () => {
 
 
 
+
   const posts = postsData?.posts || [];
   const photoPosts = posts?.filter((post: any) =>
     post?.media?.some((m: any) => m.type === "photo")
@@ -374,6 +377,8 @@ const ProfilePage = () => {
       setUnlockLoading(false);
     }
   };
+
+  
 
 
   const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
@@ -489,15 +494,24 @@ const ProfilePage = () => {
     const isOwner =
       session?.user?.publicId === profile?.user?.publicId;
 
-    const isSubscribed =
-      !!profile?.subscriptionStatus?.isSubscribed;
+    // const isSubscribed =
+    //   !!profile?.subscriptionStatus?.isSubscribed;
+
+      const isSubscribed =
+  Boolean(profile?.subscriptionStatus?.isSubscribed);
+  
 
     const isFree = post.accessType === "free";
     const isSubscriberPost = post.accessType === "subscriber";
     const isPPVPost = post.accessType === "pay_per_view";
+    
 
     const canViewSubscriberPost =
       isSubscriberPost && isSubscribed;
+
+      const hideSaveBtn =
+  (isPPVPost && post.isUnlocked) ||
+  (isSubscriberPost && isSubscribed);
 
     const canViewPPVPost =
       isPPVPost && post.isUnlocked;
@@ -569,6 +583,41 @@ const ProfilePage = () => {
         toast.error("Something went wrong");
       }
     };
+
+
+    const dispatch = useDispatch<AppDispatch>();
+
+    const savedPosts = useSelector(
+  (state: RootState) => state.savedPosts.savedPosts
+);
+
+const isPostSaved =
+  savedPosts[post._id]?.saved ?? post.isSaved;
+const saveLoading = useSelector(
+  (state: RootState) => state.savedPosts.loading
+);
+
+const handleSavePost = (e: React.MouseEvent) => {
+  e.stopPropagation();
+
+  // if (saveLoading) return;
+
+  if (isPostSaved) {
+    dispatch(
+      unsavePost({
+        postId: post._id,
+        creatorUserId: profile?.user?._id,
+      })
+    );
+  } else {
+    dispatch(
+      savePost({
+        postId: post._id,
+        creatorUserId: profile?.user?._id,
+      })
+    );
+  }
+};
     return (
       <div className="creator-content-card-container profile_card flex_card" key={post?.publicId}>
         <div className="creator-content-card">
@@ -613,9 +662,14 @@ const ProfilePage = () => {
             )}
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
-                {!isOwnProfile && (
-                  <div className="creator-media-card__stats-btn wishlist-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                {!isOwnProfile && !hideSaveBtn && (
+                  <div    className={`creator-media-card__stats-btn wishlist-icon ${
+      isPostSaved ? "active" : ""
+    }`}
+    onClick={handleSavePost}
+    // disabled={saveLoading}
+  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"fill={isPostSaved ? "#6c5ce7" : "none"}>
                       <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                       <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                       <path d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -742,7 +796,7 @@ const ProfilePage = () => {
                     <ul>
                       {!isOwnProfile && (
                         <li>
-                          <a href="#" className="save-btn" data-tooltip="Save profile">
+                          <a href="#" className={`save-btn ${isSaved ? "active" : ""}`} data-tooltip="Save profile">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                               <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                               <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
