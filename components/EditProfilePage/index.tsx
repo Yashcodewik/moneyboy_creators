@@ -29,6 +29,8 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter } from "react-icons/fa6";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -86,6 +88,26 @@ const EditProfilePage = () => {
     ppvVideoPrice: "",
     ppvPhotoPrice: "",
   });
+
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const dobWrapperRef = useRef<HTMLDivElement | null>(null);
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dobWrapperRef.current &&
+        !dobWrapperRef.current.contains(event.target as Node)
+      ) {
+        setActiveField(null);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -498,7 +520,7 @@ const handleSaveBlockedCountries = async () => {
                           />
 
                           {/* Date of Birth */}
-                          <div className="label-input">
+                          {/* <div className="label-input">
                             <div className="input-placeholder-icon">
                               <i className="icons bookmarkIcon svg-icon"></i>
                             </div>
@@ -513,6 +535,18 @@ const handleSaveBlockedCountries = async () => {
                                 })
                               }
                             />
+                          </div>
+                          {activeField === "start" && (
+                            <div className="calendar-dropdown"><DatePicker selected={startDate} onChange={(date: any) => {setStartDate(date); setPage(1);  setActiveField(null);}} inline/></div>
+                          )} */}
+                          <div className="label-input calendar-dropdown" ref={dobWrapperRef}>
+                            <div className="input-placeholder-icon"><i className="icons bookmarkIcon svg-icon"></i></div>
+                            <input type="text" placeholder="Date of Birth (DD/MM/YYYY) *" value={formData.dob || ""} readOnly onClick={() => setActiveField("dob")}/>
+                            {activeField === "dob" && (
+                              <div className="calendar_show">
+                                <DatePicker selected={startDate} inline maxDate={new Date()} onChange={(date: any) => {setStartDate(date); setFormData({...formData, dob: date.toLocaleDateString("en-GB"),}); setActiveField(null);}}/>
+                              </div>
+                            )}
                           </div>
 
                           {/* Country */}

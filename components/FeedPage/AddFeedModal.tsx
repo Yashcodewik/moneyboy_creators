@@ -596,23 +596,23 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           }}
         />
 
-        <div className="actions">
-          <button
-            className="cate-back-btn active-down-effect btn_icons"
-            onClick={() => {
-              setActiveTool("image");
-              imageInputRef.current?.click();
-            }}
-          >
-            <FiImage size={20} />
-          </button>
+        <div className="actions tooltip_wrapper">
+          <ul>
+            <li>
+              <button className="cate-back-btn active-down-effect btn_icons" onClick={() => {setActiveTool("image"); imageInputRef.current?.click();}}><FiImage size={20} /></button>
+            </li>
+            <li>
+             <button className="cate-back-btn active-down-effect btn_icons" onClick={() => {setActiveTool("image"); imageInputRef.current?.click();}}><FiImage size={20} /></button>
+            </li>
+            <li><button className="cate-back-btn active-down-effect btn_icons" onClick={() => setActiveTool("video")} ><FiVideo size={20} /></button></li>
+            <li><div className="hline" /></li>
+            <li className="icontext_wrap">
+             <button className="cate-back-btn active-down-effect btn_icons" disabled={!hasMedia}><FiAtSign size={20} /></button>
+             <p>Tag</p>
+            </li>
+          </ul>
 
-          <button
-            className="cate-back-btn active-down-effect btn_icons"
-            onClick={() => setActiveTool("video")}
-          >
-            <FiVideo size={20} />
-          </button>
+          
 
           {/* <button className="cate-back-btn active-down-effect btn_icons">
             <PiTextAaBold size={20} />
@@ -628,32 +628,12 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           >
             <HiMenuAlt2 size={20} />
           </button> */}
-          <div className="hline" />
-          <div className="icontext_wrap">
-            <button
-              className="cate-back-btn active-down-effect btn_icons"
-              disabled={!hasMedia}
-            >
-              <FiAtSign size={20} />
-            </button>
-            <p>Tag</p>
-          </div>
 
           <div className="right">
-            <button
-              className="cate-back-btn active-down-effect btn_icons"
-              disabled={!hasMedia}
-            >
-              <FaXTwitter size={20} />
-            </button>
-            <button
-              type="button"
-              className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
-              onClick={() => formik.handleSubmit()}
-              disabled={isSubmitting || !hasMedia}
-            >
-              <span>{isSubmitting ? "Posting..." : "Post"}</span>
-            </button>
+            <ul>
+             <li><button className="cate-back-btn active-down-effect btn_icons" disabled={!hasMedia}><FaXTwitter size={20} /></button></li>
+            </ul>
+            <button type="button" className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} onClick={() => formik.handleSubmit()} disabled={isSubmitting || !hasMedia}><span>{isSubmitting ? "Posting..." : "Post"}</span></button>
           </div>
         </div>
       </div>

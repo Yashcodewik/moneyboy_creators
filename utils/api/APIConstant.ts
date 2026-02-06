@@ -64,9 +64,11 @@ export const API_GET_TRANSACTIONS: string = "/subscription/get-transactions";
 export const API_UNLOCK_POST: string = "/subscription/unlock-post";
 export const API_SEND_TIP: string = "/subscription/send-tip";
 export const API_GET_TRANSACTION_CREATORS: string = "/subscription/transaction-creators";
+export const API_GET_PURCHASED_MEDIA_CREATORS: string = "/subscription/get-purchasedMedia-creators";
 
 //Purchased media
 export const API_PURCHASED_MEDIA: string = "/subscription/get-purchasedMedia";
+export const API_UPDATE_VIDEO_PROGRESS: string = "/post/progress";
 
 export const API_SAVE_CREATOR = "/creator/save";
 export const API_UNSAVE_CREATOR = "/creator/unsave";
