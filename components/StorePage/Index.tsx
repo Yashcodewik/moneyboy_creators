@@ -66,16 +66,16 @@ const StorePage = () => {
                   </div>
                 </div>
                 <ul>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-1.png" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-2.png" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-3.png" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-4.jpg" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-5.jpg" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-1.png" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-2.png" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-3.png" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-4.jpg" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
-                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-5.jpg" alt="User Icons"/><Link href="#" className="btn_close"><X size={24} color="#FFF"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-1.png" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-2.png" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-3.png" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-4.jpg" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-5.jpg" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-1.png" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-2.png" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-3.png" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-4.jpg" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
+                  <li><div className="icons_wrap"><img src="/images/post-images/post-img-5.jpg" alt="User Icons"/><Link href="#" className="btn_close"><img alt="M Icons" className="max-w-22" src="/images/logo/profile-badge.png"/></Link></div><span>Jaxson Geidt</span></li>
                 </ul>
               </div>
             </div>
