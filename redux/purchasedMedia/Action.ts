@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiPost } from "@/utils/endpoints/common";
-import { API_GET_PURCHASED_MEDIA_CREATORS, API_PURCHASED_MEDIA, API_UPDATE_VIDEO_PROGRESS } from "@/utils/api/APIConstant";
+import { API_GET_PURCHASED_MEDIA_CREATORS, API_PURCHASED_MEDIA, API_TOGGLE_WATCH_LATER, API_UPDATE_VIDEO_PROGRESS } from "@/utils/api/APIConstant";
 
 
 /**
@@ -110,4 +110,33 @@ export const fetchPurchasedMediaCreators = createAsyncThunk(
   }
 );
 
+export const toggleWatchLater = createAsyncThunk(
+  "purchasedMedia/toggleWatchLater",
+  async (
+    { postId }: { postId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await apiPost({
+        url: API_TOGGLE_WATCH_LATER,
+        values: { postId },
+      });
+
+      if (!res?.success) {
+        return rejectWithValue(
+          res?.message || "Failed to toggle watch later"
+        );
+      }
+
+      return {
+        postId,
+        isWatchLater: res.data.isWatchLater,
+      };
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.message || "Something went wrong"
+      );
+    }
+  }
+);
 
