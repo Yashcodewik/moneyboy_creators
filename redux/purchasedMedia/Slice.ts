@@ -1,5 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { fetchPurchasedMedia } from "./Action";
+import { fetchPurchasedMedia, fetchPurchasedMediaCreators, updateVideoProgress } from "./Action";
+
+interface Creator {
+  _id: string;
+  displayName: string;
+  userName: string;
+  avatar?: string;
+}
 
 interface PurchasedMediaState {
   items: any[];
@@ -10,6 +17,17 @@ interface PurchasedMediaState {
     limit: number;
     total: number;
   };
+
+  videoProgress: {
+    loading: boolean;
+    error: string | null;
+  };
+
+  creators: {
+    items: Creator[];
+    loading: boolean;
+    error: string | null;
+  };
 }
 
 const initialState: PurchasedMediaState = {
@@ -18,8 +36,19 @@ const initialState: PurchasedMediaState = {
   error: null,
   pagination: {
     page: 1,
-    limit: 12,
+    limit: 4,
     total: 0,
+  },
+
+  videoProgress: {
+    loading: false,
+    error: null,
+  },
+
+  creators: {
+    items: [],
+    loading: false,
+    error: null,
   },
 };
 
@@ -60,6 +89,41 @@ const purchasedMediaSlice = createSlice({
         state.loading = false;
         state.error =
           (action.payload as string) || "Failed to fetch purchased media";
+      })
+      /* ----------------------------------
+         UPDATE VIDEO PROGRESS
+      ---------------------------------- */
+      .addCase(updateVideoProgress.pending, (state) => {
+        state.videoProgress.loading = true;
+        state.videoProgress.error = null;
+      })
+      .addCase(updateVideoProgress.fulfilled, (state) => {
+        state.videoProgress.loading = false;
+      })
+      .addCase(updateVideoProgress.rejected, (state, action) => {
+        state.videoProgress.loading = false;
+        state.videoProgress.error =
+          (action.payload as string) || "Failed to update video progress";
+      })
+      /* ----------------------------------
+         FETCH PURCHASED MEDIA CREATORS
+      ---------------------------------- */
+      .addCase(fetchPurchasedMediaCreators.pending, (state) => {
+        state.creators.loading = true;
+        state.creators.error = null;
+      })
+      .addCase(
+        fetchPurchasedMediaCreators.fulfilled,
+        (state, action: PayloadAction<Creator[]>) => {
+          state.creators.loading = false;
+          state.creators.items = action.payload;
+        }
+      )
+      .addCase(fetchPurchasedMediaCreators.rejected, (state, action) => {
+        state.creators.loading = false;
+        state.creators.error =
+          (action.payload as string) ||
+          "Failed to fetch purchased media creators";
       });
   },
 });

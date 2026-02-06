@@ -43,6 +43,8 @@ interface MediaItem {
   text: string;
   likeCount: string;
   commentCount: string;
+  watchedSeconds: number;
+  videoDuration: number;
   userReaction?: "LIKE" | "DISLIKE" | null;
   media: Array<{
     type: "video" | "photo";
@@ -288,10 +290,12 @@ const selectedVideoUrl = useMemo(() => {
             {showVideo && selectedVideoUrl && (
               <div className="video_wrap">
                 
-                <VideoPlayer 
-                src={selectedVideoUrl}
-                publicId={selectedItem.publicId}
-                
+                <VideoPlayer
+                  src={selectedVideoUrl}
+                  publicId={selectedItem.publicId} // 👁 views
+                  postId={selectedItem._id}        // ▶️ progress
+                  watchedSeconds={selectedItem.watchedSeconds}
+                  duration={selectedItem.videoDuration}
                 />
 
                 {/* optional close */}
