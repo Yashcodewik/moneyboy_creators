@@ -42,12 +42,8 @@ const VideoPlayer = memo(function VideoPlayer({
         
       }}
       onPlay={() => {
-          console.log("▶️ onPlay fired for:", publicId);
-  // console.log("hasFiredRef:", hasFiredRef.current);
-  // console.log("already viewed:", viewed[publicId]);
         if (!viewed[publicId] && !hasFiredRef.current) {
           hasFiredRef.current = true;
-          console.log("👁 View fired from VideoPlayer:", publicId);
           dispatch(addPostViewAction(publicId));
         }
       }}
