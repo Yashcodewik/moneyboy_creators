@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { fetchPurchasedMedia, fetchPurchasedMediaCreators, updateVideoProgress } from "./Action";
+import { fetchPurchasedMedia, fetchPurchasedMediaCreators, updateVideoProgress, toggleWatchLater } from "./Action";
 
 interface Creator {
   _id: string;
@@ -124,7 +124,33 @@ const purchasedMediaSlice = createSlice({
         state.creators.error =
           (action.payload as string) ||
           "Failed to fetch purchased media creators";
-      });
+      })
+      .addCase(toggleWatchLater.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(
+        toggleWatchLater.fulfilled,
+        (
+          state,
+            action: PayloadAction<{ postId: string; isWatchLater: boolean }>
+          ) => {
+            const { postId, isWatchLater } = action.payload;
+
+            const item = state.items.find((i) => i._id === postId);
+            if (item) {
+              item.isWatchLater = isWatchLater;
+            }
+
+            // Optional: auto-remove from watch-later tab
+            if (!isWatchLater) {
+              state.items = state.items.filter((i) => i._id !== postId);
+            }
+          }
+        )
+        .addCase(toggleWatchLater.rejected, (state, action) => {
+          state.error =
+            (action.payload as string) || "Failed to toggle watch later";
+        });
   },
 });
 
