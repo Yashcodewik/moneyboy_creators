@@ -1341,7 +1341,7 @@ const handleStatsClick = (e: React.MouseEvent) => {
                               strokeLinejoin="round"
                             />
                           </svg>
-                          <span>Marketplace</span>
+                          <span>Store</span>
                         </a>
                       
                     </div>

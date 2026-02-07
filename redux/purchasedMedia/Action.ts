@@ -15,12 +15,16 @@ export const fetchPurchasedMedia = createAsyncThunk(
       search = "",
       tab = "all-media",
       creatorId,
+      type,
+      time,
     }: {
       page?: number;
       limit?: number;
       search?: string;
       tab?: string;
       creatorId?: string;
+      type?: string;
+      time?: string;
     },
     { rejectWithValue }
   ) => {
@@ -33,6 +37,8 @@ export const fetchPurchasedMedia = createAsyncThunk(
           search,
           tab,
           creatorId,
+          type,
+          time,
         },
       });
 

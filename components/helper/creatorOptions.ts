@@ -209,9 +209,9 @@ export const creatorFormOptions = {
 
 export const typeOptions = [
   { label: "All Types", value: "all" },
-  { label: "Photos", value: "photos" },
-  { label: "Videos", value: "videos" },
-  { label: "Bundles", value: "bundles" },
+  { label: "Photos", value: "photo" },
+  { label: "Videos", value: "video" },
+  { label: "Bundles", value: "bundle" },
   { label: "PPV", value: "ppv" },
 ];
 
