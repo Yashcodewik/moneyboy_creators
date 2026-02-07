@@ -87,6 +87,7 @@ export const API_FREE_UNSAVE_POST = "/post/freepost/unsave";
 export const API_GET_SAVED_FREE_CREATORS = "/post/saved/free-creators";
 
 export const API_REPOET_POST = "/auth/report";
+export const API_GET_SAVED_LOCKED_POSTS = "/post/saved/locked";
 
 
 

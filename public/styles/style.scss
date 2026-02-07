@@ -266,7 +266,6 @@ body {
   }
 }
 
-
 // Emoji Styles Start
 .comment-wrap, .chat-msg-action-btns {
   position: relative;
@@ -755,6 +754,16 @@ body {
 }
 // Calendar Start
 .calendar-dropdown {
+  position: relative;
+  input {
+    cursor: pointer;
+  }
+  .calendar_show {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+  }
   .react-datepicker {
     border-radius: 14px;
     overflow: hidden;
@@ -767,7 +776,7 @@ body {
       top: 4px;
       width: 26px;
       height: 26px;
-      border-radius: 5px;
+      border-radius: 9px;
       background-color: #fff;
       display: flex;
       align-items: center;
@@ -2072,6 +2081,10 @@ body {
         gap: 6px;
         color: var(--color-text);
         font-size: 13px;
+        svg {
+          width: 16px;
+          height: 16px;
+        }
       }
       .meta-actions {
         display: flex;
@@ -2082,6 +2095,16 @@ body {
         border: 1.5px solid #ebebeb;
         padding: 5px 10px;
         border-radius: 8px;
+      }
+      .watch {
+        background: #f9f9f9;
+        border: 1.5px solid #ebebeb;
+        padding: 5px 10px;
+        border-radius: 8px;
+        svg {
+          width: 16px;
+          height: 16px;
+        }
       }
       .meta-actions a {
         gap: 3px;
@@ -2473,6 +2496,24 @@ body {
         }
       }
       .actions {
+        &.tooltip_wrapper {
+          ul {
+            display: flex;
+            align-items: center;
+            max-width: 40%;
+            width: 100%;
+            justify-content: space-around;
+            margin: 0px;
+            li {
+            margin: 0px;
+              button {
+                width: 100%;
+                height: auto;
+                max-width: 100%;
+              }
+            }
+          }
+        }
         .icontext_wrap {
           cursor: pointer;
           display: flex;
@@ -5216,6 +5257,7 @@ body {
   }
 }
 
+// Comment Start
 .moneyboy-comment-wrap {
   padding: 0px;
   gap: 9px;
@@ -5260,6 +5302,31 @@ body {
     align-items: center;
     justify-content: center;
   }
+  .moneyboy-post__desc {
+    p {
+      word-break: break-all;
+    }
+  }
+  .like-deslike-wrap {
+    ul {
+      li {
+        &:hover {
+          .comment-like-btn, .comment-dislike-btn {
+            svg {
+              fill: var(--like-color);
+              stroke: var(--like-color);
+              path {
+                stroke: var(--like-color);
+                &:nth-child(2) {
+                  stroke: #FFF;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   @media (max-width: 560px) {
     .comment-wrap {
       .label-input {
@@ -5280,6 +5347,93 @@ body {
       svg {
         width: 22px;
         height: 22px;
+      }
+    }
+  }
+}
+.purchased_commentwrap {
+  .moneyboy-comment-wrap {
+  }
+  .scrollbar {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 10px;
+    max-height: calc(80dvh - 180px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #fff;
+    border-radius: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #aaaaaa transparent;
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #aaaaaa;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &:hover {
+      scrollbar-color: #aaaaaa #0000;
+    }
+  }
+  .comment_show {
+    padding: 10px;
+    gap: 9px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-normal);
+    &:hover {
+      box-shadow: 0 6px 4px -4px #0808082e, 0 2px 13.5px 1px #08080836;
+    }
+    .moneyboy-post__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      .moneyboy-post__upload-more-info {
+        gap: 8px;
+        display: flex;
+        align-items: center;
+        min-width: max-content;
+        .moneyboy-post__upload-time {
+          font-family: var(--font-family-base);
+          font-weight: 500;
+          font-style: Medium;
+          color: #505050;
+          font-size: 13px;
+          line-height: 100%;
+        }
+      }
+      .profile-card {
+        padding: 0;
+      }
+    }
+    .moneyboy-post__desc {
+      word-break: break-all;
+    }
+    .like-deslike-wrap {
+      ul {
+        li {
+          &:hover {
+            .comment-like-btn, .comment-dislike-btn {
+              svg {
+                fill: var(--like-color);
+                stroke: var(--like-color);
+                path {
+                  stroke: var(--like-color);
+                  &:nth-child(2) {
+                    stroke: #FFF;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -5416,6 +5570,9 @@ body {
   }
   .moneyboy-post__desc {
     position: relative;
+    p {
+      word-break: break-all;
+    }
     // .post-text {
     //   display: -webkit-box;
     //   -webkit-line-clamp: 3;
@@ -5559,6 +5716,7 @@ body {
     }
     .creator-content-card__description {
       p {
+        word-break: break-all;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
@@ -5765,6 +5923,11 @@ body {
               opacity: 0;
               z-index: 2;
               transition: var(--transition-normal);
+              img {
+                object-fit: contain;
+                max-width: 28px;
+                border-radius: unset;
+              }
             }
           }
           span {

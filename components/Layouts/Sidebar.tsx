@@ -751,7 +751,7 @@ const Sidebar: React.FC = () => {
                               strokeLinejoin="round"
                             />
                           </svg>
-                          <span>Store</span>
+                          <span>Marketplace</span>
                         </div>
                       </Link>
                     </li>
