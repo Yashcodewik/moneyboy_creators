@@ -1,7 +1,27 @@
-import React, { useState } from "react";
+import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
+import { getApi } from "@/utils/endpoints/common";
+import React, { useEffect, useState } from "react";
 
-const SideBar = () => {
-  const [activeChat, setActiveChat] = useState<string | null>("james");
+const SideBar = ({ onSelectChat }: any) => {
+  const [activeChat, setActiveChat] = useState<string | null>(null);
+  const [chatList, setChatList] = useState<any[]>([]);
+
+  useEffect(() => {
+  const fetchSidebar = async () => {
+    try {
+      const res = await getApi({
+        url: API_MESSAGE_SIDEBAR,
+        page: 1,
+        rowsPerPage: 50,
+        searchText: "",
+        });
+        setChatList(res.data);
+      } catch (err) {
+        console.error("Sidebar fetch failed", err);
+      }
+    };
+    fetchSidebar();
+  }, []);
 
   return (
     <div className="msg-profiles-layout">
@@ -58,115 +78,51 @@ const SideBar = () => {
       </div>
       <div className="msg-profiles-wrapper">
         <div className="msg-profiles-container" msg-chat-contacts-wrapper="">
-          <div className="msg-contact-box" msg-chat-contact="" data-active="">
+          {chatList?.map((chat) => (
+          <div key={chat.threadId} 
+          className="msg-contact-box"
+           msg-chat-contact=""
+            data-active=""
+            onClick={() => {
+              setActiveChat(chat.threadId);
+              onSelectChat(chat);
+            }}
+            >
             <div className="contact-item">
               <div className="contact-avatar-wrapper">
                 <img
                   className="contact-avatar"
-                  src="/images/profile-avatars/profile-avatar-6.jpg"
+                  src={chat?.user?.image}
                   alt=""
                 />
-                <div className="contact-status-indicator online"></div>
+                <div className={`contact-status-indicator ${
+              chat?.user?.isOnline ? "online" : "offline"
+            }`}></div>
               </div>
 
               <div className="contact-content">
                 <div className="contact-header">
-                  <h4 className="contact-name">James Baptista</h4>
-                  <span className="contact-time">12:25</span>
+                  <h4 className="contact-name">{chat?.user?.name}</h4>
+                  <span className="contact-time">{new Date(chat?.updatedAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}</span>
                 </div>
 
                 <div className="contact-preview">
                   <div className="contact-message">
-                    <p>Lorem ipsum, dolor sit a consectetur adipisicing eli</p>
+                    <p>{chat?.lastMessage?.text}</p>
                   </div>
-                  <div className="contact-unread-count">
-                    <span>8</span>
-                  </div>
+                  {chat?.unreadCount > 0 && (
+                    <div className="contact-unread-count">
+                      <span>{chat?.unreadCount}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="msg-contact-box" msg-chat-contact="">
-            <div className="contact-item">
-              <div className="contact-avatar-wrapper">
-                <img
-                  className="contact-avatar"
-                  src="/images/profile-avatars/profile-avatar-28.jpg"
-                  alt=""
-                />
-                <div className="contact-status-indicator online"></div>
-              </div>
-
-              <div className="contact-content">
-                <div className="contact-header">
-                  <h4 className="contact-name">Jerome White</h4>
-                  <span className="contact-time">12:25</span>
-                </div>
-
-                <div className="contact-preview">
-                  <div className="contact-message">
-                    <p>Lorem ipsum, dolor sit a consectetur adipisicing eli</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="msg-contact-box" msg-chat-contact="">
-            <div className="contact-item">
-              <div className="contact-avatar-wrapper">
-                <img
-                  className="contact-avatar"
-                  src="/images/profile-avatars/profile-avatar-27.jpg"
-                  alt=""
-                />
-                <div className="contact-status-indicator offline"></div>
-              </div>
-
-              <div className="contact-content">
-                <div className="contact-header">
-                  <h4 className="contact-name">Madagascar Silver</h4>
-                  <span className="contact-time">12:25</span>
-                </div>
-
-                <div className="contact-preview">
-                  <div className="contact-message">
-                    <p>Lorem ipsum, dolor sit a consectetur adipisicing eli</p>
-                  </div>
-                  <div className="contact-unread-count">
-                    <span>999</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="msg-contact-box" msg-chat-contact="">
-            <div className="contact-item">
-              <div className="contact-avatar-wrapper">
-                <img
-                  className="contact-avatar"
-                  src="/images/profile-avatars/profile-avatar-26.jpg"
-                  alt=""
-                />
-                <div className="contact-status-indicator offline"></div>
-              </div>
-
-              <div className="contact-content">
-                <div className="contact-header">
-                  <h4 className="contact-name">Pippins McGray</h4>
-                  <span className="contact-time">12:25</span>
-                </div>
-
-                <div className="contact-preview">
-                  <div className="contact-message">
-                    <p>Lorem ipsum, dolor sit a consectetur adipisicing eli</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
 
         </div>
       </div>

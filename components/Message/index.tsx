@@ -8,9 +8,106 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { TbCamera } from "react-icons/tb";
 
 const MessagePage = () => {
-  const [activeChat, setActiveChat] = useState<string | null>("james");
+ const [activeChat, setActiveChat] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+   const { session } = useDecryptedSession();
+   const [messages, setMessages] = useState<any[]>([]);
+   const searchParams = useSearchParams();
+  const threadIdFromUrl = searchParams.get("threadId");
+  const [activeUser, setActiveUser] = useState<any>(null);
+
+   useEffect(() => {
+  socket.on("newMessage", (message) => {
+    setMessages((prev) => [...prev, message]);
+  });
+
+  return () => {
+    socket.off("newMessage");
+  };
+}, []);
+
+useEffect(() => {
+  if (!threadIdFromUrl) return;
+
+  setActiveChat({
+    threadId: threadIdFromUrl,
+  });
+}, [threadIdFromUrl]);
+
+   useEffect(() => {
+  if (!activeChat?.threadId) return;
+
+  const fetchMessages = async () => {
+    const res = await getApi({
+      url: API_MESSAGE_CHAT,
+      page: 1,
+      rowsPerPage: 50,
+      searchText: activeChat.threadId,
+    });
+
+    if (res?.data) {
+      setMessages(res.data);
+    }
+  };
+
+  fetchMessages();
+}, [activeChat]);
+
+useEffect(() => {
+  if (!threadIdFromUrl) return;
+
+  getApiByParams({
+    url: "/messages/thread",
+    params: threadIdFromUrl,
+  }).then((res) => {
+    setActiveUser(res.user);
+  });
+}, [threadIdFromUrl]);
+
+
+   useEffect(() => {
+  if (!activeChat?.threadId) return;
+
+  socket.emit("joinThread", activeChat.threadId);
+
+  return () => {
+    socket.off("newMessage");
+  };
+}, [activeChat]);
+
+
+useEffect(() => {
+  if (!session?.user?.id) {
+    console.error("No userId in session");
+    return;
+  }
+
+  const userId = session.user.id; // ✅ CORRECT ID FROM YOUR SESSION
+
+  socket.emit("connectUser", userId);
+
+  socket.on("connectListener", (data) => {
+    console.log("My socketId:", data.socketId);
+  });
+
+  return () => {
+    socket.off("connectListener");
+  };
+}, [session]);
+
+const sendMessage = () => {
+  if (!newComment.trim() || !activeChat?.threadId) return;
+
+  socket.emit("sendMessage", {
+    threadId: activeChat.threadId,
+    senderId: session.user.id,
+    text: newComment,
+  });
+
+  setNewComment("");
+};
+
 
   // ✅ MISSING STATE (FIXED)
   const [newComment, setNewComment] = useState("");
@@ -136,7 +233,7 @@ const MessagePage = () => {
       <div className="moneyboy-2x-1x-a-layout">
         <div className="msg-page-wrapper card">
           <div className="msg-page-container" msg-page-wrapper={true}>
-            <SideBar />
+            <SideBar onSelectChat={(thread: any) => setActiveChat(thread)} />
             <div className="msg-chats-layout">
              <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
              <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
@@ -149,17 +246,17 @@ const MessagePage = () => {
                       <div className="profile-card__main">
                         <div className="profile-card__avatar-settings">
                           <div className="profile-card__avatar">
-                            <img src="/images/profile-avatars/profile-avatar-27.jpg" alt="Profile Avatar" />
+                            <img src={activeChat?.user?.avatar || "/images/profile-avatars/profile-avatar-27.jpg"} alt="Profile Avatar" />
                           </div>
                         </div>
                         <div className="profile-card__info">
                           <div className="profile-card__name-badge">
-                            <div className="profile-card__name">Madagascar Silver</div>
+                            <div className="profile-card__name">{activeChat?.user?.username || ""}</div>
                             <div className="profile-card__badge">
                               <img src="/images/logo/profile-badge.png" alt="Profile Badge"/>
                             </div>
                           </div>
-                          <div className="profile-card__username">@madagascarsilver</div>
+                          <div className="profile-card__username">@{activeChat?.user?.publicId || ""}</div>
                         </div>
                       </div>
                     </div>
@@ -283,22 +380,29 @@ const MessagePage = () => {
                     <div className="chat-date-divider">
                       <span>19 August</span>
                     </div>
-
-                    <div className="chat-msg-wrapper incoming-message">
+                      {messages?.map((msg) => (
+                    <div
+                     key={msg._id}
+                     className="chat-msg-wrapper incoming-message">
                       <div className="chat-msg-profile">
-                        <img src="/images/profile-avatars/profile-avatar-27.jpg" alt="#" />
+                        <img  src={msg.sender?.image || "/images/profile-avatars/profile-avatar-27.jpg"} alt="#" />
                       </div>
                       <div className="chat-msg-txt-wrapper">
                         <div className="chat-msg-txt">
-                          <p>Hello my dear sir, I’m here do deliver the design requirement document for our next projects.</p>
+                          <p>{msg.text || ""}</p>
                         </div>
                         <div className="chat-msg-details">
                           <div className="chat-msg-time">
-                            <span>10:25</span>
+                            <span>
+                               {new Date(msg.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })} </span>
                           </div>
                         </div>
                       </div>
                     </div>
+                      ))}
 
                     <div className="ppvrequest_wrap">
                       <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
@@ -413,7 +517,7 @@ const MessagePage = () => {
                           <path d="M17.5 23.041V25.416" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         </svg>
                       </button>
-                      <button className="btn-txt-simple send-msg-btn">
+                      <button className="btn-txt-simple send-msg-btn" onClick={sendMessage}>
                         <span>Send</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                           <path d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>

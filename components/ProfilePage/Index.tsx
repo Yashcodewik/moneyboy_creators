@@ -828,7 +828,24 @@ const handleSavePost = (e: React.MouseEvent) => {
                         </a>
                       </li>
                       <li>
-                        <a href="#" className="message-btn" data-tooltip="Message">
+                        <a
+                          href="#"
+                          className="message-btn"
+                          data-tooltip="Message"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            if (!profile?.user?._id) return;
+                            const res = await apiPost({
+                              url: "messages/thread",
+                              values: {
+                                receiverId: profile.user._id,
+                              },
+                            });
+                            if (res?.threadId) {
+                              router.push(`/message?threadId=${res.threadId}`);
+                            }
+                          }}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                             <path d="M22 10.5V13.5C22 17.5 20 19.5 16 19.5H15.5C15.19 19.5 14.89 19.65 14.7 19.9L13.2 21.9C12.54 22.78 11.46 22.78 10.8 21.9L9.3 19.9C9.14 19.68 8.77 19.5 8.5 19.5H8C4 19.5 2 18.5 2 13.5V8.5C2 4.5 4 2.5 8 2.5H14" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M19.5 7.5C20.8807 7.5 22 6.38071 22 5C22 3.61929 20.8807 2.5 19.5 2.5C18.1193 2.5 17 3.61929 17 5C17 6.38071 18.1193 7.5 19.5 7.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
