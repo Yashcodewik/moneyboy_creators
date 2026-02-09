@@ -59,11 +59,13 @@ export const authOptions: NextAuthOptions = {
           email: res.user.email,
           firstName: res.user.firstName,
           lastName: res.user.lastName,
-            displayName: res.user.displayName,
-  userName: res.user.userName,
+          displayName: res.user.displayName,
+          userName: res.user.userName,
+          profile: res.user.profile,
+          coverImage: res.user.coverImage,
           role: res.user.role,
           accessToken: res.token,
-           publicId: res.user.publicId, 
+          publicId: res.user.publicId,
         };
 
         console.log("Authorize returning userData:", userData);

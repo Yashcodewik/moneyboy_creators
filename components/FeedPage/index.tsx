@@ -510,12 +510,7 @@ const fetchMoreHandler = () => {
           </div>
         </div>
       </div>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap request-modal">
           <button className="close-btn">
             <CgClose size={22} />
