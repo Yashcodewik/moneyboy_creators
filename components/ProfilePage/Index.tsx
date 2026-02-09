@@ -378,7 +378,7 @@ const ProfilePage = () => {
     }
   };
 
-  
+
 
 
   const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
@@ -497,21 +497,21 @@ const ProfilePage = () => {
     // const isSubscribed =
     //   !!profile?.subscriptionStatus?.isSubscribed;
 
-      const isSubscribed =
-  Boolean(profile?.subscriptionStatus?.isSubscribed);
-  
+    const isSubscribed =
+      Boolean(profile?.subscriptionStatus?.isSubscribed);
+
 
     const isFree = post.accessType === "free";
     const isSubscriberPost = post.accessType === "subscriber";
     const isPPVPost = post.accessType === "pay_per_view";
-    
+
 
     const canViewSubscriberPost =
       isSubscriberPost && isSubscribed;
 
-      const hideSaveBtn =
-  (isPPVPost && post.isUnlocked) ||
-  (isSubscriberPost && isSubscribed);
+    const hideSaveBtn =
+      (isPPVPost && post.isUnlocked) ||
+      (isSubscriberPost && isSubscribed);
 
     const canViewPPVPost =
       isPPVPost && post.isUnlocked;
@@ -588,36 +588,36 @@ const ProfilePage = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     const savedPosts = useSelector(
-  (state: RootState) => state.savedPosts.savedPosts
-);
-
-const isPostSaved =
-  savedPosts[post._id]?.saved ?? post.isSaved;
-const saveLoading = useSelector(
-  (state: RootState) => state.savedPosts.loading
-);
-
-const handleSavePost = (e: React.MouseEvent) => {
-  e.stopPropagation();
-
-  // if (saveLoading) return;
-
-  if (isPostSaved) {
-    dispatch(
-      unsavePost({
-        postId: post._id,
-        creatorUserId: profile?.user?._id,
-      })
+      (state: RootState) => state.savedPosts.savedPosts
     );
-  } else {
-    dispatch(
-      savePost({
-        postId: post._id,
-        creatorUserId: profile?.user?._id,
-      })
+
+    const isPostSaved =
+      savedPosts[post._id]?.saved ?? post.isSaved;
+    const saveLoading = useSelector(
+      (state: RootState) => state.savedPosts.loading
     );
-  }
-};
+
+    const handleSavePost = (e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      // if (saveLoading) return;
+
+      if (isPostSaved) {
+        dispatch(
+          unsavePost({
+            postId: post._id,
+            creatorUserId: profile?.user?._id,
+          })
+        );
+      } else {
+        dispatch(
+          savePost({
+            postId: post._id,
+            creatorUserId: profile?.user?._id,
+          })
+        );
+      }
+    };
     return (
       <div className="creator-content-card-container profile_card flex_card" key={post?.publicId}>
         <div className="creator-content-card">
@@ -663,13 +663,12 @@ const handleSavePost = (e: React.MouseEvent) => {
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
                 {!isOwnProfile && !hideSaveBtn && (
-                  <div    className={`creator-media-card__stats-btn wishlist-icon ${
-      isPostSaved ? "active" : ""
-    }`}
-    onClick={handleSavePost}
-    // disabled={saveLoading}
-  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"fill={isPostSaved ? "#6c5ce7" : "none"}>
+                  <div className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""
+                    }`}
+                    onClick={handleSavePost}
+                  // disabled={saveLoading}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                       <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                       <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                       <path d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -828,7 +827,24 @@ const handleSavePost = (e: React.MouseEvent) => {
                         </a>
                       </li>
                       <li>
-                        <a href="#" className="message-btn" data-tooltip="Message">
+                        <a
+                          href="#"
+                          className="message-btn"
+                          data-tooltip="Message"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            if (!profile?.user?._id) return;
+                            const res = await apiPost({
+                              url: "messages/thread",
+                              values: {
+                                receiverId: profile.user._id,
+                              },
+                            });
+                            if (res?.threadId) {
+                              router.push(`/message?threadId=${res.threadId}`);
+                            }
+                          }}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                             <path d="M22 10.5V13.5C22 17.5 20 19.5 16 19.5H15.5C15.19 19.5 14.89 19.65 14.7 19.9L13.2 21.9C12.54 22.78 11.46 22.78 10.8 21.9L9.3 19.9C9.14 19.68 8.77 19.5 8.5 19.5H8C4 19.5 2 18.5 2 13.5V8.5C2 4.5 4 2.5 8 2.5H14" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M19.5 7.5C20.8807 7.5 22 6.38071 22 5C22 3.61929 20.8807 2.5 19.5 2.5C18.1193 2.5 17 3.61929 17 5C17 6.38071 18.1193 7.5 19.5 7.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

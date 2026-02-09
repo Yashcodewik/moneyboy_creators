@@ -92,4 +92,6 @@ export const API_GET_SAVED_LOCKED_POSTS = "/post/saved/locked";
 export const API_GET_ALL_CREATORS = "/creator/all-creator";
 export const API_GET_MY_PAID_POSTS = "/post/paid-posts";
 
-
+//message
+export const API_MESSAGE_SIDEBAR = "/messages/sidebar";
+export const API_MESSAGE_CHAT = "/messages/chat";
