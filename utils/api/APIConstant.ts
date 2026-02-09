@@ -89,10 +89,7 @@ export const API_GET_SAVED_FREE_CREATORS = "/post/saved/free-creators";
 export const API_REPOET_POST = "/auth/report";
 export const API_GET_SAVED_LOCKED_POSTS = "/post/saved/locked";
 
-//message
-export const API_MESSAGE_SIDEBAR = "/messages/sidebar";
-export const API_MESSAGE_CHAT = "/messages/chat";
-
-
+export const API_GET_ALL_CREATORS = "/creator/all-creator";
+export const API_GET_MY_PAID_POSTS = "/post/paid-posts";
 
 

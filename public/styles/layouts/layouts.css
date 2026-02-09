@@ -223,6 +223,7 @@
 
                   .creator-content-card__media {
                      max-width: 200px;
+                     min-width: 200px;
                   }
 
                   .desc-btns {

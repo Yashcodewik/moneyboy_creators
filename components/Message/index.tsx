@@ -1,16 +1,11 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import { Smile, Mic } from "lucide-react";
+import { Smile, Mic, CircleX } from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
-import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import socket from "@/libs/socket";
-import { getApi, getApiByParams } from "@/utils/endpoints/common";
-import { API_MESSAGE_CHAT } from "@/utils/api/APIConstant";
-import { useSearchParams } from "next/navigation";
-import { threadId } from "worker_threads";
+import { TbCamera } from "react-icons/tb";
 
 const MessagePage = () => {
  const [activeChat, setActiveChat] = useState<any>(null);
@@ -408,6 +403,73 @@ const sendMessage = () => {
                       </div>
                     </div>
                       ))}
+
+                    <div className="ppvrequest_wrap">
+                      <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
+                      <div className="cont_wrap">
+                        <h3>Type</h3>
+                        <p>Photos / Videos</p>
+                      </div>
+                      <div className="cont_wrap">
+                        <h3>Description</h3>
+                        <p>Lorem ipsum dolor sit amet consectetur. Rhoncus lorem vivamus sagittis pellentesque blandit. Curabitur odio sed maecenas quam vitae.</p>
+                      </div>
+                      <div className="cont_wrap">
+                        <h3>Reference File</h3>
+                        <div className="upload-wrapper">
+                          <div className="img_wrap">
+                            <svg className="icons idshape size-45"></svg>
+                          </div>
+                          <div className="img_wrap">
+                            <svg className="icons idshape size-45"></svg>
+                          </div>
+                          <div className="img_wrap">
+                            <svg className="icons idshape size-45"></svg>
+                          </div>
+                          {/* <div className="img_wrap">
+                            <img src="/images/logo/black-logo.jpg" className="img-fluid upldimg" alt="preview"/>
+                            <button type="button" className="btn-danger"><CircleX size={16} /></button>
+                          </div>
+                          <div className="img_wrap">
+                            <video src="https://res.cloudinary.com/drhj03nvv/video/upload/v1770188682/posts/6982ef7e3bf4bec3e275778b/1770188670639-4945133-uhd_4096_2160_24fps.mp4.mp4" className="img-fluid upldimg" controls/>
+                            <button type="button" className="btn-danger"><CircleX size={16} /></button>
+                          </div> */}
+                        </div>
+                      </div>
+                        <div className="actions">
+                          <div>
+                           <p className="text-gradiant">Amount</p>
+                           <button className="btn-txt-gradient"><span>$30</span></button>
+                          </div>
+                          <div className="right">
+                            <button className="btn-txt-gradient"><span>$30</span></button>
+                            <button className="btn-txt-gradient"><span>Decline</span></button>
+                          </div>
+                        </div>
+                    </div>
+
+                    <div className="chat-msg-wrapper outcoming-message">
+                      <div className="chat-msg-profile">
+                        <img src="/images/profile-avatars/profile-avatar-1.png" alt="#"/>
+                      </div>
+                      <div className="chat-msg-txt-wrapper">
+                        <div className="chat-msg-txt">
+                          <p>
+                            Do androids truly dream of electric sheeps?
+                          </p>
+                        </div>
+                        <div className="chat-msg-details">
+                          <div className="chat-msg-time">
+                            <span>12:30</span>
+                          </div>
+                          <div className="chat-msg-check-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="chat-msg-typing-anim-elem">
                       <div className="loading">
