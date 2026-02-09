@@ -11,6 +11,7 @@ import savedFreeCreatorsReducer from "@/redux/wishlist/savedFreeCreatorsSlice";
 import feedReducer from "./feed/feedSlice";
 import likedPostsReducer from "./likedPosts/Slice";
 import savedLockedPostsReducer from "@/redux/wishlist/savedLockedPostsSlice";
+import creatorsReducer from "@/redux/store/Slice";
 
 
 const rootReducer = combineReducers({
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
    feed: feedReducer,
    likedPosts: likedPostsReducer, 
    savedLockedPosts: savedLockedPostsReducer,
+   creators: creatorsReducer,
 
 });
 

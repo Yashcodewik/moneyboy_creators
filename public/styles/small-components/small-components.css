@@ -1299,7 +1299,7 @@
             overflow: hidden;
             border-radius: inherit;
 
-            img {
+            img, video {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
@@ -1556,6 +1556,10 @@
             font-size: 16px;
             line-height: 24px;
             color: #00000099;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
         }
     }
 
