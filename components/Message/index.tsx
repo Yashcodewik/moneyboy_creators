@@ -107,6 +107,7 @@ const MessagePage = () => {
     socket.emit("sendMessage", {
       threadId: activeChat.threadId,
       senderId: session.user.id,
+      receiverId: activeUser._id,
       text: newComment,
     });
 
@@ -251,17 +252,17 @@ const MessagePage = () => {
                             <div className="profile-card__main">
                               <div className="profile-card__avatar-settings">
                                 <div className="profile-card__avatar">
-                                  <img src={activeChat?.user?.avatar || "/images/profile-avatars/profile-avatar-27.jpg"} alt="Profile Avatar" />
+                                  <img src={activeUser?.profile || "/images/profile-avatars/profile-avatar-27.jpg"} alt="Profile Avatar" />
                                 </div>
                               </div>
                               <div className="profile-card__info">
                                 <div className="profile-card__name-badge">
-                                  <div className="profile-card__name">{activeChat?.user?.username || ""}</div>
+                                  <div className="profile-card__name">{activeUser?.userName || ""}</div>
                                   <div className="profile-card__badge">
                                     <img src="/images/logo/profile-badge.png" alt="Profile Badge" />
                                   </div>
                                 </div>
-                                <div className="profile-card__username">@{activeChat?.user?.publicId || ""}</div>
+                                <div className="profile-card__username">@{activeUser?.userName || ""}</div>
                               </div>
                             </div>
                           </div>
@@ -386,7 +387,8 @@ const MessagePage = () => {
                           <span>19 August</span>
                         </div>
 
-                        {messages?.map((msg) => (
+                        {messages?.map((msg) => {
+                          return (
                           <div
                             key={msg._id}
                             className="chat-msg-wrapper incoming-message">
@@ -395,7 +397,7 @@ const MessagePage = () => {
                             </div>
                             <div className="chat-msg-txt-wrapper">
                               <div className="chat-msg-txt">
-                                <p>{msg.text || ""}</p>
+                                <p>{msg.message || ""}</p>
                               </div>
                               <div className="chat-msg-details">
                                 <div className="chat-msg-time">
@@ -408,9 +410,10 @@ const MessagePage = () => {
                               </div>
                             </div>
                           </div>
-                        ))}
+                           );
+                        })}
 
-<div className="ppvrequest_wrap">
+                    {/* <div className="ppvrequest_wrap">
                       <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
                       <div className="cont_wrap">
                         <h3>Type</h3>
@@ -431,7 +434,8 @@ const MessagePage = () => {
                           </div>
                           <div className="img_wrap">
                             <svg className="icons idshape size-45"></svg>
-                          </div>
+                          </div> */}
+                          {/* below section sta commented */}
                           {/* <div className="img_wrap">
                             <img src="/images/logo/black-logo.jpg" className="img-fluid upldimg" alt="preview"/>
                             <button type="button" className="btn-danger"><CircleX size={16} /></button>
@@ -440,7 +444,8 @@ const MessagePage = () => {
                             <video src="https://res.cloudinary.com/drhj03nvv/video/upload/v1770188682/posts/6982ef7e3bf4bec3e275778b/1770188670639-4945133-uhd_4096_2160_24fps.mp4.mp4" className="img-fluid upldimg" controls/>
                             <button type="button" className="btn-danger"><CircleX size={16} /></button>
                           </div> */}
-                        </div>
+                          {/* upper section sta commented */}
+                        {/* </div>
                       </div>
                         <div className="actions">
                           <div>
@@ -452,7 +457,7 @@ const MessagePage = () => {
                             <button className="btn-txt-gradient"><span>Decline</span></button>
                           </div>
                         </div>
-                    </div>
+                    </div> */}
 
                         <div className="chat-msg-typing-anim-elem">
                           <div className="loading">
@@ -461,7 +466,6 @@ const MessagePage = () => {
                             <span className="loading__dot"></span>
                           </div>
                         </div>
-
                       </div>
                     </div>
 
@@ -478,7 +482,12 @@ const MessagePage = () => {
                           </label>
                         </div>
                         <div className="chat-msg-typing-input">
-                          <input type="text" placeholder="Send a message..." />
+                          <input
+                            type="text"
+                            placeholder="Send a message..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                          />
                         </div>
                         <div className="chat-msg-action-btns">
                           <button className="emojis-icon-btn" onClick={() => setShowEmojiPicker((prev) => !prev)}>
