@@ -59,6 +59,8 @@ export const authOptions: NextAuthOptions = {
           email: res.user.email,
           firstName: res.user.firstName,
           lastName: res.user.lastName,
+            displayName: res.user.displayName,
+  userName: res.user.userName,
           role: res.user.role,
           accessToken: res.token,
            publicId: res.user.publicId, 
