@@ -20,6 +20,7 @@ interface PaidPost {
   price?: number;
   media: any[];
   createdAt: string;
+   userId: string; 
 }
 
 interface Pagination {

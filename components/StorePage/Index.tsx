@@ -26,6 +26,7 @@ import AllCreators from "./AllCreators";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchAllCreators, fetchMyPaidPosts } from "@/redux/store/Action";
+import PPVRequestModal from "../ProfilePage/PPVRequestModal";
 
 type TimeFilter =
   | "all_time"
@@ -38,6 +39,7 @@ const StorePage = () => {
   const [store, setStore] = useState(false);
   const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [subActiveTab, setSubActiveTab] = useState<string>("videos");
+  const [showPPVModal, setShowPPVModal] = useState(false);
   const [search, setSearch] = useState("");
   const { session } = useDecryptedSession();
   const userRole = session?.user?.role;
@@ -119,6 +121,9 @@ const StorePage = () => {
       url: media?.mediaFiles?.[0] || "",
     };
   };
+  const selectedCreator = creators?.[0];
+  
+  
 
   return (
     <>
@@ -338,6 +343,8 @@ const StorePage = () => {
                                     )
                                     .map((post) => {
                                       const media = getPostMedia(post);
+                                      const isOwnPost =
+  isCreator && post.userId === loggedInUserId;
 
                                       return (
                                         <div
@@ -356,6 +363,7 @@ const StorePage = () => {
 
                                             <div className="creator-media-card__overlay">
                                               <div className="creator-media-card__stats">
+                                                {!isOwnPost && (
                                                 <div className="creator-media-card__stats-btn wishlist-icon">
                                                   <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -387,6 +395,7 @@ const StorePage = () => {
                                                     ></path>
                                                   </svg>
                                                 </div>
+                                                )}
                                               </div>
                                             </div>
                                           </div>
@@ -530,6 +539,9 @@ const StorePage = () => {
                                   .map((post) => {
                                     const media = getPostMedia(post);
 
+                                     const isOwnPost =
+  isCreator && post.userId === loggedInUserId;
+
                                     return (
                                       <div
                                         className="creator-media-card card"
@@ -544,7 +556,9 @@ const StorePage = () => {
                                           </div>
 
                                           <div className="creator-media-card__overlay">
+                                            
                                             <div className="creator-media-card__stats">
+                                                {!isOwnPost && (
                                               <div className="creator-media-card__stats-btn wishlist-icon">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                                   <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -552,6 +566,7 @@ const StorePage = () => {
                                                   <path d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                 </svg>
                                               </div>
+                                                )}
                                             </div>
                                           </div>
                                         </div>
@@ -714,6 +729,24 @@ const StorePage = () => {
           </div>
         </div>
       </div>
+
+
+{showPPVModal && selectedCreator && (
+  <PPVRequestModal
+    onClose={() => setShowPPVModal(false)}
+    creator={{
+      userId: selectedCreator._id,
+      displayName: selectedCreator.displayName,
+      userName: selectedCreator.userName,
+      profile: selectedCreator.profile,
+    }}
+    post={{ _id: "" }} 
+    onSuccess={({ amount }) => {
+      setShowPPVModal(false);
+      // alert(`PPV request sent: €${amount}`);
+    }}
+  />
+)}
 
       <div
         className={`modal ${open ? "show" : ""}`}
