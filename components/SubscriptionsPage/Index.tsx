@@ -288,6 +288,8 @@ useEffect(() => {
 
                   {/* Tab Content */}
                   <div className="creator-content-cards-wrapper subscriptions_containt">
+                   {loading && subscribers.length === 0 && <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
+ 
                     {activeTab === "subscribers" && (
                       <div className="rel-users-wrapper">
                         {subscribers?.map((item) => {
