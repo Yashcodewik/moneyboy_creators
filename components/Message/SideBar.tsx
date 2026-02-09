@@ -7,13 +7,13 @@ const SideBar = ({ onSelectChat }: any) => {
   const [chatList, setChatList] = useState<any[]>([]);
 
   useEffect(() => {
-  const fetchSidebar = async () => {
-    try {
-      const res = await getApi({
-        url: API_MESSAGE_SIDEBAR,
-        page: 1,
-        rowsPerPage: 50,
-        searchText: "",
+    const fetchSidebar = async () => {
+      try {
+        const res = await getApi({
+          url: API_MESSAGE_SIDEBAR,
+          page: 1,
+          rowsPerPage: 50,
+          searchText: "",
         });
         setChatList(res.data);
       } catch (err) {
@@ -79,49 +79,48 @@ const SideBar = ({ onSelectChat }: any) => {
       <div className="msg-profiles-wrapper">
         <div className="msg-profiles-container" msg-chat-contacts-wrapper="">
           {chatList?.map((chat) => (
-          <div key={chat.threadId} 
-          className="msg-contact-box"
-           msg-chat-contact=""
-            data-active=""
-            onClick={() => {
-              setActiveChat(chat.threadId);
-              onSelectChat(chat);
-            }}
+            <div key={chat.threadId}
+              className="msg-contact-box"
+              msg-chat-contact=""
+              data-active=""
+              onClick={() => {
+                setActiveChat(chat.threadId);
+                onSelectChat(chat);
+              }}
             >
-            <div className="contact-item">
-              <div className="contact-avatar-wrapper">
-                <img
-                  className="contact-avatar"
-                  src={chat?.user?.image}
-                  alt=""
-                />
-                <div className={`contact-status-indicator ${
-              chat?.user?.isOnline ? "online" : "offline"
-            }`}></div>
-              </div>
-
-              <div className="contact-content">
-                <div className="contact-header">
-                  <h4 className="contact-name">{chat?.user?.name}</h4>
-                  <span className="contact-time">{new Date(chat?.updatedAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}</span>
+              <div className="contact-item">
+                <div className="contact-avatar-wrapper">
+                  <img
+                    className="contact-avatar"
+                    src={chat?.user?.image}
+                    alt=""
+                  />
+                  <div className={`contact-status-indicator ${chat?.user?.isOnline ? "online" : "offline"
+                    }`}></div>
                 </div>
 
-                <div className="contact-preview">
-                  <div className="contact-message">
-                    <p>{chat?.lastMessage?.text}</p>
+                <div className="contact-content">
+                  <div className="contact-header">
+                    <h4 className="contact-name">{chat?.user?.name}</h4>
+                    <span className="contact-time">{new Date(chat?.updatedAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}</span>
                   </div>
-                  {chat?.unreadCount > 0 && (
-                    <div className="contact-unread-count">
-                      <span>{chat?.unreadCount}</span>
+
+                  <div className="contact-preview">
+                    <div className="contact-message">
+                      <p>{chat?.lastMessage?.text}</p>
                     </div>
-                  )}
+                    {chat?.unreadCount > 0 && (
+                      <div className="contact-unread-count">
+                        <span>{chat?.unreadCount}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           ))}
 
         </div>
