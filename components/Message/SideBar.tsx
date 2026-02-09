@@ -110,7 +110,7 @@ const SideBar = ({ onSelectChat }: any) => {
 
                   <div className="contact-preview">
                     <div className="contact-message">
-                      <p>{chat?.lastMessage?.text}</p>
+                      <p>{chat?.lastMessage?.message || chat?.lastMessage}</p>
                     </div>
                     {chat?.unreadCount > 0 && (
                       <div className="contact-unread-count">
