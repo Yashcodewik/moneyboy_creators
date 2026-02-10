@@ -1,37 +1,38 @@
-    import { createAsyncThunk } from "@reduxjs/toolkit";
-    import defaultAxios from "@/utils/api/axios";
-    import {
-    API_GET_ALL_CREATORS,
-    API_GET_MY_PAID_POSTS,
-    } from "@/utils/api/APIConstant";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import defaultAxios from "@/utils/api/axios";
+import {
+  API_GET_ALL_CREATORS,
+  API_GET_MY_PAID_POSTS,
+  API_GET_FEATURED_POSTS,
+} from "@/utils/api/APIConstant";
 
-    /* ------------------- Creators ------------------- */
-    export const fetchAllCreators = createAsyncThunk(
-    "creators/fetchAllCreators",
-    async (
-        { page = 1, limit = 9 }: { page?: number; limit?: number },
-        { rejectWithValue }
-    ) => {
-        try {
-        const res = await defaultAxios.get(API_GET_ALL_CREATORS, {
-            params: { page, limit },
-        });
+/* ------------------- Creators ------------------- */
+export const fetchAllCreators = createAsyncThunk(
+  "creators/fetchAllCreators",
+  async (
+    { page = 1, limit = 9 }: { page?: number; limit?: number },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await defaultAxios.get(API_GET_ALL_CREATORS, {
+        params: { page, limit },
+      });
 
-        if (!res?.data?.data) {
-            return rejectWithValue("Failed to fetch creators");
-        }
+      if (!res?.data?.data) {
+        return rejectWithValue("Failed to fetch creators");
+      }
 
-        return res.data; // { data, pagination }
-        } catch (error: any) {
-        return rejectWithValue(
-            error?.response?.data?.message || "Something went wrong"
-        );
-        }
+      return res.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.message || "Something went wrong"
+      );
     }
-    );
+  }
+);
 
-    /* ------------------- Paid Posts (SAME API for both) ------------------- */
-   export const fetchMyPaidPosts = createAsyncThunk(
+/* ------------------- Paid Posts ------------------- */
+export const fetchMyPaidPosts = createAsyncThunk(
   "creators/fetchMyPaidPosts",
   async (
     {
@@ -64,7 +65,38 @@
         return rejectWithValue("Failed to fetch paid posts");
       }
 
-      return res.data; // { data, meta }
+      return res.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.message || "Something went wrong"
+      );
+    }
+  }
+);
+
+/* ------------------- Featured Posts ------------------- */
+export const fetchFeaturedPosts = createAsyncThunk(
+  "creators/fetchFeaturedPosts",
+  async (
+    {
+      limit = 5,
+      publicId,
+    }: { limit?: number; publicId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await defaultAxios.get(API_GET_FEATURED_POSTS, {
+        params: {
+          limit,
+          publicId, // ✅ PASS CREATOR
+        },
+      });
+
+      if (!res?.data?.data) {
+        return rejectWithValue("Failed to fetch featured posts");
+      }
+
+      return res.data;
     } catch (error: any) {
       return rejectWithValue(
         error?.response?.data?.message || "Something went wrong"
