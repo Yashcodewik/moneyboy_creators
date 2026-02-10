@@ -2,24 +2,23 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import {
-  API_GET_POSTS,
-  API_GET_FOLLOWING_POSTS,
-  API_GET_POPULAR_POSTS,
-  API_LIKE_POST,
-  API_UNLIKE_POST,
-} from "@/utils/api/APIConstant";
-import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { API_LIKE_POST, API_UNLIKE_POST } from "@/utils/api/APIConstant";
+import { apiPost } from "@/utils/endpoints/common";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import PostCard from "./PostCard";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import Featuredboys from "../Featuredboys";
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "../CustomSelect";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost } from "@/redux/other/feedPostsSlice";
+import {
+  fetchFeedPosts,
+  fetchFollowingPosts,
+  fetchPopularPosts,
+  incrementFeedPostCommentCount,
+  updateFeedPost,
+} from "@/redux/other/feedPostsSlice";
 
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
@@ -33,7 +32,6 @@ const FeedPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>("feed");
   const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
-
 
   const {
     posts,
@@ -54,62 +52,75 @@ const FeedPage = () => {
 
   /* ================= INITIAL LOAD / TAB CHANGE ================= */
 
-useEffect(() => {
-  if (activeTab === "feed" && feedPosts.length === 0) {
-    dispatch(fetchFeedPosts({
-      userId: (session?.user as any)?.id,
-      page: 1,
-      limit: LIMIT,
-    }));
-  }
+  useEffect(() => {
+    if (activeTab === "feed" && feedPosts.length === 0) {
+      dispatch(
+        fetchFeedPosts({
+          userId: (session?.user as any)?.id,
+          page: 1,
+          limit: LIMIT,
+        }),
+      );
+    }
 
-  if (activeTab === "following" && followingPosts.length === 0 && isLoggedIn) {
-    dispatch(fetchFollowingPosts({
-      page: 1,
-      limit: LIMIT,
-    }));
-  }
+    if (
+      activeTab === "following" &&
+      followingPosts.length === 0 &&
+      isLoggedIn
+    ) {
+      dispatch(
+        fetchFollowingPosts({
+          page: 1,
+          limit: LIMIT,
+        }),
+      );
+    }
 
-  if (activeTab === "popular" && popularPosts.length === 0) {
-    dispatch(fetchPopularPosts({
-      userId: (session?.user as any)?.id,
-      page: 1,
-      limit: LIMIT,
-    }));
-  }
-}, [activeTab]);
-
+    if (activeTab === "popular" && popularPosts.length === 0) {
+      dispatch(
+        fetchPopularPosts({
+          userId: (session?.user as any)?.id,
+          page: 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+  }, [activeTab]);
 
   /* ================= INFINITE SCROLL ================= */
 
-const fetchMoreHandler = () => {
-  if (loading) return;
+  const fetchMoreHandler = () => {
+    if (loading) return;
 
-  if (activeTab === "feed" && hasMoreFeed) {
-    dispatch(fetchFeedPosts({
-      userId: (session?.user as any)?.id,
-      page: feedPage + 1,
-      limit: LIMIT,
-    }));
-  }
+    if (activeTab === "feed" && hasMoreFeed) {
+      dispatch(
+        fetchFeedPosts({
+          userId: (session?.user as any)?.id,
+          page: feedPage + 1,
+          limit: LIMIT,
+        }),
+      );
+    }
 
-  if (activeTab === "following" && hasMoreFollowing) {
-    dispatch(fetchFollowingPosts({
-      page: followingPage + 1,
-      limit: LIMIT,
-    }));
-  }
+    if (activeTab === "following" && hasMoreFollowing) {
+      dispatch(
+        fetchFollowingPosts({
+          page: followingPage + 1,
+          limit: LIMIT,
+        }),
+      );
+    }
 
-  if (activeTab === "popular" && hasMorePopular) {
-    dispatch(fetchPopularPosts({
-      userId: (session?.user as any)?.id,
-      page: popularPage + 1,
-      limit: LIMIT,
-    }));
-  }
-};
-
-
+    if (activeTab === "popular" && hasMorePopular) {
+      dispatch(
+        fetchPopularPosts({
+          userId: (session?.user as any)?.id,
+          page: popularPage + 1,
+          limit: LIMIT,
+        }),
+      );
+    }
+  };
 
   /* ================= LIKE ================= */
 
@@ -126,11 +137,9 @@ const fetchMoreHandler = () => {
         postId,
         data: {
           isLiked: !post.isLiked,
-          likeCount: post.isLiked
-            ? post.likeCount - 1
-            : post.likeCount + 1,
+          likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1,
         },
-      })
+      }),
     );
 
     const res = await apiPost({
@@ -180,15 +189,15 @@ const fetchMoreHandler = () => {
     activeTab === "feed"
       ? feedPosts
       : activeTab === "following"
-      ? followingPosts
-      : popularPosts;
+        ? followingPosts
+        : popularPosts;
 
   const activeHasMore =
     activeTab === "feed"
       ? hasMoreFeed
       : activeTab === "following"
-      ? hasMoreFollowing
-      : hasMorePopular;
+        ? hasMoreFollowing
+        : hasMorePopular;
 
   const handleTabClick = (tab: TabType) => {
     if (!isLoggedIn && tab === "following") {
@@ -199,7 +208,6 @@ const fetchMoreHandler = () => {
   };
 
   /* ================= RENDER ================= */
-  
 
   return (
     <>
@@ -231,23 +239,23 @@ const fetchMoreHandler = () => {
               id="feed-scroll-container"
               className="moneyboy-posts-scroll-container"
             >
-                <InfiniteScrollWrapper
-              className="moneyboy-posts-wrapper"
-              scrollableTarget="feed-scroll-container"
-              dataLength={activeList.length}
-              fetchMore={fetchMoreHandler}
-              hasMore={activeHasMore}
-            >
-              {activeList.map((post: any) => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  onLike={handleLike}
-                  onSave={handleSave}
-                  onCommentAdded={incrementCommentCount}
-                />
-              ))}
-            </InfiniteScrollWrapper>
+              <InfiniteScrollWrapper
+                className="moneyboy-posts-wrapper"
+                scrollableTarget="feed-scroll-container"
+                dataLength={activeList.length}
+                fetchMore={fetchMoreHandler}
+                hasMore={activeHasMore}
+              >
+                {activeList.map((post: any) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onLike={handleLike}
+                    onSave={handleSave}
+                    onCommentAdded={incrementCommentCount}
+                  />
+                ))}
+              </InfiniteScrollWrapper>
               {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
                 fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
                 hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>

@@ -33,7 +33,6 @@ export default function AgeGate() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="age-modal-title"
-     
     >
       <div className="modal-wrap ageverify-modal">
         <button className="close-btn" onClick={handleDisagree}>

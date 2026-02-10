@@ -76,6 +76,7 @@ const OtpModal = ({ open, onClose, onSubmit,email }: OtpModalProps) => {
         </div>
       </div>
     </div>
+    
   );
 };
 
