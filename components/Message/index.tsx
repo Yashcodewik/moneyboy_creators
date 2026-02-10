@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import { Smile, Mic, CircleX, BadgeCheck, Link } from "lucide-react";
+import { Smile, Mic, CircleX, BadgeCheck, Link, MessageCircleMore } from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -30,6 +30,7 @@ const MessagePage = () => {
   const textareaRef = useRef<HTMLInputElement | null>(null);
   const emojiRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [selectedChat, setSelectedChat] = useState(null);
 
   const isMobile = useDeviceType();
 
@@ -351,6 +352,22 @@ const MessagePage = () => {
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
         <div className="msg-page-wrapper card">
+          {!selectedChat ? (
+            <div className="messages-empty">
+              <div className="messages-empty-card">
+                <div className="glow-ring"></div>
+                <div className="messages-empty-icon"><MessageCircleMore size={32} color="#FFF"/><span className="ping"></span></div>
+                <h3>Start a conversation</h3>
+                <p>Select a creator from the left or discover new ones to begin chatting.</p>
+                <button className="premium-btn active-down-effect"><span>Find creators</span></button>
+                <div className="floating-bubbles">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="msg-page-container" msg-page-wrapper={true}>
             <SideBar onSelectChat={(thread: any) => setActiveChat(thread)} />
             <div className="msg-chats-layout">
@@ -752,6 +769,7 @@ const MessagePage = () => {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>
