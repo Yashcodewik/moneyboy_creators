@@ -122,9 +122,9 @@ export default function FeaturedContentSlider({
                     <p>{post.text}</p>
 
                     {post.isUnlocked && (
-                      <span className="btn-txt-gradient btn-outline grey-variant">
-                        Purchased
-                      </span>
+                      <button className="btn-txt-gradient btn-outline grey-variant">
+                       <span>Purchased</span> 
+                      </button>
                     )}
 
                     {/* SUBSCRIBED */}
@@ -132,9 +132,9 @@ export default function FeaturedContentSlider({
                     {!post.isUnlocked &&
                       post.isSubscribed &&
                       post.accessType === "subscriber" && (
-                        <span className="btn-txt-gradient btn-outline grey-variant">
-                          Subscribed
-                        </span>
+                        <button className="btn-txt-gradient btn-outline grey-variant">
+                          <span>Subscribed</span>
+                        </button>
                       )}
 
                     {/* PAY PER VIEW */}
