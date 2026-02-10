@@ -21,6 +21,9 @@ interface PaidPost {
   media: any[];
   createdAt: string;
    userId: string; 
+   isUnlocked:boolean;
+   isSubscribed:boolean;
+   isSaved:boolean;
 }
 
 interface Pagination {
