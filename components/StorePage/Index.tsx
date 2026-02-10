@@ -322,11 +322,10 @@ const StorePage = () => {
                       {creators.map((creator, index) => (
                         <li
                           key={creator._id}
-                          className={`${
-                            selectedCreator?.publicId === creator.publicId
-                              ? "active"
-                              : ""
-                          }`}
+                          className={`${selectedCreator?.publicId === creator.publicId
+                            ? "active"
+                            : ""
+                            }`}
                         >
                           <div
                             className="icons_wrap"
@@ -744,9 +743,8 @@ const StorePage = () => {
                             <div className="creator-content-tabs-btn-wrapper">
                               <div className="multi-tabs-action-buttons">
                                 <button
-                                  className={`multi-tab-switch-btn videos-btn ${
-                                    subActiveTab === "videos" ? "active" : ""
-                                  }`}
+                                  className={`multi-tab-switch-btn videos-btn ${subActiveTab === "videos" ? "active" : ""
+                                    }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("videos")}
                                 >
@@ -782,9 +780,8 @@ const StorePage = () => {
                                   <span>Videos</span>
                                 </button>
                                 <button
-                                  className={`multi-tab-switch-btn photos-btn ${
-                                    subActiveTab === "photos" ? "active" : ""
-                                  }`}
+                                  className={`multi-tab-switch-btn photos-btn ${subActiveTab === "photos" ? "active" : ""
+                                    }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("photos")}
                                 >
@@ -841,9 +838,8 @@ const StorePage = () => {
                                 data-multi-dem-cards-layout-btns
                               >
                                 <button
-                                  className={`creator-content-grid-layout-btn ${
-                                    layout === "grid" ? "active" : "inactive"
-                                  }`}
+                                  className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"
+                                    }`}
                                   onClick={() => setLayout("grid")}
                                 >
                                   <svg
@@ -872,9 +868,8 @@ const StorePage = () => {
                                   </svg>
                                 </button>
                                 <button
-                                  className={`creator-content-grid-layout-btn ${
-                                    layout === "list" ? "active" : "inactive"
-                                  }`}
+                                  className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"
+                                    }`}
                                   onClick={() => setLayout("list")}
                                 >
                                   <svg
@@ -946,7 +941,7 @@ const StorePage = () => {
                                         post.isSaved;
                                       return (
                                         <div
-                                          className="creator-media-card card"
+                                          className="creator-media-card card pointer"
                                           key={post._id}
                                         >
                                           <div className="creator-media-card__media-wrapper">
@@ -973,9 +968,8 @@ const StorePage = () => {
                                                   !post.isUnlocked &&
                                                   !post.isSubscribed && (
                                                     <div
-                                                      className={`creator-media-card__stats-btn wishlist-icon ${
-                                                        isSaved ? "active" : ""
-                                                      }`}
+                                                      className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""
+                                                        }`}
                                                       onClick={(e) =>
                                                         handleSaveToggle(
                                                           e,
@@ -990,27 +984,9 @@ const StorePage = () => {
                                                         viewBox="0 0 24 24"
                                                         fill="none"
                                                       >
-                                                        <path
-                                                          d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                                          stroke="white"
-                                                          strokeWidth="1.5"
-                                                          strokeLinecap="round"
-                                                          strokeLinejoin="round"
-                                                        ></path>
-                                                        <path
-                                                          d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                                          stroke="white"
-                                                          strokeWidth="1.5"
-                                                          strokeLinecap="round"
-                                                          strokeLinejoin="round"
-                                                        ></path>
-                                                        <path
-                                                          d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                                          stroke="white"
-                                                          strokeWidth="1.5"
-                                                          strokeLinecap="round"
-                                                          strokeLinejoin="round"
-                                                        ></path>
+                                                        <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                        <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                        <path d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                       </svg>
                                                     </div>
                                                   )}
@@ -1054,13 +1030,8 @@ const StorePage = () => {
                                               {/* PAY PER VIEW */}
                                               {!post.isUnlocked &&
                                                 post.accessType ===
-                                                  "pay_per_view" && (
-                                                  <a
-                                                    className="btn-txt-gradient btn-outline"
-                                                    onClick={() =>
-                                                      setUnlockModalPost(post)
-                                                    }
-                                                  >
+                                                "pay_per_view" && (
+                                                  <a className="btn-txt-gradient btn-outline">
                                                     <svg
                                                       className="only-fill-hover-effect"
                                                       xmlns="http://www.w3.org/2000/svg"
@@ -1098,18 +1069,8 @@ const StorePage = () => {
                                               {!post.isUnlocked &&
                                                 !post.isSubscribed &&
                                                 post.accessType ===
-                                                  "subscriber" && (
-                                                  <a
-                                                    className="btn-txt-gradient btn-outline grey-variant"
-                                                    onClick={() => {
-                                                      setSubscriptionPlan(
-                                                        "MONTHLY",
-                                                      ); // default
-                                                      setShowSubscriptionModal(
-                                                        true,
-                                                      );
-                                                    }}
-                                                  >
+                                                "subscriber" && (
+                                                  <a className="btn-txt-gradient btn-outline grey-variant">
                                                     <svg
                                                       xmlns="http://www.w3.org/2000/svg"
                                                       width="20"
@@ -1217,7 +1178,7 @@ const StorePage = () => {
                                       post.isSaved;
                                     return (
                                       <div
-                                        className="creator-media-card card"
+                                        className="creator-media-card card pointer"
                                         key={post._id}
                                       >
                                         <div className="creator-media-card__media-wrapper">
@@ -1242,35 +1203,15 @@ const StorePage = () => {
                                                 !post.isUnlocked &&
                                                 !post.isSubscribed && (
                                                   <div
-                                                    className={`creator-media-card__stats-btn wishlist-icon ${
-                                                      isSaved ? "active" : ""
-                                                    }`}
+                                                    className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""
+                                                      }`}
                                                     onClick={(e) =>
                                                       handleSaveToggle(e, post)
-                                                    }
-                                                  >
-                                                    {/* 🔒 SVG — UNCHANGED */}
-                                                    <svg
-                                                      xmlns="http://www.w3.org/2000/svg"
-                                                      width="24"
-                                                      height="24"
-                                                      viewBox="0 0 24 24"
-                                                      fill="none"
-                                                    >
-                                                      <path
-                                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      />
-                                                      <path
-                                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      />
+                                                    }>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                      <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                      <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                      <path d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                     </svg>
                                                   </div>
                                                 )}
@@ -1311,13 +1252,8 @@ const StorePage = () => {
                                             {/* PAY PER VIEW */}
                                             {!post.isUnlocked &&
                                               post.accessType ===
-                                                "pay_per_view" && (
-                                                <a
-                                                  className="btn-txt-gradient btn-outline"
-                                                  onClick={() =>
-                                                    setUnlockModalPost(post)
-                                                  }
-                                                >
+                                              "pay_per_view" && (
+                                                <a className="btn-txt-gradient btn-outline">
                                                   <svg
                                                     className="only-fill-hover-effect"
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -1355,18 +1291,8 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               !post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
-                                                <a
-                                                  className="btn-txt-gradient btn-outline grey-variant"
-                                                  onClick={() => {
-                                                    setSubscriptionPlan(
-                                                      "MONTHLY",
-                                                    ); // default
-                                                    setShowSubscriptionModal(
-                                                      true,
-                                                    );
-                                                  }}
-                                                >
+                                              "subscriber" && (
+                                                <a className="btn-txt-gradient btn-outline grey-variant">
                                                   <svg
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="20"

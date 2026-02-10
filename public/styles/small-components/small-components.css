@@ -1371,7 +1371,7 @@
                     &.wishlist-icon {
                         margin-left: auto;
 
-                        &:hover {
+                        &:hover, &.active {
                             svg {
                                 path {
                                     &:nth-child(1) {
