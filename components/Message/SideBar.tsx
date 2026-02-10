@@ -1,4 +1,4 @@
-import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
+ import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
 import { getApi } from "@/utils/endpoints/common";
 import React, { useEffect, useState } from "react";
 
@@ -15,7 +15,7 @@ const SideBar = ({ onSelectChat }: any) => {
           rowsPerPage: 50,
           searchText: "",
         });
-        setChatList(res.data);
+        setChatList(res);
       } catch (err) {
         console.error("Sidebar fetch failed", err);
       }
@@ -78,7 +78,7 @@ const SideBar = ({ onSelectChat }: any) => {
       </div>
       <div className="msg-profiles-wrapper">
         <div className="msg-profiles-container" msg-chat-contacts-wrapper="">
-          {chatList?.map((chat) => (
+          {Array.isArray(chatList) && chatList.map((chat) => (
             <div key={chat.threadId}
               className="msg-contact-box"
               msg-chat-contact=""
@@ -92,7 +92,7 @@ const SideBar = ({ onSelectChat }: any) => {
                 <div className="contact-avatar-wrapper">
                   <img
                     className="contact-avatar"
-                    src={chat?.user?.image}
+                    src={chat?.user?.image || "/images/profile-avatars/profile-avatar-6.jpg"}
                     alt=""
                   />
                   <div className={`contact-status-indicator ${chat?.user?.isOnline ? "online" : "offline"
@@ -101,7 +101,7 @@ const SideBar = ({ onSelectChat }: any) => {
 
                 <div className="contact-content">
                   <div className="contact-header">
-                    <h4 className="contact-name">{chat?.user?.name}</h4>
+                    <h4 className="contact-name">{chat?.user?.username || "Unknown User"}</h4>
                     <span className="contact-time">{new Date(chat?.updatedAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
