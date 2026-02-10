@@ -3646,7 +3646,7 @@
                               }
 
                               .chat-msg-image {
-                                  img {
+                                  img, .plyr {
                                     border-radius: 12px;
                                   }
                               }
