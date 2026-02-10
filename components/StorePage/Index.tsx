@@ -117,16 +117,29 @@ const StorePage = () => {
   const { unlocking } = useSelector((state: RootState) => state.subscription);
 
   const handleConfirmUnlock = async () => {
-    if (!unlockModalPost) return;
+    if (!unlockModalPost || !activeStoreOwner?.publicId) return;
 
-    await dispatch(
+    const res = await dispatch(
       unlockPost({
         postId: unlockModalPost._id,
         creatorId: unlockModalPost.userId,
       }),
     );
 
-    setUnlockModalPost(null); // close modal
+    if (unlockPost.fulfilled.match(res)) {
+      // 🔁 REFRESH POSTS
+      dispatch(
+        fetchMyPaidPosts({
+          page: 1,
+          limit: 8,
+          search,
+          time,
+          publicId: activeStoreOwner.publicId,
+        }),
+      );
+    }
+
+    setUnlockModalPost(null);
   };
 
   useEffect(() => {
@@ -192,14 +205,27 @@ const StorePage = () => {
   };
 
   const handleConfirmSubscription = async () => {
-    if (!activeStoreOwner?._id) return;
+    if (!activeStoreOwner?._id || !activeStoreOwner?.publicId) return;
 
-    await dispatch(
+    const res = await dispatch(
       subscribeCreator({
         creatorId: activeStoreOwner._id,
         planType: subscriptionPlan,
       }),
     );
+
+    if (subscribeCreator.fulfilled.match(res)) {
+      // 🔁 REFRESH POSTS
+      dispatch(
+        fetchMyPaidPosts({
+          page: 1,
+          limit: 8,
+          search,
+          time,
+          publicId: activeStoreOwner.publicId,
+        }),
+      );
+    }
 
     setShowSubscriptionModal(false);
   };
@@ -572,7 +598,7 @@ const StorePage = () => {
                       </div>
                     </div>
                     <div className="moneyboy-swiper-cards-wrapper">
-                      <FeaturedSlider />
+                      <FeaturedSlider publicId={profilePublicId}  />
                     </div>
                   </div>
                 </div>
@@ -989,7 +1015,9 @@ const StorePage = () => {
 
                                               {/* SUBSCRIBED */}
                                               {!post.isUnlocked &&
-                                                post.isSubscribed && (
+                                                post.isSubscribed &&
+                                                post.accessType ===
+                                                  "subscriber" && (
                                                   <a className="btn-txt-gradient btn-outline grey-variant">
                                                     <span>Subscribed</span>
                                                   </a>
@@ -997,7 +1025,6 @@ const StorePage = () => {
 
                                               {/* PAY PER VIEW */}
                                               {!post.isUnlocked &&
-                                                !post.isSubscribed &&
                                                 post.accessType ===
                                                   "pay_per_view" && (
                                                   <a
@@ -1245,7 +1272,9 @@ const StorePage = () => {
 
                                             {/* SUBSCRIBED */}
                                             {!post.isUnlocked &&
-                                              post.isSubscribed && (
+                                              post.isSubscribed &&
+                                              post.accessType ===
+                                                "subscriber" && (
                                                 <a className="btn-txt-gradient btn-outline grey-variant">
                                                   <span>Subscribed</span>
                                                 </a>
@@ -1253,7 +1282,6 @@ const StorePage = () => {
 
                                             {/* PAY PER VIEW */}
                                             {!post.isUnlocked &&
-                                              !post.isSubscribed &&
                                               post.accessType ===
                                                 "pay_per_view" && (
                                                 <a

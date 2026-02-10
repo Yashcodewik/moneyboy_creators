@@ -95,3 +95,5 @@ export const API_GET_MY_PAID_POSTS = "/post/paid-posts";
 //message
 export const API_MESSAGE_SIDEBAR = "/messages/sidebar";
 export const API_MESSAGE_CHAT = "/messages/chat";
+
+export const API_GET_FEATURED_POSTS = "/post/featured-posts";
