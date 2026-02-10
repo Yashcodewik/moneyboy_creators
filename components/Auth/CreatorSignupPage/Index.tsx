@@ -1,7 +1,8 @@
 "use client";
+import React, { useState, useRef, useEffect } from "react";
 import CustomSelect from "@/components/CustomSelect";
 import Link from "next/link";
-import { useState } from "react";
+import {  } from "react";
 import { TbCamera } from "react-icons/tb";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -30,6 +31,10 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FaFilePdf, FaTrash } from "react-icons/fa6";
 import { FiEdit } from "react-icons/fi";
+import { CalendarDays } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { IoArrowBackOutline } from "react-icons/io5";
 
 const validationSchema = yup.object({
   firstName: yup.string().required("First name is required"),
@@ -79,6 +84,22 @@ const CreatorSignupPage = () => {
   // const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   // const [governmentIdFile, setGovernmentIdFile] = useState<File | null>(null);
   // const [selfieWithIdFile, setSelfieWithIdFile] = useState<File | null>(null);
+
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  // CLOSE ON OUTSIDE CLICK
+  useEffect(() => {
+    const handleClickOutside = (e :any) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setActiveField(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -248,31 +269,21 @@ const CreatorSignupPage = () => {
           <div className="main_cont">
             <img src="/images/logo.svg" className="logo_wrap" />
             <div className="moneyboy-post__container card">
-              <h3 className="heading">Creator Sign Up</h3>
-              <p className="mb-10">
-                Sign up to make money and interact with your fans!
-              </p>
+              <div className="head">
+                <div className="backicons"><button className="cate-back-btn active-down-effect"><span><IoArrowBackOutline className="icons"/></span></button></div>
+                <div className="textcont">
+                  <h3 className="heading">Creator Sign Up</h3>
+                  <p className="mb-10">Sign up to make money and interact with your fans!</p>
+                </div>
+              </div>
               <div className="creator_maingrid">
                 <div className="form_grid">
                   <div>
                     <div className="label-input">
-                      <div className="input-placeholder-icon">
-                        <i className="icons user svg-icon"></i>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="First Name *"
-                        value={formik.values.firstName}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        name="firstName"
-                      />
+                      <div className="input-placeholder-icon"><i className="icons user svg-icon"></i></div>
+                      <input type="text" placeholder="First Name *" value={formik.values.firstName} onChange={formik.handleChange} onBlur={formik.handleBlur} name="firstName"/>
                     </div>
-                    {formik.touched.firstName && formik.errors.firstName && (
-                      <span className="error-message">
-                        {formik.errors.firstName}
-                      </span>
-                    )}
+                    {formik.touched.firstName && formik.errors.firstName && (<span className="error-message">{formik.errors.firstName}</span>)}
                   </div>
                   <div>
                     <div className="label-input">
@@ -431,27 +442,15 @@ const CreatorSignupPage = () => {
                     )}
                   </div>
                   <div>
-                    <div className="label-input">
-                      <div className="input-placeholder-icon">
-                        <i className="icons bookmarkIcon svg-icon"></i>
+                  <div className="label-input calendar-dropdown" ref={wrapperRef}>
+                    <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
+                    <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={startDate?.toLocaleDateString("en-GB") || ""} onClick={() => setActiveField("schedule")}/>
+                    {activeField === "schedule" && (
+                      <div className="calendar_show">
+                        <DatePicker selected={startDate} inline onChange={(date :any) => {setStartDate(date); setActiveField(null);}}/>
                       </div>
-                      <input
-                        type="date"
-                        value={formik.values.dob}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        name="dob"
-                        max={(() => {
-                          const today = new Date();
-                          const minAgeDate = new Date(
-                            today.getFullYear() - 18,
-                            today.getMonth(),
-                            today.getDate()
-                          );
-                          return minAgeDate.toISOString().split("T")[0];
-                        })()}
-                      />
-                    </div>
+                    )}
+                  </div>
                     {formik.touched.dob && formik.errors.dob && (
                       <span className="error-message">{formik.errors.dob}</span>
                     )}

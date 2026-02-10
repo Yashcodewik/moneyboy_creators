@@ -28,7 +28,7 @@ const Sidebar: React.FC = () => {
   );
   const followerCount = counts.followerCount;
   const followingCount = counts.followingCount;
-
+  
   const pathname = usePathname();
   const router = useRouter();
 
@@ -175,9 +175,7 @@ const Sidebar: React.FC = () => {
                           } else {
                             router.push("/profile");
                           }
-                        }}
-                      >
-                        {/* IMAGE */}
+                        }}>
                         {userProfile?.profile ? (
                           <img
                             src={userProfile.profile}
