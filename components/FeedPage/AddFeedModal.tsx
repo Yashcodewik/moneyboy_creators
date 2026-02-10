@@ -513,7 +513,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           ))}
         </div>
 
-        <div className="upload-wrapper" onClick={() => thumbnailInputRef.current?.click()}>
+        {/* <div className="upload-wrapper" onClick={() => thumbnailInputRef.current?.click()}>
           <div className="img_wrap">
             <svg className="icons idshape size-45"></svg>
             <div className="imgicons">
@@ -527,7 +527,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </div>
             <span>Add thumbnail</span>
           </button>
-        </div>
+        </div> */}
 
         <input type="file" ref={thumbnailInputRef} hidden accept="image/*" />
 

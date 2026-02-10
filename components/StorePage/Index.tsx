@@ -29,6 +29,9 @@ import { fetchAllCreators, fetchMyPaidPosts } from "@/redux/store/Action";
 import PPVRequestModal from "../ProfilePage/PPVRequestModal";
 import { useRouter } from "next/navigation";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
+import { subscribeCreator, unlockPost } from "@/redux/Subscription/Action";
+import UnlockContentModal from "../ProfilePage/UnlockContentModal";
+import SubscriptionModal from "../ProfilePage/SubscriptionModal";
 
 type TimeFilter =
   | "all_time"
@@ -55,10 +58,14 @@ const StorePage = () => {
   const [selectedCreator, setSelectedCreator] = useState<any | null>(null);
   const activeStoreOwner = selectedCreator || session?.user;
   const [time, setTime] = useState<TimeFilter>("all_time");
-
+  const [unlockModalPost, setUnlockModalPost] = useState<any | null>(null);
   const playerRef = useRef<any>(null);
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<
+    "MONTHLY" | "YEARLY"
+  >("MONTHLY");
   const profilePublicId = activeStoreOwner?.publicId;
   const handleOpenFullscreen = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -105,6 +112,34 @@ const StorePage = () => {
     if (creatorsPagination.page > 1) {
       dispatch(fetchAllCreators({ page: creatorsPagination.page - 1 }));
     }
+  };
+
+  const { unlocking } = useSelector((state: RootState) => state.subscription);
+
+  const handleConfirmUnlock = async () => {
+    if (!unlockModalPost || !activeStoreOwner?.publicId) return;
+
+    const res = await dispatch(
+      unlockPost({
+        postId: unlockModalPost._id,
+        creatorId: unlockModalPost.userId,
+      }),
+    );
+
+    if (unlockPost.fulfilled.match(res)) {
+      // 🔁 REFRESH POSTS
+      dispatch(
+        fetchMyPaidPosts({
+          page: 1,
+          limit: 8,
+          search,
+          time,
+          publicId: activeStoreOwner.publicId,
+        }),
+      );
+    }
+
+    setUnlockModalPost(null);
   };
 
   useEffect(() => {
@@ -167,6 +202,32 @@ const StorePage = () => {
         }),
       );
     }
+  };
+
+  const handleConfirmSubscription = async () => {
+    if (!activeStoreOwner?._id || !activeStoreOwner?.publicId) return;
+
+    const res = await dispatch(
+      subscribeCreator({
+        creatorId: activeStoreOwner._id,
+        planType: subscriptionPlan,
+      }),
+    );
+
+    if (subscribeCreator.fulfilled.match(res)) {
+      // 🔁 REFRESH POSTS
+      dispatch(
+        fetchMyPaidPosts({
+          page: 1,
+          limit: 8,
+          search,
+          time,
+          publicId: activeStoreOwner.publicId,
+        }),
+      );
+    }
+
+    setShowSubscriptionModal(false);
   };
 
   return (
@@ -536,7 +597,7 @@ const StorePage = () => {
                       </div>
                     </div>
                     <div className="moneyboy-swiper-cards-wrapper">
-                      <FeaturedSlider />
+                      <FeaturedSlider publicId={profilePublicId}  />
                     </div>
                   </div>
                 </div>
@@ -546,7 +607,14 @@ const StorePage = () => {
                     <div className="moneyboy-special-content-banner--content">
                       <h2>Get exclusive access</h2>
                       <p>Subscribe to unlock everything from this creator.</p>
-                      <a href="#" className="btn-txt-gradient btn-outline">
+                      <a
+                        href="#"
+                        className="btn-txt-gradient btn-outline"
+                        onClick={() => {
+                          setSubscriptionPlan("MONTHLY"); // default
+                          setShowSubscriptionModal(true);
+                        }}
+                      >
                         <svg
                           className="only-fill-hover-effect"
                           xmlns="http://www.w3.org/2000/svg"
@@ -923,7 +991,9 @@ const StorePage = () => {
 
                                               {/* SUBSCRIBED */}
                                               {!post.isUnlocked &&
-                                                post.isSubscribed && (
+                                                post.isSubscribed &&
+                                                post.accessType ===
+                                                  "subscriber" && (
                                                   <a className="btn-txt-gradient btn-outline grey-variant">
                                                     <span>Subscribed</span>
                                                   </a>
@@ -931,7 +1001,6 @@ const StorePage = () => {
 
                                               {/* PAY PER VIEW */}
                                               {!post.isUnlocked &&
-                                                !post.isSubscribed &&
                                                 post.accessType ===
                                                 "pay_per_view" && (
                                                   <a className="btn-txt-gradient btn-outline">
@@ -1144,7 +1213,9 @@ const StorePage = () => {
 
                                             {/* SUBSCRIBED */}
                                             {!post.isUnlocked &&
-                                              post.isSubscribed && (
+                                              post.isSubscribed &&
+                                              post.accessType ===
+                                                "subscriber" && (
                                                 <a className="btn-txt-gradient btn-outline grey-variant">
                                                   <span>Subscribed</span>
                                                 </a>
@@ -1152,7 +1223,6 @@ const StorePage = () => {
 
                                             {/* PAY PER VIEW */}
                                             {!post.isUnlocked &&
-                                              !post.isSubscribed &&
                                               post.accessType ===
                                               "pay_per_view" && (
                                                 <a className="btn-txt-gradient btn-outline">
@@ -1289,6 +1359,42 @@ const StorePage = () => {
           </div>
         </div>
       </div>
+
+      {showSubscriptionModal && (
+        <SubscriptionModal
+          onClose={() => setShowSubscriptionModal(false)}
+          onConfirm={handleConfirmSubscription}
+          plan={subscriptionPlan}
+          action="subscribe"
+          creator={{
+            displayName: activeStoreOwner?.displayName,
+            userName: activeStoreOwner?.userName,
+            profile: activeStoreOwner?.profile,
+          }}
+          subscription={{
+            monthlyPrice: activeStoreOwner?.subscription?.monthlyPrice,
+            yearlyPrice: activeStoreOwner?.subscription?.yearlyPrice,
+          }}
+        />
+      )}
+
+      {unlockModalPost && (
+        <UnlockContentModal
+          onClose={() => setUnlockModalPost(null)}
+          creator={{
+            displayName: activeStoreOwner?.displayName,
+            userName: activeStoreOwner?.userName,
+            profile: activeStoreOwner?.profile,
+          }}
+          post={{
+            publicId: unlockModalPost.publicId,
+            text: unlockModalPost.text,
+            price: unlockModalPost.price,
+          }}
+          onConfirm={handleConfirmUnlock}
+          loading={unlocking}
+        />
+      )}
 
       {showPPVModal && selectedCreator && (
         <PPVRequestModal
