@@ -192,9 +192,10 @@ const StorePage = () => {
   };
 
   const handleSaveToggle = (e: React.MouseEvent, post: any) => {
-    e.stopPropagation(); // ❗ VERY IMPORTANT
+    e.preventDefault(); // ✅ REQUIRED
+    e.stopPropagation(); // ✅ REQUIRED
 
-    const isSaved = !!savedPosts[post._id];
+    const isSaved = savedPosts[post._id]?.saved === true;
 
     if (isSaved) {
       dispatch(
@@ -249,6 +250,10 @@ const StorePage = () => {
       }),
     );
   }, [dispatch, profilePublicId]);
+
+  useEffect(() => {
+    console.log("Saved posts state:", savedPosts);
+  }, [savedPosts]);
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -642,7 +647,7 @@ const StorePage = () => {
                           href="#"
                           className="btn-txt-gradient btn-outline"
                           onClick={() => {
-                            setSubscriptionPlan("MONTHLY"); // default
+                            setSubscriptionPlan("MONTHLY"); 
                             setShowSubscriptionModal(true);
                           }}
                         >
@@ -934,7 +939,6 @@ const StorePage = () => {
                                 {!loadingPaidPosts &&
                                   paidPosts
 
-                                  
                                     .filter(
                                       (post) =>
                                         getPostMedia(post).type === "video",
@@ -946,9 +950,8 @@ const StorePage = () => {
                                         isCreator &&
                                         post.userId === loggedInUserId;
                                       const isSaved =
-                                        savedPosts[post._id]?.saved ??
-                                        post.isSaved;
-                                        
+                                        savedPosts[post._id]?.saved === true;
+
                                       return (
                                         <div
                                           className="creator-media-card card"
@@ -1062,11 +1065,13 @@ const StorePage = () => {
                                                   "pay_per_view" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline"
-                                                    
-                                                    onClick={() =>
-                                                      setUnlockModalPost(post)
-
-                                                    }
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
+                                                      setUnlockModalPost(post);
+                                                    }}
                                                   >
                                                     <svg
                                                       className="only-fill-hover-effect"
@@ -1108,14 +1113,15 @@ const StorePage = () => {
                                                   "subscriber" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline grey-variant"
-                                                    onClick={() => {
-                                                      setSubscriptionPlan(
-                                                        "MONTHLY",
-                                                      ); // default
-                                                      setShowSubscriptionModal(
-                                                        true,
-                                                      );
-                                                    }}
+                                                     onClick={(e) => {
+    if (isOwnPost) {
+      e.preventDefault();
+      return;
+    }
+
+    setSubscriptionPlan("MONTHLY");
+    setShowSubscriptionModal(true);
+  }}
                                                   >
                                                     <svg
                                                       xmlns="http://www.w3.org/2000/svg"
@@ -1220,8 +1226,7 @@ const StorePage = () => {
                                       isCreator &&
                                       post.userId === loggedInUserId;
                                     const isSaved =
-                                      savedPosts[post._id]?.saved ??
-                                      post.isSaved;
+                                      savedPosts[post._id]?.saved === true;
                                     return (
                                       <div
                                         className="creator-media-card card"
@@ -1321,9 +1326,13 @@ const StorePage = () => {
                                                 "pay_per_view" && (
                                                 <a
                                                   className="btn-txt-gradient btn-outline"
-                                                  onClick={() =>
-                                                    setUnlockModalPost(post)
-                                                  }
+                                                  onClick={(e) => {
+                                                    if (isOwnPost) {
+                                                      e.preventDefault();
+                                                      return;
+                                                    }
+                                                    setUnlockModalPost(post);
+                                                  }}
                                                 >
                                                   <svg
                                                     className="only-fill-hover-effect"
@@ -1365,14 +1374,15 @@ const StorePage = () => {
                                                 "subscriber" && (
                                                 <a
                                                   className="btn-txt-gradient btn-outline grey-variant"
-                                                  onClick={() => {
-                                                    setSubscriptionPlan(
-                                                      "MONTHLY",
-                                                    ); // default
-                                                    setShowSubscriptionModal(
-                                                      true,
-                                                    );
-                                                  }}
+                                                  onClick={(e) => {
+    if (isOwnPost) {
+      e.preventDefault();
+      return;
+    }
+
+    setSubscriptionPlan("MONTHLY");
+    setShowSubscriptionModal(true);
+  }}
                                                 >
                                                   <svg
                                                     xmlns="http://www.w3.org/2000/svg"
