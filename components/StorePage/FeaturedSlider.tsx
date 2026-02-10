@@ -67,11 +67,6 @@ export default function FeaturedContentSlider({
     <Swiper
       spaceBetween={16}
       slidesPerView={2}
-      breakpoints={{
-        320: { slidesPerView: 1 },
-        768: { slidesPerView: 2 },
-        1024: { slidesPerView: 2 },
-      }}
     >
       {featuredPosts?.map((post: any) => {
         const image =
