@@ -6308,18 +6308,22 @@ body {
                     cursor: pointer;
                     background: #fff;
                     transition: all 0.25s ease;
-                  
+                    user-select: none;
+                    -webkit-user-select: none;
+                    -ms-user-select: none;
                     .icon {
+                      color: #000;
                       font-size: 22px;
-                      color: #000;
                     }
-                  
                     .text {
-                      font-size: 16px;
-                      font-weight: 500;
                       color: #000;
+                      letter-spacing: 0;
+                      font-size: 16px;
+                      font-style: normal;
+                      font-weight: 600;
+                      line-height: 100%;
+                      font-family: var(--font-family-base);
                     }
-                  
                     &:hover {
                       border-color: #000;
                       background: #f9f9f9;
