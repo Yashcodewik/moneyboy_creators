@@ -50,6 +50,10 @@ body {
   border-top-color: #ff7a00;
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
+  &.imgupld {
+    border: 0px !important;
+    animation: spin 0.9s linear infinite;
+  }
 }
 
 /* Animation Start */
