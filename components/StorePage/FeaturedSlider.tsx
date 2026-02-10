@@ -17,7 +17,7 @@ type FeaturedContentSliderProps = {
   publicId?: string;
   loggedInUserId?: string;
   isCreator?: boolean;
-  onUnlock: (post: any) => void;     // ✅ required
+  onUnlock: (post: any) => void; // ✅ required
   onSubscribe: () => void;
 };
 
@@ -105,12 +105,13 @@ export default function FeaturedContentSlider({
                   <div className="featured-premium-card-content">
                     <div className="featured-premium-card-icons">
                       {!isOwnPost && (
-                        <div className={`featured-premium-card-icon wishlist-icon ${isSaved ? "active" : ""}`} onClick={(e) => handleSaveToggle(e, post)}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                          </svg>
+                        <div
+                          className={`featured-premium-card-icon wishlist-icon ${
+                            isSaved ? "active" : ""
+                          }`}
+                          onClick={(e) => handleSaveToggle(e, post)}
+                        >
+                          <svg className="icons wishlist wishlist-icon white" />
                           {/* <span>{post.likeCount ?? 0}</span> */}
                         </div>
                       )}
@@ -122,11 +123,12 @@ export default function FeaturedContentSlider({
 
                     {post.isUnlocked && (
                       <span className="btn-txt-gradient btn-outline grey-variant">
-                        <span>Purchased</span>
+                        Purchased
                       </span>
                     )}
 
                     {/* SUBSCRIBED */}
+
                     {!post.isUnlocked &&
                       post.isSubscribed &&
                       post.accessType === "subscriber" && (
@@ -136,11 +138,13 @@ export default function FeaturedContentSlider({
                       )}
 
                     {/* PAY PER VIEW */}
-                    {!post.isUnlocked &&
-                      post.accessType === "pay_per_view" && (
+                    
+
+                      {!post.isUnlocked && post.accessType === "pay_per_view" && (
                         <button
                           className="btn-txt-gradient btn-outline"
                           onClick={() => onUnlock(post)}
+                          disabled={isOwnPost}
                         >
                           <svg
                             className="only-fill-hover-effect"
@@ -172,81 +176,82 @@ export default function FeaturedContentSlider({
                         </button>
                       )}
 
-                    {/* SUBSCRIBER ONLY */}
-                    {!post.isUnlocked &&
-                      !post.isSubscribed &&
-                      post.accessType === "subscriber" && (
-                        <button
-                          className="btn-txt-gradient btn-outline grey-variant"
-                          onClick={onSubscribe}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 20 20"
-                            fill="none"
+                      {/* SUBSCRIBER ONLY */}
+                      {!post.isUnlocked &&
+                        !post.isSubscribed &&
+                        post.accessType === "subscriber" && (
+                          <button
+                            className="btn-txt-gradient btn-outline grey-variant"
+                            onClick={onSubscribe}
+                            disabled={isOwnPost}
                           >
-                            <path
-                              d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                              stroke="url(#paint0_linear_745_209)"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            ></path>
-                            <path
-                              d="M5.41602 18.3333H14.5827"
-                              stroke="url(#paint1_linear_745_209)"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            ></path>
-                            <path
-                              d="M7.91602 11.6667H12.0827"
-                              stroke="url(#paint2_linear_745_209)"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            ></path>
-                            <defs>
-                              <linearGradient
-                                id="paint0_linear_745_209"
-                                x1="9.9704"
-                                y1="1.65417"
-                                x2="9.9704"
-                                y2="15.8167"
-                                gradientUnits="userSpaceOnUse"
-                              >
-                                <stop stop-color="#FFCD84"></stop>{" "}
-                                <stop offset="1" stop-color="#FEA10A"></stop>
-                              </linearGradient>
-                              <linearGradient
-                                id="paint1_linear_745_209"
-                                x1="9.99935"
-                                y1="18.3333"
-                                x2="9.99935"
-                                y2="19.3333"
-                                gradientUnits="userSpaceOnUse"
-                              >
-                                <stop stop-color="#FFCD84"></stop>{" "}
-                                <stop offset="1" stop-color="#FEA10A"></stop>
-                              </linearGradient>
-                              <linearGradient
-                                id="paint2_linear_745_209"
-                                x1="9.99935"
-                                y1="11.6667"
-                                x2="9.99935"
-                                y2="12.6667"
-                                gradientUnits="userSpaceOnUse"
-                              >
-                                <stop stop-color="#FFCD84"></stop>{" "}
-                                <stop offset="1" stop-color="#FEA10A"></stop>
-                              </linearGradient>
-                            </defs>
-                          </svg>
-                          <span>For Subscribers</span>
-                        </button>
-                      )}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              viewBox="0 0 20 20"
+                              fill="none"
+                            >
+                              <path
+                                d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                stroke="url(#paint0_linear_745_209)"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                              <path
+                                d="M5.41602 18.3333H14.5827"
+                                stroke="url(#paint1_linear_745_209)"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                              <path
+                                d="M7.91602 11.6667H12.0827"
+                                stroke="url(#paint2_linear_745_209)"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              ></path>
+                              <defs>
+                                <linearGradient
+                                  id="paint0_linear_745_209"
+                                  x1="9.9704"
+                                  y1="1.65417"
+                                  x2="9.9704"
+                                  y2="15.8167"
+                                  gradientUnits="userSpaceOnUse"
+                                >
+                                  <stop stop-color="#FFCD84"></stop>{" "}
+                                  <stop offset="1" stop-color="#FEA10A"></stop>
+                                </linearGradient>
+                                <linearGradient
+                                  id="paint1_linear_745_209"
+                                  x1="9.99935"
+                                  y1="18.3333"
+                                  x2="9.99935"
+                                  y2="19.3333"
+                                  gradientUnits="userSpaceOnUse"
+                                >
+                                  <stop stop-color="#FFCD84"></stop>{" "}
+                                  <stop offset="1" stop-color="#FEA10A"></stop>
+                                </linearGradient>
+                                <linearGradient
+                                  id="paint2_linear_745_209"
+                                  x1="9.99935"
+                                  y1="11.6667"
+                                  x2="9.99935"
+                                  y2="12.6667"
+                                  gradientUnits="userSpaceOnUse"
+                                >
+                                  <stop stop-color="#FFCD84"></stop>{" "}
+                                  <stop offset="1" stop-color="#FEA10A"></stop>
+                                </linearGradient>
+                              </defs>
+                            </svg>
+                            <span>For Subscribers</span>
+                          </button>
+                        )}
                   </div>
                 </div>
               </div>
