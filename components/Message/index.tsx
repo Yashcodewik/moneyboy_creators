@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import { Smile, Mic, CircleX, BadgeCheck } from "lucide-react";
+import { Smile, Mic, CircleX, BadgeCheck, Link } from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -13,6 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { threadId } from "worker_threads";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
+import CustomSelect from "../CustomSelect";
 
 const MessagePage = () => {
   const [activeChat, setActiveChat] = useState<any>(null);
@@ -617,9 +618,21 @@ const MessagePage = () => {
                       <div className="warning_wrap success"><BadgeCheck size={20}/> You Have Accepted The PPV request</div>
                       <div className="warning_wrap danger"><CircleX size={20}/> You Have Accepted The PPV request</div>
                       <div className="upload-box">
-                        <span className="icon">🔗</span>
+                        <Link className="icon"/>
                         <span className="text">Upload Media</span>
                       </div>
+                      <CustomSelect className="bg-white p-sm size-sm"
+                        label="Reason for Decline"
+                        searchable={false}
+                        options={[
+                          { label: "Not Interested", value: "not_interested" },
+                          { label: "Price Too High", value: "price_too_high" },
+                          { label: "Content Not Relevant", value: "content_not_relevant" },
+                          { label: "Already Purchased Similar Content", value: "already_purchased" },
+                          { label: "Quality Concerns", value: "quality_concerns" },
+                          { label: "Other", value: "other" },
+                        ]}
+                      />
                       <div className="cont_wrap">
                         <h3>Type</h3>
                         <p>Photos / Videos</p>
