@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import { Smile, Mic, CircleX, BadgeCheck, Link } from "lucide-react";
+import { Smile, Mic, CircleX, BadgeCheck, Link, MessageCircleMore } from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -24,79 +24,163 @@ const MessagePage = () => {
   const searchParams = useSearchParams();
   const threadIdFromUrl = searchParams.get("threadId");
   const [activeUser, setActiveUser] = useState<any>(null);
+  const [newComment, setNewComment] = useState("");
 
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLInputElement | null>(null);
+  const emojiRef = useRef<HTMLDivElement | null>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [selectedChat, setSelectedChat] = useState(null);
+
+  const isMobile = useDeviceType();
+
+  // ✅ LOG: Socket connection
   useEffect(() => {
-    socket.on("newMessage", (message) => {
-      setMessages((prev) => [...prev, message]);
+    console.log("🔌 Socket connected:", socket.connected);
+    console.log("🔌 Socket ID:", socket.id);
+
+    socket.on("connect", () => {
+      console.log("✅ Socket CONNECTED with ID:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Socket DISCONNECTED");
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("❌ Socket connection error:", error);
     });
 
     return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("connect_error");
+    };
+  }, []);
+
+  // ✅ LOG: Session data
+  useEffect(() => {
+    console.log("👤 Session data:", session);
+    console.log("👤 User ID:", session?.user?.id);
+  }, [session]);
+
+  // ✅ Handle incoming messages
+  useEffect(() => {
+    console.log("📨 Setting up newMessage listener");
+    
+    socket.on("newMessage", (message) => {
+      console.log("📨 NEW MESSAGE RECEIVED:", message);
+      setMessages((prev) => {
+        console.log("📨 Previous messages:", prev.length);
+        console.log("📨 Updated messages:", prev.length + 1);
+        return [...prev, message];
+      });
+    });
+
+    return () => {
+      console.log("🧹 Cleaning up newMessage listener");
       socket.off("newMessage");
     };
   }, []);
 
+  // ✅ Set active chat from URL
   useEffect(() => {
-    if (!threadIdFromUrl) return;
+    if (!threadIdFromUrl) {
+      console.log("⚠️ No threadId in URL");
+      return;
+    }
 
+    console.log("🔗 Thread ID from URL:", threadIdFromUrl);
     setActiveChat({
       threadId: threadIdFromUrl,
     });
   }, [threadIdFromUrl]);
 
+  // ✅ Fetch messages when chat changes
   useEffect(() => {
-    if (!activeChat?.threadId) return;
+    if (!activeChat?.threadId) {
+      console.log("⚠️ No active chat to fetch messages");
+      return;
+    }
+
+    console.log("📥 Fetching messages for thread:", activeChat.threadId);
 
     const fetchMessages = async () => {
-      const res = await getApi({
-        url: API_MESSAGE_CHAT,
-        page: 1,
-        rowsPerPage: 50,
-        searchText: activeChat.threadId,
-      });
+      try {
+        const res = await getApi({
+          url: API_MESSAGE_CHAT,
+          page: 1,
+          rowsPerPage: 50,
+          searchText: activeChat.threadId,
+        });
 
-      if (res?.data) {
-        setMessages(res.data);
+        console.log("📥 Messages fetched:", res?.data?.length || 0);
+        console.log("📥 Messages data:", res?.data);
+
+        if (res?.data) {
+          setMessages(res.data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching messages:", error);
       }
     };
 
     fetchMessages();
   }, [activeChat]);
 
+  // ✅ Fetch thread details (OTHER USER info)
   useEffect(() => {
-    if (!threadIdFromUrl) return;
+    if (!threadIdFromUrl) {
+      console.log("⚠️ No threadId for fetching user details");
+      return;
+    }
+
+    console.log("👥 Fetching thread details for:", threadIdFromUrl);
 
     getApiByParams({
       url: "/messages/thread",
       params: threadIdFromUrl,
-    }).then((res) => {
-      setActiveUser(res.user);
-    });
+    })
+      .then((res) => {
+        console.log("👥 Thread details response:", res);
+        console.log("👥 Active user (receiver):", res.user);
+        setActiveUser(res.user);
+      })
+      .catch((error) => {
+        console.error("❌ Error fetching thread details:", error);
+      });
   }, [threadIdFromUrl]);
 
-
+  // ✅ Join thread room
   useEffect(() => {
-    if (!activeChat?.threadId) return;
+    if (!activeChat?.threadId) {
+      console.log("⚠️ No active chat to join");
+      return;
+    }
 
+    console.log("🚪 Joining thread room:", activeChat.threadId);
     socket.emit("joinThread", activeChat.threadId);
 
     return () => {
+      console.log("🚪 Leaving thread room");
       socket.off("newMessage");
     };
   }, [activeChat]);
 
-
+  // ✅ Connect user to socket
   useEffect(() => {
     if (!session?.user?.id) {
-      console.error("No userId in session");
+      console.error("❌ No userId in session");
       return;
     }
 
-    const userId = session.user.id; // ✅ CORRECT ID FROM YOUR SESSION
+    const userId = session.user.id;
+    console.log("🔗 Connecting user to socket:", userId);
 
     socket.emit("connectUser", userId);
 
     socket.on("connectListener", (data) => {
-      console.log("My socketId:", data.socketId);
+      console.log("✅ User connected. Socket ID:", data.socketId);
     });
 
     return () => {
@@ -104,35 +188,67 @@ const MessagePage = () => {
     };
   }, [session]);
 
+  // ✅ FIXED: Send message with detailed logging
   const sendMessage = () => {
-    if (!newComment.trim() || !activeChat?.threadId) return;
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("📤 ATTEMPTING TO SEND MESSAGE");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    console.log("📝 Message text:", newComment);
+    console.log("📝 Message length:", newComment.trim().length);
+    console.log("🔗 Thread ID:", activeChat?.threadId);
+    console.log("👤 Sender ID:", session?.user?.id);
+    console.log("👥 Receiver ID:", activeUser?._id);
+    console.log("🔌 Socket connected:", socket.connected);
+    console.log("🔌 Socket ID:", socket.id);
 
-    socket.emit("sendMessage", {
+    if (!newComment.trim()) {
+      console.error("❌ Message is empty");
+      return;
+    }
+
+    if (!activeChat?.threadId) {
+      console.error("❌ No active thread");
+      return;
+    }
+
+    if (!session?.user?.id) {
+      console.error("❌ No sender ID");
+      return;
+    }
+
+    if (!activeUser?._id) {
+      console.error("❌ No receiver ID");
+      console.log("Active user object:", activeUser);
+      return;
+    }
+
+    if (!socket.connected) {
+      console.error("❌ Socket not connected");
+      return;
+    }
+
+    const payload = {
       threadId: activeChat.threadId,
       senderId: session.user.id,
       receiverId: activeUser._id,
       text: newComment,
-    });
+    };
+
+    console.log("📤 Sending payload:", payload);
+
+    socket.emit("sendMessage", payload);
+    
+    console.log("✅ Message emitted to socket");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     setNewComment("");
   };
-
-
-  // ✅ MISSING STATE (FIXED)
-  const [newComment, setNewComment] = useState("");
-
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLInputElement | null>(null);
-  const emojiRef = useRef<HTMLDivElement | null>(null);
-  const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
-
-  const isMobile = useDeviceType();
 
   const toggleMenu = () => {
     setIsOpen(prev => !prev);
   };
 
-  /* ---------------- Emoji Click ---------------- */
   const onEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -156,7 +272,6 @@ const MessagePage = () => {
     setShowEmojiPicker(false);
   };
 
-  /* ---------------- Emoji Outside Click ---------------- */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -176,7 +291,6 @@ const MessagePage = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ---------------- Desktop Style ---------------- */
   const desktopStyle: React.CSSProperties = {
     translate: "none",
     rotate: "none",
@@ -189,7 +303,6 @@ const MessagePage = () => {
     overflow: "visible",
   };
 
-  /* ---------------- Mobile Style ---------------- */
   const mobileStyle: React.CSSProperties = {
     translate: "none",
     rotate: "none",
@@ -205,7 +318,6 @@ const MessagePage = () => {
     transition: "all 0.3s ease",
   };
 
-  /* ---------------- Outside Click Close ---------------- */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -221,7 +333,6 @@ const MessagePage = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ---------------- Mobile Overlay Sync ---------------- */
   useEffect(() => {
     if (!isMobile) return;
 
@@ -241,6 +352,22 @@ const MessagePage = () => {
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
         <div className="msg-page-wrapper card">
+          {!selectedChat ? (
+            <div className="messages-empty">
+              <div className="messages-empty-card">
+                <div className="glow-ring"></div>
+                <div className="messages-empty-icon"><MessageCircleMore size={32} color="#FFF"/><span className="ping"></span></div>
+                <h3>Start a conversation</h3>
+                <p>Select a creator from the left or discover new ones to begin chatting.</p>
+                <button className="premium-btn active-down-effect"><span>Find creators</span></button>
+                <div className="floating-bubbles">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="msg-page-container" msg-page-wrapper={true}>
             <SideBar onSelectChat={(thread: any) => setActiveChat(thread)} />
             <div className="msg-chats-layout">
@@ -260,7 +387,7 @@ const MessagePage = () => {
                               </div>
                               <div className="profile-card__info">
                                 <div className="profile-card__name-badge">
-                                  <div className="profile-card__name">{activeUser?.userName || ""}</div>
+                                  <div className="profile-card__name">{activeUser?.displayName || activeUser?.userName || ""}</div>
                                   <div className="profile-card__badge">
                                     <img src="/images/logo/profile-badge.png" alt="Profile Badge" />
                                   </div>
@@ -305,11 +432,11 @@ const MessagePage = () => {
                                     <li>
                                       <div className="icon mute-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                          <path d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M22 2L2 22" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                          <path d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M22 2L2 22" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                                         </svg>
                                       </div>
                                       <span>Mute Conversation</span>
@@ -318,12 +445,12 @@ const MessagePage = () => {
                                       <div className="icon hide-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                           <g>
-                                            <path d="M17.8201 5.77047C16.0701 4.45047 14.0701 3.73047 12.0001 3.73047C8.47009 3.73047 5.18009 5.81047 2.89009 9.41047C1.99009 10.8205 1.99009 13.1905 2.89009 14.6005C3.68009 15.8405 4.60009 16.9105 5.60009 17.7705" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                            <path d="M14.5299 9.46992L9.46992 14.5299C8.81992 13.8799 8.41992 12.9899 8.41992 11.9999C8.41992 10.0199 10.0199 8.41992 11.9999 8.41992C12.9899 8.41992 13.8799 8.81992 14.5299 9.46992Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                            <path d="M8.41992 19.5297C9.55992 20.0097 10.7699 20.2697 11.9999 20.2697C15.5299 20.2697 18.8199 18.1897 21.1099 14.5897C22.0099 13.1797 22.0099 10.8097 21.1099 9.39969C20.7799 8.87969 20.4199 8.38969 20.0499 7.92969" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                            <path d="M15.5099 12.6992C15.2499 14.1092 14.0999 15.2592 12.6899 15.5192" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                            <path d="M9.47 14.5293L2 21.9993" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                            <path d="M22 2L14.53 9.47" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                            <path d="M17.8201 5.77047C16.0701 4.45047 14.0701 3.73047 12.0001 3.73047C8.47009 3.73047 5.18009 5.81047 2.89009 9.41047C1.99009 10.8205 1.99009 13.1905 2.89009 14.6005C3.68009 15.8405 4.60009 16.9105 5.60009 17.7705" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                            <path d="M14.5299 9.46992L9.46992 14.5299C8.81992 13.8799 8.41992 12.9899 8.41992 11.9999C8.41992 10.0199 10.0199 8.41992 11.9999 8.41992C12.9899 8.41992 13.8799 8.81992 14.5299 9.46992Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                            <path d="M8.41992 19.5297C9.55992 20.0097 10.7699 20.2697 11.9999 20.2697C15.5299 20.2697 18.8199 18.1897 21.1099 14.5897C22.0099 13.1797 22.0099 10.8097 21.1099 9.39969C20.7799 8.87969 20.4199 8.38969 20.0499 7.92969" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                            <path d="M15.5099 12.6992C15.2499 14.1092 14.0999 15.2592 12.6899 15.5192" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                            <path d="M9.47 14.5293L2 21.9993" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                            <path d="M22 2L14.53 9.47" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                                           </g>
                                         </svg>
                                       </div>
@@ -332,10 +459,10 @@ const MessagePage = () => {
                                     <li>
                                       <div className="icon block-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                          <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M20.5 15.5001L15.5 20.5001" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M20.5 15.5001L15.5 20.5001" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round">
                                           </path>
                                         </svg>
                                       </div>
@@ -344,8 +471,8 @@ const MessagePage = () => {
                                     <li>
                                       <div className="icon report-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                          <path d="M5.14844 2V22" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                                          <path d="M5.14844 4H16.3484C19.0484 4 19.6484 5.5 17.7484 7.4L16.5484 8.6C15.7484 9.4 15.7484 10.7 16.5484 11.4L17.7484 12.6C19.6484 14.5 18.9484 16 16.3484 16H5.14844" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                                          <path d="M5.14844 2V22" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
+                                          <path d="M5.14844 4H16.3484C19.0484 4 19.6484 5.5 17.7484 7.4L16.5484 8.6C15.7484 9.4 15.7484 10.7 16.5484 11.4L17.7484 12.6C19.6484 14.5 18.9484 16 16.3484 16H5.14844" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
                                         </svg>
                                       </div>
                                       <span>Report Conversation</span>
@@ -353,16 +480,16 @@ const MessagePage = () => {
                                     <li>
                                       <div className="icon delete-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                          <g clip-path="url(#clip0_6001_200)">
+                                          <g clipPath="url(#clip0_6001_200)">
                                             <mask id="mask0_6001_200" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
                                               <path d="M24 0H0V24H24V0Z" fill="white"></path>
                                             </mask>
                                             <g mask="url(#mask0_6001_200)">
-                                              <path d="M21 5.98047C17.67 5.65047 14.32 5.48047 10.98 5.48047C9 5.48047 7.02 5.58047 5.04 5.78047L3 5.98047" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                              <path d="M8.5 4.97L8.72 3.66C8.88 2.71 9 2 10.69 2H13.31C15 2 15.13 2.75 15.28 3.67L15.5 4.97" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                              <path d="M19 6L18.3358 18.5288C18.2234 20.4821 18.1314 22 15.2803 22H8.71971C5.86861 22 5.77664 20.4821 5.66423 18.5288L5 6" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                              <path d="M10.3301 16.5H13.6601" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                              <path d="M9.5 12.5H14.5" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                              <path d="M21 5.98047C17.67 5.65047 14.32 5.48047 10.98 5.48047C9 5.48047 7.02 5.58047 5.04 5.78047L3 5.98047" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                              <path d="M8.5 4.97L8.72 3.66C8.88 2.71 9 2 10.69 2H13.31C15 2 15.13 2.75 15.28 3.67L15.5 4.97" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                              <path d="M19 6L18.3358 18.5288C18.2234 20.4821 18.1314 22 15.2803 22H8.71971C5.86861 22 5.77664 20.4821 5.66423 18.5288L5 6" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                              <path d="M10.3301 16.5H13.6601" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                              <path d="M9.5 12.5H14.5" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                                             </g>
                                           </g>
                                           <defs>
@@ -389,211 +516,86 @@ const MessagePage = () => {
                         <div className="chat-date-divider">
                           <span>19 August</span>
                         </div>
+                       {messages.map((msg) => {
+                            const isSender =
+                              msg.senderId?._id === session?.user?.id ||
+                              msg.senderId === session?.user?.id;
 
-                        <div className="chat-msg-wrapper incoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-txt">
-                              <p>Hello my dear sir, I’m here do deliver the design requirement document for our next projects.</p>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>10:25</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                            return (
+                              <div
+                                key={msg._id}
+                                className={`chat-msg-wrapper ${
+                                  isSender ? "outcoming-message" : "incoming-message"
+                                }`}
+                              >
+                                <div className="chat-msg-profile">
+                                  <img
+                                    src={
+                                      msg.senderId?.profile ||
+                                      "/images/profile-avatars/profile-avatar-27.jpg"
+                                    }
+                                    alt="#"
+                                  />
+                                </div>
 
-                        <div className="chat-msg-wrapper outcoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-13.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-txt">
-                              <p>Do androids truly dream of electric sheeps?</p>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>12:30</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                                <div className="chat-msg-txt-wrapper">
+                                  {/* TEXT */}
+                                  {msg.type === 1 && (
+                                    <div className="chat-msg-txt">
+                                      <p>{msg.message}</p>
+                                    </div>
+                                  )}
 
-                        <div className="chat-msg-wrapper incoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-txt">
-                              <p>Do androids dream of electric sheeps?</p>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>12:30</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                                  {/* IMAGE */}
+                                  {msg.type === 2 && (
+                                    <div className="chat-msg-image">
+                                      <img src={msg.mediaUrl} alt="chat-media" />
+                                    </div>
+                                  )}
 
-                        <div className="chat-msg-wrapper incoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-txt">
-                              <p>What do you think?</p>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>12:30</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                                  {/* VIDEO */}
+                                  {msg.type === 3 && (
+                                    <div className="chat-msg-image">
+                                      <Plyr
+                                        source={{
+                                          type: "video",
+                                          sources: [{ src: msg.mediaUrl, type: "video/mp4" }],
+                                        }}
+                                        options={{
+                                          controls: [
+                                            "play",
+                                            "progress",
+                                            "current-time",
+                                            "mute",
+                                            "volume",
+                                            "fullscreen",
+                                          ],
+                                        }}
+                                      />
+                                    </div>
+                                  )}
 
-                        <div className="chat-msg-wrapper outcoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-13.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-txt">
-                              <p>Hello my dear sir, I’m here do deliver the design requirement document for our next projects.</p>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>10:25</span>
+                                  <div className="chat-msg-details">
+                                    <div className="chat-msg-time">
+                                      <span>
+                                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="chat-date-divider divider-line">
-                          <span>Today</span>
-                        </div>
-
-                        <div className="chat-msg-wrapper incoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-txt">
-                              <p>Hello my dear sir, I’m here do deliver the design requirement document for our next projects.</p>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>10:25</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="chat-msg-wrapper outcoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-13.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-txt">
-                              <p>Do androids truly dream of electric sheeps?</p>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>12:30</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="chat-msg-wrapper incoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-image">
-                              <img src="/images/shared-media/image-1.jpg" alt="#"/>
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>12:30</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="chat-msg-wrapper incoming-message">
-                          <div className="chat-msg-profile">
-                            <img src="/images/profile-avatars/profile-avatar-6.jpg" alt="#"/>
-                          </div>
-                          <div className="chat-msg-txt-wrapper">
-                            <div className="chat-msg-image">
-                            <Plyr source={{type: "video", poster: "https://res.cloudinary.com/drhj03nvv/video/upload/so_1/posts/6982ef7e3bf4bec3e275778b/1770188670639-4945133-uhd_4096_2160_24fps.jpg",
-                              sources: [{ src: "https://res.cloudinary.com/drhj03nvv/video/upload/v1770188682/posts/6982ef7e3bf4bec3e275778b/1770188670639-4945133-uhd_4096_2160_24fps.mp4.mp4", type: "video/mp4" }],
-                            }}
-                            options={{controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",],}}
-                            />
-                            </div>
-                            <div className="chat-msg-details">
-                              <div className="chat-msg-time">
-                                <span>12:30</span>
-                              </div>
-                              <div className="chat-msg-check-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none"></path>
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
+                            );
+                          })}
                         {/* {messages?.map((msg) => {
                           return (
                           <div
                             key={msg._id}
-                            className="chat-msg-wrapper incoming-message">
+                            className={`chat-msg-wrapper ${isSender ? 'outgoing-message' : 'incoming-message'}`}>
                             <div className="chat-msg-profile">
-                              <img src={msg.sender?.image || "/images/profile-avatars/profile-avatar-27.jpg"} alt="#" />
+                              <img src={msg.senderId?.profile || "/images/profile-avatars/profile-avatar-27.jpg"} alt="#" />
                             </div>
                             <div className="chat-msg-txt-wrapper">
                               <div className="chat-msg-txt">
@@ -613,7 +615,7 @@ const MessagePage = () => {
                            );
                         })} */}
 
-                    <div className="ppvrequest_wrap">
+                    {/* <div className="ppvrequest_wrap">
                       <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
                       <div className="warning_wrap success"><BadgeCheck size={20}/> You Have Accepted The PPV request</div>
                       <div className="warning_wrap danger"><CircleX size={20}/> You Have Accepted The PPV request</div>
@@ -653,7 +655,7 @@ const MessagePage = () => {
                           <div className="img_wrap">
                             <svg className="icons idshape size-45"></svg>
                           </div>
-                          {/* below section sta commented */}
+                        
                           <div className="img_wrap">
                             <img src="/images/logo/black-logo.jpg" className="img-fluid upldimg" alt="preview"/>
                             <button type="button" className="btn-danger"><CircleX size={16} /></button>
@@ -662,7 +664,7 @@ const MessagePage = () => {
                             <video src="https://res.cloudinary.com/drhj03nvv/video/upload/v1770188682/posts/6982ef7e3bf4bec3e275778b/1770188670639-4945133-uhd_4096_2160_24fps.mp4.mp4" className="img-fluid upldimg" controls/>
                             <button type="button" className="btn-danger"><CircleX size={16} /></button>
                           </div>
-                          {/* upper section sta commented */}
+                        
                         </div>
                       </div>
                         <div className="actions">
@@ -675,7 +677,7 @@ const MessagePage = () => {
                             <button className="btn-txt-gradient"><span>Decline</span></button>
                           </div>
                         </div>
-                    </div>
+                    </div> */}
 
                         <div className="chat-msg-typing-anim-elem">
                           <div className="loading">
@@ -694,44 +696,55 @@ const MessagePage = () => {
                             <input type="file" hidden />
                             <span>
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M12.3297 12.1499L9.85969 14.6199C8.48969 15.9899 8.48969 18.1999 9.85969 19.5699C11.2297 20.9399 13.4397 20.9399 14.8097 19.5699L18.6997 15.6799C21.4297 12.9499 21.4297 8.50992 18.6997 5.77992C15.9697 3.04992 11.5297 3.04992 8.79969 5.77992L4.55969 10.0199C2.21969 12.3599 2.21969 16.1599 4.55969 18.5099" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M12.3297 12.1499L9.85969 14.6199C8.48969 15.9899 8.48969 18.1999 9.85969 19.5699C11.2297 20.9399 13.4397 20.9399 14.8097 19.5699L18.6997 15.6799C21.4297 12.9499 21.4297 8.50992 18.6997 5.77992C15.9697 3.04992 11.5297 3.04992 8.79969 5.77992L4.55969 10.0199C2.21969 12.3599 2.21969 16.1599 4.55969 18.5099" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                               </svg>
                             </span>
                           </label>
                         </div>
                         <div className="chat-msg-typing-input">
                           <input
+                            ref={textareaRef}
                             type="text"
                             placeholder="Send a message..."
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                sendMessage();
+                              }
+                            }}
                           />
                         </div>
                         <div className="chat-msg-action-btns">
-                          <button className="emojis-icon-btn" onClick={() => setShowEmojiPicker((prev) => !prev)}>
+                          <button 
+                            ref={emojiButtonRef}
+                            className="emojis-icon-btn" 
+                            onClick={() => setShowEmojiPicker((prev) => !prev)}
+                          >
                             <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
                               <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"></rect>
-                              <path d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                              <path d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
                             </svg>
                           </button>
                           <button className="voice-recorder-icon-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
                               <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"></rect>
-                              <path d="M11.4434 15.6387V16.9845C11.4434 20.3253 14.1588 23.0408 17.4996 23.0408C20.8404 23.0408 23.5559 20.3253 23.5559 16.9845V15.6387" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M17.5007 20.2715C19.2502 20.2715 20.6673 18.8544 20.6673 17.1048V12.7507C20.6673 11.0011 19.2502 9.58398 17.5007 9.58398C15.7511 9.58398 14.334 11.0011 14.334 12.7507V17.1048C14.334 18.8544 15.7511 20.2715 17.5007 20.2715Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M16.4004 13.0905C17.1129 12.8292 17.8887 12.8292 18.6012 13.0905" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M16.8672 14.7687C17.2868 14.6578 17.7222 14.6578 18.1418 14.7687" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M17.5 23.041V25.416" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                              <path d="M11.4434 15.6387V16.9845C11.4434 20.3253 14.1588 23.0408 17.4996 23.0408C20.8404 23.0408 23.5559 20.3253 23.5559 16.9845V15.6387" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M17.5007 20.2715C19.2502 20.2715 20.6673 18.8544 20.6673 17.1048V12.7507C20.6673 11.0011 19.2502 9.58398 17.5007 9.58398C15.7511 9.58398 14.334 11.0011 14.334 12.7507V17.1048C14.334 18.8544 15.7511 20.2715 17.5007 20.2715Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M16.4004 13.0905C17.1129 12.8292 17.8887 12.8292 18.6012 13.0905" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M16.8672 14.7687C17.2868 14.6578 17.7222 14.6578 18.1418 14.7687" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M17.5 23.041V25.416" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                             </svg>
                           </button>
                           <button className="btn-txt-simple send-msg-btn" onClick={sendMessage}>
                             <span>Send</span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                              <path d="M10.1094 13.6505L13.6894 10.0605" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                              <path d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                              <path d="M10.1094 13.6505L13.6894 10.0605" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                             </svg>
                           </button>
 
@@ -756,6 +769,7 @@ const MessagePage = () => {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>
