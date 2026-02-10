@@ -25,13 +25,18 @@ import { CgClose } from "react-icons/cg";
 import AllCreators from "./AllCreators";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { fetchAllCreators, fetchMyPaidPosts } from "@/redux/store/Action";
+import {
+  fetchAllCreators,
+  fetchFeaturedPosts,
+  fetchMyPaidPosts,
+} from "@/redux/store/Action";
 import PPVRequestModal from "../ProfilePage/PPVRequestModal";
 import { useRouter } from "next/navigation";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import { subscribeCreator, unlockPost } from "@/redux/Subscription/Action";
 import UnlockContentModal from "../ProfilePage/UnlockContentModal";
 import SubscriptionModal from "../ProfilePage/SubscriptionModal";
+import FeaturedContentSlider from "./FeaturedSlider";
 
 type TimeFilter =
   | "all_time"
@@ -80,6 +85,9 @@ const StorePage = () => {
     }, 100);
   };
 
+  const { featuredPosts, loadingFeaturedPosts } = useSelector(
+    (state: RootState) => state.creators,
+  );
   const handleClose = () => {
     const video: HTMLVideoElement | undefined = playerRef.current?.media;
     video?.pause();
@@ -230,6 +238,16 @@ const StorePage = () => {
     setShowSubscriptionModal(false);
   };
 
+  useEffect(() => {
+    if (!profilePublicId) return;
+
+    dispatch(
+      fetchFeaturedPosts({
+        publicId: profilePublicId,
+        limit: 5,
+      }),
+    );
+  }, [dispatch, profilePublicId]);
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -533,75 +551,85 @@ const StorePage = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="moneyboy-swiper-wrapper" data-moneyboy-swiper>
-                  <div className="moneyboy-swiper-container">
-                    <div className="moneyboy-swiper-header">
-                      <h3 className="section-heading-label">
-                        Featured contents
-                      </h3>
-                      <div className="moneyboy-swiper-controls">
-                        <button className="moneyboy-swiper-control-btn prev-btn">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12C2.75 6.89137 6.89137 2.75 12 2.75ZM13.7891 7.93848C13.4958 7.64639 13.0209 7.64736 12.7285 7.94043L9.20898 11.4697C8.91713 11.7624 8.91722 12.2366 9.20898 12.5293L12.7285 16.0596C13.021 16.3528 13.4958 16.353 13.7891 16.0605C14.0822 15.7681 14.0834 15.2933 13.791 15L10.7988 11.999L13.791 8.99902C14.0831 8.70569 14.0823 8.23084 13.7891 7.93848Z"
-                              fill="url(#paint0_linear_792_43)"
-                            />
-                            <defs>
-                              <linearGradient
-                                id="paint0_linear_792_43"
-                                x1="21.4759"
-                                y1="1.25"
-                                x2="-7.14787"
-                                y2="8.22874"
-                                gradientUnits="userSpaceOnUse"
-                              >
-                                <stop stopColor="#FECE26" />
-                                <stop offset="1" stopColor="#E5741F" />
-                              </linearGradient>
-                            </defs>
-                          </svg>
-                        </button>
-                        <button className="moneyboy-swiper-control-btn next-btn">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12C1.25 6.06294 6.06294 1.25 12 1.25ZM12 2.75C6.89137 2.75 2.75 6.89137 2.75 12C2.75 17.1086 6.89137 21.25 12 21.25C17.1086 21.25 21.25 17.1086 21.25 12C21.25 6.89137 17.1086 2.75 12 2.75ZM10.2109 7.93848C10.5042 7.64639 10.9791 7.64736 11.2715 7.94043L14.791 11.4697C15.0829 11.7624 15.0828 12.2366 14.791 12.5293L11.2715 16.0596C10.979 16.3528 10.5042 16.353 10.2109 16.0605C9.91775 15.7681 9.91656 15.2933 10.209 15L13.2012 11.999L10.209 8.99902C9.91685 8.70569 9.91774 8.23084 10.2109 7.93848Z"
-                              fill="url(#paint0_linear_792_51)"
-                            />
-                            <defs>
-                              <linearGradient
-                                id="paint0_linear_792_51"
-                                x1="2.52411"
-                                y1="1.25"
-                                x2="31.1479"
-                                y2="8.22874"
-                                gradientUnits="userSpaceOnUse"
-                              >
-                                <stop stopColor="#FECE26" />
-                                <stop offset="1" stopColor="#E5741F" />
-                              </linearGradient>
-                            </defs>
-                          </svg>
-                        </button>
+                {featuredPosts?.length > 0 && (
+                  <div className="moneyboy-swiper-wrapper" data-moneyboy-swiper>
+                    <div className="moneyboy-swiper-container">
+                      <div className="moneyboy-swiper-header">
+                        <h3 className="section-heading-label">
+                          Featured contents
+                        </h3>
+                        <div className="moneyboy-swiper-controls">
+                          <button className="moneyboy-swiper-control-btn prev-btn">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12C2.75 6.89137 6.89137 2.75 12 2.75ZM13.7891 7.93848C13.4958 7.64639 13.0209 7.64736 12.7285 7.94043L9.20898 11.4697C8.91713 11.7624 8.91722 12.2366 9.20898 12.5293L12.7285 16.0596C13.021 16.3528 13.4958 16.353 13.7891 16.0605C14.0822 15.7681 14.0834 15.2933 13.791 15L10.7988 11.999L13.791 8.99902C14.0831 8.70569 14.0823 8.23084 13.7891 7.93848Z"
+                                fill="url(#paint0_linear_792_43)"
+                              />
+                              <defs>
+                                <linearGradient
+                                  id="paint0_linear_792_43"
+                                  x1="21.4759"
+                                  y1="1.25"
+                                  x2="-7.14787"
+                                  y2="8.22874"
+                                  gradientUnits="userSpaceOnUse"
+                                >
+                                  <stop stopColor="#FECE26" />
+                                  <stop offset="1" stopColor="#E5741F" />
+                                </linearGradient>
+                              </defs>
+                            </svg>
+                          </button>
+                          <button className="moneyboy-swiper-control-btn next-btn">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12C1.25 6.06294 6.06294 1.25 12 1.25ZM12 2.75C6.89137 2.75 2.75 6.89137 2.75 12C2.75 17.1086 6.89137 21.25 12 21.25C17.1086 21.25 21.25 17.1086 21.25 12C21.25 6.89137 17.1086 2.75 12 2.75ZM10.2109 7.93848C10.5042 7.64639 10.9791 7.64736 11.2715 7.94043L14.791 11.4697C15.0829 11.7624 15.0828 12.2366 14.791 12.5293L11.2715 16.0596C10.979 16.3528 10.5042 16.353 10.2109 16.0605C9.91775 15.7681 9.91656 15.2933 10.209 15L13.2012 11.999L10.209 8.99902C9.91685 8.70569 9.91774 8.23084 10.2109 7.93848Z"
+                                fill="url(#paint0_linear_792_51)"
+                              />
+                              <defs>
+                                <linearGradient
+                                  id="paint0_linear_792_51"
+                                  x1="2.52411"
+                                  y1="1.25"
+                                  x2="31.1479"
+                                  y2="8.22874"
+                                  gradientUnits="userSpaceOnUse"
+                                >
+                                  <stop stopColor="#FECE26" />
+                                  <stop offset="1" stopColor="#E5741F" />
+                                </linearGradient>
+                              </defs>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="moneyboy-swiper-cards-wrapper">
+                       <FeaturedContentSlider
+  publicId={profilePublicId}
+  loggedInUserId={loggedInUserId}
+  isCreator={isCreator}
+  onUnlock={(post) => setUnlockModalPost(post)}
+  onSubscribe={() => {
+    setSubscriptionPlan("MONTHLY");
+    setShowSubscriptionModal(true);
+  }}
+/>
                       </div>
                     </div>
-                    <div className="moneyboy-swiper-cards-wrapper">
-                      <FeaturedSlider publicId={profilePublicId}  />
-                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="moneyboy-special-content-banner-wrapper card">
                   <div className="moneyboy-special-content-banner-container">
