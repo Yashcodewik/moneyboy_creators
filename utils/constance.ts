@@ -3,8 +3,8 @@
 //  export const socketBaseUrl = "http://localhost:1999/";
 
 // Yash 
-export const APIBaseUrl = "http://192.168.1.36:1999/api/";
-export const ImageBaseUrl = "http://192.168.1.36:1999/";
+// export const APIBaseUrl = "http://192.168.1.36:1999/api/";
+// export const ImageBaseUrl = "http://192.168.1.36:1999/";
 export const socketBaseUrl = "http://192.168.1.36:1999/";
 
 // Mir
@@ -12,5 +12,5 @@ export const socketBaseUrl = "http://192.168.1.36:1999/";
 // export const ImageBaseUrl = "http://192.168.1.27:1999/";
 // export const socketBaseUrl = "http://192.168.1.27:1999/";
 
-// export const APIBaseUrl = "https://api.moneyboy.com/api/";
-// export const frontendURL = "https://moneyboy.com";
+export const APIBaseUrl = "https://api.moneyboy.com/api/";
+export const frontendURL = "https://moneyboy.com";
