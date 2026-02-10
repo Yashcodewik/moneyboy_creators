@@ -27,14 +27,14 @@ const [file, setFile] = useState<File | null>(null);
 
 const handleSendRequest = async () => {
   if (!offerPrice || offerPrice < 20) {
-    alert("Minimum request price is 20€");
+    // alert("Minimum request price is 20€");
     return;
   }
 
   setLoading(true);
 
   const formData = new FormData();
-  formData.append("postId", post._id);  
+  // formData.append("postId", post._id);  
   formData.append("creatorId", creator.userId); 
   formData.append("type", requestType);      
   formData.append("price", offerPrice.toString());
@@ -54,7 +54,7 @@ const handleSendRequest = async () => {
   if (res?.success) {
     onSuccess({ amount: offerPrice });
   } else {
-    alert(res?.message || "Failed to send PPV request");
+    // alert(res?.message || "Failed to send PPV request");
   }
 };
 
@@ -150,7 +150,7 @@ const handleSendRequest = async () => {
            <input
               className="form-input"
               type="number"
-              placeholder="10.99"
+              placeholder="20.00"
               value={offerPrice}
               onChange={(e) => setOfferPrice(Number(e.target.value))}
             />
