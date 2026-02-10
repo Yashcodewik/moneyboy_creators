@@ -26,102 +26,6 @@ const MessagePage = () => {
   const [activeUser, setActiveUser] = useState<any>(null);
   const [selectedChat, setSelectedChat] = useState(null);
 
-  useEffect(() => {
-    socket.on("newMessage", (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-
-    return () => {
-      socket.off("newMessage");
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!threadIdFromUrl) return;
-
-    setActiveChat({
-      threadId: threadIdFromUrl,
-    });
-  }, [threadIdFromUrl]);
-
-  useEffect(() => {
-    if (!activeChat?.threadId) return;
-
-    const fetchMessages = async () => {
-      const res = await getApi({
-        url: API_MESSAGE_CHAT,
-        page: 1,
-        rowsPerPage: 50,
-        searchText: activeChat.threadId,
-      });
-
-      if (res?.data) {
-        setMessages(res.data);
-      }
-    };
-
-    fetchMessages();
-  }, [activeChat]);
-
-  useEffect(() => {
-    if (!threadIdFromUrl) return;
-
-    getApiByParams({
-      url: "/messages/thread",
-      params: threadIdFromUrl,
-    }).then((res) => {
-      setActiveUser(res.user);
-    });
-  }, [threadIdFromUrl]);
-
-
-  useEffect(() => {
-    if (!activeChat?.threadId) return;
-
-    socket.emit("joinThread", activeChat.threadId);
-
-    return () => {
-      socket.off("newMessage");
-    };
-  }, [activeChat]);
-
-
-  useEffect(() => {
-    if (!session?.user?.id) {
-      console.error("No userId in session");
-      return;
-    }
-
-    const userId = session.user.id; // ✅ CORRECT ID FROM YOUR SESSION
-
-    socket.emit("connectUser", userId);
-
-    socket.on("connectListener", (data) => {
-      console.log("My socketId:", data.socketId);
-    });
-
-    return () => {
-      socket.off("connectListener");
-    };
-  }, [session]);
-
-  const sendMessage = () => {
-    if (!newComment.trim() || !activeChat?.threadId) return;
-
-    socket.emit("sendMessage", {
-      threadId: activeChat.threadId,
-      senderId: session.user.id,
-      receiverId: activeUser._id,
-      text: newComment,
-    });
-
-    setNewComment("");
-  };
-
-
-  // ✅ MISSING STATE (FIXED)
-  const [newComment, setNewComment] = useState("");
-
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLInputElement | null>(null);
   const emojiRef = useRef<HTMLDivElement | null>(null);
@@ -129,11 +33,221 @@ const MessagePage = () => {
 
   const isMobile = useDeviceType();
 
+  // ✅ LOG: Socket connection
+  useEffect(() => {
+    console.log("🔌 Socket connected:", socket.connected);
+    console.log("🔌 Socket ID:", socket.id);
+
+    socket.on("connect", () => {
+      console.log("✅ Socket CONNECTED with ID:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Socket DISCONNECTED");
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("❌ Socket connection error:", error);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("connect_error");
+    };
+  }, []);
+
+  // ✅ LOG: Session data
+  useEffect(() => {
+    console.log("👤 Session data:", session);
+    console.log("👤 User ID:", session?.user?.id);
+  }, [session]);
+
+  // ✅ Handle incoming messages
+  useEffect(() => {
+    console.log("📨 Setting up newMessage listener");
+    
+    socket.on("newMessage", (message) => {
+      console.log("📨 NEW MESSAGE RECEIVED:", message);
+      setMessages((prev) => {
+        console.log("📨 Previous messages:", prev.length);
+        console.log("📨 Updated messages:", prev.length + 1);
+        return [...prev, message];
+      });
+    });
+
+    return () => {
+      console.log("🧹 Cleaning up newMessage listener");
+      socket.off("newMessage");
+    };
+  }, []);
+
+  // ✅ Set active chat from URL
+  useEffect(() => {
+    if (!threadIdFromUrl) {
+      console.log("⚠️ No threadId in URL");
+      return;
+    }
+
+    console.log("🔗 Thread ID from URL:", threadIdFromUrl);
+    setActiveChat({
+      threadId: threadIdFromUrl,
+    });
+  }, [threadIdFromUrl]);
+
+  // ✅ Fetch messages when chat changes
+  useEffect(() => {
+    if (!activeChat?.threadId) {
+      console.log("⚠️ No active chat to fetch messages");
+      return;
+    }
+
+    console.log("📥 Fetching messages for thread:", activeChat.threadId);
+
+    const fetchMessages = async () => {
+      try {
+        const res = await getApi({
+          url: API_MESSAGE_CHAT,
+          page: 1,
+          rowsPerPage: 50,
+          searchText: activeChat.threadId,
+        });
+
+        console.log("📥 Messages fetched:", res?.data?.length || 0);
+        console.log("📥 Messages data:", res?.data);
+
+        if (res?.data) {
+          setMessages(res.data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching messages:", error);
+      }
+    };
+
+    fetchMessages();
+  }, [activeChat]);
+
+  // ✅ Fetch thread details (OTHER USER info)
+  useEffect(() => {
+    if (!threadIdFromUrl) {
+      console.log("⚠️ No threadId for fetching user details");
+      return;
+    }
+
+    console.log("👥 Fetching thread details for:", threadIdFromUrl);
+
+    getApiByParams({
+      url: "/messages/thread",
+      params: threadIdFromUrl,
+    })
+      .then((res) => {
+        console.log("👥 Thread details response:", res);
+        console.log("👥 Active user (receiver):", res.user);
+        setActiveUser(res.user);
+      })
+      .catch((error) => {
+        console.error("❌ Error fetching thread details:", error);
+      });
+  }, [threadIdFromUrl]);
+
+  // ✅ Join thread room
+  useEffect(() => {
+    if (!activeChat?.threadId) {
+      console.log("⚠️ No active chat to join");
+      return;
+    }
+
+    console.log("🚪 Joining thread room:", activeChat.threadId);
+    socket.emit("joinThread", activeChat.threadId);
+
+    return () => {
+      console.log("🚪 Leaving thread room");
+      socket.off("newMessage");
+    };
+  }, [activeChat]);
+
+  // ✅ Connect user to socket
+  useEffect(() => {
+    if (!session?.user?.id) {
+      console.error("❌ No userId in session");
+      return;
+    }
+
+    const userId = session.user.id;
+    console.log("🔗 Connecting user to socket:", userId);
+
+    socket.emit("connectUser", userId);
+
+    socket.on("connectListener", (data) => {
+      console.log("✅ User connected. Socket ID:", data.socketId);
+    });
+
+    return () => {
+      socket.off("connectListener");
+    };
+  }, [session]);
+
+  // ✅ FIXED: Send message with detailed logging
+  const sendMessage = () => {
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("📤 ATTEMPTING TO SEND MESSAGE");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    console.log("📝 Message text:", newComment);
+    console.log("📝 Message length:", newComment.trim().length);
+    console.log("🔗 Thread ID:", activeChat?.threadId);
+    console.log("👤 Sender ID:", session?.user?.id);
+    console.log("👥 Receiver ID:", activeUser?._id);
+    console.log("🔌 Socket connected:", socket.connected);
+    console.log("🔌 Socket ID:", socket.id);
+
+    if (!newComment.trim()) {
+      console.error("❌ Message is empty");
+      return;
+    }
+
+    if (!activeChat?.threadId) {
+      console.error("❌ No active thread");
+      return;
+    }
+
+    if (!session?.user?.id) {
+      console.error("❌ No sender ID");
+      return;
+    }
+
+    if (!activeUser?._id) {
+      console.error("❌ No receiver ID");
+      console.log("Active user object:", activeUser);
+      return;
+    }
+
+    if (!socket.connected) {
+      console.error("❌ Socket not connected");
+      return;
+    }
+
+    const payload = {
+      threadId: activeChat.threadId,
+      senderId: session.user.id,
+      receiverId: activeUser._id,
+      text: newComment,
+    };
+
+    console.log("📤 Sending payload:", payload);
+
+    socket.emit("sendMessage", payload);
+    
+    console.log("✅ Message emitted to socket");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    setNewComment("");
+  };
+
   const toggleMenu = () => {
     setIsOpen(prev => !prev);
   };
 
-  /* ---------------- Emoji Click ---------------- */
   const onEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -157,7 +271,6 @@ const MessagePage = () => {
     setShowEmojiPicker(false);
   };
 
-  /* ---------------- Emoji Outside Click ---------------- */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -177,7 +290,6 @@ const MessagePage = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ---------------- Desktop Style ---------------- */
   const desktopStyle: React.CSSProperties = {
     translate: "none",
     rotate: "none",
@@ -190,7 +302,6 @@ const MessagePage = () => {
     overflow: "visible",
   };
 
-  /* ---------------- Mobile Style ---------------- */
   const mobileStyle: React.CSSProperties = {
     translate: "none",
     rotate: "none",
@@ -206,7 +317,6 @@ const MessagePage = () => {
     transition: "all 0.3s ease",
   };
 
-  /* ---------------- Outside Click Close ---------------- */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -222,7 +332,6 @@ const MessagePage = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ---------------- Mobile Overlay Sync ---------------- */
   useEffect(() => {
     if (!isMobile) return;
 
