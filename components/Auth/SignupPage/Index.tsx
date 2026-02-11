@@ -89,42 +89,66 @@ const SignupPage = () => {
     },
   });
 
-  const verifyOtp = async (otp: string) => {
+  // const verifyOtp = async (otp: string) => {
+  //   try {
+  //     const res = await apiPost({
+  //       url: API_VERIFY_OTP,
+  //       values: {
+  //         email: emailForOtp,
+  //         otp: otp,
+  //       },
+  //     });
+  //     // console.log(res?.data ,"==============res?.data==============");
+  //     // if (res?.success) {
+  //     //   console.log(res?.data ,"==============res?.data==============");
+  //     // //  setToken(res?.data?.data?.token);
+  //     // }
+  //     const res = await signIn("credentials", {
+  //       redirect: false,
+  //       email: emailForOtp,
+  //       otp,
+  //     });
+
+  //     if (res?.error) {
+  //       ShowToast(res.error, "error");
+  //       return;
+  //     }
+
+  //     ShowToast("OTP verified successfully", "success");
+  //     setOtpOpen(false);
+
+  //     // redirect to feed
+  //     router.push("/feed");
+  //     //router.push("/discover");
+  //   } catch (err: any) {
+  //     ShowToast(err?.message || "OTP verification failed", "error");
+  //   }
+  // };
+
+
+    const verifyOtp = async (otp: string) => {
     try {
-      const res = await apiPost({
-        url: API_VERIFY_OTP,
-        values: {
-          email: emailForOtp,
-          otp: otp,
-        },
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: emailForOtp,
+        otp,
       });
-      console.log(res?.data ,"==============res?.data==============");
-      if (res?.success) {
-        console.log(res?.data ,"==============res?.data==============");
-      //  setToken(res?.data?.data?.token);
+
+      if (res?.error) {
+        ShowToast(res.error, "error");
+        return;
       }
-      // const res = await signIn("credentials", {
-      //   redirect: false,
-      //   email: emailForOtp,
-      //   otp,
-      // });
 
-      // if (res?.error) {
-      //   ShowToast(res.error, "error");
-      //   return;
-      // }
-
-      // ShowToast("OTP verified successfully", "success");
-      // setOtpOpen(false);
+      ShowToast("OTP verified successfully", "success");
+      setOtpOpen(false);
 
       // redirect to feed
       router.push("/feed");
-      //router.push("/discover");
     } catch (err: any) {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
   };
-
+  
   return (
     <div className="container login_wrap lg_wrap">
       <div className="img_wrap">
@@ -145,10 +169,16 @@ const SignupPage = () => {
             <h3 className="heading">User Sign up</h3>
             <p>Sign up to interact with your idols!</p>
             <div className="loginbtn_wrap">
-              <button className="google-button active-down-effect ">
+              <button
+                className="google-button active-down-effect "
+                onClick={() => signIn("google")}
+              >
                 <FcGoogle size={18} /> Sign up with Google
               </button>
-              <button className="x-button active-down-effect">
+              <button
+                className="x-button active-down-effect"
+                onClick={() => signIn("twitter")}
+              >
                 <FaXTwitter size={18} /> Sign up with X
               </button>
             </div>

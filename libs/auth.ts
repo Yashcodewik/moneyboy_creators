@@ -102,7 +102,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google" || account?.provider === "twitter") {
         try {
           const res = await apiPost({
-            url: "/auth/social-login",
+            url: "/creator/social-login",
             values: {
               provider: account.provider,
               providerAccountId: account.providerAccountId,
