@@ -29,22 +29,22 @@ const PromoteModal = ({onClose}: {onClose: () => void}) => {
           </div>
           <div className="select_wrap grid2">
             <label className="radio_wrap box_select">
-              <input type="radio" name="access" />
+              <input type="radio" name="duration" />
               <h3>3 Days</h3>
               <p>$9.99 /day</p>
             </label>
             <label className="radio_wrap box_select">
-              <input type="radio" name="access" />
+              <input type="radio" name="duration" />
               <h3>7 Days</h3>
               <p>$7.99 /day</p>
             </label>
             <label className="radio_wrap box_select">
-              <input type="radio" name="access" />
+              <input type="radio" name="duration" />
               <h3>14 Days</h3>
               <p>$5.99 /day</p>
             </label>
             <label className="radio_wrap box_select">
-              <input type="radio" name="access" />
+              <input type="radio" name="duration" />
               <h3>30 Days</h3>
               <p>$3.99 /day</p>
             </label>
@@ -61,18 +61,18 @@ const PromoteModal = ({onClose}: {onClose: () => void}) => {
           <h4>Payment Method</h4>
           <div className="select_wrap">
             <label className="radio_wrap">
-              <input type="radio" name="access" />{" "}
+              <input type="radio" name="payment" />{" "}
               <img src="/images/icons/wallet_icons.svg" className="icons" />{" "}
               <p>Pay with wallet</p>
             </label>
             <label className="radio_wrap">
-              <input type="radio" name="access" />{" "}
+              <input type="radio" name="payment" />{" "}
               <img src="/images/icons/card_icons.svg" className="icons" />{" "}
               <p>Pay with credit/debit card</p>
             </label>
           </div>
           <div className="actions">
-            <button className="premium-btn active-down-effect">
+            <button className="premium-btn active-down-effect"  onClick={onClose}>
               <span>Confirm & Promote</span>
             </button>
             <button className="active-down-effect" onClick={onClose}>
