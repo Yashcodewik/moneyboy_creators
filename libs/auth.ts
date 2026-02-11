@@ -3,6 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { apiPost } from "@/utils/endpoints/common";
 import { encrypt } from "./encryption.service";
 import { API_VERIFY_OTP, API_LOGIN } from "@/utils/api/APIConstant";
+import GoogleProvider from "next-auth/providers/google";
+import TwitterProvider from "next-auth/providers/twitter";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -72,6 +74,17 @@ export const authOptions: NextAuthOptions = {
         return userData;
       },
     }),
+
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+
+    TwitterProvider({
+      clientId: process.env.TWITTER_CLIENT_ID!,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+      version: "2.0",
+    }),
   ],
 
   session: { strategy: "jwt" },
@@ -84,9 +97,39 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    async jwt({ token, user }: { token: any; user: any }) {
-      console.log("JWT callback called. Token before:", token, "User:", user);
+    
+    async signIn({ user, account }) {
+      if (account?.provider === "google" || account?.provider === "twitter") {
+        try {
+          const res = await apiPost({
+            url: "/auth/social-login",
+            values: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              email: user.email,
+              name: user.name,
+              avatar: user.image,
+            },
+          });
 
+          if (!res?.success) return false;
+
+          // Attach backend token
+          user.id = res.user._id;
+          user.accessToken = res.token;
+          user.publicId = res.user.publicId;
+
+          return true;
+        } catch (err) {
+          console.error("Social login failed:", err);
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
         token.sub = user.id;
         token.user = user;
@@ -123,8 +166,6 @@ export const authOptions: NextAuthOptions = {
           console.error("Failed to encrypt session data:", err);
         }
       }
-
-      console.log("Session callback returning session:", session);
       return session;
     },
   },
