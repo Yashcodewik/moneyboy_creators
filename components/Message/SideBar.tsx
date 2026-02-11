@@ -82,7 +82,7 @@ const SideBar = ({ onSelectChat }: any) => {
             <div key={chat.threadId}
               className="msg-contact-box"
               msg-chat-contact=""
-              data-active=""
+              data-active={activeChat === chat.threadId ? "true" : undefined}
               onClick={() => {
                 setActiveChat(chat.threadId);
                 onSelectChat(chat);

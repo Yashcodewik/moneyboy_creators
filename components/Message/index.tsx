@@ -36,8 +36,6 @@ const MessagePage = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
 
-
-
   const isMobile = useDeviceType();
   useEffect(() => {
     console.log("ACTIVE CHAT:", activeChat);
@@ -68,6 +66,17 @@ const MessagePage = () => {
     };
   }, []);
 
+useEffect(() => {
+  if (!session?.user?.id) return;
+
+  socket.emit("heartbeat", session.user.id);
+
+  const interval = setInterval(() => {
+    socket.emit("heartbeat", session.user.id);
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, [session?.user?.id]);
 
   useEffect(() => {
     const handler = (message: any) => {
