@@ -1582,24 +1582,14 @@ const StorePage = () => {
                 "fullscreen",
               ],
             }}
-            onConfirm={handleConfirmUnlock}
-            loading={unlocking}
-          />
-        )}
-
-        {showPPVModal && activeStoreOwner && (
-          <PPVRequestModal
-            onClose={() => setShowPPVModal(false)}
-            creator={{
-              userId: selectedCreator._id,
-              displayName: selectedCreator.displayName,
-              userName: selectedCreator.userName,
-              profile: selectedCreator.profile,
-            }}
-            post={{ _id: "" }}
-            onSuccess={({ threadPublicId }) => {
-              setShowPPVModal(false);
-              router.push(`/message?threadId=${threadPublicId}`);
+            source={{
+              type: "video",
+              sources: [
+                {
+                  src: "https://res.cloudinary.com/drhj03nvv/video/upload/v1770026049/posts/69807440e60b526caa6da50c/1770026048286-screen-capture.webm.mkv",
+                  type: "video/mp4",
+                },
+              ],
             }}
           />
         </div>
