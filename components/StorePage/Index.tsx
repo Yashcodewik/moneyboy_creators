@@ -195,7 +195,7 @@ const StorePage = () => {
     e.preventDefault(); // ✅ REQUIRED
     e.stopPropagation(); // ✅ REQUIRED
 
-    const isSaved = savedPosts[post._id]?.saved === true;
+    const isSaved = savedPosts[post._id]?.saved ?? post.isSaved ?? false;
 
     if (isSaved) {
       dispatch(
@@ -647,7 +647,7 @@ const StorePage = () => {
                           href="#"
                           className="btn-txt-gradient btn-outline"
                           onClick={() => {
-                            setSubscriptionPlan("MONTHLY"); 
+                            setSubscriptionPlan("MONTHLY");
                             setShowSubscriptionModal(true);
                           }}
                         >
@@ -950,7 +950,9 @@ const StorePage = () => {
                                         isCreator &&
                                         post.userId === loggedInUserId;
                                       const isSaved =
-                                        savedPosts[post._id]?.saved === true;
+                                        savedPosts[post._id]?.saved ??
+                                        post.isSaved ??
+                                        false;
 
                                       return (
                                         <div
@@ -1113,15 +1115,19 @@ const StorePage = () => {
                                                   "subscriber" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline grey-variant"
-                                                     onClick={(e) => {
-    if (isOwnPost) {
-      e.preventDefault();
-      return;
-    }
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
 
-    setSubscriptionPlan("MONTHLY");
-    setShowSubscriptionModal(true);
-  }}
+                                                      setSubscriptionPlan(
+                                                        "MONTHLY",
+                                                      );
+                                                      setShowSubscriptionModal(
+                                                        true,
+                                                      );
+                                                    }}
                                                   >
                                                     <svg
                                                       xmlns="http://www.w3.org/2000/svg"
@@ -1226,7 +1232,9 @@ const StorePage = () => {
                                       isCreator &&
                                       post.userId === loggedInUserId;
                                     const isSaved =
-                                      savedPosts[post._id]?.saved === true;
+                                      savedPosts[post._id]?.saved ??
+                                      post.isSaved ??
+                                      false;
                                     return (
                                       <div
                                         className="creator-media-card card"
@@ -1375,14 +1383,18 @@ const StorePage = () => {
                                                 <a
                                                   className="btn-txt-gradient btn-outline grey-variant"
                                                   onClick={(e) => {
-    if (isOwnPost) {
-      e.preventDefault();
-      return;
-    }
+                                                    if (isOwnPost) {
+                                                      e.preventDefault();
+                                                      return;
+                                                    }
 
-    setSubscriptionPlan("MONTHLY");
-    setShowSubscriptionModal(true);
-  }}
+                                                    setSubscriptionPlan(
+                                                      "MONTHLY",
+                                                    );
+                                                    setShowSubscriptionModal(
+                                                      true,
+                                                    );
+                                                  }}
                                                 >
                                                   <svg
                                                     xmlns="http://www.w3.org/2000/svg"
