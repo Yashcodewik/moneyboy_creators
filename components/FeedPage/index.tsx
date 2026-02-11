@@ -90,6 +90,14 @@ const FeedPage = () => {
   /* ================= INFINITE SCROLL ================= */
 
   const fetchMoreHandler = () => {
+    console.log("🔥 FETCH MORE TRIGGERED", {
+      activeTab,
+      hasMoreFeed,
+      hasMoreFollowing,
+      hasMorePopular,
+      loading,
+    });
+
     if (loading) return;
 
     if (activeTab === "feed" && hasMoreFeed) {
@@ -242,11 +250,11 @@ const FeedPage = () => {
               <InfiniteScrollWrapper
                 className="moneyboy-posts-wrapper"
                 scrollableTarget="feed-scroll-container"
-                dataLength={activeList.length}
+                dataLength={ activeList?.length}
                 fetchMore={fetchMoreHandler}
                 hasMore={activeHasMore}
               >
-                {activeList.map((post: any) => (
+                {activeList?.map((post: any) => (
                   <PostCard
                     key={post._id}
                     post={post}

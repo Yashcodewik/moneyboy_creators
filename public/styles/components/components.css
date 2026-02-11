@@ -1596,12 +1596,19 @@
        display: block;
      }
  
-     img {
+     img, .noprofile {
        width: 100%;
        height: 100%;
        object-fit: cover;
        object-position: center center;
        display: block;
+       &.noprofile {
+        display: inline-flex;
+        border-radius: 0px;
+        svg {
+          max-width: 80px;
+        }
+       }
      }
    }
  
@@ -3646,7 +3653,7 @@
                               }
 
                               .chat-msg-image {
-                                  img {
+                                  img, .plyr {
                                     border-radius: 12px;
                                   }
                               }

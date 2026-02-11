@@ -23,8 +23,10 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
-import { CirclePlus, CircleX, Smile } from "lucide-react";
+import { CalendarDays, CirclePlus, CircleX, Smile } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 type feedParams = {
   show: boolean;
@@ -94,6 +96,26 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const hasMedia = mediaPreviews.length > 0;
   const imageCount = mediaPreviews.filter((m) => m.type === "image").length;
   const videoCount = mediaPreviews.filter((m) => m.type === "video").length;
+
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const dobWrapperRef = useRef<HTMLDivElement | null>(null);
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dobWrapperRef.current &&
+        !dobWrapperRef.current.contains(event.target as Node)
+      ) {
+        setActiveField(null);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   /* ---------- Emoji Insert ---------- */
   const handleEmojiClick = (emojiData: EmojiClickData) => {
@@ -431,14 +453,22 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             {isScheduled && (
               <div className="mw-fit w-full">
                 <label>Schedule at</label>
-                <input
-                  className="form-input"
-                  type="date"
-                  value={formik.values.scheduledAt}
-                  onChange={(e) =>
-                    formik.setFieldValue("scheduledAt", e.target.value)
-                  }
-                  onBlur={formik.handleBlur}
+                <div className="label-input calendar-dropdown" ref={dobWrapperRef}>
+                  <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon"/></div>
+                  <input type="text" placeholder="Schedule Date (DD/MM/YYYY) *" className="form-input" value={formik.values.scheduledAt || ""} readOnly onFocus={() => setActiveField("schedule")} onBlur={formik.handleBlur}/>
+                  {activeField === "schedule" && (
+                    <div className="calendar_show">
+                      <DatePicker inline selected={ formik.values.scheduledAt ? new Date( formik.values.scheduledAt .split("/") .reverse() .join("-")) : null} minDate={new Date()} onChange={(date: Date | null) => {if (!date) return; const formattedDate = date.toLocaleDateString("en-GB"); formik.setFieldValue("scheduledAt", formattedDate); setActiveField(null);}}/>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* {isScheduled && (
+              <div className="mw-fit w-full">
+                <label>Schedule at</label>
+                <input className="form-input" type="date" value={formik.values.scheduledAt} onChange={(e) => formik.setFieldValue("scheduledAt", e.target.value)} onBlur={formik.handleBlur}
                 />
                 {formik.touched.scheduledAt && formik.errors.scheduledAt && (
                   <div className="error-message">
@@ -446,7 +476,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                   </div>
                 )}
               </div>
-            )}
+            )} */}
           </div>
         )}
 
@@ -483,10 +513,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           ))}
         </div>
 
-        {/* <div
-          className="upload-wrapper"
-          onClick={() => thumbnailInputRef.current?.click()}
-        >
+        {/* <div className="upload-wrapper" onClick={() => thumbnailInputRef.current?.click()}>
           <div className="img_wrap">
             <svg className="icons idshape size-45"></svg>
             <div className="imgicons">
@@ -494,14 +521,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="btn-primary active-down-effect"
-            onClick={(e) => {
-              e.stopPropagation();
-              thumbnailInputRef.current?.click();
-            }}
-          >
+          <button type="button" className="btn-primary active-down-effect" onClick={(e) => {e.stopPropagation(); thumbnailInputRef.current?.click();}}>
             <div className="imgicons">
               <TbCamera size="16" />
             </div>
@@ -599,15 +619,12 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
         <div className="actions tooltip_wrapper">
           <ul>
             <li>
-              <button className="cate-back-btn active-down-effect btn_icons" onClick={() => {setActiveTool("image"); imageInputRef.current?.click();}}><FiImage size={20} /></button>
+              <button className="cate-back-btn active-down-effect btn_icons" onClick={() => {setActiveTool("image"); imageInputRef.current?.click();}} data-tooltip="Add image"><FiImage size={20} /></button>
             </li>
-            <li>
-             <button className="cate-back-btn active-down-effect btn_icons" onClick={() => {setActiveTool("image"); imageInputRef.current?.click();}}><FiImage size={20} /></button>
-            </li>
-            <li><button className="cate-back-btn active-down-effect btn_icons" onClick={() => setActiveTool("video")} ><FiVideo size={20} /></button></li>
+            <li><button className="cate-back-btn active-down-effect btn_icons" onClick={() => setActiveTool("video")} data-tooltip="Add video"><FiVideo size={20} /></button></li>
             <li><div className="hline" /></li>
             <li className="icontext_wrap">
-             <button className="cate-back-btn active-down-effect btn_icons" disabled={!hasMedia}><FiAtSign size={20} /></button>
+             <button className="cate-back-btn active-down-effect btn_icons" data-tooltip="Tag someone" disabled={!hasMedia}><FiAtSign size={20} /></button>
              <p>Tag</p>
             </li>
           </ul>
@@ -631,9 +648,9 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
           <div className="right">
             <ul>
-             <li><button className="cate-back-btn active-down-effect btn_icons" disabled={!hasMedia}><FaXTwitter size={20} /></button></li>
+             <li><button className="cate-back-btn active-down-effect btn_icons" data-tooltip="Share on X" disabled={!hasMedia}><FaXTwitter size={20} /></button></li>
             </ul>
-            <button type="button" className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} onClick={() => formik.handleSubmit()} disabled={isSubmitting || !hasMedia}><span>{isSubmitting ? "Posting..." : "Post"}</span></button>
+            <button type="button" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} onClick={() => formik.handleSubmit()} disabled={isSubmitting || !hasMedia}><span>{isSubmitting ? "Posting..." : "Post"}</span></button>
           </div>
         </div>
       </div>

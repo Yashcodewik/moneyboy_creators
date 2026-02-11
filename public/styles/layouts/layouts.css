@@ -166,6 +166,7 @@
 
             .creator-media-card__media-wrapper {
                max-width: 250px;
+               min-width: 250px;
                grid-row: span 2;
             }
 
@@ -223,6 +224,7 @@
 
                   .creator-content-card__media {
                      max-width: 200px;
+                     min-width: 200px;
                   }
 
                   .desc-btns {
@@ -252,6 +254,7 @@
 
                .creator-content-card__media {
                   max-width: 250px;
+                  min-width: 250px;
                   grid-row: span 2;
                }
 
