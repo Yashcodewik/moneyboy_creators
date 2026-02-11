@@ -1,7 +1,7 @@
 "use client";
 import ShowToast from "@/components/common/ShowToast";
 import OtpModal from "@/components/OtpModal";
-import { API_REGISTER } from "@/utils/api/APIConstant";
+import { API_REGISTER, API_VERIFY_OTP } from "@/utils/api/APIConstant";
 import { apiPost } from "@/utils/endpoints/common";
 import { useFormik } from "formik";
 import { signIn } from "next-auth/react";
@@ -12,6 +12,7 @@ import { FaXTwitter } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { IoArrowBackOutline } from "react-icons/io5";
 import * as yup from "yup";
+import SumsubWebSdk from "@sumsub/websdk-react";
 
 export const signupSchema = yup.object().shape({
   firstName: yup.string().required("First name is required"),
@@ -21,7 +22,7 @@ export const signupSchema = yup.object().shape({
     .string()
     .matches(
       /^[A-Za-z0-9]{5,20}$/,
-      "Username must be 5-20 characters long, letters A-Z, and numbers 0-9 only, no spaces."
+      "Username must be 5-20 characters long, letters A-Z, and numbers 0-9 only, no spaces.",
     )
     .required("Username is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -36,6 +37,7 @@ export const signupSchema = yup.object().shape({
 });
 
 const SignupPage = () => {
+  const [token, setToken] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
@@ -87,7 +89,44 @@ const SignupPage = () => {
     },
   });
 
-  const verifyOtp = async (otp: string) => {
+  // const verifyOtp = async (otp: string) => {
+  //   try {
+  //     const res = await apiPost({
+  //       url: API_VERIFY_OTP,
+  //       values: {
+  //         email: emailForOtp,
+  //         otp: otp,
+  //       },
+  //     });
+  //     // console.log(res?.data ,"==============res?.data==============");
+  //     // if (res?.success) {
+  //     //   console.log(res?.data ,"==============res?.data==============");
+  //     // //  setToken(res?.data?.data?.token);
+  //     // }
+  //     const res = await signIn("credentials", {
+  //       redirect: false,
+  //       email: emailForOtp,
+  //       otp,
+  //     });
+
+  //     if (res?.error) {
+  //       ShowToast(res.error, "error");
+  //       return;
+  //     }
+
+  //     ShowToast("OTP verified successfully", "success");
+  //     setOtpOpen(false);
+
+  //     // redirect to feed
+  //     router.push("/feed");
+  //     //router.push("/discover");
+  //   } catch (err: any) {
+  //     ShowToast(err?.message || "OTP verification failed", "error");
+  //   }
+  // };
+
+
+    const verifyOtp = async (otp: string) => {
     try {
       const res = await signIn("credentials", {
         redirect: false,
@@ -115,7 +154,12 @@ const SignupPage = () => {
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/feed')}><IoArrowBackOutline className="icons"/></button>
+          <button
+            className="btn-txt-gradient btn-outline"
+            onClick={() => router.push("/feed")}
+          >
+            <IoArrowBackOutline className="icons" />
+          </button>
         </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap">
@@ -125,10 +169,16 @@ const SignupPage = () => {
             <h3 className="heading">User Sign up</h3>
             <p>Sign up to interact with your idols!</p>
             <div className="loginbtn_wrap">
-              <button className="google-button active-down-effect ">
+              <button
+                className="google-button active-down-effect "
+                onClick={() => signIn("google")}
+              >
                 <FcGoogle size={18} /> Sign up with Google
               </button>
-              <button className="x-button active-down-effect">
+              <button
+                className="x-button active-down-effect"
+                onClick={() => signIn("twitter")}
+              >
                 <FaXTwitter size={18} /> Sign up with X
               </button>
             </div>
@@ -306,8 +356,8 @@ const SignupPage = () => {
             <p>
               By signing up you agree to our{" "}
               <Link href="/terms">Terms of Service</Link> and{" "}
-              <Link href="/privacy">Privacy Policy</Link>, and confirm that you are at
-              least 18 years old.
+              <Link href="/privacy">Privacy Policy</Link>, and confirm that you
+              are at least 18 years old.
             </p>
             <p className="fs-18">
               Have an account already? <Link href="/login">Log in here.</Link>
@@ -324,6 +374,18 @@ const SignupPage = () => {
           onClose={() => setOtpOpen(false)}
           email={emailForOtp}
           onSubmit={verifyOtp}
+        />
+      )}
+
+      {token && (
+        <SumsubWebSdk
+          accessToken={token}
+          expirationHandler={() => window.location.reload()}
+          config={{ lang: "en" }}
+          options={{ adaptIframeHeight: true }}
+          onMessage={(type: any, payload: any) => {
+            console.log(type, payload, "================================");
+          }}
         />
       )}
     </div>

@@ -51,7 +51,12 @@ const LoginPage = () => {
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline" onClick={() => router.push('/feed')}><IoArrowBackOutline className="icons"/></button>
+          <button
+            className="btn-txt-gradient btn-outline"
+            onClick={() => router.push("/feed")}
+          >
+            <IoArrowBackOutline className="icons" />
+          </button>
         </div>
       </div>
       <div className="moneyboy-feed-page-container cont_wrap justify-center">
@@ -62,10 +67,16 @@ const LoginPage = () => {
               <h3 className="heading">Login</h3>
               <p>Welcome back! Sign in to your account</p>
               <div className="loginbtn_wrap">
-                <button className="google-button active-down-effect ">
+                <button
+                  className="google-button active-down-effect "
+                  onClick={() => signIn("google")}
+                >
                   <FcGoogle size={18} /> Sign up with Google
                 </button>
-                <button className="x-button active-down-effect">
+                <button
+                  className="x-button active-down-effect"
+                  onClick={() => signIn("twitter")}
+                >
                   <FaXTwitter size={18} /> Sign up with X
                 </button>
               </div>

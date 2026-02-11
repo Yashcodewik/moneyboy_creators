@@ -12,13 +12,9 @@ import "../public/styles/main-responsive.css";
 import "../public/styles/pages/discover-page/responsive.css";
 import "../public/styles/icons.css";
 import "../public/styles/style.scss";
-import Footer from "@/components/Layouts/Footer";
 import AuthProviders from "@/libs/authProviders";
- // ADD THIS IMPORT
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/auth";
-import Link from "next/link";
-import { CgClose } from "react-icons/cg";
 import ReduxProvider from "@/redux/ReduxProvider";
 import ScrollToTop from "./ScrollToTop";
 import AgeGate from "./AgeGate";
@@ -71,19 +67,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
-  
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}>
-          <ScrollToTop /> 
-        <ReduxProvider> 
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}
+      >
+        <ScrollToTop />
+        <ReduxProvider>
           <AuthProviders session={session}>
-            
             {children}
             <AgeGate />
           </AuthProviders>
-        </ReduxProvider> 
+        </ReduxProvider>
       </body>
     </html>
   );
