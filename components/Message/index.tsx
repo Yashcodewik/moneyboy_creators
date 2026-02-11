@@ -7,7 +7,7 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import socket from "@/libs/socket";
-import { apiPostWithMultiForm, getApi, getApiByParams } from "@/utils/endpoints/common";
+import { apiPost, apiPostWithMultiForm, getApi, getApiByParams } from "@/utils/endpoints/common";
 import { API_MESSAGE_CHAT, API_MESSAGE_CHAT_UPLOAD_MEDIA } from "@/utils/api/APIConstant";
 import { useSearchParams } from "next/navigation";
 import { Plyr } from "plyr-react";
@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import ChatFetures from "./ChatFeatures";
 import ChatFeatures from "./ChatFeatures";
 import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const MessagePage = () => {
   const [activeChat, setActiveChat] = useState<any>(null);
@@ -165,37 +166,30 @@ useEffect(() => {
     });
   }, [activeChat?.publicId, session?.user?.id]);
 
-  // ✅ Fetch messages when chat changes
+  const queryClient = useQueryClient();
+    // ✅ Fetch messages when chat changes
+
+  const { data: chatData,refetch, isLoading } = useQuery({
+  queryKey: ["chatMessages", activeChat?.publicId],
+  queryFn: async () => {
+    if (!activeChat?.publicId) return [];
+
+    const res = await getApi({  
+      url: API_MESSAGE_CHAT,
+      page: 1,
+      rowsPerPage: 50,
+      searchText: activeChat.publicId,
+    });
+
+    return res?.data || [];
+  },
+  enabled: !!activeChat?.publicId,
+});
   useEffect(() => {
-    if (!activeChat?.publicId) {
-      console.log("⚠️ No active chat to fetch messages");
-      return;
+    if (chatData) {
+      setMessages(chatData);
     }
-
-    console.log("📥 Fetching messages for thread:", activeChat.publicId);
-
-    const fetchMessages = async () => {
-      try {
-        const res = await getApi({
-          url: API_MESSAGE_CHAT,
-          page: 1,
-          rowsPerPage: 50,
-          searchText: activeChat.publicId,
-        });
-
-        console.log("📥 Messages fetched:", res?.data?.length || 0);
-        console.log("📥 Messages data:", res?.data);
-
-        if (res?.data) {
-          setMessages(res.data);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching messages:", error);
-      }
-    };
-
-    fetchMessages();
-  }, [activeChat]);
+  }, [chatData]);
 
 
   // ✅ Fetch thread details (OTHER USER info)
@@ -567,6 +561,16 @@ const highlightText = (text: string, search: string) => {
     ">$1</span>`
   );
 };
+
+const handleAcceptPPV = async (ppvId: string) => {
+  await apiPost({
+    url: `subscription/ppv/accept/${ppvId}`,
+    values: {},
+  });
+
+  refetch();
+};
+
 const handleUploadPPVMedia = async (ppvId: string, files: FileList | null) => {
   if (!files) return;
 
@@ -578,26 +582,47 @@ const handleUploadPPVMedia = async (ppvId: string, files: FileList | null) => {
 
   try {
     await apiPostWithMultiForm({
-      url: `/ppv/upload-media/${ppvId}`,
+      url: `subscription/ppv/upload-media/${ppvId}`,
       values: formData,
     });
 
     toast.success("Media uploaded");
 
     // Refresh chat
-    const res = await getApi({
-      url: API_MESSAGE_CHAT,
-      page: 1,
-      rowsPerPage: 50,
-      searchText: activeChat.publicId,
-    });
-
-    setMessages(res?.data || []);
+    refetch();
   } catch (err) {
     toast.error("Upload failed");
   }
 };
 
+const handleRejectPPV = async (ppvId: string, reason: string) => {
+  try {
+    await apiPost({
+      url: `subscription/ppv/reject/${ppvId}`,
+      values: { reason },
+    });
+
+    toast.success("PPV Rejected");
+
+    refetch();
+  } catch (err) {
+    toast.error("Failed");
+  }
+};
+
+const handlePayPPV = async (ppvId: string) => {
+  try {
+    await apiPost({
+      url: `subscription/ppv/pay/${ppvId}`,
+      values: {},
+    });
+
+    toast.success("Payment successful");
+    refetch();
+  } catch (err) {
+    toast.error("Payment failed");
+  }
+};
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -613,7 +638,7 @@ const handleUploadPPVMedia = async (ppvId: string, files: FileList | null) => {
               <div className="msg-chats-layout">
                 <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
                   <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
-                    {!activeChat?.threadId ? (
+                    {!activeChat?.publicId ? (
                       <div className="messages-empty">
                       <div className="messages-empty-card">
                         <div className="glow-ring"></div>
@@ -693,8 +718,12 @@ const handleUploadPPVMedia = async (ppvId: string, files: FileList | null) => {
                                       : msg.senderId;
 
                                   const isSender = senderId === session?.user?.id;
-                                  const isCreator = session?.user?.id === msg.ppvRequestId?.creatorId;
-
+                                 const isCreator =
+                                  msg.ppvRequestId &&
+                                  session?.user?.id ===
+                                    (typeof msg.ppvRequestId.creatorId === "object"
+                                      ? msg.ppvRequestId.creatorId._id
+                                      : msg.ppvRequestId.creatorId);
                                   return (
                                     <div
                                       key={msg._id}
