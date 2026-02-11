@@ -589,12 +589,10 @@ const ProfilePage = () => {
 
     const dispatch = useDispatch<AppDispatch>();
 
-    const savedPosts = useSelector(
-      (state: RootState) => state.savedPosts.savedPosts
-    );
+  
 
-    const isPostSaved =
-      savedPosts[post._id]?.saved ?? post.isSaved;
+ const isPostSaved = post.isSaved;
+
     const saveLoading = useSelector(
       (state: RootState) => state.savedPosts.loading
     );

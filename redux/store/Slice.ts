@@ -27,8 +27,8 @@ interface PaidPost {
   isUnlocked?: boolean;
   isSubscribed?: boolean;
   isSaved?: boolean;
-  creatorInfo: Creator; 
-  publicId:string;
+  creatorInfo: Creator;
+  publicId: string;
 }
 
 interface FeaturedPost extends PaidPost {
@@ -62,7 +62,6 @@ interface CreatorsState {
   error: string | null;
 }
 
-/* ---------- Initial State ---------- */
 const initialState: CreatorsState = {
   items: [],
   loadingCreators: false,
@@ -84,7 +83,6 @@ const initialState: CreatorsState = {
     hasNextPage: false,
   },
 
-  /* 🔥 NEW Paid Content Feed */
   paidContentFeed: [],
   loadingPaidContentFeed: false,
   paidContentFeedPagination: {
@@ -97,41 +95,14 @@ const initialState: CreatorsState = {
 
   featuredPosts: [],
   loadingFeaturedPosts: false,
-
   error: null,
 };
 
-/* ---------- Slice ---------- */
 const creatorsSlice = createSlice({
   name: "creators",
   initialState,
   reducers: {
     resetCreatorsState: () => initialState,
-
-    updateCreator: (
-      state,
-      action: PayloadAction<{
-        creatorId: string;
-        data: Partial<Creator>;
-      }>
-    ) => {
-      const creator = state.items.find(
-        (c) => c._id === action.payload.creatorId
-      );
-      if (creator) {
-        Object.assign(creator, action.payload.data);
-      }
-    },
-
-    removeCreator: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(
-        (c) => c._id !== action.payload
-      );
-      state.creatorsPagination.total = Math.max(
-        0,
-        state.creatorsPagination.total - 1
-      );
-    },
   },
 
   extraReducers: (builder) => {
@@ -139,7 +110,6 @@ const creatorsSlice = createSlice({
     builder
       .addCase(fetchAllCreators.pending, (state) => {
         state.loadingCreators = true;
-        state.error = null;
       })
       .addCase(fetchAllCreators.fulfilled, (state, action) => {
         state.loadingCreators = false;
@@ -149,17 +119,12 @@ const creatorsSlice = createSlice({
           ...pagination,
           hasNextPage: pagination.page < pagination.totalPages,
         };
-      })
-      .addCase(fetchAllCreators.rejected, (state, action) => {
-        state.loadingCreators = false;
-        state.error = action.payload as string;
       });
 
-    /* ---------- Paid Posts (Creator Specific) ---------- */
+    /* ---------- Paid Posts ---------- */
     builder
       .addCase(fetchMyPaidPosts.pending, (state) => {
         state.loadingPaidPosts = true;
-        state.error = null;
       })
       .addCase(fetchMyPaidPosts.fulfilled, (state, action) => {
         state.loadingPaidPosts = false;
@@ -173,17 +138,12 @@ const creatorsSlice = createSlice({
           totalPages: meta.totalPages,
           hasNextPage: meta.page < meta.totalPages,
         };
-      })
-      .addCase(fetchMyPaidPosts.rejected, (state, action) => {
-        state.loadingPaidPosts = false;
-        state.error = action.payload as string;
       });
 
-    /* ---------- 🔥 Paid Content Feed (Global Locked Feed) ---------- */
+    /* ---------- Paid Content Feed ---------- */
     builder
       .addCase(fetchPaidContentFeed.pending, (state) => {
         state.loadingPaidContentFeed = true;
-        state.error = null;
       })
       .addCase(fetchPaidContentFeed.fulfilled, (state, action) => {
         state.loadingPaidContentFeed = false;
@@ -199,63 +159,43 @@ const creatorsSlice = createSlice({
           totalPages,
           hasNextPage: page < totalPages,
         };
-      })
-      .addCase(fetchPaidContentFeed.rejected, (state, action) => {
-        state.loadingPaidContentFeed = false;
-        state.error = action.payload as string;
       });
 
-    /* ---------- Featured Posts ---------- */
-    builder
-      .addCase(fetchFeaturedPosts.pending, (state) => {
-        state.loadingFeaturedPosts = true;
-        state.error = null;
-      })
-      .addCase(fetchFeaturedPosts.fulfilled, (state, action) => {
-        state.loadingFeaturedPosts = false;
-        state.featuredPosts = action.payload.data;
-      })
-      .addCase(fetchFeaturedPosts.rejected, (state, action) => {
-        state.loadingFeaturedPosts = false;
-        state.error = action.payload as string;
-      });
+    /* ---------- Featured ---------- */
+    builder.addCase(fetchFeaturedPosts.fulfilled, (state, action) => {
+      state.featuredPosts = action.payload.data;
+    });
 
-    /* ---------- Save / Unsave (Instant UI Sync) ---------- */
+    /* ---------- Save / Unsave ---------- */
     builder
       .addCase(savePost.fulfilled, (state, action: any) => {
         const postId = action.payload?.postId;
         if (!postId) return;
 
-        const updateSaved = (list: PaidPost[]) => {
+        const update = (list: PaidPost[]) => {
           const post = list.find((p) => p._id === postId);
           if (post) post.isSaved = true;
         };
 
-        updateSaved(state.paidPosts);
-        updateSaved(state.featuredPosts);
-        updateSaved(state.paidContentFeed);
+        update(state.paidPosts);
+        update(state.paidContentFeed);
+        update(state.featuredPosts);
       })
       .addCase(unsavePost.fulfilled, (state, action: any) => {
         const postId = action.payload?.postId;
         if (!postId) return;
 
-        const updateUnsaved = (list: PaidPost[]) => {
+        const update = (list: PaidPost[]) => {
           const post = list.find((p) => p._id === postId);
           if (post) post.isSaved = false;
         };
 
-        updateUnsaved(state.paidPosts);
-        updateUnsaved(state.featuredPosts);
-        updateUnsaved(state.paidContentFeed);
+        update(state.paidPosts);
+        update(state.paidContentFeed);
+        update(state.featuredPosts);
       });
   },
 });
 
-/* ---------- Exports ---------- */
-export const {
-  resetCreatorsState,
-  updateCreator,
-  removeCreator,
-} = creatorsSlice.actions;
-
+export const { resetCreatorsState } = creatorsSlice.actions;
 export default creatorsSlice.reducer;
