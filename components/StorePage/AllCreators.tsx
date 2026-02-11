@@ -11,11 +11,27 @@ import {
 import React, { useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useEffect } from "react";
+import { fetchPaidContentFeed } from "@/redux/store/Action";
+import { useRouter } from "next/navigation";
 
-const AllCreators = () => {
-  const [subActiveTab, setSubActiveTab] = useState<string>("videos");
+interface AllCreatorsProps {
+  onUnlock: (post: any) => void;
+  onSubscribe: (post: any) => void;
+}
+
+const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
+  const router = useRouter();
+  const [subActiveTab, setSubActiveTab] = useState<
+    "trending" | "new" | "photos" | "videos"
+  >("trending");
   const playerRef = useRef<any>(null);
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { paidContentFeed, loadingPaidContentFeed, paidContentFeedPagination } =
+    useSelector((state: RootState) => state.creators);
 
   const handleOpenFullscreen = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -35,6 +51,44 @@ const AllCreators = () => {
     video?.pause();
     setOpen(false);
   };
+
+  useEffect(() => {
+    let tabParam: "trending" | "new" = "new";
+    let typeParam: "photo" | "video" | "all" = "all";
+
+    if (subActiveTab === "trending") {
+      tabParam = "trending";
+    }
+
+    if (subActiveTab === "photos") {
+      typeParam = "photo";
+    }
+
+    if (subActiveTab === "videos") {
+      typeParam = "video";
+    }
+
+    dispatch(
+      fetchPaidContentFeed({
+        page: 1,
+        limit: 8,
+        tab: tabParam,
+        type: typeParam,
+      }),
+    );
+  }, [subActiveTab, dispatch]);
+
+  const getPostLink = (post: any) => {
+    if (
+      (post.accessType === "subscriber" && post.isSubscribed === true) ||
+      (post.accessType === "pay_per_view" && post.isUnlocked === true)
+    ) {
+      return `/post?publicId=${post.publicId}`;
+    }
+
+    return "#"; // no access
+  };
+
   return (
     <div>
       <div className="tabs-content-wrapper-layout">
@@ -113,25 +167,36 @@ const AllCreators = () => {
               <div className="creator-content-tabs-btn-wrapper">
                 <div className="multi-tabs-action-buttons">
                   <button
-                    className={`multi-tab-switch-btn active`}
+                    className={`multi-tab-switch-btn ${
+                      subActiveTab === "trending" ? "active" : ""
+                    }`}
                     onClick={() => setSubActiveTab("trending")}
                   >
                     <ChartNoAxesCombined size={18} /> <span>Trending</span>
                   </button>
+
                   <button
-                    className={`multi-tab-switch-btn`}
+                    className={`multi-tab-switch-btn ${
+                      subActiveTab === "new" ? "active" : ""
+                    }`}
                     onClick={() => setSubActiveTab("new")}
                   >
                     <Sparkles size={18} /> <span>New</span>
                   </button>
+
                   <button
-                    className={`multi-tab-switch-btn`}
+                    className={`multi-tab-switch-btn ${
+                      subActiveTab === "photos" ? "active" : ""
+                    }`}
                     onClick={() => setSubActiveTab("photos")}
                   >
                     <Image size={18} /> <span>Photos</span>
                   </button>
+
                   <button
-                    className={`multi-tab-switch-btn`}
+                    className={`multi-tab-switch-btn ${
+                      subActiveTab === "videos" ? "active" : ""
+                    }`}
                     onClick={() => setSubActiveTab("videos")}
                   >
                     <Video size={18} />
@@ -142,47 +207,134 @@ const AllCreators = () => {
             </div>
             <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout">
               <div className="creator-content-type-container-wrapper">
+                {loadingPaidContentFeed && (
+                  <div className="loadingtext">
+                    {"Loading".split("").map((char, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          animationDelay: `${(i + 1) * 0.1}s`,
+                        }}
+                      >
+                        {char}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 <div className="col-4-cards-layout">
-                  {[...Array(8)].map((_, index) => (
-                    <div className="creator-media-card card">
-                      <div className="creator-media-card__media-wrapper">
-                        <div className="creator-media-card__media">
-                          <img
-                            alt="Post Image"
-                            src="/images/profile-avatars/profile-avatar-5.jpg"
-                          />
-                          <Link
-                            href="#"
-                            className="ply_btn"
-                            onClick={handleOpenFullscreen}
-                          >
-                            <PlayCircle strokeWidth={1} size={32} />
-                          </Link>
-                          {/* <Plyr source={{type: "video", poster: "/images/profile-avatars/profile-avatar-5.jpg", sources: [{src: "https://res.cloudinary.com/drhj03nvv/video/upload/v1770026049/posts/69807440e60b526caa6da50c/1770026048286-screen-capture.webm.mkv", type: "video/mp4",},],}} options={{controls: ["play", "mute", "fullscreen"],}}/> */}
-                        </div>
-                        <div className="creator-media-card__overlay">
-                          <div className="creator-media-card__stats">
-                            <div className="creator-media-card__stats-btn">
-                              <FlameIcon />
-                              <span> Trending </span>
+                  {!loadingPaidContentFeed &&
+                    paidContentFeed.map((post) => (
+                      <div className="creator-media-card card" key={post._id}>
+                        <div className="creator-media-card__media-wrapper">
+                          <div className="creator-media-card__media">
+                            {post.media?.type === "photo" ? (
+                              <img
+                                alt="Post Image"
+                                src={post.media?.mediaFiles?.[0]}
+                              />
+                            ) : (
+                              <video src={post.media?.mediaFiles?.[0]} muted />
+                            )}
+
+                            {post.media?.type === "video" && (
+                              <Link
+                                href="#"
+                                className="ply_btn"
+                                onClick={handleOpenFullscreen}
+                              >
+                                <PlayCircle strokeWidth={1} size={32} />
+                              </Link>
+                            )}
+                          </div>
+
+                          <div className="creator-media-card__overlay">
+                            <div className="creator-media-card__stats">
+                              {subActiveTab === "trending" && (
+                                <div className="creator-media-card__stats-btn">
+                                  <FlameIcon />
+                                  <span> Trending </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
+
+                        <div className="creator-media-card__desc">
+                          <h5>
+                            {post.text
+                              ? post.text.slice(0, 30) +
+                                (post.text.length > 30 ? "..." : "")
+                              : "Untitled"}
+                          </h5>
+                          <p>By {post.creatorInfo?.displayName}</p>
+                        </div>
+
+                        <div className="creator-media-card__btn">
+                          {post.accessType === "pay_per_view" &&
+                            post.isUnlocked !== true && (
+                              <h5>
+                                From <span>${post.price}</span>
+                              </h5>
+                            )}
+
+                          {/* <Link
+                            href="#"
+                            className="btn-txt-gradient btn-outline"
+                          >
+                            <span>
+                              {post.accessType === "subscriber"
+                                ? post.isSubscribed === true
+                                  ? "Subscribed"
+                                  : "Subscribe"
+                                : post.isUnlocked === true
+                                  ? "Purchased"
+                                  : "Buy"}
+                            </span>
+                          </Link> */}
+
+                      <Link
+  href="#"
+  className="btn-txt-gradient btn-outline"
+  onClick={(e) => {
+    e.preventDefault();
+
+    // ✅ If already has access → redirect
+    if (
+      (post.accessType === "subscriber" && post.isSubscribed) ||
+      (post.accessType === "pay_per_view" && post.isUnlocked)
+    ) {
+      router.push(`/post?publicId=${post.publicId}`);
+      return;
+    }
+
+    // 🔓 Pay per view → open unlock modal
+    if (post.accessType === "pay_per_view") {
+      onUnlock(post);
+      return;
+    }
+
+    // 💳 Subscriber only → open subscription modal
+    if (post.accessType === "subscriber") {
+      onSubscribe(post);
+      return;
+    }
+  }}
+>
+
+                            <span>
+                              {post.accessType === "subscriber"
+                                ? post.isSubscribed === true
+                                  ? "Subscribed"
+                                  : "Subscribe"
+                                : post.isUnlocked === true
+                                  ? "Purchased"
+                                  : "Buy"}
+                            </span>
+                          </Link>
+                        </div>
                       </div>
-                      <div className="creator-media-card__desc">
-                        <h5>Exclusive Desert Shoot</h5>
-                        <p>By Jaxson Geidt</p>
-                      </div>
-                      <div className="creator-media-card__btn">
-                        <h5>
-                          From <span>$12.00</span>
-                        </h5>
-                        <Link href="#" className="btn-txt-gradient btn-outline">
-                          <span>Buy</span>
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>

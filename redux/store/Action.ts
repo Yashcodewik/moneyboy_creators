@@ -4,6 +4,7 @@ import {
   API_GET_ALL_CREATORS,
   API_GET_MY_PAID_POSTS,
   API_GET_FEATURED_POSTS,
+  API_GET_PAID_CONTENT_FEED,
 } from "@/utils/api/APIConstant";
 
 /* ------------------- Creators ------------------- */
@@ -94,6 +95,41 @@ export const fetchFeaturedPosts = createAsyncThunk(
 
       if (!res?.data?.data) {
         return rejectWithValue("Failed to fetch featured posts");
+      }
+
+      return res.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.message || "Something went wrong"
+      );
+    }
+  }
+);
+
+/* ------------------- Paid Content Feed ------------------- */
+export const fetchPaidContentFeed = createAsyncThunk(
+  "creators/fetchPaidContentFeed",
+  async (
+    {
+      page = 1,
+      limit = 8,
+      tab = "new",
+      type = "all",
+    }: {
+      page?: number;
+      limit?: number;
+      tab?: "trending" | "new";
+      type?: "photo" | "video" | "all";
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await defaultAxios.get(API_GET_PAID_CONTENT_FEED, {
+        params: { page, limit, tab, type },
+      });
+
+      if (!res?.data?.data) {
+        return rejectWithValue("Failed to fetch paid content feed");
       }
 
       return res.data;

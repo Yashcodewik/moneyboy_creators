@@ -12,6 +12,7 @@ import { fetchFeaturedPosts } from "@/redux/store/Action";
 import { useEffect } from "react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
+import { useRouter } from "next/navigation";
 
 type FeaturedContentSliderProps = {
   publicId?: string;
@@ -29,9 +30,9 @@ export default function FeaturedContentSlider({
 }: FeaturedContentSliderProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { session } = useDecryptedSession();
+  const router = useRouter();
   const loggedInUserId = session?.user?.id;
 
-  const { savedPosts } = useSelector((state: RootState) => state.savedPosts);
 
   const { featuredPosts, loadingFeaturedPosts } = useSelector(
     (state: RootState) => state.creators,
@@ -44,8 +45,7 @@ export default function FeaturedContentSlider({
   const handleSaveToggle = (e: React.MouseEvent, post: any) => {
     e.stopPropagation(); // 🚫 don’t slide / redirect
 
-    const isSaved =
-  savedPosts[post._id]?.saved ?? post.isSaved ?? false;
+  const isSaved = post.isSaved;
 
 
     if (isSaved) {
@@ -65,6 +65,14 @@ export default function FeaturedContentSlider({
     }
   };
 
+  const handlePostRedirect = (post: any) => {
+  const isOwnPost = post.userId === loggedInUserId;
+
+  if (post.isUnlocked || post.isSubscribed || isOwnPost) {
+    router.push(`/post?page&publicId=${post.publicId}`);
+  }
+};
+
   return (
     <Swiper
       spaceBetween={16}
@@ -77,7 +85,7 @@ export default function FeaturedContentSlider({
 
         const isPaid = post.accessType === "pay_per_view";
         const isUnlocked = post.isUnlocked || post.isSubscribed;
-        const isSaved = savedPosts[post._id]?.saved ?? post.isSaved;
+        const isSaved = post.isSaved;
         const isOwnPost = post.userId === loggedInUserId;
 
         return (
@@ -123,7 +131,8 @@ export default function FeaturedContentSlider({
                     <p>{post.text}</p>
 
                     {post.isUnlocked && (
-                      <button className="btn-txt-gradient btn-outline grey-variant">
+                      <button className="btn-txt-gradient btn-outline grey-variant"
+                      onClick={() => handlePostRedirect(post)}>
                        <span>Purchased</span> 
                       </button>
                     )}
@@ -133,7 +142,8 @@ export default function FeaturedContentSlider({
                     {!post.isUnlocked &&
                       post.isSubscribed &&
                       post.accessType === "subscriber" && (
-                        <button className="btn-txt-gradient btn-outline grey-variant">
+                        <button className="btn-txt-gradient btn-outline grey-variant"
+                        onClick={() => handlePostRedirect(post)}>
                           <span>Subscribed</span>
                         </button>
                       )}
