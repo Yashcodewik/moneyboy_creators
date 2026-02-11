@@ -98,7 +98,7 @@ export const API_MESSAGE_CHAT = "/messages/chat";
 export const API_MESSAGE_CHAT_UPLOAD_MEDIA = "/messages/upload-media";
 export const API_DELETE_CONVERSATION = `/messages/thread`;
 
-export const API_GET_FEATURED_POSTS = "/post/featured-posts";
+export const API_GET_FEATURED_POSTS = "/post/featured-posts"; 
 export const API_GET_PAID_CONTENT_FEED = "/post/paid-content-feed";
 export const API_TRENDING_CREATORS = "/social/trending";
 
