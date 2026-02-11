@@ -21,8 +21,7 @@ export default function AgeGate() {
   };
 
   const handleDisagree = () => {
-    window.open("", "_self");
-    window.close();
+    window.location.href = "https://www.google.com"; // or any safe site
   };
 
   if (!showModal) return null;

@@ -1,10 +1,14 @@
  import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
 import { getApi } from "@/utils/endpoints/common";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const SideBar = ({ onSelectChat }: any) => {
-  const [activeChat, setActiveChat] = useState<string | null>(null);
   const [chatList, setChatList] = useState<any[]>([]);
+  const router = useRouter();
+const searchParams = useSearchParams();
+const threadIdFromUrl = searchParams.get("threadId");
+
 
   useEffect(() => {
     const fetchSidebar = async () => {
@@ -22,6 +26,12 @@ const SideBar = ({ onSelectChat }: any) => {
     };
     fetchSidebar();
   }, []);
+
+  useEffect(() => {
+    if (!threadIdFromUrl && chatList.length > 0) {
+      router.replace(`/message?threadId=${chatList[0].publicId}`);
+    }
+  }, [chatList]);
 
   return (
     <div className="msg-profiles-layout">
@@ -79,12 +89,12 @@ const SideBar = ({ onSelectChat }: any) => {
       <div className="msg-profiles-wrapper">
         <div className="msg-profiles-container" msg-chat-contacts-wrapper="">
           {Array.isArray(chatList) && chatList.map((chat) => (
-            <div key={chat.threadId}
+            <div key={chat.publicId}
               className="msg-contact-box"
               msg-chat-contact=""
-              data-active={activeChat === chat.threadId ? "true" : undefined}
+              data-active={threadIdFromUrl === chat.publicId ? "true" : undefined}
               onClick={() => {
-                setActiveChat(chat.threadId);
+                // setActiveChat(chat.threadId);
                 onSelectChat(chat);
               }}
             >
