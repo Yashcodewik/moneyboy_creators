@@ -3,7 +3,9 @@ import {
   fetchAllCreators,
   fetchMyPaidPosts,
   fetchFeaturedPosts,
+  fetchPaidContentFeed,
 } from "./Action";
+import { savePost, unsavePost } from "../other/savedPostsSlice";
 
 /* ---------- Types ---------- */
 interface Creator {
@@ -19,12 +21,14 @@ interface PaidPost {
   text?: string;
   accessType: string;
   price?: number;
-  media: any[];
+  media: any;
   createdAt: string;
   userId: string;
-  isUnlocked: boolean;
-  isSubscribed: boolean;
-  isSaved: boolean;
+  isUnlocked?: boolean;
+  isSubscribed?: boolean;
+  isSaved?: boolean;
+  creatorInfo: Creator; 
+  publicId:string;
 }
 
 interface FeaturedPost extends PaidPost {
@@ -40,17 +44,18 @@ interface Pagination {
 }
 
 interface CreatorsState {
-  /* creators */
   items: Creator[];
   loadingCreators: boolean;
   creatorsPagination: Pagination;
 
-  /* paid posts */
   paidPosts: PaidPost[];
   loadingPaidPosts: boolean;
   paidPostsPagination: Pagination;
 
-  /* featured posts */
+  paidContentFeed: PaidPost[];
+  loadingPaidContentFeed: boolean;
+  paidContentFeedPagination: Pagination;
+
   featuredPosts: FeaturedPost[];
   loadingFeaturedPosts: boolean;
 
@@ -72,6 +77,17 @@ const initialState: CreatorsState = {
   paidPosts: [],
   loadingPaidPosts: false,
   paidPostsPagination: {
+    page: 1,
+    limit: 8,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+  },
+
+  /* 🔥 NEW Paid Content Feed */
+  paidContentFeed: [],
+  loadingPaidContentFeed: false,
+  paidContentFeedPagination: {
     page: 1,
     limit: 8,
     total: 0,
@@ -139,7 +155,7 @@ const creatorsSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    /* ---------- Paid Posts ---------- */
+    /* ---------- Paid Posts (Creator Specific) ---------- */
     builder
       .addCase(fetchMyPaidPosts.pending, (state) => {
         state.loadingPaidPosts = true;
@@ -148,6 +164,7 @@ const creatorsSlice = createSlice({
       .addCase(fetchMyPaidPosts.fulfilled, (state, action) => {
         state.loadingPaidPosts = false;
         const { data, meta } = action.payload;
+
         state.paidPosts = data;
         state.paidPostsPagination = {
           page: meta.page,
@@ -159,6 +176,32 @@ const creatorsSlice = createSlice({
       })
       .addCase(fetchMyPaidPosts.rejected, (state, action) => {
         state.loadingPaidPosts = false;
+        state.error = action.payload as string;
+      });
+
+    /* ---------- 🔥 Paid Content Feed (Global Locked Feed) ---------- */
+    builder
+      .addCase(fetchPaidContentFeed.pending, (state) => {
+        state.loadingPaidContentFeed = true;
+        state.error = null;
+      })
+      .addCase(fetchPaidContentFeed.fulfilled, (state, action) => {
+        state.loadingPaidContentFeed = false;
+
+        const { data, total, page, totalPages } = action.payload;
+
+        state.paidContentFeed = data;
+
+        state.paidContentFeedPagination = {
+          page,
+          limit: state.paidContentFeedPagination.limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+        };
+      })
+      .addCase(fetchPaidContentFeed.rejected, (state, action) => {
+        state.loadingPaidContentFeed = false;
         state.error = action.payload as string;
       });
 
@@ -175,6 +218,35 @@ const creatorsSlice = createSlice({
       .addCase(fetchFeaturedPosts.rejected, (state, action) => {
         state.loadingFeaturedPosts = false;
         state.error = action.payload as string;
+      });
+
+    /* ---------- Save / Unsave (Instant UI Sync) ---------- */
+    builder
+      .addCase(savePost.fulfilled, (state, action: any) => {
+        const postId = action.payload?.postId;
+        if (!postId) return;
+
+        const updateSaved = (list: PaidPost[]) => {
+          const post = list.find((p) => p._id === postId);
+          if (post) post.isSaved = true;
+        };
+
+        updateSaved(state.paidPosts);
+        updateSaved(state.featuredPosts);
+        updateSaved(state.paidContentFeed);
+      })
+      .addCase(unsavePost.fulfilled, (state, action: any) => {
+        const postId = action.payload?.postId;
+        if (!postId) return;
+
+        const updateUnsaved = (list: PaidPost[]) => {
+          const post = list.find((p) => p._id === postId);
+          if (post) post.isSaved = false;
+        };
+
+        updateUnsaved(state.paidPosts);
+        updateUnsaved(state.featuredPosts);
+        updateUnsaved(state.paidContentFeed);
       });
   },
 });

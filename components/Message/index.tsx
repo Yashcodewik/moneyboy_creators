@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import { Smile, Mic, CircleX, BadgeCheck, MessageCircleMore, Loader } from "lucide-react";
+import { Smile, Mic, CircleX, BadgeCheck, MessageCircleMore, Loader, Link2 } from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -25,7 +25,7 @@ const MessagePage = () => {
   const { session } = useDecryptedSession();
   const [messages, setMessages] = useState<any[]>([]);
   const searchParams = useSearchParams();
-  const threadIdFromUrl = searchParams.get("threadId");
+  const threadPublicIdFromUrl = searchParams.get("threadId");
   const [activeUser, setActiveUser] = useState<any>(null);
   const [newComment, setNewComment] = useState("");
 
@@ -44,7 +44,7 @@ const MessagePage = () => {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const chatBodyRef = useRef<HTMLDivElement | null>(null);
-
+  const [showDeclineSelect, setShowDeclineSelect] = useState(false);
 
   const isMobile = useDeviceType();
   useEffect(() => {
@@ -147,31 +147,32 @@ useEffect(() => {
 
 
   useEffect(() => {
-    if (!threadIdFromUrl) return;
+    if (!threadPublicIdFromUrl) return;
 
-    setActiveChat((prev: any) => {
-      if (prev?.threadId === threadIdFromUrl) return prev;
-      return { threadId: threadIdFromUrl };
-    });
-  }, [threadIdFromUrl]);
+   setActiveChat((prev: any) => {
+  if (prev?.publicId === threadPublicIdFromUrl) return prev;
+  return { publicId: threadPublicIdFromUrl };
+});
+
+  }, [threadPublicIdFromUrl]);
 
   useEffect(() => {
-    if (!activeChat?.threadId || !session?.user?.id) return;
+    if (!activeChat?.publicId || !session?.user?.id) return;
 
     socket.emit("markRead", {
-      threadId: activeChat.threadId,
+      threadId: activeChat.publicId,
       userId: session.user.id,
     });
-  }, [activeChat?.threadId, session?.user?.id]);
+  }, [activeChat?.publicId, session?.user?.id]);
 
   // ✅ Fetch messages when chat changes
   useEffect(() => {
-    if (!activeChat?.threadId) {
+    if (!activeChat?.publicId) {
       console.log("⚠️ No active chat to fetch messages");
       return;
     }
 
-    console.log("📥 Fetching messages for thread:", activeChat.threadId);
+    console.log("📥 Fetching messages for thread:", activeChat.publicId);
 
     const fetchMessages = async () => {
       try {
@@ -179,7 +180,7 @@ useEffect(() => {
           url: API_MESSAGE_CHAT,
           page: 1,
           rowsPerPage: 50,
-          searchText: activeChat.threadId,
+          searchText: activeChat.publicId,
         });
 
         console.log("📥 Messages fetched:", res?.data?.length || 0);
@@ -207,13 +208,13 @@ useEffect(() => {
 
 
   useEffect(() => {
-    if (!activeChat?.threadId) return;
+    if (!activeChat?.publicId) return;
 
     (async () => {
       try {
         const res = await getApiByParams({
           url: "/messages/thread",
-          params: activeChat.threadId,
+          params: activeChat.publicId,
         });
 
         console.log("THREAD DETAILS:", res);
@@ -222,12 +223,12 @@ useEffect(() => {
         console.error("THREAD DETAILS ERROR:", err);
       }
     })();
-  }, [activeChat?.threadId]);
+  }, [activeChat?.publicId]);
 
 useEffect(() => {
   const handleTyping = ({ threadId, userId }: any) => {
     if (
-      threadId === activeChat?.threadId &&
+      threadId === activeChat?.publicId &&
       userId !== session?.user?.id
     ) {
       setIsOtherUserTyping(true);
@@ -236,7 +237,7 @@ useEffect(() => {
 
   const handleStopTyping = ({ threadId, userId }: any) => {
     if (
-      threadId === activeChat?.threadId &&
+      threadId === activeChat?.publicId &&
       userId !== session?.user?.id
     ) {
       setIsOtherUserTyping(false);
@@ -250,18 +251,18 @@ useEffect(() => {
     socket.off("userTyping", handleTyping);
     socket.off("userStopTyping", handleStopTyping);
   };
-}, [activeChat?.threadId, session?.user?.id]);
+}, [activeChat?.publicId, session?.user?.id]);
 
 
   // ✅ Join thread room
   useEffect(() => {
-    if (!activeChat?.threadId) {
+    if (!activeChat?.publicId) {
       console.log("⚠️ No active chat to join");
       return;
     }
 
-    console.log("🚪 Joining thread room:", activeChat.threadId);
-    socket.emit("joinThread", activeChat.threadId);
+    console.log("🚪 Joining thread room:", activeChat.publicId);
+    socket.emit("joinThread", activeChat.publicId);
 
 
   }, [activeChat]);
@@ -303,7 +304,7 @@ useEffect(() => {
       return;
     }
 
-    if (!activeChat?.threadId || !session?.user?.id || !activeUser?._id) {
+    if (!activeChat?.publicId || !session?.user?.id || !activeUser?._id) {
       console.error("❌ Missing required data");
       return;
     }
@@ -313,13 +314,13 @@ useEffect(() => {
       return;
     }
     socket.emit("stopTyping", {
-      threadId: activeChat.threadId,
+      threadId: activeChat.publicId,
       userId: session.user.id,
     });
     isTypingRef.current = false;
 
     const payload = {
-      threadId: activeChat.threadId,
+      threadId: activeChat.publicId,
       senderId: session.user.id,
       receiverId: activeUser._id,
       text: newComment,
@@ -493,7 +494,7 @@ const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
   try {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("threadId", activeChat.threadId);
+    formData.append("threadId", activeChat.publicId);
     formData.append("receiverId", activeUser._id);
 
     const res = await apiPostWithMultiForm({
@@ -506,7 +507,7 @@ const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     }
 
     socket.emit("mediaMessageUploaded", {
-      threadId: activeChat.threadId,
+      threadId: activeChat.publicId,
       messageId: res._id,
     });
 
@@ -566,7 +567,36 @@ const highlightText = (text: string, search: string) => {
     ">$1</span>`
   );
 };
+const handleUploadPPVMedia = async (ppvId: string, files: FileList | null) => {
+  if (!files) return;
 
+  const formData = new FormData();
+
+  Array.from(files).forEach((file) => {
+    formData.append("files", file);
+  });
+
+  try {
+    await apiPostWithMultiForm({
+      url: `/ppv/upload-media/${ppvId}`,
+      values: formData,
+    });
+
+    toast.success("Media uploaded");
+
+    // Refresh chat
+    const res = await getApi({
+      url: API_MESSAGE_CHAT,
+      page: 1,
+      rowsPerPage: 50,
+      searchText: activeChat.publicId,
+    });
+
+    setMessages(res?.data || []);
+  } catch (err) {
+    toast.error("Upload failed");
+  }
+};
 
 
   return (
@@ -576,7 +606,7 @@ const highlightText = (text: string, search: string) => {
             <div className="msg-page-container" msg-page-wrapper={true}>
               <SideBar
                 onSelectChat={(thread: any) => {
-                  if (!thread?.threadId) return; // 🔥 IMPORTANT
+                  if (!thread?.publicId) return; // 🔥 IMPORTANT
                   setActiveChat(thread);
                 }}
               />
@@ -663,6 +693,7 @@ const highlightText = (text: string, search: string) => {
                                       : msg.senderId;
 
                                   const isSender = senderId === session?.user?.id;
+                                  const isCreator = session?.user?.id === msg.ppvRequestId?.creatorId;
 
                                   return (
                                     <div
@@ -686,10 +717,10 @@ const highlightText = (text: string, search: string) => {
                                         {msg.type === 1 && (
                                           <div className="chat-msg-txt">
                                            <p
-  dangerouslySetInnerHTML={{
-    __html: highlightText(msg.message, searchText),
-  }}
-/>
+                                            dangerouslySetInnerHTML={{
+                                              __html: highlightText(msg.message, searchText),
+                                            }}
+                                          />
 
                                           </div>
                                         )}
@@ -755,100 +786,89 @@ const highlightText = (text: string, search: string) => {
                                               )}
                                             </div>
                                           )}
+                                          
                                         </div>
+                                        {msg.type === 5 && msg.ppvRequestId && (
+                                      <div className="ppvrequest_wrap">
+                                        <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
+                                        {/* //after sucess accept show this */}
+                                        {msg.ppvRequestId.status === "ACCEPTED" && (
+                                        <div className="warning_wrap success"><BadgeCheck size={20}/> You Have Accepted The PPV request</div>
+                                        )}
+                                        {/* //after sucess decline show this */}
+                                        {msg.ppvRequestId.status === "REJECTED" && (
+                                        <div className="warning_wrap danger"><CircleX size={20}/> You Have Accepted The PPV request</div>
+                                        )}
+                                        <div className="upload-box">
+                                          {/* <Link className="icon"/> */}
+                                          <span className="text">Upload Media</span>
+                                        </div>
+                                        {/*when user click on decline button then show this select */}
+                                        {showDeclineSelect && (
+                                        <CustomSelect className="bg-white p-sm size-sm"
+                                          label="Reason for Decline"
+                                          searchable={false}
+                                          options={[
+                                            { label: "Not Interested", value: "not_interested" },
+                                            { label: "Price Too High", value: "price_too_high" },
+                                            { label: "Content Not Relevant", value: "content_not_relevant" },
+                                            { label: "Already Purchased Similar Content", value: "already_purchased" },
+                                            { label: "Quality Concerns", value: "quality_concerns" },
+                                            { label: "Other", value: "other" },
+                                          ]}
+                                        />
+                                        )}
+                                            <div className="cont_wrap">
+                                          <h3>Type</h3>
+                                          <p>{msg.ppvRequestId.type.toLowerCase()}</p>
+                                        </div>
+                                        <div className="cont_wrap">
+                                          <h3>Description</h3>
+                                          <p>{msg.ppvRequestId.description}</p>
+                                        </div>
+                                        <div className="cont_wrap">
+                                          <h3>Reference File</h3>
+                                          <div className="upload-wrapper">
+                                            {/* <div className="img_wrap">
+                                              <svg className="icons idshape size-45"></svg>
+                                            </div>
+                                            <div className="img_wrap">
+                                              <svg className="icons idshape size-45"></svg>
+                                            </div>
+                                            <div className="img_wrap">
+                                              <svg className="icons idshape size-45"></svg>
+                                            </div> */}
+                                          {msg.ppvRequestId.type == "PHOTO" && (
+                                            <div className="img_wrap">
+                                              <img src={msg.ppvRequestId.referenceFile} className="img-fluid upldimg" alt="preview"/>
+                                              <button type="button" className="btn-danger"><CircleX size={16} /></button>
+                                            </div>
+                                          )}
+                                          {msg.ppvRequestId.type == "VIDEO" && (
+                                            <div className="img_wrap">
+                                              <video src={msg.ppvRequestId.referenceFile} className="img-fluid upldimg" controls/>
+                                              <button type="button" className="btn-danger"><CircleX size={16} /></button>
+                                            </div>
+                                          )}
+                                          </div>
+                                        </div>
+                                          <div className="actions">
+                                            <div>
+                                            <p className="text-gradiant">Amount</p>
+                                            <button className="btn-txt-gradient"><span>${msg.ppvRequestId.price}</span></button>
+                                            </div>
+                                            <div className="right">
+                                              <button className="btn-txt-gradient"><span>${msg.ppvRequestId.price}</span></button>
+                                              <button className="btn-txt-gradient"><span>Decline</span></button>
+                                            </div>
+                                          </div>
                                       </div>
+                                    )}
                                     </div>
+                                  </div>
+                                    
                                   );
-                                })}
-                                {/* {messages?.map((msg) => {
-                                return (
-                                <div
-                                  key={msg._id}
-                                  className={`chat-msg-wrapper ${isSender ? 'outgoing-message' : 'incoming-message'}`}>
-                                  <div className="chat-msg-profile">
-                                    <img src={msg.senderId?.profile || "/images/profile-avatars/profile-avatar-27.jpg"} alt="#" />
-                                  </div>
-                                  <div className="chat-msg-txt-wrapper">
-                                    <div className="chat-msg-txt">
-                                      <p>{msg.message || ""}</p>
-                                    </div>
-                                    <div className="chat-msg-details">
-                                      <div className="chat-msg-time">
-                                        <span>
-                                          {new Date(msg.createdAt).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                          })} </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                );
-                              })} */}
-
-                                {/* <div className="ppvrequest_wrap">
-                            <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
-                            <div className="warning_wrap success"><BadgeCheck size={20}/> You Have Accepted The PPV request</div>
-                            <div className="warning_wrap danger"><CircleX size={20}/> You Have Accepted The PPV request</div>
-                            <div className="upload-box">
-                              <Link className="icon"/>
-                              <span className="text">Upload Media</span>
-                            </div>
-                            <CustomSelect className="bg-white p-sm size-sm"
-                              label="Reason for Decline"
-                              searchable={false}
-                              options={[
-                                { label: "Not Interested", value: "not_interested" },
-                                { label: "Price Too High", value: "price_too_high" },
-                                { label: "Content Not Relevant", value: "content_not_relevant" },
-                                { label: "Already Purchased Similar Content", value: "already_purchased" },
-                                { label: "Quality Concerns", value: "quality_concerns" },
-                                { label: "Other", value: "other" },
-                              ]}
-                            />
-                            <div className="cont_wrap">
-                              <h3>Type</h3>
-                              <p>Photos / Videos</p>
-                            </div>
-                            <div className="cont_wrap">
-                              <h3>Description</h3>
-                              <p>Lorem ipsum dolor sit amet consectetur. Rhoncus lorem vivamus sagittis pellentesque blandit. Curabitur odio sed maecenas quam vitae.</p>
-                            </div>
-                            <div className="cont_wrap">
-                              <h3>Reference File</h3>
-                              <div className="upload-wrapper">
-                                <div className="img_wrap">
-                                  <svg className="icons idshape size-45"></svg>
-                                </div>
-                                <div className="img_wrap">
-                                  <svg className="icons idshape size-45"></svg>
-                                </div>
-                                <div className="img_wrap">
-                                  <svg className="icons idshape size-45"></svg>
-                                </div>
-                              
-                                <div className="img_wrap">
-                                  <img src="/images/logo/black-logo.jpg" className="img-fluid upldimg" alt="preview"/>
-                                  <button type="button" className="btn-danger"><CircleX size={16} /></button>
-                                </div>
-                                <div className="img_wrap">
-                                  <video src="https://res.cloudinary.com/drhj03nvv/video/upload/v1770188682/posts/6982ef7e3bf4bec3e275778b/1770188670639-4945133-uhd_4096_2160_24fps.mp4.mp4" className="img-fluid upldimg" controls/>
-                                  <button type="button" className="btn-danger"><CircleX size={16} /></button>
-                                </div>
-                              
-                              </div>
-                            </div>
-                              <div className="actions">
-                                <div>
-                                <p className="text-gradiant">Amount</p>
-                                <button className="btn-txt-gradient"><span>$30</span></button>
-                                </div>
-                                <div className="right">
-                                  <button className="btn-txt-gradient"><span>$30</span></button>
-                                  <button className="btn-txt-gradient"><span>Decline</span></button>
-                                </div>
-                              </div>
-                          </div> */}
+                                })}   
                               {isOtherUserTyping && (
                                 <div className="chat-msg-typing-anim-elem">
                                   <div className="loading">
@@ -893,12 +913,12 @@ const highlightText = (text: string, search: string) => {
                                   onChange={(e) => {
                                     setNewComment(e.target.value);
 
-                                    if (!activeChat?.threadId || !session?.user?.id) return;
+                                    if (!activeChat?.publicId || !session?.user?.id) return;
 
                                     // 🔥 Emit typing once
                                     if (!isTypingRef.current) {
                                       socket.emit("typing", {
-                                        threadId: activeChat.threadId,
+                                        threadId: activeChat.publicId,
                                         userId: session.user.id,
                                       });
                                       isTypingRef.current = true;
@@ -911,7 +931,7 @@ const highlightText = (text: string, search: string) => {
 
                                     typingTimeoutRef.current = setTimeout(() => {
                                       socket.emit("stopTyping", {
-                                        threadId: activeChat.threadId,
+                                        threadId: activeChat.publicId,
                                         userId: session.user.id,
                                       });
                                       isTypingRef.current = false;

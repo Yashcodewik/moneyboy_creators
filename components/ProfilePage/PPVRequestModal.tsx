@@ -14,7 +14,8 @@ interface PPVRequestModalProps {
     profile?: string;
   };
   post: any;
-  onSuccess: (payload: { amount: number }) => void;
+  onSuccess: (payload: { amount: number; threadPublicId: string }) => void;
+
 }
 const PPVRequestModal = ({
   onClose,
@@ -55,7 +56,10 @@ const PPVRequestModal = ({
     setLoading(false);
 
     if (res?.success) {
-      onSuccess({ amount: offerPrice });
+      onSuccess({
+    amount: offerPrice as number,
+    threadPublicId: res.threadPublicId,
+  });
     } else {
       // alert(res?.message || "Failed to send PPV request");
     }
