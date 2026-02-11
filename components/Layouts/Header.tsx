@@ -1321,7 +1321,7 @@ const Header = () => {
                             strokeLinejoin="round"
                           />
                         </svg>
-                        <span>Store</span>
+                        <span>Marketplace</span>
                       </a>
 
                     </div>

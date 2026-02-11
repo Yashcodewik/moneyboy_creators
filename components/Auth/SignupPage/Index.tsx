@@ -104,7 +104,7 @@ const SignupPage = () => {
       setOtpOpen(false);
 
       // redirect to feed
-      router.push("/discover");
+      router.push("/feed");
     } catch (err: any) {
       ShowToast(err?.message || "OTP verification failed", "error");
     }

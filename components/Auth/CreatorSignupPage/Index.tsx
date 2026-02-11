@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import CustomSelect from "@/components/CustomSelect";
 import Link from "next/link";
-import {  } from "react";
+import {} from "react";
 import { TbCamera } from "react-icons/tb";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -44,7 +44,7 @@ const validationSchema = yup.object({
     .string()
     .matches(
       /^[A-Za-z0-9]{5,20}$/,
-      "Username must be 5-20 characters long, letters A-Z, and numbers 0-9 only, no spaces."
+      "Username must be 5-20 characters long, letters A-Z, and numbers 0-9 only, no spaces.",
     )
     .required("Username is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -91,14 +91,13 @@ const CreatorSignupPage = () => {
 
   // CLOSE ON OUTSIDE CLICK
   useEffect(() => {
-    const handleClickOutside = (e :any) => {
+    const handleClickOutside = (e: any) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
         setActiveField(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const formik = useFormik({
@@ -127,43 +126,58 @@ const CreatorSignupPage = () => {
       popularity: "",
     },
     validationSchema,
-    onSubmit: async (values) => {
-      try {
-        setLoading(true);
+  onSubmit: async (values) => {
+  try {
+    setLoading(true);
 
-        // Check files before registration
-        // if (!governmentIdFile || !selfieWithIdFile) {
-        //   ShowToast("Please upload both KYC documents", "error");
-        //   setLoading(false);
-        //   return;
-        // }
+    const res = await apiPost({
+      url: API_CREATOR_REGISTER,
+      values,
+    });
 
-        // Step 1: Register creator
-        const res = await apiPost({ url: API_CREATOR_REGISTER, values });
-
-        if (!res?.success) {
-          ShowToast(res?.error || "Something went wrong", "error");
-          setLoading(false);
-          return;
-        }
-
-        // Step 2: Upload KYC
-        // await uploadCreatorKyc(values.email);
-
-        ShowToast(res.message, "success");
-        setEmailForOtp(values.email);
-        setOtpOpen(true);
-      } catch (err: any) {
-        ShowToast(err?.message || "Something went wrong", "error");
-      } finally {
-        setLoading(false);
+    // ✅ If backend sends success: false
+    if (!res?.success) {
+      if (
+        res?.message?.toLowerCase().includes("email") ||
+        res?.error?.toLowerCase().includes("email")
+      ) {
+        ShowToast("Email already exists. Please use another email.", "error");
+      } else {
+        ShowToast(res?.message || res?.error || "Something went wrong", "error");
       }
-    },
+
+      setLoading(false);
+      return;
+    }
+
+    // ✅ SUCCESS
+    ShowToast(res.message, "success");
+    setEmailForOtp(values.email);
+    setOtpOpen(true);
+
+  } catch (err: any) {
+    // ✅ If API throws error (409 / 400)
+    if (
+      err?.response?.data?.message?.toLowerCase().includes("email")
+    ) {
+      ShowToast("Email already exists. Please use another email.", "error");
+    } else {
+      ShowToast(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Something went wrong",
+        "error"
+      );
+    }
+  } finally {
+    setLoading(false);
+  }
+}
   });
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "id" | "selfie"
+    type: "id" | "selfie",
   ) => {
     const file = e.target.files?.[0];
 
@@ -254,13 +268,11 @@ const CreatorSignupPage = () => {
       setOtpOpen(false);
 
       // redirect to feed
-      router.push("/discover");
+      router.push("/feed");
     } catch (err: any) {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
   };
-
-  
 
   return (
     <div className="bg-off-white">
@@ -270,20 +282,44 @@ const CreatorSignupPage = () => {
             <img src="/images/logo.svg" className="logo_wrap" />
             <div className="moneyboy-post__container card">
               <div className="head">
-                <div className="backicons"><button className="cate-back-btn active-down-effect"><span><IoArrowBackOutline className="icons"/></span></button></div>
+                <div className="backicons">
+                  <button
+                    className="cate-back-btn active-down-effect"
+                    onClick={() => router.push("/feed")}
+                  >
+                    <span>
+                      <IoArrowBackOutline className="icons" />
+                    </span>
+                  </button>
+                </div>
                 <div className="textcont">
                   <h3 className="heading">Creator Sign Up</h3>
-                  <p className="mb-10">Sign up to make money and interact with your fans!</p>
+                  <p className="mb-10">
+                    Sign up to make money and interact with your fans!
+                  </p>
                 </div>
               </div>
               <div className="creator_maingrid">
                 <div className="form_grid">
                   <div>
                     <div className="label-input">
-                      <div className="input-placeholder-icon"><i className="icons user svg-icon"></i></div>
-                      <input type="text" placeholder="First Name *" value={formik.values.firstName} onChange={formik.handleChange} onBlur={formik.handleBlur} name="firstName"/>
+                      <div className="input-placeholder-icon">
+                        <i className="icons user svg-icon"></i>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="First Name *"
+                        value={formik.values.firstName}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        name="firstName"
+                      />
                     </div>
-                    {formik.touched.firstName && formik.errors.firstName && (<span className="error-message">{formik.errors.firstName}</span>)}
+                    {formik.touched.firstName && formik.errors.firstName && (
+                      <span className="error-message">
+                        {formik.errors.firstName}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <div className="label-input">
@@ -442,15 +478,42 @@ const CreatorSignupPage = () => {
                     )}
                   </div>
                   <div>
-                  <div className="label-input calendar-dropdown" ref={wrapperRef}>
-                    <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
-                    <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={startDate?.toLocaleDateString("en-GB") || ""} onClick={() => setActiveField("schedule")}/>
-                    {activeField === "schedule" && (
-                      <div className="calendar_show">
-                        <DatePicker selected={startDate} inline onChange={(date :any) => {setStartDate(date); setActiveField(null);}}/>
+                    <div
+                      className="label-input calendar-dropdown"
+                      ref={wrapperRef}
+                    >
+                      <div className="input-placeholder-icon">
+                        <CalendarDays className="icons svg-icon" />
                       </div>
-                    )}
-                  </div>
+                      <input
+                        type="text"
+                        placeholder="(DD/MM/YYYY)"
+                        className="form-input"
+                        readOnly
+                        value={startDate?.toLocaleDateString("en-GB") || ""}
+                        onClick={() => setActiveField("schedule")}
+                      />
+                      {activeField === "schedule" && (
+                        <div className="calendar_show">
+                          <DatePicker
+                            selected={startDate}
+                            inline
+                            onChange={(date: Date | null) => {
+                              setStartDate(date);
+
+                              if (date) {
+                                formik.setFieldValue(
+                                  "dob",
+                                  date.toISOString().split("T")[0], // YYYY-MM-DD
+                                );
+                              }
+
+                              setActiveField(null);
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
                     {formik.touched.dob && formik.errors.dob && (
                       <span className="error-message">{formik.errors.dob}</span>
                     )}
@@ -769,8 +832,8 @@ const CreatorSignupPage = () => {
               <p>
                 By signing up you agree to our{" "}
                 <Link href="/terms">Terms of Service</Link> and{" "}
-                <Link href="/privacy">Privacy Policy</Link>, and confirm that you are
-                at least 18 years old.
+                <Link href="/privacy">Privacy Policy</Link>, and confirm that
+                you are at least 18 years old.
               </p>
               <p className="fs-18">
                 Have an account already? <Link href="/login">Log in here.</Link>
