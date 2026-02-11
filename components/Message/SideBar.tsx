@@ -1,10 +1,15 @@
  import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
 import { getApi } from "@/utils/endpoints/common";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const SideBar = ({ onSelectChat }: any) => {
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [chatList, setChatList] = useState<any[]>([]);
+  const router = useRouter();
+const searchParams = useSearchParams();
+const threadIdFromUrl = searchParams.get("threadId");
+
 
   useEffect(() => {
     const fetchSidebar = async () => {
@@ -22,6 +27,12 @@ const SideBar = ({ onSelectChat }: any) => {
     };
     fetchSidebar();
   }, []);
+
+  useEffect(() => {
+    if (!threadIdFromUrl && chatList.length > 0) {
+      router.replace(`/message?threadId=${chatList[0].threadId}`);
+    }
+  }, [chatList]);
 
   return (
     <div className="msg-profiles-layout">

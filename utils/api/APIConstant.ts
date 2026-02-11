@@ -96,6 +96,7 @@ export const API_GET_MY_PAID_POSTS = "/post/paid-posts";
 export const API_MESSAGE_SIDEBAR = "/messages/sidebar";
 export const API_MESSAGE_CHAT = "/messages/chat";
 export const API_MESSAGE_CHAT_UPLOAD_MEDIA = "/messages/upload-media";
+export const API_DELETE_CONVERSATION = `/messages/thread`;
 
 export const API_GET_FEATURED_POSTS = "/post/featured-posts";
 export const API_GET_PAID_CONTENT_FEED = "/post/paid-content-feed";
