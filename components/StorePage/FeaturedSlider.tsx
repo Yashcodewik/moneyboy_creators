@@ -44,7 +44,9 @@ export default function FeaturedContentSlider({
   const handleSaveToggle = (e: React.MouseEvent, post: any) => {
     e.stopPropagation(); // 🚫 don’t slide / redirect
 
-    const isSaved = !!savedPosts[post._id];
+    const isSaved =
+  savedPosts[post._id]?.saved ?? post.isSaved ?? false;
+
 
     if (isSaved) {
       dispatch(
@@ -106,9 +108,7 @@ export default function FeaturedContentSlider({
                     <div className="featured-premium-card-icons">
                       {!isOwnPost && (
                         <div
-                          className={`featured-premium-card-icon wishlist-icon ${
-                            isSaved ? "active" : ""
-                          }`}
+                         className={`featured-premium-card-icon wishlist-icon ${isSaved ? "active" : ""}`}
                           onClick={(e) => handleSaveToggle(e, post)}
                         >
                           <svg className="icons wishlist wishlist-icon white" />
