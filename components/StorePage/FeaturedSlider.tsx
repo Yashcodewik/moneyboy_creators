@@ -107,11 +107,12 @@ export default function FeaturedContentSlider({
                   <div className="featured-premium-card-content">
                     <div className="featured-premium-card-icons">
                       {!isOwnPost && (
-                        <div
-                         className={`featured-premium-card-icon wishlist-icon ${isSaved ? "active" : ""}`}
-                          onClick={(e) => handleSaveToggle(e, post)}
-                        >
-                          <svg className="icons wishlist wishlist-icon white" />
+                        <div className={`featured-premium-card-icon wishlist-icon ${isSaved ? "active" : ""}`} onClick={(e) => handleSaveToggle(e, post)}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                            <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          </svg>
                           {/* <span>{post.likeCount ?? 0}</span> */}
                         </div>
                       )}
