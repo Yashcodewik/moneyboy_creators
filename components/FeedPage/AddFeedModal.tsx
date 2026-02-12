@@ -41,17 +41,27 @@ type TagUser = {
 };
 
 const PostSchema = Yup.object({
-  text: Yup.string().when("hasMedia", {
-    is: false,
-    then: (s) => s.required("Post text is required"),
-  }),
-  accessType: Yup.string().required(),
-  price: Yup.number().when("accessType", {
-    is: "pay_per_view",
-    then: (s) => s.required().positive(),
-    otherwise: (s) => s.notRequired(),
-  }),
+  text: Yup.string()
+    .max(300, "Maximum 300 characters allowed")
+    .when("hasMedia", {
+      is: false,
+      then: (s) => s.required("Post text is required"),
+    }),
+
+  accessType: Yup.string().required("Access type is required"),
+
+  price: Yup.number()
+    .typeError("Price must be a number")
+    .when("accessType", {
+      is: "pay_per_view",
+      then: (s) =>
+        s.required("Price is required")
+          .positive("Price must be greater than 0"),
+      otherwise: (s) => s.notRequired(),
+    }),
+
   isScheduled: Yup.boolean(),
+
   scheduledAt: Yup.string().when(["isScheduled", "accessType"], {
     is: (isScheduled: boolean, accessType: string) =>
       isScheduled &&
@@ -59,7 +69,10 @@ const PostSchema = Yup.object({
     then: (s) => s.required("Schedule date is required"),
     otherwise: (s) => s.notRequired(),
   }),
+
+  hasMedia: Yup.boolean().oneOf([true], "At least one media file is required"),
 });
+
 
 const AddFeedModal = ({ show, onClose }: feedParams) => {
   const [accessType, setAccessType] = useState("free");
@@ -96,6 +109,11 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
   const dobWrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    formik.setFieldValue("hasMedia", mediaFiles.length > 0, false);
+  }, [mediaFiles]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -190,6 +208,9 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       hasMedia: false,
     },
     validationSchema: PostSchema,
+    validateOnBlur: false,
+    validateOnChange: false,
+    validateOnMount: false,
     onSubmit: async (values) => {
       if (isSubmitting) return;
       setIsSubmitting(true);
@@ -319,9 +340,10 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       aria-modal="true"
       onClick={onClose}
     >
-      <div
+      <form
         className="modal-wrap post-modal"
         onClick={(e) => e.stopPropagation()}
+        onSubmit={formik.handleSubmit}
       >
         <div className="modal_head">
           <h3>New Post</h3>
@@ -370,10 +392,11 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               </div>
             )}
           </span>
-          {formik.touched.text && formik.errors.text && (
+          
+        </div>
+        {formik.touched.text && formik.errors.text && (
             <span className="error-message">{formik.errors.text}</span>
           )}
-        </div>
 
         <div className="select_wrap">
           <label className="radio_wrap">
@@ -431,9 +454,10 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             <input
               className="form-input"
               type="text"
+              name="price"
               placeholder="10.99 *"
               value={formik.values.price}
-              onChange={(e) => formik.setFieldValue("price", e.target.value)}
+              onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
             {formik.touched.price && formik.errors.price && (
@@ -452,6 +476,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                   type="checkbox"
                   id="on-off-switch"
                   className="checkbox"
+                  name="isScheduled"
                   checked={isScheduled}
                   onChange={() => {
                     const newIsScheduled = !isScheduled;
@@ -486,9 +511,14 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                   </div>
                   <input
                     type="text"
+                    name="scheduledAt"
                     placeholder="Schedule Date (DD/MM/YYYY) *"
                     className="form-input"
-                    value={formik.values.scheduledAt || ""}
+                    value={
+                      formik.values.scheduledAt
+                        ? new Date(formik.values.scheduledAt).toLocaleDateString("en-GB")
+                        : ""
+                    }
                     readOnly
                     onFocus={() => setActiveField("schedule")}
                     onBlur={formik.handleBlur}
@@ -499,26 +529,25 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                         inline
                         selected={
                           formik.values.scheduledAt
-                            ? new Date(
-                                formik.values.scheduledAt
-                                  .split("/")
-                                  .reverse()
-                                  .join("-"),
-                              )
+                            ? new Date(formik.values.scheduledAt)
                             : null
                         }
+
                         minDate={new Date()}
                         onChange={(date: Date | null) => {
                           if (!date) return;
-                          const formattedDate =
-                            date.toLocaleDateString("en-GB");
-                          formik.setFieldValue("scheduledAt", formattedDate);
+                         formik.setFieldValue("scheduledAt", date.toISOString());
                           setActiveField(null);
                         }}
                       />
-                    </div>
+                    </div>                    
                   )}
                 </div>
+                 {formik.touched.scheduledAt && formik.errors.scheduledAt && (
+                        <div className="error-message">
+                          {formik.errors.scheduledAt}
+                        </div>
+                      )}
               </div>
             )}
 
@@ -569,6 +598,11 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </div>
           ))}
         </div>
+        {formik.touched.hasMedia && formik.errors.hasMedia && (
+          <div className="error-message">
+            {formik.errors.hasMedia}
+          </div>
+        )}
 
         {/* <div className="upload-wrapper" onClick={() => thumbnailInputRef.current?.click()}>
           <div className="img_wrap">
@@ -740,17 +774,17 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               </li>
             </ul>
             <button
-              type="button"
+              type="submit"
               data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
               className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
-              onClick={() => formik.handleSubmit()}
-              disabled={isSubmitting || !hasMedia}
+              
+              disabled={isSubmitting}
             >
               <span>{isSubmitting ? "Posting..." : "Post"}</span>
             </button>
           </div>
         </div>
-      </div>
+      </form>
 
       {showTagModal && (
         <div
