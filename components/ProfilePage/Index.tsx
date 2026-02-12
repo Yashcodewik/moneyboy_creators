@@ -504,6 +504,8 @@ const ProfilePage = () => {
 
 
     const isFree = post.accessType === "free";
+    const isFreecomment = !post.accessType || post.accessType === "free";
+
     const isSubscriberPost = post.accessType === "subscriber";
     const isPPVPost = post.accessType === "pay_per_view";
 
@@ -682,6 +684,8 @@ const ProfilePage = () => {
             <p>{expandedPosts[post.publicId] ? post.text : `${truncateText(post.text)}${post.text?.length > 50 ? "..." : ""}`}</p>
           </div>
           <div className="creator-content-card__stats">
+            {isFreecomment && (
+              <>
             <div className="creator-content-stat-box">
               <button className="like-button" data-like-button="">
                 <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
@@ -690,6 +694,45 @@ const ProfilePage = () => {
               </button>
               <span>{post?.likeCount}</span>
             </div>
+             <div className="creator-content-stat-box post-comment-btn">
+              <button>
+               <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></path>
+                    <path
+                      d="M7 8H17"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></path>
+                    <path
+                      d="M7 13H13"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></path>
+                  </svg>
+              </button>
+              <span>{post?.commentCount}</span>
+            </div>
+            </>
+            )}
+            {!isFreecomment && (
+              <>
             <div className="creator-content-stat-box views-btn">
               <button>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -699,6 +742,17 @@ const ProfilePage = () => {
               </button>
               <span>{post?.commentCount}</span>
             </div>
+            <div className="creator-content-stat-box thumup-btn ">
+              <button>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                  <path d="M7 10v12" />
+                </svg>
+              </button>
+              {/* <span>{likes}</span> */}
+            </div>
+            </>
+            )}
             {isOwner && (
               <button className="btn-danger icons" onClick={() => handleDeletePost(post._id)}><Trash2 size={28} color="#FFF" /></button>
             )}
