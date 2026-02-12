@@ -195,10 +195,7 @@ useEffect(() => {
             ),
           )}
 
-          <button
-            className="btn-next"
-            disabled={page === totalPages}
-            onClick={() =>
+          <button className="btn-next" disabled={page === totalPages} onClick={() =>
               dispatch(
                 fetchDiscoverCreators({
                   page: page + 1,
