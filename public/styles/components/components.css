@@ -3390,6 +3390,33 @@
                               }
                             }
 
+                            .icon {
+                              aspect-ratio: 1 / 1;
+                              width: 16px;
+                              height: 16px;
+                              display: flex;
+                              align-items: center;
+                              justify-content: center;
+                              transition: var(--transition-fast);
+                              &.mute-icon {
+                                svg {
+                                  path {
+                                    stroke: #444;
+                                    transition: var(--transition-fast);
+                                  }
+                                }
+                                &:hover {
+                                  svg path {
+
+                                    &:nth-child(1),
+                                    &:nth-child(2) {
+                                            fill: rgb(0, 0, 0);
+                                        }
+                                    }
+                                }
+                              }
+                            }
+
                             .contact-unread-count {
                               color: #ffffff;
                               background-color: #E5741F;

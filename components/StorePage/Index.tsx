@@ -204,13 +204,13 @@ const StorePage = () => {
     await dispatch(
       post.isSaved
         ? unsavePost({
-            postId: post._id,
-            creatorUserId: post.userId,
-          })
+          postId: post._id,
+          creatorUserId: post.userId,
+        })
         : savePost({
-            postId: post._id,
-            creatorUserId: post.userId,
-          }),
+          postId: post._id,
+          creatorUserId: post.userId,
+        }),
     );
   };
 
@@ -334,11 +334,10 @@ const StorePage = () => {
                       {creators.map((creator, index) => (
                         <li
                           key={creator._id}
-                          className={`${
-                            selectedCreator?.publicId === creator.publicId
-                              ? "active"
-                              : ""
-                          }`}
+                          className={`${selectedCreator?.publicId === creator.publicId
+                            ? "active"
+                            : ""
+                            }`}
                         >
                           <div
                             className="icons_wrap"
@@ -535,10 +534,10 @@ const StorePage = () => {
                     </div>
 
                     <div className="hero-type-card--content-container">
-                        <div className="edit_image">
-                          <input type="file" hidden accept="image/*" id="coverUpload"/>
-                          <label htmlFor="coverUpload" className="imgicons active-down-effect-2x" ><TbCamera size={16} /></label>
-                        </div>
+                      <div className="edit_image">
+                        <input type="file" hidden accept="image/*" id="coverUpload" />
+                        <label htmlFor="coverUpload" className="imgicons active-down-effect-2x" ><TbCamera size={16} /></label>
+                      </div>
                       <h2>PPV Request</h2>
                       <h4>Want Something Special?</h4>
                       <div className="hero-type-card--cta-box">
@@ -695,6 +694,10 @@ const StorePage = () => {
                       )}
                     </div>
                     <div className="moneyboy-special-content-banner--img-wrapper">
+                      <div className="edit_image">
+                        <input type="file" hidden accept="image/*" id="coverUpload" />
+                        <label htmlFor="coverUpload" className="imgicons active-down-effect-2x" ><TbCamera size={16} /></label>
+                      </div>
                       {!specialBannerError ? (
                         <img src="/images/profile-avatars/profile-avatar-23.jpg" alt="Get Exclusive Access Image" />
                       ) : (
@@ -777,9 +780,8 @@ const StorePage = () => {
                             <div className="creator-content-tabs-btn-wrapper">
                               <div className="multi-tabs-action-buttons">
                                 <button
-                                  className={`multi-tab-switch-btn videos-btn ${
-                                    subActiveTab === "videos" ? "active" : ""
-                                  }`}
+                                  className={`multi-tab-switch-btn videos-btn ${subActiveTab === "videos" ? "active" : ""
+                                    }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("videos")}
                                 >
@@ -815,9 +817,8 @@ const StorePage = () => {
                                   <span>Videos</span>
                                 </button>
                                 <button
-                                  className={`multi-tab-switch-btn photos-btn ${
-                                    subActiveTab === "photos" ? "active" : ""
-                                  }`}
+                                  className={`multi-tab-switch-btn photos-btn ${subActiveTab === "photos" ? "active" : ""
+                                    }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("photos")}
                                 >
@@ -874,9 +875,8 @@ const StorePage = () => {
                                 data-multi-dem-cards-layout-btns
                               >
                                 <button
-                                  className={`creator-content-grid-layout-btn ${
-                                    layout === "grid" ? "active" : "inactive"
-                                  }`}
+                                  className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"
+                                    }`}
                                   onClick={() => setLayout("grid")}
                                 >
                                   <svg
@@ -905,9 +905,8 @@ const StorePage = () => {
                                   </svg>
                                 </button>
                                 <button
-                                  className={`creator-content-grid-layout-btn ${
-                                    layout === "list" ? "active" : "inactive"
-                                  }`}
+                                  className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"
+                                    }`}
                                   onClick={() => setLayout("list")}
                                 >
                                   <svg
@@ -979,44 +978,43 @@ const StorePage = () => {
                                       return (
                                         <div className="creator-media-card card" key={post._id} >
                                           <div className="creator-media-card__media-wrapper">
-                                          <div className="creator-media-card__media">
-                                            {media.url && !videoErrors[post._id] ? (
-                                              <video
-                                                src={media.url}
-                                                muted
-                                                playsInline
-                                                preload="metadata"
-                                                onError={() =>
-                                                  setVideoErrors((prev) => ({
-                                                    ...prev,
-                                                    [post._id]: true,
-                                                  }))
-                                                }
-                                              />
-                                            ) : (
-                                              <div className="noprofile">
-                                                <svg width="40" height="40" viewBox="0 0 66 54" fill="none">
-                                                  <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674..." fill="url(#paint_video_fallback)"/>
-                                                  <defs>
-                                                    <linearGradient id="paint_video_fallback" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
-                                                      <stop stopColor="#FDAB0A" />
-                                                      <stop offset="0.4" stopColor="#FECE26" />
-                                                      <stop offset="1" stopColor="#FE990B" />
-                                                    </linearGradient>
-                                                  </defs>
-                                                </svg>
-                                              </div>
-                                            )}
-                                          </div>
+                                            <div className="creator-media-card__media">
+                                              {media.url && !videoErrors[post._id] ? (
+                                                <video
+                                                  src={media.url}
+                                                  muted
+                                                  playsInline
+                                                  preload="metadata"
+                                                  onError={() =>
+                                                    setVideoErrors((prev) => ({
+                                                      ...prev,
+                                                      [post._id]: true,
+                                                    }))
+                                                  }
+                                                />
+                                              ) : (
+                                                <div className="noprofile">
+                                                  <svg width="40" height="40" viewBox="0 0 66 54" fill="none">
+                                                    <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674..." fill="url(#paint_video_fallback)" />
+                                                    <defs>
+                                                      <linearGradient id="paint_video_fallback" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                                        <stop stopColor="#FDAB0A" />
+                                                        <stop offset="0.4" stopColor="#FECE26" />
+                                                        <stop offset="1" stopColor="#FE990B" />
+                                                      </linearGradient>
+                                                    </defs>
+                                                  </svg>
+                                                </div>
+                                              )}
+                                            </div>
                                             <div className="creator-media-card__overlay">
                                               <div className="creator-media-card__stats">
                                                 {!isOwnPost &&
                                                   !post.isUnlocked &&
                                                   !post.isSubscribed && (
                                                     <div
-                                                      className={`creator-media-card__stats-btn wishlist-icon ${
-                                                        isSaved ? "active" : ""
-                                                      }`}
+                                                      className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""
+                                                        }`}
                                                       onClick={(e) =>
                                                         handleSaveToggle(
                                                           e,
@@ -1086,7 +1084,7 @@ const StorePage = () => {
                                               {!post.isUnlocked &&
                                                 post.isSubscribed &&
                                                 post.accessType ===
-                                                  "subscriber" && (
+                                                "subscriber" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline grey-variant"
                                                     onClick={() =>
@@ -1103,7 +1101,7 @@ const StorePage = () => {
                                               {/* PAY PER VIEW */}
                                               {!post.isUnlocked &&
                                                 post.accessType ===
-                                                  "pay_per_view" && (
+                                                "pay_per_view" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline"
                                                     onClick={(e) => {
@@ -1151,7 +1149,7 @@ const StorePage = () => {
                                               {!post.isUnlocked &&
                                                 !post.isSubscribed &&
                                                 post.accessType ===
-                                                  "subscriber" && (
+                                                "subscriber" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline grey-variant"
                                                     onClick={(e) => {
@@ -1290,9 +1288,8 @@ const StorePage = () => {
                                                 !post.isUnlocked &&
                                                 !post.isSubscribed && (
                                                   <div
-                                                    className={`creator-media-card__stats-btn wishlist-icon ${
-                                                      isSaved ? "active" : ""
-                                                    }`}
+                                                    className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""
+                                                      }`}
                                                     onClick={(e) =>
                                                       handleSaveToggle(e, post)
                                                     }
@@ -1359,7 +1356,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <a
                                                   className="btn-txt-gradient btn-outline grey-variant"
                                                   onClick={() =>
@@ -1376,7 +1373,7 @@ const StorePage = () => {
                                             {/* PAY PER VIEW */}
                                             {!post.isUnlocked &&
                                               post.accessType ===
-                                                "pay_per_view" && (
+                                              "pay_per_view" && (
                                                 <a
                                                   className="btn-txt-gradient btn-outline"
                                                   onClick={(e) => {
@@ -1424,7 +1421,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               !post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <a
                                                   className="btn-txt-gradient btn-outline grey-variant"
                                                   onClick={(e) => {
