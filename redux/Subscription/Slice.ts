@@ -1,16 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { unlockPost, subscribeCreator } from "./Action";
+import { unlockPost, subscribeCreator, sendTip } from "./Action";
 
 /* ---------- State ---------- */
 interface SubscriptionState {
   unlocking: boolean;
   subscribing: boolean;
+  tipping: boolean; // ✅ Added
   error: string | null;
 }
 
 const initialState: SubscriptionState = {
   unlocking: false,
   subscribing: false,
+  tipping: false, // ✅ Added
   error: null,
 };
 
@@ -47,6 +49,20 @@ const subscriptionSlice = createSlice({
       })
       .addCase(subscribeCreator.rejected, (state, action) => {
         state.subscribing = false;
+        state.error = action.payload as string;
+      });
+
+    /* ---------- Send Tip ---------- */
+    builder
+      .addCase(sendTip.pending, (state) => {
+        state.tipping = true;
+        state.error = null;
+      })
+      .addCase(sendTip.fulfilled, (state) => {
+        state.tipping = false;
+      })
+      .addCase(sendTip.rejected, (state, action) => {
+        state.tipping = false;
         state.error = action.payload as string;
       });
   },
