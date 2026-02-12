@@ -4,6 +4,7 @@ import {
   API_GET_CREATORS,
   API_GET_FOLLOWERS,
   API_GET_FOLLOWING,
+  API_TRENDING_CREATORS,
   API_UNFOLLOW_USER,
 } from "@/utils/api/APIConstant";
 import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
@@ -24,6 +25,7 @@ import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 interface Creator {
   _id: string;
   firstName: string;
+  creatorUserId: string;
   lastName: string;
   displayName?: string;
   userName: string;
@@ -76,7 +78,9 @@ const FollowersPage = () => {
   const [followingSearchQuery, setFollowingSearchQuery] = useState("");
   const followersSearchTimeout = useRef<NodeJS.Timeout | null>(null);
   const followingSearchTimeout = useRef<NodeJS.Timeout | null>(null);
-  const [avatarErrorMap, setAvatarErrorMap] = useState<Record<string, boolean>>({});
+  const [avatarErrorMap, setAvatarErrorMap] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const toggleMore = (id: string) => {
     setOpenMoreId((prev) => (prev === id ? null : id));
@@ -148,16 +152,21 @@ const FollowersPage = () => {
   const fetchCreators = async (pageNo = 1) => {
     setLoading(true);
 
-    const res = await getApi({
-      url: API_GET_CREATORS,
-      page: pageNo,
-      rowsPerPage: 5,
+    const res = await getApiWithOutQuery({
+      url: `${API_TRENDING_CREATORS}?page=${pageNo}`,
     });
 
     if (res?.success) {
-      setCreators(res.data || []);
-      setPage(pageNo);
-      setTotalPages(res.pagination?.totalPages || 1);
+      // 👇 map API response to match UI expectations
+      const creatorsWithStatus = res.data.map((creator: any) => ({
+        ...creator,
+        _id: creator.creatorUserId, // 👈 normalize id
+        isFollowing: creator.isFollowing, // default (sync will update later)
+      }));
+
+      setCreators(creatorsWithStatus);
+      setPage(res.meta?.page || 1);
+      setTotalPages(res.meta?.totalPages || 1);
     }
 
     setLoading(false);
@@ -185,7 +194,7 @@ const FollowersPage = () => {
         const limit = res.meta?.limit || 10;
 
         setFollowersTotalPages(Math.ceil(total / limit));
-        setFollowersPage(page);
+        setFollowersPage(pageNo);
         setFollowersTotal(res.meta?.total || 0);
       }
     } catch (error) {
@@ -219,7 +228,7 @@ const FollowersPage = () => {
         const limit = res.meta?.limit || 10;
 
         setFollowingTotalPages(Math.ceil(total / limit));
-        setFollowingPage(page);
+        setFollowingPage(pageNo);
 
         setFollowingTotal(res.meta?.total || 0);
       }
@@ -273,6 +282,12 @@ const FollowersPage = () => {
         isFollowingYou: followerIds.has(u._id),
       })),
     );
+    setCreators((prev) =>
+      prev.map((creator) => ({
+        ...creator,
+        isFollowing: followingIds.has(creator._id),
+      })),
+    );
   };
 
   const handleFollowToggle = async (
@@ -292,10 +307,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: false,
-                isFollowingYou: true,
-              }
+                  ...user,
+                  isFollowing: false,
+                  isFollowingYou: true,
+                }
               : user,
           ),
         );
@@ -306,10 +321,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: true,
-                isFollowingYou: true,
-              }
+                  ...user,
+                  isFollowing: true,
+                  isFollowingYou: true,
+                }
               : user,
           ),
         );
@@ -347,10 +362,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: false,
-                isFollowingYou: user.isFollowingYou,
-              }
+                  ...user,
+                  isFollowing: false,
+                  isFollowingYou: user.isFollowingYou,
+                }
               : user,
           ),
         );
@@ -407,10 +422,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                  ...user,
-                  isFollowing: true,
-                  isFollowingYou: true,
-                }
+                    ...user,
+                    isFollowing: true,
+                    isFollowingYou: true,
+                  }
                 : user,
             ),
           );
@@ -419,10 +434,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                  ...user,
-                  isFollowing: false,
-                  isFollowingYou: true,
-                }
+                    ...user,
+                    isFollowing: false,
+                    isFollowingYou: true,
+                  }
                 : user,
             ),
           );
@@ -601,13 +616,11 @@ const FollowersPage = () => {
           <div className="rel-user-profile-action">
             <div className="rel-user-profile">
               <div className="profile-card">
-                <a
-                  href={`/profile/${follower.userName}`}
-                  className="profile-card__main"
-                >
+                <a href={"#"} className="profile-card__main">
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
-                      {follower.profileImage && !avatarErrorMap[follower._id] ? (
+                      {follower.profileImage &&
+                      !avatarErrorMap[follower._id] ? (
                         <img
                           src={follower.profileImage}
                           alt={`${follower.firstName}'s profile`}
@@ -620,10 +633,27 @@ const FollowersPage = () => {
                         />
                       ) : (
                         <div className="noprofile">
-                          <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                          <svg
+                            width="40"
+                            height="40"
+                            viewBox="0 0 66 54"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              className="animate-m"
+                              d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                              fill="url(#paint0_linear_4470_53804)"
+                            />
                             <defs>
-                              <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                              <linearGradient
+                                id="paint0_linear_4470_53804"
+                                x1="0"
+                                y1="27"
+                                x2="66"
+                                y2="27"
+                                gradientUnits="userSpaceOnUse"
+                              >
                                 <stop stop-color="#FDAB0A" />
                                 <stop offset="0.4" stop-color="#FECE26" />
                                 <stop offset="1" stop-color="#FE990B" />
@@ -966,10 +996,7 @@ const FollowersPage = () => {
           <div className="rel-user-profile-action">
             <div className="rel-user-profile">
               <div className="profile-card">
-                <a
-                  href={`/profile/${follow.userName}`}
-                  className="profile-card__main"
-                >
+                <a href={"#"} className="profile-card__main">
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
                       {follow.profileImage && !avatarErrorMap[follow._id] ? (
@@ -985,10 +1012,27 @@ const FollowersPage = () => {
                         />
                       ) : (
                         <div className="noprofile">
-                          <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                          <svg
+                            width="40"
+                            height="40"
+                            viewBox="0 0 66 54"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              className="animate-m"
+                              d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                              fill="url(#paint0_linear_4470_53804)"
+                            />
                             <defs>
-                              <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                              <linearGradient
+                                id="paint0_linear_4470_53804"
+                                x1="0"
+                                y1="27"
+                                x2="66"
+                                y2="27"
+                                gradientUnits="userSpaceOnUse"
+                              >
                                 <stop stop-color="#FDAB0A" />
                                 <stop offset="0.4" stop-color="#FECE26" />
                                 <stop offset="1" stop-color="#FE990B" />
@@ -1101,8 +1145,9 @@ const FollowersPage = () => {
               </svg>
             </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${follow === "Followers" ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                follow === "Followers" ? "active" : ""
+              }`}
               data-multi-tabs-switch-btndata__active
               data-identifier="1"
               onClick={() => setFollow("Followers")}
@@ -1110,8 +1155,9 @@ const FollowersPage = () => {
               Followers
             </button>
             <button
-              className={`page-content-type-button active-down-effect ${follow === "Following" ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                follow === "Following" ? "active" : ""
+              }`}
               data-multi-tabs-switch-btn
               data-identifier="1"
               onClick={() => setFollow("Following")}
@@ -1265,10 +1311,10 @@ const FollowersPage = () => {
                               options={timeOptions}
                               value={time}
                               searchable={false}
-                            // onChange={(val) => {
-                            //   setTime(val);
-                            //   fetchLikedPosts(1);
-                            // }}
+                              // onChange={(val) => {
+                              //   setTime(val);
+                              //   fetchLikedPosts(1);
+                              // }}
                             />
                           </div>
                         </div>
@@ -1385,7 +1431,8 @@ const FollowersPage = () => {
                         <a href="#" className="profile-card__main">
                           <div className="profile-card__avatar-settings">
                             <div className="profile-card__avatar">
-                              {creator.profileImage && !avatarErrorMap[creator._id] ? (
+                              {creator.profileImage &&
+                              !avatarErrorMap[creator._id] ? (
                                 <img
                                   src={creator.profileImage}
                                   alt={`${creator.displayName} profile avatar`}
@@ -1398,12 +1445,32 @@ const FollowersPage = () => {
                                 />
                               ) : (
                                 <div className="noprofile">
-                                  <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                                  <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 66 54"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      className="animate-m"
+                                      d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                      fill="url(#paint0_linear_4470_53804)"
+                                    />
                                     <defs>
-                                      <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                      <linearGradient
+                                        id="paint0_linear_4470_53804"
+                                        x1="0"
+                                        y1="27"
+                                        x2="66"
+                                        y2="27"
+                                        gradientUnits="userSpaceOnUse"
+                                      >
                                         <stop stop-color="#FDAB0A" />
-                                        <stop offset="0.4" stop-color="#FECE26" />
+                                        <stop
+                                          offset="0.4"
+                                          stop-color="#FECE26"
+                                        />
                                         <stop offset="1" stop-color="#FE990B" />
                                       </linearGradient>
                                     </defs>
@@ -1438,8 +1505,9 @@ const FollowersPage = () => {
                     <div className="rel-user-actions">
                       <div className="rel-user-action-btn">
                         <button
-                          className={`btn-txt-gradient ${creator.isFollowing ? "btn-grey" : ""
-                            }`}
+                          className={`btn-txt-gradient ${
+                            creator.isFollowing ? "btn-grey" : ""
+                          }`}
                           onClick={() =>
                             handleFollowToggle(
                               creator._id,
