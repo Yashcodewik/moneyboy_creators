@@ -3,17 +3,21 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CgClose } from "react-icons/cg";
+import { usePathname } from "next/navigation";
 
 export default function AgeGate() {
   const [showModal, setShowModal] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
+    if (pathname === "/terms") return;
+
     const hasAgreed = localStorage.getItem("ageVerified");
 
     if (!hasAgreed) {
       setShowModal(true);
     }
-  }, []);
+  }, [pathname]);
 
   const handleAgree = () => {
     localStorage.setItem("ageVerified", "true");
@@ -21,10 +25,10 @@ export default function AgeGate() {
   };
 
   const handleDisagree = () => {
-    window.location.href = "https://www.google.com"; // or any safe site
+    window.location.href = "https://www.google.com";
   };
 
-  if (!showModal) return null;
+  if (!showModal || pathname === "/terms") return null;
 
   return (
     <div

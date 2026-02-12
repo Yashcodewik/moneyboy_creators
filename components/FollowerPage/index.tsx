@@ -183,12 +183,7 @@ const FollowersPage = () => {
       });
 
       if (res?.success) {
-        const followersWithStatus = res.data.map((follower: any) => ({
-          ...follower,
-          isFollowingYou: true,
-          isFollowing: false, // 👈 force default, sync will fix it
-        }));
-        setFollowers(followersWithStatus);
+        setFollowers(res.data);
         setFollowersPage(pageNo);
         const total = res.meta?.total || 0;
         const limit = res.meta?.limit || 10;
@@ -980,10 +975,18 @@ const FollowersPage = () => {
   };
 
   const renderFollowingList = () => {
-    if (loading && following.length === 0) {
-      return <div className="text-center">Loading following...</div>;
+    if (loading && following.length < 0) {
+      return <div className="loadingtext">
+        {"Loading".split("").map((char, i) => (
+          <span
+            key={i}
+            style={{ animationDelay: `${(i + 1) * 0.1}s` }}
+          >
+            {char}
+          </span>
+        ))}
+      </div>;
     }
-
     if (following.length === 0) {
       return <div className="nodeta">Not following anyone yet</div>;
     }

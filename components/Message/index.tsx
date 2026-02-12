@@ -9,7 +9,7 @@ import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import socket from "@/libs/socket";
 import { apiPost, apiPostWithMultiForm, getApi, getApiByParams } from "@/utils/endpoints/common";
 import { API_MESSAGE_CHAT, API_MESSAGE_CHAT_UPLOAD_MEDIA } from "@/utils/api/APIConstant";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 import CustomSelect from "../CustomSelect";
@@ -46,6 +46,7 @@ const MessagePage = () => {
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const chatBodyRef = useRef<HTMLDivElement | null>(null);
   const [showDeclineSelect, setShowDeclineSelect] = useState(false);
+  const router = useRouter();
 
   const isMobile = useDeviceType();
   useEffect(() => {
@@ -682,7 +683,17 @@ const handlePayPPV = async (ppvId: string) => {
                                 </div>
                                 {/* Actions */}
                                 <div className="chat-room-header-btns">
-                                  <div className="btn-txt-gradient"><span>View Profile</span></div>
+                                  <div 
+                                  className="btn-txt-gradient"
+                                  onClick={() => {
+                                    if (!activeUser?.publicId && !activeUser?._id) return;
+
+                                    // Prefer publicId if available
+                                    const profileId = activeUser?.publicId || activeUser?._id;
+
+                                    router.push(`/profile/${profileId}`);
+                                  }}  
+                                  ><span>View Profile</span></div>
                                   {/* More Options */}
                                   <div className="rel-user-more-opts-wrapper">
                                     <button className="rel-user-more-opts-trigger-icon" aria-label="More options" onClick={toggleMenu}>
