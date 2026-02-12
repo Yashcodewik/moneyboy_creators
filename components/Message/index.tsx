@@ -259,7 +259,7 @@ useEffect(() => {
     socket.emit("joinThread", activeChat.publicId);
 
 
-  }, [activeChat]);
+  }, [activeChat?.publicId]);
 
   // ✅ Connect user to socket
   useEffect(() => {
@@ -564,7 +564,7 @@ const highlightText = (text: string, search: string) => {
 
 const handleAcceptPPV = async (ppvId: string) => {
   await apiPost({
-    url: `subscription/ppv/accept/${ppvId}`,
+    url: `subscription/accept/${ppvId}`,
     values: {},
   });
 
@@ -582,7 +582,7 @@ const handleUploadPPVMedia = async (ppvId: string, files: FileList | null) => {
 
   try {
     await apiPostWithMultiForm({
-      url: `subscription/ppv/upload-media/${ppvId}`,
+      url: `subscription/upload-media/${ppvId}`,
       values: formData,
     });
 
@@ -598,7 +598,7 @@ const handleUploadPPVMedia = async (ppvId: string, files: FileList | null) => {
 const handleRejectPPV = async (ppvId: string, reason: string) => {
   try {
     await apiPost({
-      url: `subscription/ppv/reject/${ppvId}`,
+      url: `subscription/reject/${ppvId}`,
       values: { reason },
     });
 
@@ -613,7 +613,7 @@ const handleRejectPPV = async (ppvId: string, reason: string) => {
 const handlePayPPV = async (ppvId: string) => {
   try {
     await apiPost({
-      url: `subscription/ppv/pay/${ppvId}`,
+      url: `subscription/pay/${ppvId}`,
       values: {},
     });
 
@@ -818,81 +818,179 @@ const handlePayPPV = async (ppvId: string) => {
                                           
                                         </div>
                                         {msg.type === 5 && msg.ppvRequestId && (
-                                      <div className="ppvrequest_wrap">
-                                        <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
-                                        {/* //after sucess accept show this */}
-                                        {msg.ppvRequestId.status === "ACCEPTED" && (
-                                        <div className="warning_wrap success"><BadgeCheck size={20}/> You Have Accepted The PPV request</div>
-                                        )}
-                                        {/* //after sucess decline show this */}
-                                        {msg.ppvRequestId.status === "REJECTED" && (
-                                        <div className="warning_wrap danger"><CircleX size={20}/> You Have Accepted The PPV request</div>
-                                        )}
-                                        <div className="upload-box">
-                                          {/* <Link className="icon"/> */}
-                                          <span className="text">Upload Media</span>
-                                        </div>
-                                        {/*when user click on decline button then show this select */}
-                                        {showDeclineSelect && (
-                                        <CustomSelect className="bg-white p-sm size-sm"
-                                          label="Reason for Decline"
-                                          searchable={false}
-                                          options={[
-                                            { label: "Not Interested", value: "not_interested" },
-                                            { label: "Price Too High", value: "price_too_high" },
-                                            { label: "Content Not Relevant", value: "content_not_relevant" },
-                                            { label: "Already Purchased Similar Content", value: "already_purchased" },
-                                            { label: "Quality Concerns", value: "quality_concerns" },
-                                            { label: "Other", value: "other" },
-                                          ]}
-                                        />
-                                        )}
+                                          <div className="ppvrequest_wrap">
+
+                                            <button className="premium-btn active-down-effect ppvbtn">
+                                              <span>PPV Request</span>
+                                            </button>
+
+                                            {/* STATUS MESSAGES */}
+
+                                            {/* REJECTED */}
+                                            {msg.ppvRequestId.status === "REJECTED" && (
+                                              <div className="warning_wrap danger">
+                                                <CircleX size={20}/> PPV request rejected
+                                              </div>
+                                            )}
+
+                                            {/* ACCEPTED (before final unlock) */}
+                                            {msg.ppvRequestId.status === "ACCEPTED" && (
+                                              <div className="warning_wrap success">
+                                                <BadgeCheck size={20}/> Creator approved this request
+                                              </div>
+                                            )}
+
+                                            {/* PAID (FINAL STATE) */}
+                                            {msg.ppvRequestId.status === "PAID" && (
+                                              <div className="warning_wrap success">
+                                                <BadgeCheck size={20}/> PPV unlocked successfully
+                                              </div>
+                                            )}
+
+                                            {/* UPLOAD BOX — CREATOR ONLY + PENDING */}
+                                            {isCreator && msg.ppvRequestId.status === "PENDING" && (
+                                              <div
+                                                className="upload-box"
+                                                onClick={() =>
+                                                  document.getElementById(`upload-${msg.ppvRequestId._id}`)?.click()
+                                                }
+                                              >
+                                                <span className="text">Upload Media</span>
+
+                                                <input
+                                                  type="file"
+                                                  multiple
+                                                  hidden
+                                                  id={`upload-${msg.ppvRequestId._id}`}
+                                                  onChange={(e) =>
+                                                    handleUploadPPVMedia(
+                                                      msg.ppvRequestId._id,
+                                                      e.target.files
+                                                    )
+                                                  }
+                                                />
+                                              </div>
+                                            )}
+
+                                            {/* CONTENT INFO */}
+
                                             <div className="cont_wrap">
-                                          <h3>Type</h3>
-                                          <p>{msg.ppvRequestId.type.toLowerCase()}</p>
-                                        </div>
-                                        <div className="cont_wrap">
-                                          <h3>Description</h3>
-                                          <p>{msg.ppvRequestId.description}</p>
-                                        </div>
-                                        <div className="cont_wrap">
-                                          <h3>Reference File</h3>
-                                          <div className="upload-wrapper">
-                                            {/* <div className="img_wrap">
-                                              <svg className="icons idshape size-45"></svg>
+                                              <h3>Type</h3>
+                                              <p>{msg.ppvRequestId.type.toLowerCase()}</p>
                                             </div>
-                                            <div className="img_wrap">
-                                              <svg className="icons idshape size-45"></svg>
+
+                                            <div className="cont_wrap">
+                                              <h3>Description</h3>
+                                              <p>{msg.ppvRequestId.description}</p>
                                             </div>
-                                            <div className="img_wrap">
-                                              <svg className="icons idshape size-45"></svg>
-                                            </div> */}
-                                          {msg.ppvRequestId.type == "PHOTO" && (
-                                            <div className="img_wrap">
-                                              <img src={msg.ppvRequestId.referenceFile} className="img-fluid upldimg" alt="preview"/>
-                                              <button type="button" className="btn-danger"><CircleX size={16} /></button>
+
+                                            {/* MEDIA SECTION */}
+                                            <div className="cont_wrap">
+                                              <h3>
+                                                {msg.ppvRequestId.status === "PAID"
+                                                  ? "Delivered Media"
+                                                  : "Reference File"}
+                                              </h3>
+
+                                              <div className="upload-wrapper">
+
+                                                {/* 🔥 AFTER PAID → SHOW DELIVERED MEDIA */}
+                                                {msg.ppvRequestId.status === "PAID" &&
+                                                  msg.ppvRequestId.deliveredMedia?.map(
+                                                    (url: string, index: number) => (
+                                                      <div className="img_wrap" key={index}>
+                                                        {msg.ppvRequestId.type === "PHOTO" ? (
+                                                          <img
+                                                            src={url}
+                                                            className="img-fluid upldimg"
+                                                            alt="delivered"
+                                                            onClick={() => window.open(url, "_blank")}
+                                                          />
+                                                        ) : (
+                                                          <video
+                                                            src={url}
+                                                            className="img-fluid upldimg"
+                                                            controls
+                                                          />
+                                                        )}
+                                                      </div>
+                                                    )
+                                                  )}
+
+                                                {/* BEFORE PAID → SHOW REFERENCE FILE */}
+                                                {msg.ppvRequestId.status !== "PAID" && (
+                                                  <>
+                                                    {msg.ppvRequestId.type === "PHOTO" && (
+                                                      <div className="img_wrap">
+                                                        <img
+                                                          src={msg.ppvRequestId.referenceFile}
+                                                          className="img-fluid upldimg"
+                                                          alt="preview"
+                                                        />
+                                                      </div>
+                                                    )}
+
+                                                    {msg.ppvRequestId.type === "VIDEO" && (
+                                                      <div className="img_wrap">
+                                                        <video
+                                                          src={msg.ppvRequestId.referenceFile}
+                                                          className="img-fluid upldimg"
+                                                          controls
+                                                        />
+                                                      </div>
+                                                    )}
+                                                  </>
+                                                )}
+
+                                              </div>
                                             </div>
-                                          )}
-                                          {msg.ppvRequestId.type == "VIDEO" && (
-                                            <div className="img_wrap">
-                                              <video src={msg.ppvRequestId.referenceFile} className="img-fluid upldimg" controls/>
-                                              <button type="button" className="btn-danger"><CircleX size={16} /></button>
+
+                                            {/* ACTIONS */}
+                                            <div className="actions">
+                                              <div>
+                                                <p className="text-gradiant">Amount</p>
+                                                <button className="btn-txt-gradient">
+                                                  <span>${msg.ppvRequestId.price}</span>
+                                                </button>
+                                              </div>
+
+                                              <div className="right">
+
+                                                {/* CREATOR SIDE - PENDING */}
+                                                {isCreator && msg.ppvRequestId.status === "PENDING" && (
+                                                  <>
+                                                    <button
+                                                      className="btn-txt-gradient"
+                                                      onClick={() =>
+                                                        handleRejectPPV(
+                                                          msg.ppvRequestId._id,
+                                                          "Not Interested"
+                                                        )
+                                                      }
+                                                    >
+                                                      <span>Decline</span>
+                                                    </button>
+                                                  </>
+                                                )}
+
+                                                {/* CREATOR SIDE - MEDIA UPLOADED → APPROVE */}
+                                                {isCreator &&
+                                                  msg.ppvRequestId.status === "MEDIA_UPLOADED" && (
+                                                    <button
+                                                      className="btn-txt-gradient"
+                                                      onClick={() =>
+                                                        handleAcceptPPV(msg.ppvRequestId._id)
+                                                      }
+                                                    >
+                                                      <span>Approve</span>
+                                                    </button>
+                                                  )}
+
+                                              </div>
                                             </div>
-                                          )}
+
                                           </div>
-                                        </div>
-                                          <div className="actions">
-                                            <div>
-                                            <p className="text-gradiant">Amount</p>
-                                            <button className="btn-txt-gradient"><span>${msg.ppvRequestId.price}</span></button>
-                                            </div>
-                                            <div className="right">
-                                              <button className="btn-txt-gradient"><span>${msg.ppvRequestId.price}</span></button>
-                                              <button className="btn-txt-gradient"><span>Decline</span></button>
-                                            </div>
-                                          </div>
-                                      </div>
-                                    )}
+                                        )}
                                     </div>
                                   </div>
                                     
