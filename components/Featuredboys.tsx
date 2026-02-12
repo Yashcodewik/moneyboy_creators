@@ -61,10 +61,7 @@ const Featuredboys = () => {
   };
 
   const handleProfileClick = (publicId  : string) => {
-  if (!session?.user?.id) {
-    router.push("/login"); // or "/auth/login"
-    return;
-  }
+
 
  router.push(`/profile/${publicId}`);
 };

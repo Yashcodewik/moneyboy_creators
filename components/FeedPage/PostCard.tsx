@@ -31,6 +31,8 @@ import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import CustomSelect from "../CustomSelect";
 import { CgClose } from "react-icons/cg";
 import ReportModal from "../ReportModal";
+import TipModal from "../ProfilePage/TipModal";
+import { sendTip } from "@/redux/Subscription/Action";
 
 const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [open, setOpen] = useState(false);
@@ -39,6 +41,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [showComment, setShowComment] = useState(false);
+  const [showTipModal, setShowTipModal] = useState(false);
   const isMobile = useDeviceType();
   const dispatch = useAppDispatch();
   const commentsState = useAppSelector((state) => state.comments);
@@ -269,6 +272,27 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     };
   }, [showComment]);
 
+  const handleSendTip = async (amount: number) => {
+  if (!session?.user?.id) {
+    router.push("/login");
+    return;
+  }
+
+  try {
+    await dispatch(
+      sendTip({
+        creatorId: post.userId, // 👈 important
+        amount,
+      })
+    ).unwrap();
+
+    setShowTipModal(false);
+  } catch (err) {
+    console.error("Tip failed:", err);
+  }
+};
+
+
   return (
     <>
       <div className="moneyboy-post__container card">
@@ -474,7 +498,19 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             <ul>
               {/* Send Tip */}
               <li>
-                <Link href="#">
+               <Link
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
+
+    if (!session?.user?.id) {
+      router.push("/login");
+      return;
+    }
+
+    setShowTipModal(true);
+  }}
+>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -702,6 +738,19 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           }}
         />
       )}
+
+
+                {showTipModal && (
+  <TipModal
+    onClose={() => setShowTipModal(false)}
+    onConfirm={handleSendTip}
+    creator={{
+      displayName: post?.creatorInfo?.displayName,
+      userName: post?.creatorInfo?.userName,
+      profile: post?.creatorInfo?.profile,
+    }}
+  />
+)}
       {showComment && (
         <div className="flex flex-column gap-20">
           <div className="moneyboy-comment-wrap">
@@ -765,6 +814,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </svg>
             </button>
           </div>
+
+
 
           {/* ================= Render Top Comment Only ================= */}
           {topComment && (
