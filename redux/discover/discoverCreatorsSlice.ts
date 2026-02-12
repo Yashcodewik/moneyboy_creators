@@ -27,7 +27,7 @@ export const fetchDiscoverCreators = createAsyncThunk(
       userPublicId?: string;
       filters?: Record<string, string>;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const searchParams = new URLSearchParams();
@@ -55,7 +55,7 @@ export const fetchDiscoverCreators = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err?.message || "Failed to fetch creators");
     }
-  }
+  },
 );
 
 const discoverCreatorsSlice = createSlice({
@@ -68,13 +68,18 @@ const discoverCreatorsSlice = createSlice({
       state.totalPages = 1;
     },
 
-    // 🔥 Optimistic Save / Unsave (instant UI)
+    // ✅ NEW: Update page state
+    setPage(state, action: PayloadAction<number>) {
+      state.page = action.payload;
+    },
+
+    // 🔥 Optimistic Save / Unsave
     updateCreatorSavedState(
       state,
-      action: PayloadAction<{ creatorId: string; saved: boolean }>
+      action: PayloadAction<{ creatorId: string; saved: boolean }>,
     ) {
       const creator = state.creators.find(
-        (c) => c.creatorUserId === action.payload.creatorId
+        (c) => c.creatorUserId === action.payload.creatorId,
       );
 
       if (creator) {
@@ -89,29 +94,27 @@ const discoverCreatorsSlice = createSlice({
         state.error = null;
       })
 
-      // 🔥 MERGE creators instead of overwriting
-      .addCase(
-        fetchDiscoverCreators.fulfilled,
-        (state, action: PayloadAction<any>) => {
-          state.loading = false;
+      .addCase(fetchDiscoverCreators.fulfilled, (state, action) => {
+        state.loading = false;
 
-          const incomingCreators = action.payload.data;
+        const incomingCreators = action.payload.data;
 
-          state.creators = incomingCreators.map((newCreator: any) => {
-            const existingCreator = state.creators.find(
-              (c) => c.creatorUserId === newCreator.creatorUserId
-            );
+        state.creators = incomingCreators.map((newCreator: any) => {
+          const existingCreator = state.creators.find(
+            (c) => c.creatorUserId === newCreator.creatorUserId,
+          );
 
-            return {
-              ...newCreator,
-              // preserve optimistic saved state
-              issaved: existingCreator?.issaved ?? newCreator.issaved,
-            };
-          });
+          return {
+            ...newCreator,
+            issaved: existingCreator?.issaved ?? newCreator.issaved,
+          };
+        });
 
-          state.totalPages = action.payload.meta.totalPages;
-        }
-      )
+        state.totalPages = action.payload.meta.totalPages;
+
+        // ✅ IMPORTANT FIX: update page from request
+        state.page = action.meta.arg.page;
+      })
 
       .addCase(fetchDiscoverCreators.rejected, (state, action: any) => {
         state.loading = false;
@@ -123,6 +126,7 @@ const discoverCreatorsSlice = createSlice({
 export const {
   resetCreators,
   updateCreatorSavedState,
+  setPage, // 👈 EXPORT THIS
 } = discoverCreatorsSlice.actions;
 
 export default discoverCreatorsSlice.reducer;
