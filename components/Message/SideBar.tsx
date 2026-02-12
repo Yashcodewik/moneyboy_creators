@@ -1,4 +1,5 @@
- import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
+ import socket from "@/libs/socket";
+import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
 import { getApi } from "@/utils/endpoints/common";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -8,6 +9,42 @@ const SideBar = ({ onSelectChat }: any) => {
   const router = useRouter();
 const searchParams = useSearchParams();
 const threadIdFromUrl = searchParams.get("threadId");
+
+  useEffect(() => {
+    console.log("SIDEBAR DATA:", chatList);
+  }, [chatList]);
+
+  useEffect(() => {
+    const handleOnline = ({ userId }: any) => {
+      console.log("ONLINE EVENT RECEIVED:", userId);
+
+      setChatList(prev =>
+        prev.map(chat =>
+          chat.user.id === userId
+            ? { ...chat, user: { ...chat.user, isOnline: true } }
+            : chat
+        )
+      );
+    };
+
+    const handleOffline = ({ userId }: any) => {
+      setChatList(prev =>
+        prev.map(chat =>
+          chat.user.id === userId
+            ? { ...chat, user: { ...chat.user, isOnline: false } }
+            : chat
+        )
+      );
+    };
+
+    socket.on("userOnline", handleOnline);
+    socket.on("userOffline", handleOffline);
+
+    return () => {
+      socket.off("userOnline", handleOnline);
+      socket.off("userOffline", handleOffline);
+    };
+  }, []);
 
 
   useEffect(() => {
