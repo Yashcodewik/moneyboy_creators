@@ -42,7 +42,7 @@ const LoginPage = () => {
         return;
       }
 
-      window.location.href = "/feed";
+      router.push("/feed");
     },
   });
 
@@ -68,12 +68,14 @@ const LoginPage = () => {
               <p>Welcome back! Sign in to your account</p>
               <div className="loginbtn_wrap">
                 <button
+                type="button"
                   className="google-button active-down-effect "
                   onClick={() => signIn("google")}
                 >
                   <FcGoogle size={18} /> Sign up with Google
                 </button>
                 <button
+                type="button"
                   className="x-button active-down-effect"
                   onClick={() => signIn("twitter")}
                 >
