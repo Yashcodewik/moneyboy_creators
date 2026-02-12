@@ -2,9 +2,12 @@ import {
   ChartNoAxesCombined,
   ChevronLeft,
   ChevronRight,
+  CircleArrowLeft,
+  CircleArrowRight,
   FlameIcon,
   Image,
   PlayCircle,
+  Sparkle,
   Sparkles,
   Video,
 } from "lucide-react";
@@ -141,38 +144,20 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
   return (
     <div className="pagination_wrap">
       {/* Prev */}
-      <button
-        className="btn-prev"
-        disabled={page === 1}
-        onClick={() => handlePageChange(page - 1)}
-      >
-        ‹
-      </button>
+      <button className="btn-prev" disabled={page === 1} onClick={() => handlePageChange(page - 1)}><CircleArrowLeft color="#000" /></button>
 
       {pages.map((p, i) =>
         p === "..." ? (
-          <button key={i} disabled>
-            …
+          <button key={i} className="premium-btn" disabled>
+            <span>…</span>
           </button>
         ) : (
-          <button
-            key={i}
-            className={page === p ? "active-page" : ""}
-            onClick={() => handlePageChange(p as number)}
-          >
-            {p}
-          </button>
+          <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => handlePageChange(p as number)} ><span>{p}</span></button>
         )
       )}
 
       {/* Next */}
-      <button
-        className="btn-next"
-        disabled={page === totalPages}
-        onClick={() => handlePageChange(page + 1)}
-      >
-        ›
-      </button>
+      <button className="btn-next" disabled={page === totalPages} onClick={() => handlePageChange(page + 1)}><CircleArrowRight color="#000" /></button>
     </div>
   );
 };
@@ -342,11 +327,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                             )}
 
                             {post.media?.type === "video" && (
-                              <Link
-                                href="#"
-                                className="ply_btn"
-                                onClick={handleOpenFullscreen}
-                              >
+                              <Link href="#" className="ply_btn" onClick={handleOpenFullscreen}>
                                 <PlayCircle strokeWidth={1} size={32} />
                               </Link>
                             )}
@@ -360,16 +341,19 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                   <span> Trending </span>
                                 </div>
                               )}
+                              {subActiveTab === "new" && (
+                                <div className="creator-media-card__stats-btn">
+                                  <Sparkle fill="none" stroke="white"/>
+                                  <span> New </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
 
                         <div className="creator-media-card__desc">
-                          <h5>
-                            {post.text
-                              ? post.text.slice(0, 30) +
-                                (post.text.length > 30 ? "..." : "")
-                              : "Untitled"}
+                          <h5 className="lineclamp1">
+                            {post.text}
                           </h5>
                           <p>By {post.creatorInfo?.displayName}</p>
                         </div>
