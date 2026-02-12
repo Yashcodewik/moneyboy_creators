@@ -44,7 +44,7 @@ const validationSchema = yup.object({
     .string()
     .matches(
       /^[A-Za-z0-9]{5,20}$/,
-      "Username must be 5-20 characters long, letters A-Z, and numbers 0-9 only, no spaces.",
+      "Username must be 5-20 characters long",
     )
     .required("Username is required"),
   email: yup.string().email("Invalid email").required("Email is required"),

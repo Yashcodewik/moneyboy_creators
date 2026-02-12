@@ -9,6 +9,7 @@
   import {
     fetchDiscoverCreators,
     resetCreators,
+    setPage,
     updateCreatorSavedState,
   } from "@/redux/discover/discoverCreatorsSlice";
 
@@ -151,65 +152,45 @@ useEffect(() => {
         pages.push(totalPages - 1, totalPages);
       }
 
-      return (
-        <div className="pagination_wrap">
-          <button
-            className="btn-prev"
-            disabled={page === 1}
-            onClick={() =>
-              dispatch(
-                fetchDiscoverCreators({
-                  page: page - 1,
-                  search,
-                  userPublicId: session?.user?.publicId,
-                  filters: filterValues,
-                }) as any,
-              )
-            }
-          >
-            <CircleArrowLeft color="#000" />
-          </button>
+    return (
+  <div className="pagination_wrap">
+    {/* PREVIOUS */}
+    <button
+      className="btn-prev"
+      disabled={page === 1}
+      onClick={() => dispatch(setPage(page - 1))}
+    >
+      <CircleArrowLeft color="#000" />
+    </button>
 
-          {pages.map((p, i) =>
-            p === "..." ? (
-              <button key={i} className="premium-btn" disabled>
-                <span>…</span>
-              </button>
-            ) : (
-              <button
-                key={i}
-                className={page === p ? "premium-btn" : "btn-primary"}
-                onClick={() =>
-                  dispatch(
-                    fetchDiscoverCreators({
-                      page: p as number,
-                      search,
-                      userPublicId: session?.user?.publicId,
-                      filters: filterValues,
-                    }) as any,
-                  )
-                }
-              >
-                <span>{p}</span>
-              </button>
-            ),
-          )}
+    {/* PAGE NUMBERS */}
+    {pages.map((p, i) =>
+      p === "..." ? (
+        <button key={i} className="premium-btn" disabled>
+          <span>…</span>
+        </button>
+      ) : (
+        <button
+          key={i}
+          className={page === p ? "premium-btn" : "btn-primary"}
+          onClick={() => dispatch(setPage(p as number))}
+        >
+          <span>{p}</span>
+        </button>
+      )
+    )}
 
-          <button className="btn-next" disabled={page === totalPages} onClick={() =>
-              dispatch(
-                fetchDiscoverCreators({
-                  page: page + 1,
-                  search,
-                  userPublicId: session?.user?.publicId,
-                  filters: filterValues,
-                }) as any,
-              )
-            }
-          >
-            <CircleArrowRight color="#000" />
-          </button>
-        </div>
-      );
+    {/* NEXT */}
+    <button
+      className="btn-next"
+      disabled={page === totalPages}
+      onClick={() => dispatch(setPage(page + 1))}
+    >
+      <CircleArrowRight color="#000" />
+    </button>
+  </div>
+);
+
     };
 
     return (
