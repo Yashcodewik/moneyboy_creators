@@ -16,6 +16,8 @@ interface FeedPostsState {
   hasMorePopular: boolean;
   loading: boolean;
   error: string | null;
+  totalFeed: number;
+  totalPagesFeed: number;
 }
 
 const initialState: FeedPostsState = {
@@ -28,6 +30,8 @@ const initialState: FeedPostsState = {
   hasMorePopular: true,
   loading: false,
   error: null,
+  totalFeed: 0,
+  totalPagesFeed: 1,
 };
 
 /* ---------------- FETCH FEED POSTS ---------------- */
@@ -40,15 +44,16 @@ export const fetchFeedPosts = createAsyncThunk(
       values: { userId, page, limit },
     });
 
-    const posts = Array.isArray(res) ? res : [];
-    const rawLength = posts.length;
+   const posts = res?.posts || [];
 
-    return {
-      posts,
-      page,
-      hasMore: rawLength === limit,
-      source: "feed",
-    };
+return {
+  posts,
+  page: res.page,
+  total: res.total,
+  totalPages: res.totalPages,
+  source: "feed",
+};
+
   }
 );
 
@@ -141,19 +146,21 @@ const feedPostsSlice = createSlice({
         state.loading = true;
       })
 
-      .addCase(fetchFeedPosts.fulfilled, (state, action) => {
-        state.loading = false;
+     .addCase(fetchFeedPosts.fulfilled, (state, action) => {
+      state.loading = false;
 
-        action.payload.posts.forEach((post: any) => {
-          state.posts[post._id] = {
-            ...post,
-            source: "feed",
-          };
-        });
+      action.payload.posts.forEach((post: any) => {
+        state.posts[post._id] = {
+          ...post,
+          source: "feed",
+        };
+      });
 
-        state.feedPage = action.payload.page;
-        state.hasMoreFeed = action.payload.hasMore;
-      })
+      state.feedPage = action.payload.page;
+      state.totalFeed = action.payload.total;
+      state.totalPagesFeed = action.payload.totalPages;
+    })
+
 
       .addCase(fetchFollowingPosts.fulfilled, (state, action) => {
         action.payload.posts.forEach((post: any) => {
