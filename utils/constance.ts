@@ -14,4 +14,4 @@
 
  export const APIBaseUrl = "https://api.moneyboy.com/api/";
  export const frontendURL = "https://moneyboy.com";
- export const socketBaseUrl = "https://api.moneyboy.com";
+ export const socketBaseUrl = "https://moneyboy.com";
