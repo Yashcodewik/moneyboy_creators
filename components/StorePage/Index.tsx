@@ -32,7 +32,7 @@ import {
   fetchPaidContentFeed,
 } from "@/redux/store/Action";
 import PPVRequestModal from "../ProfilePage/PPVRequestModal";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import { subscribeCreator, unlockPost } from "@/redux/Subscription/Action";
 import UnlockContentModal from "../ProfilePage/UnlockContentModal";
@@ -61,8 +61,8 @@ const StorePage = () => {
   );
   const isCreator = userRole === 2;
   const loggedInUserId = session?.user?.id;
-  const [activeMainTab, setActiveMainTab] = useState<"moneyboys" | "mystore">(
-    isCreator ? "mystore" : "moneyboys",
+  const [activeMainTab, setActiveMainTab] = useState<"marketplace" | "mystore">(
+    isCreator ? "mystore" : "marketplace",
   );
   const [selectedCreator, setSelectedCreator] = useState<any | null>(null);
   const activeStoreOwner = selectedCreator || session?.user;
@@ -76,6 +76,9 @@ const StorePage = () => {
   const [subscriptionPlan, setSubscriptionPlan] = useState<
     "MONTHLY" | "YEARLY"
   >("MONTHLY");
+
+  const searchParams = useSearchParams();
+const tabFromUrl = searchParams.get("tab");
   const profilePublicId = activeStoreOwner?.publicId;
   const isOwnStore =
     isCreator && activeStoreOwner?.publicId === session?.user?.publicId;
@@ -93,6 +96,16 @@ const StorePage = () => {
   };
   const [specialBannerError, setSpecialBannerError] = useState(false);
   const [videoErrors, setVideoErrors] = useState<Record<string, boolean>>({});
+
+
+useEffect(() => {
+  if (!tabFromUrl) return;
+
+  if (tabFromUrl === "marketplace" || tabFromUrl === "mystore") {
+    setActiveMainTab(tabFromUrl as "marketplace" | "mystore");
+  }
+}, [tabFromUrl]);
+
 
   const { featuredPosts, loadingFeaturedPosts } = useSelector(
     (state: RootState) => state.creators,
@@ -290,14 +303,14 @@ const StorePage = () => {
                 </button>
               )}
               <button
-                className={`page-content-type-button active-down-effect ${activeMainTab === "moneyboys" ? "active" : ""}`}
-                onClick={() => setActiveMainTab("moneyboys")}
+                className={`page-content-type-button active-down-effect ${activeMainTab === "marketplace" ? "active" : ""}`}
+                onClick={() => setActiveMainTab("marketplace")}
               >
                 Marketplace
               </button>
             </div>
 
-            {activeMainTab === "moneyboys" && (
+            {activeMainTab === "marketplace" && (
               <div className="marketplace_wrap">
                 <div className="story_wrap">
                   <div className="st_head">
@@ -570,6 +583,7 @@ const StorePage = () => {
                         </p>
                         <div>
                           <button
+                          disabled={isOwnStore}
                             className="btn-txt-gradient btn-outline p-sm"
                             onClick={() => setShowPPVModal(true)}
                           >
@@ -1657,12 +1671,13 @@ const StorePage = () => {
       {showPPVModal && activeStoreOwner && (
         <PPVRequestModal
           onClose={() => setShowPPVModal(false)}
-          creator={{
-            userId: selectedCreator._id,
-            displayName: selectedCreator.displayName,
-            userName: selectedCreator.userName,
-            profile: selectedCreator.profile,
-          }}
+         creator={{
+  userId: activeStoreOwner?._id,
+  displayName: activeStoreOwner?.displayName,
+  userName: activeStoreOwner?.userName,
+  profile: activeStoreOwner?.profile,
+}}
+
           post={{ _id: "" }}
           onSuccess={({ amount }) => {
             setShowPPVModal(false);

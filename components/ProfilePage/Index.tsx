@@ -1839,7 +1839,7 @@ const ProfilePage = () => {
                             return;
                           }
 
-                          router.push("/store");
+                          router.push("/store?tab=marketplace");
                         }}
                       >
                         <img
