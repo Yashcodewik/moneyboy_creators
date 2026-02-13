@@ -446,7 +446,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 )}
               </>
             ) : (
-              "Today, I experienced the most blissful ride outside. The air is fresh and it feels amazing..."
+              " "
             )}
           </p>
         </div>

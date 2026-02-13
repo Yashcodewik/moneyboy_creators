@@ -630,6 +630,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </button>
 
             <button
+            type="button"
               className="btn-grey btnicons gap-10"
               onClick={() => videoInputRef.current?.click()}
             >
@@ -711,6 +712,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           <ul>
             <li>
               <button
+              type="button"
                 className="cate-back-btn active-down-effect btn_icons"
                 onClick={() => {
                   setActiveTool("image");
@@ -723,6 +725,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </li>
             <li>
               <button
+              type="button"
                 className="cate-back-btn active-down-effect btn_icons"
                 onClick={() => setActiveTool("video")}
                 data-tooltip="Add video"
@@ -735,6 +738,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </li>
             <li className="icontext_wrap">
               <button
+              type="button"
                 className="cate-back-btn active-down-effect btn_icons"
                 data-tooltip="Tag someone"
                 disabled={!hasMedia}
@@ -798,6 +802,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             onClick={(e) => e.stopPropagation()}
           >
             <button
+            type="button"
               className="close-btn"
               onClick={() => setShowTagModal(false)}
             >
@@ -821,12 +826,13 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
             <div className="actions">
               <button
+              type="button"
                 className="premium-btn"
                 onClick={() => setShowTagModal(false)}
               >
                 <span>Tag user</span>
               </button>
-              <button className="cate-back-btn active-down-effect">
+              <button type="button" className="cate-back-btn active-down-effect">
                 Release from
               </button>
             </div>
