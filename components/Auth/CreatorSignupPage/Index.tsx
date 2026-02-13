@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import CustomSelect from "@/components/CustomSelect";
 import Link from "next/link";
-import {} from "react";
+import { } from "react";
 import { TbCamera } from "react-icons/tb";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -35,6 +35,10 @@ import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { IoArrowBackOutline } from "react-icons/io5";
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+
+countries.registerLocale(enLocale);
 
 const validationSchema = yup.object({
   firstName: yup.string().required("First name is required"),
@@ -126,53 +130,53 @@ const CreatorSignupPage = () => {
       popularity: "",
     },
     validationSchema,
-  onSubmit: async (values) => {
-  try {
-    setLoading(true);
+    onSubmit: async (values) => {
+      try {
+        setLoading(true);
 
-    const res = await apiPost({
-      url: API_CREATOR_REGISTER,
-      values,
-    });
+        const res = await apiPost({
+          url: API_CREATOR_REGISTER,
+          values,
+        });
 
-    // ✅ If backend sends success: false
-    if (!res?.success) {
-      if (
-        res?.message?.toLowerCase().includes("email") ||
-        res?.error?.toLowerCase().includes("email")
-      ) {
-        ShowToast("Email already exists. Please use another email.", "error");
-      } else {
-        ShowToast(res?.message || res?.error || "Something went wrong", "error");
+        // ✅ If backend sends success: false
+        if (!res?.success) {
+          if (
+            res?.message?.toLowerCase().includes("email") ||
+            res?.error?.toLowerCase().includes("email")
+          ) {
+            ShowToast("Email already exists. Please use another email.", "error");
+          } else {
+            ShowToast(res?.message || res?.error || "Something went wrong", "error");
+          }
+
+          setLoading(false);
+          return;
+        }
+
+        // ✅ SUCCESS
+        ShowToast(res.message, "success");
+        setEmailForOtp(values.email);
+        setOtpOpen(true);
+
+      } catch (err: any) {
+        // ✅ If API throws error (409 / 400)
+        if (
+          err?.response?.data?.message?.toLowerCase().includes("email")
+        ) {
+          ShowToast("Email already exists. Please use another email.", "error");
+        } else {
+          ShowToast(
+            err?.response?.data?.message ||
+            err?.message ||
+            "Something went wrong",
+            "error"
+          );
+        }
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-      return;
     }
-
-    // ✅ SUCCESS
-    ShowToast(res.message, "success");
-    setEmailForOtp(values.email);
-    setOtpOpen(true);
-
-  } catch (err: any) {
-    // ✅ If API throws error (409 / 400)
-    if (
-      err?.response?.data?.message?.toLowerCase().includes("email")
-    ) {
-      ShowToast("Email already exists. Please use another email.", "error");
-    } else {
-      ShowToast(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Something went wrong",
-        "error"
-      );
-    }
-  } finally {
-    setLoading(false);
-  }
-}
   });
 
   const handleFileChange = (
@@ -274,6 +278,17 @@ const CreatorSignupPage = () => {
     }
   };
 
+  const selectedCountry = formik.values.country;
+  const countryCode = selectedCountry
+    ? countries.getAlpha2Code(selectedCountry, "en")
+    : null;
+
+    const today = new Date();
+const maxAllowedDate = new Date(
+  today.getFullYear() - 18,
+  today.getMonth(),
+  today.getDate()
+);
   return (
     <div className="bg-off-white">
       <div className="container login_wrap creator_wrap">
@@ -498,6 +513,7 @@ const CreatorSignupPage = () => {
                           <DatePicker
                             selected={startDate}
                             inline
+                            maxDate={maxAllowedDate}
                             onChange={(date: Date | null) => {
                               setStartDate(date);
 
@@ -520,12 +536,18 @@ const CreatorSignupPage = () => {
                   </div>
                   <div>
                     <CustomSelect
-                      label="United States of America *"
+                      label="Select Country *"
                       icon={
-                        <img
-                          src="/images/united_flag.png"
-                          className="svg-icon"
-                        />
+                        countryCode ? (
+                          <div className="flag-circle">
+                            <img
+                              src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+                              alt="flag"
+                            />
+                          </div>
+                        ) : (
+                          <svg className="icons locationIcon svg-icon"></svg>
+                        )
                       }
                       options={countryOptions}
                       value={formik.values.country}
