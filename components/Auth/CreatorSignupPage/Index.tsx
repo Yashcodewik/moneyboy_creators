@@ -5,7 +5,7 @@ import Link from "next/link";
 import {} from "react";
 import { TbCamera } from "react-icons/tb";
 import { useFormik } from "formik";
-import * as yup from "yup";
+
 import { apiPost, apiPostWithMultiForm } from "@/utils/endpoints/common";
 import {
   API_CREATOR_REGISTER,
@@ -39,42 +39,9 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import SumsubWebSdk from "@sumsub/websdk-react";
+import { validationSchemaCreator } from "@/libs/validation";
 
 countries.registerLocale(enLocale);
-
-const validationSchema = yup.object({
-  firstName: yup.string().required("First name is required"),
-  lastName: yup.string().required("Last name is required"),
-  displayName: yup.string().required("Display name is required"),
-  userName: yup
-    .string()
-    .matches(/^[A-Za-z0-9]{5,20}$/, "Username must be 5-20 characters long")
-    .required("Username is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password")], "Passwords must match")
-    .required("Confirm password is required"),
-  gender: yup.string().required("Gender is required"),
-  dob: yup.string().required("Date of birth is required"),
-  bio: yup.string().required("Bio is required"),
-  country: yup.string().required("Country is required"),
-  city: yup.string().required("City is required"),
-  bodyType: yup.string().required("Body type is required"),
-  sexualOrientation: yup.string().required("Sexual orientation is required"),
-  age: yup.string().required("Age is required"),
-  eyeColor: yup.string().required("Eye color is required"),
-  hairColor: yup.string().required("Hair color is required"),
-  ethnicity: yup.string().required("Ethnicity is required"),
-  height: yup.string().required("Height is required"),
-  style: yup.string().required("Style is required"),
-  size: yup.string().required("Size is required"),
-  popularity: yup.string().required("Popularity is required"),
-});
 
 const CreatorSignupPage = () => {
   const router = useRouter();
@@ -113,8 +80,8 @@ const CreatorSignupPage = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      gender: "",
-      dob: "",
+      gender: "Male",
+      dob: null,
       country: "",
       city: "",
       bio: "",
@@ -129,7 +96,7 @@ const CreatorSignupPage = () => {
       size: "",
       popularity: "",
     },
-    validationSchema,
+    validationSchema: validationSchemaCreator,
     onSubmit: async (values) => {
       try {
         setLoading(true);
@@ -182,7 +149,6 @@ const CreatorSignupPage = () => {
     },
   });
 
-
   const verifyOtp = async (otp: string) => {
     try {
       const res = await apiPost({
@@ -194,7 +160,7 @@ const CreatorSignupPage = () => {
       });
 
       if (res?.success) {
-        setOtpOpen(false)
+        setOtpOpen(false);
         setToken(res?.token);
       }
 
@@ -231,16 +197,40 @@ const CreatorSignupPage = () => {
   // };
 
   const selectedCountry = formik.values.country;
+  
   const countryCode = selectedCountry
     ? countries.getAlpha2Code(selectedCountry, "en")
     : null;
 
   const today = new Date();
+
   const maxAllowedDate = new Date(
     today.getFullYear() - 18,
     today.getMonth(),
     today.getDate(),
   );
+
+  const calculateAge = (dob: Date) => {
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+
+    return age;
+  };
+
+  const getAgeGroup = (age: number) => {
+    if (age >= 18 && age <= 24) return "18_24";
+    if (age >= 25 && age <= 34) return "25_34";
+    if (age >= 35 && age <= 44) return "35_44";
+    if (age >= 45 && age <= 54) return "45_54";
+    if (age >= 55) return "55_plus";
+    return "";
+  };
+
   return (
     <div className="bg-off-white">
       <div className="container login_wrap creator_wrap">
@@ -434,15 +424,20 @@ const CreatorSignupPage = () => {
                           )}
                       </div>
                       <div>
-                        <CustomSelect
-                          label="Select Gender *"
-                          icon={<i className="icons groupUser svg-icon"></i>}
-                          options={genderOptions}
-                          value={formik.values.gender}
-                          onChange={(val) =>
-                            formik.setFieldValue("gender", val)
-                          }
-                        />
+                        <div className="label-input ">
+                          <div className="input-placeholder-icon">
+                            <i className="icons groupUser svg-icon"></i>
+                          </div>
+                          <input
+                            type={"text"}
+                            placeholder="Gender"
+                            value={formik.values.gender}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            name="gender"
+                            disabled
+                          />
+                        </div>
                         {formik.touched.gender && formik.errors.gender && (
                           <span className="error-message">
                             {formik.errors.gender}
@@ -475,10 +470,17 @@ const CreatorSignupPage = () => {
                                   setStartDate(date);
 
                                   if (date) {
-                                    formik.setFieldValue(
-                                      "dob",
-                                      date.toISOString().split("T")[0], // YYYY-MM-DD
-                                    );
+                                    const formattedDate = date
+                                      .toISOString()
+                                      .split("T")[0];
+                                    formik.setFieldValue("dob", formattedDate);
+
+                                    // ✅ Calculate age
+                                    const age = calculateAge(date);
+
+                                    // ✅ Auto set age group
+                                    const ageGroup = getAgeGroup(age);
+                                    formik.setFieldValue("age", ageGroup);
                                   }
 
                                   setActiveField(null);
@@ -717,114 +719,7 @@ const CreatorSignupPage = () => {
                           </span>
                         )}
                       </div>
-                      {/* <CustomSelect
-                    label="All Popularity"
-                    icon={<svg className="icons zigzagchart svg-icon"></svg>}
-                    options={[
-                      { label: "options 1", value: "options 2" },
-                      { label: "options 2", value: "options 2" },
-                    ]}
-                  /> */}
-
-                      <div>
-                        <CustomSelect
-                          label="All Popularity"
-                          icon={
-                            <svg className="icons zigzagchart svg-icon"></svg>
-                          }
-                          options={popularityOptions}
-                          value={formik.values.popularity}
-                          onChange={(val) =>
-                            formik.setFieldValue("popularity", val)
-                          }
-                        />
-                        {formik.touched.popularity &&
-                          formik.errors.popularity && (
-                            <span className="error-message">
-                              {formik.errors.popularity}
-                            </span>
-                          )}
-                      </div>
                     </div>
-                    {/* <div className="right_wrap">
-                  <div className="label-input one file-upload-wrapper">
-                    <div className="input-placeholder-icon">
-                      <svg className="icons idshape size-45"></svg>
-                      <div className="imgicons">
-                        <TbCamera size="16" />
-                      </div>
-                    </div>
-                    <p>
-                      Your government issued ID card, National ID card, Passport
-                      or Driving license *
-                    </p>
-                    <input
-                      type="file"
-                      className="real-file-input"
-                      accept="image/*,.pdf"
-                      onChange={(e) => handleFileChange(e, "id")}
-                    />
-                  </div>
-                  {idPreview && (
-                    <div className="label-input file-upload-wrapper preview-wrapper">
-                      {idPreview === "pdf" ? (
-                        <div className="input-placeholder-icon">
-                          <FaFilePdf className="icons" color="#E5741F" />
-                        </div>
-                      ) : (
-                        <div className="input-placeholder-icon">
-                          <img src={idPreview} className="preview-img" />
-                        </div>
-                      )}
-                      <p>PDF Uploaded</p>
-                      <div className="right_box">
-                        <Link href="#" className="icons">
-                          <FiEdit />
-                        </Link>
-                        <Link
-                          href="#"
-                          className="icons"
-                          onClick={() => handleRemoveFile("id")}
-                        >
-                          <FaTrash />
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                  <div className="label-input one file-upload-wrapper">
-                    <div className="input-placeholder-icon">
-                      <svg className="icons profilecards size-45"></svg>
-                      <div className="imgicons">
-                        <TbCamera size="16" />
-                      </div>
-                    </div>
-                    <p>Your selfie with your ID and handwritten note *</p>
-                    <input
-                      type="file"
-                      className="real-file-input"
-                      accept="image/*,.pdf"
-                      onChange={(e) => handleFileChange(e, "selfie")}
-                    />
-                    {selfiePreview && (
-                      <div className="input-placeholder-icon">
-                        <div className="preview-wrapper">
-                          {selfiePreview === "pdf" ? (
-                            <p>PDF Uploaded</p>
-                          ) : (
-                            <img src={selfiePreview} className="preview-img" />
-                          )}
-
-                          <span
-                            className="remove-btn"
-                            onClick={() => handleRemoveFile("selfie")}
-                          >
-                            ✕
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div> */}
                   </div>
                   <button
                     className="premium-btn"

@@ -2,308 +2,149 @@
 import { useEffect, useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import { TbCamera } from "react-icons/tb";
-import { GoDotFill } from "react-icons/go";
 import {
-  apiPost,
   apiPostWithMultiForm,
   getApiWithOutQuery,
 } from "@/utils/endpoints/common";
 import {
-  API_BLOCK_COUNTRIES,
-  API_CHANGE_CREATOR_PASSWORD,
-  API_CREATE_UPDATE_SUBSCRIPTION,
-  API_CREATOR_PROFILE,
-  API_GET_BLOCKED_COUNTRIES,
-  API_GET_MY_SUBSCRIPTION,
-  API_TOGGLE_CREATOR_ACCOUNT,
-  API_UNBLOCK_COUNTRIES,
+  API_CREATOR_PROFILE_INFO,
   API_UPDATE_CREATOR_PROFILE,
 } from "@/utils/api/APIConstant";
 import {
-  categoryOptions,
+  ageGroupOptions,
+  bodyTypeOptions,
   countryOptions,
-  creatorFormOptions,
+  ethnicityOptions,
+  eyeColorOptions,
+  hairColorOptions,
+  heightOptions,
+  sexualOrientationOptions,
+  sizeOptions,
+  styleOptions,
 } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
 import { useFormik } from "formik";
-import * as Yup from "yup";
-import { FcGoogle } from "react-icons/fc";
-import { FaXTwitter } from "react-icons/fa6";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { validationSchemaCreatorUpdate } from "@/libs/validation";
+import { CalendarDays } from "lucide-react";
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+import AccountSecurity from "./AccountSecurity";
+import PricingSetting from "./PricingSetting";
 
-export enum UserStatus {
-  ACTIVE = 0,
-  NOT_VERIFIED = 1,
-  SELF_DEACTIVATED = 2,
-  ADMIN_DEACTIVATED = 3,
-  DELETED = 4,
-  VERIFIED = 5,
-}
-const ALLOWED_PROFILE_FIELDS = [
-  // user fields
-  "firstName",
-  "lastName",
-  "displayName",
-  "userName",
-
-  // creator fields
-  "gender",
-  "dob",
-  "country",
-  "city",
-  "bio",
-  "bodyType",
-  "sexualOrientation",
-  "age",
-  "eyeColor",
-  "hairColor",
-  "ethnicity",
-  "height",
-  "style",
-  "size",
-  "popularity",
-  "category",
-];
-
+countries.registerLocale(enLocale);
 const EditProfilePage = () => {
-  const [showPass, setShowPass] = useState(false);
-  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
   const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [blockedCountry, setBlockedCountry] = useState<string | null>(null);
-  const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
-  const prevBlockedCountriesRef = useRef<string[]>([]);
-  const [passwordData, setPasswordData] = useState({
-    password: "",
-    confirmPassword: "",
-  });
-  const [subscription, setSubscription] = useState({
-    monthlyPrice: "",
-    yearlyPrice: "",
-    ppvVideoPrice: "",
-    ppvPhotoPrice: "",
-  });
-
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
-  const dobWrapperRef = useRef<HTMLDivElement | null>(null);
   const [coverError, setCoverError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dobWrapperRef.current &&
-        !dobWrapperRef.current.contains(event.target as Node)
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
       ) {
         setActiveField(null);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const res = await getApiWithOutQuery({ url: API_CREATOR_PROFILE });
-
-      if (res?.user && res?.creator) {
-        const merged = { ...res.user, ...res.creator };
-
-        const filtered: any = {};
-        ALLOWED_PROFILE_FIELDS.forEach((key) => {
-          if (merged[key] !== undefined) {
-            filtered[key] = merged[key];
-          }
-        });
-
-        setProfile(merged);
-        setFormData(filtered);
-      }
-    };
-
     fetchProfile();
   }, []);
 
-  const handleUpdateProfile = async () => {
-    const payload = new FormData();
+  const fetchProfile = async () => {
+    const res = await getApiWithOutQuery({ url: API_CREATOR_PROFILE_INFO });
 
-    ALLOWED_PROFILE_FIELDS.forEach((key) => {
-      if (formData[key] !== undefined && formData[key] !== null) {
-        payload.append(key, formData[key]);
-      }
-    });
-
-    if (profileFile) payload.append("profile", profileFile);
-    if (coverFile) payload.append("coverImage", coverFile);
-
-    const res = await apiPostWithMultiForm({
-      url: API_UPDATE_CREATOR_PROFILE,
-      values: payload,
-    });
-
-    if (res?.success) {
-      ShowToast("Profile updated successfully", "success");
+    if (res?.user && res?.creator) {
+      const merged = { ...res.user, ...res.creator };
+      setFormData(merged);
     }
   };
 
-  const handleChangePassword = async () => {
-    if (!passwordData.password || !passwordData.confirmPassword) {
-      ShowToast("Please fill all password fields", "error");
-      return;
-    }
-
-    if (passwordData.password !== passwordData.confirmPassword) {
-      ShowToast("Password and confirm password do not match", "error");
-      return;
-    }
-
-    const res = await apiPost({
-      url: API_CHANGE_CREATOR_PASSWORD,
-      values: passwordData,
-    });
-
-    if (res?.success) {
-      ShowToast(res.message || "Password updated successfully", "success");
-      setPasswordData({
-        password: "",
-        confirmPassword: "",
-      });
-    } else {
-      ShowToast(res?.message || "Failed to update password", "error");
-    }
-  };
-  const handleToggleAccount = async () => {
-    try {
-      const res = await apiPost({
-        url: API_TOGGLE_CREATOR_ACCOUNT,
-        values: {},
-      });
-
-      if (res?.success) {
-        ShowToast(res.message, "success");
-
-        setUserProfile((prev: any) => ({
-          ...prev,
-          status: res.status,
-        }));
-      }
-    } catch (error: any) {
-      ShowToast(error?.message || "Failed to toggle account", "error");
-    }
-  };
-
-  useEffect(() => {
-    const fetchSubscription = async () => {
-      const res = await getApiWithOutQuery({
-        url: API_GET_MY_SUBSCRIPTION,
-      });
-
-      if (res?.success && res?.data) {
-        setSubscription({
-          monthlyPrice: res.data.monthlyPrice ?? "",
-          yearlyPrice: res.data.yearlyPrice ?? "",
-          ppvVideoPrice: res.data.ppvVideoPrice ?? "",
-          ppvPhotoPrice: res.data.ppvPhotoPrice ?? "",
-        });
-      }
-    };
-
-    if (tab === 1) {
-      fetchSubscription();
-    }
-  }, [tab]);
-
-  useEffect(() => {
-    const fetchBlockedCountries = async () => {
-      const res = await getApiWithOutQuery({
-        url: API_GET_BLOCKED_COUNTRIES,
-      });
-
-      if (res?.success) {
-        setBlockedCountries(res.countryNames || []);
-        prevBlockedCountriesRef.current = res.countryNames || [];
-      }
-    };
-
-    if (tab === 2) {
-      fetchBlockedCountries();
-    }
-  }, [tab]);
-
-  const subscriptionFormik = useFormik({
-    enableReinitialize: true,
+  const formik = useFormik({
     initialValues: {
-      monthlyPrice: subscription.monthlyPrice,
-      yearlyPrice: subscription.yearlyPrice,
-      ppvVideoPrice: subscription.ppvVideoPrice,
-      ppvPhotoPrice: subscription.ppvPhotoPrice,
+      firstName: formData.firstName || "",
+      lastName: formData.lastName || "",
+      displayName: formData.displayName || "",
+      userName: formData.userName || "",
+      gender: formData.gender || "Male",
+      dob: formData.dob || null,
+      country: formData.country || "",
+      city: formData.city || "",
+      bio: formData.bio || "",
+      bodyType: formData.bodyType || "",
+      sexualOrientation: formData.sexualOrientation || "",
+      age: formData.age || "",
+      eyeColor: formData.eyeColor || "",
+      hairColor: formData.hairColor || "",
+      ethnicity: formData.ethnicity || "",
+      height: formData.height || "",
+      style: formData.style || "",
+      size: formData.size || "",
+      popularity: formData.popularity || "",
+
     },
-    validationSchema: Yup.object({
-      monthlyPrice: Yup.number()
-        .required("Monthly price is required")
-        .min(1, "Must be greater than 0"),
-
-      yearlyPrice: Yup.number()
-        .required("Yearly price is required")
-        .min(1, "Must be greater than 0"),
-    }),
+    validationSchema: validationSchemaCreatorUpdate,
+    enableReinitialize: true,
     onSubmit: async (values) => {
-      const res = await apiPost({
-        url: API_CREATE_UPDATE_SUBSCRIPTION,
-        values: {
-          monthlyPrice: Number(values.monthlyPrice),
-          yearlyPrice: Number(values.yearlyPrice),
-          ppvVideoPrice: Number(values.ppvVideoPrice),
-          ppvPhotoPrice: Number(values.ppvPhotoPrice),
-        },
-      });
+      try {
+        setLoading(true);
+        const payload = new FormData();
 
-      if (res?.success) {
-        ShowToast("Subscription updated successfully", "success");
-      } else {
-        ShowToast(res?.message || "Failed to update subscription", "error");
+        (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
+          const value = values[key];
+
+          if (value !== null && value !== undefined) {
+            payload.append(key, String(value));
+          }
+        });
+
+        if (profileFile) payload.append("profile", profileFile);
+        if (coverFile) payload.append("coverImage", coverFile);
+
+        const res = await apiPostWithMultiForm({
+          url: API_UPDATE_CREATOR_PROFILE,
+          values: payload,
+        });
+
+        if (!res?.success) {
+          setLoading(false);
+          return;
+        }
+        if (res?.success) {
+          ShowToast("Profile updated successfully", "success");
+        }
+      } catch (err: any) {
+        const backendMessage = err?.response?.data?.message;
+
+        if (Array.isArray(backendMessage)) {
+          ShowToast(backendMessage.join(", "), "error");
+        } else {
+          ShowToast(
+            backendMessage ||
+              err?.response?.data?.error ||
+              err?.message ||
+              "Something went wrong",
+            "error",
+          );
+        }
+      } finally {
+        setLoading(false);
       }
     },
   });
-
-  const handleSaveBlockedCountries = async () => {
-    const previous = prevBlockedCountriesRef.current;
-    const current = blockedCountries;
-
-    const toBlock = current.filter(c => !previous.includes(c));
-    const toUnblock = previous.filter(c => !current.includes(c));
-
-    try {
-      if (toBlock.length) {
-        await apiPost({
-          url: API_BLOCK_COUNTRIES,
-          values: { countryNames: toBlock },
-        });
-      }
-
-      if (toUnblock.length) {
-        await apiPost({
-          url: API_UNBLOCK_COUNTRIES,
-          values: { countryNames: toUnblock },
-        });
-      }
-
-      prevBlockedCountriesRef.current = current;
-
-      ShowToast("Blocked countries updated successfully", "success");
-    } catch (err: any) {
-      ShowToast(err?.message || "Failed to update blocked countries", "error");
-    }
-  };
 
   useEffect(() => {
     return () => {
@@ -327,36 +168,93 @@ const EditProfilePage = () => {
     };
   }, [coverFile]);
 
+  useEffect(() => {
+    if (formData?.dob) {
+      const parsedDate = new Date(formData.dob);
+      setStartDate(parsedDate);
+      formik.setFieldValue("dob", formData.dob);
+    }
+  }, [formData.dob]);
+
+  const calculateAge = (dob: Date) => {
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age;
+  };
+
+  const getAgeGroup = (age: number) => {
+    if (age >= 18 && age <= 24) return "18_24";
+    if (age >= 25 && age <= 34) return "25_34";
+    if (age >= 35 && age <= 44) return "35_44";
+    if (age >= 45 && age <= 54) return "45_54";
+    if (age >= 55) return "55_plus";
+    return "";
+  };
+
+  const today = new Date();
+
+  const maxAllowedDate = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate(),
+  );
+
+  const selectedCountry = formik.values.country;
+
+  const countryCode = selectedCountry
+    ? countries.getAlpha2Code(selectedCountry, "en")
+    : null;
+
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-          <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-            <div className="moneyboy-feed-page-cate-buttons card show_mobail" id="posts-tabs-btn-card">
-              <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft"></span></button>
-              <button className="page-content-type-button active">Edit Profile</button>
+          <div
+            className="moneyboy-feed-page-container moneyboy-diff-content-wrappers"
+            data-scroll-zero
+            data-multiple-tabs-section
+            data-identifier="1"
+          >
+            <div
+              className="moneyboy-feed-page-cate-buttons card show_mobail"
+              id="posts-tabs-btn-card"
+            >
+              <button className="cate-back-btn active-down-effect">
+                <span className="icons arrowLeft"></span>
+              </button>
+              <button className="page-content-type-button active">
+                Edit Profile
+              </button>
             </div>
-            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            <div
+              className="moneyboy-feed-page-cate-buttons card"
+              id="posts-tabs-btn-card"
+            >
               {/* <button className="cate-back-btn active-down-effect hide_mobail">
                 <span className="icons arrowLeft"></span>
               </button> */}
               <button
-                className={`page-content-type-button active-down-effect ${tab === 0 ? "active" : ""
-                  }`}
+                className={`page-content-type-button active-down-effect ${
+                  tab === 0 ? "active" : ""
+                }`}
                 onClick={() => setTab(0)}
               >
                 Basic information
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""
-                  }`}
+                className={`page-content-type-button active-down-effect ${
+                  tab === 1 ? "active" : ""
+                }`}
                 onClick={() => setTab(1)}
               >
                 Pricing settings
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${tab === 2 ? "active" : ""
-                  }`}
+                className={`page-content-type-button active-down-effect ${
+                  tab === 2 ? "active" : ""
+                }`}
                 onClick={() => setTab(2)}
               >
                 Account and security
@@ -366,19 +264,43 @@ const EditProfilePage = () => {
             <div className="creator-profile-page-container">
               <div className="creator-profile-front-content-container">
                 {/* ========== Basic information ========== */}
-                {tab === 0 && profile && (
+                {tab === 0 && (
                   <div className="creator-profile-card-container card">
                     <div className="creator-profile-banner">
                       {coverFile ? (
-                        <img src={URL.createObjectURL(coverFile)} alt="Creator Profile Banner" />
-                      ) : profile?.coverImage && !coverError ? (
-                        <img src={profile.coverImage} alt="Creator Profile Banner" onError={() => setCoverError(true)} />
+                        <img
+                          src={URL.createObjectURL(coverFile)}
+                          alt="Creator Profile Banner"
+                        />
+                      ) : formData?.coverImage && !coverError ? (
+                        <img
+                          src={formData.coverImage}
+                          alt="Creator Profile Banner"
+                          onError={() => setCoverError(true)}
+                        />
                       ) : (
                         <div className="noprofile">
-                          <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                          <svg
+                            width="40"
+                            height="40"
+                            viewBox="0 0 66 54"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              className="animate-m"
+                              d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                              fill="url(#paint0_linear_4470_53804)"
+                            />
                             <defs>
-                              <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                              <linearGradient
+                                id="paint0_linear_4470_53804"
+                                x1="0"
+                                y1="27"
+                                x2="66"
+                                y2="27"
+                                gradientUnits="userSpaceOnUse"
+                              >
                                 <stop stop-color="#FDAB0A" />
                                 <stop offset="0.4" stop-color="#FECE26" />
                                 <stop offset="1" stop-color="#FE990B" />
@@ -388,8 +310,24 @@ const EditProfilePage = () => {
                         </div>
                       )}
 
-                      <input type="file" hidden accept="image/*" id="coverUpload" onChange={(e) => {if (e.target.files?.[0]) {setCoverFile(e.target.files[0]); setCoverError(false);}}}/>
-                      <label htmlFor="coverUpload" className="imgicons active-down-effect-2x" ><TbCamera size={16} /></label>
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        id="coverUpload"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            setCoverFile(e.target.files[0]);
+                            setCoverError(false);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="coverUpload"
+                        className="imgicons active-down-effect-2x"
+                      >
+                        <TbCamera size={16} />
+                      </label>
                     </div>
 
                     <div className="creator-profile-info-container">
@@ -399,18 +337,48 @@ const EditProfilePage = () => {
                             <div className="profile-card__avatar-settings">
                               <div className="profile-card__avatar">
                                 {profileFile ? (
-                                  <img src={URL.createObjectURL(profileFile)} alt="Profile Avatar" />
-                                ) : profile?.profile && !avatarError ? (
-                                  <img src={profile.profile} alt="Profile Avatar" onError={() => setAvatarError(true)} />
+                                  <img
+                                    src={URL.createObjectURL(profileFile)}
+                                    alt="Profile Avatar"
+                                  />
+                                ) : formData?.profile && !avatarError ? (
+                                  <img
+                                    src={formData.profile}
+                                    alt="Profile Avatar"
+                                    onError={() => setAvatarError(true)}
+                                  />
                                 ) : (
                                   <div className="noprofile">
-                                    <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                                    <svg
+                                      width="40"
+                                      height="40"
+                                      viewBox="0 0 66 54"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        className="animate-m"
+                                        d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                        fill="url(#paint0_linear_4470_53804)"
+                                      />
                                       <defs>
-                                        <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                        <linearGradient
+                                          id="paint0_linear_4470_53804"
+                                          x1="0"
+                                          y1="27"
+                                          x2="66"
+                                          y2="27"
+                                          gradientUnits="userSpaceOnUse"
+                                        >
                                           <stop stop-color="#FDAB0A" />
-                                          <stop offset="0.4" stop-color="#FECE26" />
-                                          <stop offset="1" stop-color="#FE990B" />
+                                          <stop
+                                            offset="0.4"
+                                            stop-color="#FECE26"
+                                          />
+                                          <stop
+                                            offset="1"
+                                            stop-color="#FE990B"
+                                          />
                                         </linearGradient>
                                       </defs>
                                     </svg>
@@ -444,628 +412,424 @@ const EditProfilePage = () => {
 
                       <div className="creator-subscriptions-container">
                         <div className="form_grid">
-                          {/* First Name */}
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="First Name *"
-                              value={formData.firstName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  firstName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          {/* Last Name */}
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Last Name *"
-                              value={formData.lastName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  lastName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          {/* Display Name */}
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user2 svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Display Name *"
-                              value={formData.displayName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  displayName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          {/* Username */}
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons profile-check svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Username *"
-                              value={formData.userName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  userName: e.target.value,
-                                })
-                              }
-                              disabled
-                            />
-                          </div>
-
-                          {/* Gender */}
-                          <CustomSelect
-                            label="Select Your Gender"
-                            icon={<svg className="icons groupUser svg-icon" />}
-                            options={creatorFormOptions.genderOptions}
-                            value={formData.gender || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, gender: val })
-                            }
-                          />
-
-                          {/* Date of Birth */}
-                          {/* <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons bookmarkIcon svg-icon"></i>
-                            </div>
-                            <input
-                              type="date"
-                              placeholder="Date of Birth (DD/MM/YYYY) *"
-                              value={formData.dob || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  dob: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                          {activeField === "start" && (
-                            <div className="calendar-dropdown"><DatePicker selected={startDate} onChange={(date: any) => {setStartDate(date); setPage(1);  setActiveField(null);}} inline/></div>
-                          )} */}
-                          <div className="label-input calendar-dropdown" ref={dobWrapperRef}>
-                            <div className="input-placeholder-icon"><i className="icons bookmarkIcon svg-icon"></i></div>
-                            <input type="text" placeholder="Date of Birth (DD/MM/YYYY) *" value={formData.dob || ""} readOnly onClick={() => setActiveField("dob")} />
-                            {activeField === "dob" && (
-                              <div className="calendar_show">
-                                <DatePicker selected={startDate} inline maxDate={new Date()} onChange={(date: any) => { setStartDate(date); setFormData({ ...formData, dob: date.toLocaleDateString("en-GB"), }); setActiveField(null); }} />
+                          <div>
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <i className="icons user svg-icon"></i>
                               </div>
+                              <input
+                                type="text"
+                                placeholder="First Name *"
+                                value={formik.values.firstName}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                name="firstName"
+                              />
+                            </div>
+                            {formik.touched.firstName &&
+                              formik.errors.firstName && (
+                                <span className="error-message">
+                                  {formik.errors.firstName as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <i className="icons user svg-icon"></i>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Last name *"
+                                value={formik.values.lastName}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                name="lastName"
+                              />
+                            </div>
+                            {formik.touched.lastName &&
+                              formik.errors.lastName && (
+                                <span className="error-message">
+                                  {formik.errors.lastName as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <i className="icons user2 svg-icon"></i>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Display name *"
+                                value={formik.values.displayName}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                name="displayName"
+                              />
+                            </div>
+                            {formik.touched.displayName &&
+                              formik.errors.displayName && (
+                                <span className="error-message">
+                                  {formik.errors.displayName as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <i className="icons profile-check svg-icon"></i>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="User name *"
+                                value={formik.values.userName}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                name="userName"
+                              />
+                            </div>
+                            {formik.touched.userName &&
+                              formik.errors.userName && (
+                                <span className="error-message">
+                                  {formik.errors.userName as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <div className="label-input ">
+                              <div className="input-placeholder-icon">
+                                <i className="icons groupUser svg-icon"></i>
+                              </div>
+                              <input
+                                type={"text"}
+                                placeholder="Gender"
+                                value={formik.values.gender}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                name="gender"
+                                disabled
+                              />
+                            </div>
+                            {/* <CustomSelect
+                          label="Select Gender *"
+                          icon={<i className="icons groupUser svg-icon"></i>}
+                          options={genderOptions}
+                          value={formik.values.gender}
+                          onChange={(val) =>
+                            formik.setFieldValue("gender", val)
+                          }
+                        /> */}
+                            {formik.touched.gender && formik.errors.gender && (
+                              <span className="error-message">
+                                {formik.errors.gender as string}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div
+                              className="label-input calendar-dropdown"
+                              ref={wrapperRef}
+                            >
+                              <div className="input-placeholder-icon">
+                                <CalendarDays className="icons svg-icon" />
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="(DD/MM/YYYY)"
+                                className="form-input"
+                                readOnly
+                                value={
+                                  startDate?.toLocaleDateString("en-GB") || ""
+                                }
+                                onClick={() => setActiveField("schedule")}
+                              />
+                              {activeField === "schedule" && (
+                                <div className="calendar_show">
+                                  <DatePicker
+                                    selected={startDate}
+                                    inline
+                                    maxDate={maxAllowedDate}
+                                    onChange={(date: Date | null) => {
+                                      if (date) {
+                                        const formattedDate = date
+                                          .toISOString()
+                                          .split("T")[0];
+                                        formik.setFieldValue(
+                                          "dob",
+                                          formattedDate,
+                                        );
+
+                                        const age = calculateAge(date);
+                                        const ageGroup = getAgeGroup(age);
+                                        formik.setFieldValue("age", ageGroup);
+                                      }
+                                      setActiveField(null);
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            {formik.touched.dob && formik.errors.dob && (
+                              <span className="error-message">
+                                {formik.errors.dob as string}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <CustomSelect
+                              label="Select Country *"
+                              icon={
+                                countryCode ? (
+                                  <div className="flag-circle">
+                                    <img
+                                      src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+                                      alt="flag"
+                                    />
+                                  </div>
+                                ) : (
+                                  <svg className="icons locationIcon svg-icon"></svg>
+                                )
+                              }
+                              options={countryOptions}
+                              value={formik.values.country}
+                              onChange={(val) =>
+                                formik.setFieldValue("country", val)
+                              }
+                            />
+                            {formik.touched.country &&
+                              formik.errors.country && (
+                                <span className="error-message">
+                                  {formik.errors.country as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <svg className="icons locationIcon svg-icon"></svg>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="City *"
+                                value={formik.values.city}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                name="city"
+                              />
+                            </div>
+                            {formik.touched.city && formik.errors.city && (
+                              <span className="error-message">
+                                {formik.errors.city as string}
+                              </span>
+                            )}
+                          </div>
+                          <div className="one">
+                            <div className="label-input textarea one">
+                              <div className="input-placeholder-icon">
+                                <svg className="icons messageUser svg-icon"></svg>
+                              </div>
+                              <textarea
+                                rows={4}
+                                placeholder="Bio"
+                                value={formik.values.bio}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                name="bio"
+                              ></textarea>
+                            </div>
+                            {formik.touched.bio && formik.errors.bio && (
+                              <span className="error-message">
+                                {formik.errors.bio as string}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <CustomSelect
+                              label="All Body Types"
+                              icon={<svg className="icons handbody svg-icon" />}
+                              options={bodyTypeOptions}
+                              value={formik.values.bodyType}
+                              onChange={(val) =>
+                                formik.setFieldValue("bodyType", val)
+                              }
+                            />
+                            {formik.touched.bodyType &&
+                              formik.errors.bodyType && (
+                                <span className="error-message">
+                                  {formik.errors.bodyType as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <CustomSelect
+                              label="All Sexual Orientation"
+                              icon={
+                                <svg className="icons timeIcon svg-icon"></svg>
+                              }
+                              options={sexualOrientationOptions}
+                              value={formik.values.sexualOrientation}
+                              onChange={(val) =>
+                                formik.setFieldValue("sexualOrientation", val)
+                              }
+                            />
+                            {formik.touched.sexualOrientation &&
+                              formik.errors.sexualOrientation && (
+                                <span className="error-message">
+                                  {formik.errors.sexualOrientation as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <CustomSelect
+                              label="All Ages"
+                              icon={
+                                <svg className="icons calendarClock svg-icon"></svg>
+                              }
+                              options={ageGroupOptions}
+                              value={formik.values.age}
+                              onChange={(val) =>
+                                formik.setFieldValue("age", val)
+                              }
+                            />
+                            {formik.touched.age && formik.errors.age && (
+                              <span className="error-message">
+                                {formik.errors.age as string}
+                              </span>
                             )}
                           </div>
 
-                          {/* Country */}
-                          <CustomSelect
-                            label="Select Country"
-                            icon={
-                              <img
-                                src="/images/united_flag.png"
-                                className="svg-icon"
-                              />
-                            }
-                            options={creatorFormOptions.countryOptions}
-                            value={formData.country || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, country: val })
-                            }
-                          />
-
-                          {/* City */}
-                          <CustomSelect
-                            label="Select City"
-                            icon={
-                              <svg className="icons locationIcon svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.cityOptions}
-                            value={formData.city || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, city: val })
-                            }
-                          />
-
-                          {/* Bio */}
-                          <div className="label-input textarea one">
-                            <div className="input-placeholder-icon">
-                              <svg className="icons messageUser svg-icon"></svg>
-                            </div>
-                            <textarea
-                              rows={4}
-                              placeholder="Bio"
-                              value={formData.bio || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  bio: e.target.value,
-                                })
+                          <div>
+                            <CustomSelect
+                              label="All Eye Colors"
+                              icon={
+                                <svg className="icons cameraEye svg-icon"></svg>
                               }
-                            ></textarea>
+                              options={eyeColorOptions}
+                              value={formik.values.eyeColor}
+                              onChange={(val) =>
+                                formik.setFieldValue("eyeColor", val)
+                              }
+                            />
+                            {formik.touched.eyeColor &&
+                              formik.errors.eyeColor && (
+                                <span className="error-message">
+                                  {formik.errors.eyeColor as string}
+                                </span>
+                              )}
+                          </div>
+                          <div>
+                            <CustomSelect
+                              label="All Hair Colors"
+                              icon={
+                                <svg className="icons paintDrop svg-icon"></svg>
+                              }
+                              options={hairColorOptions}
+                              value={formik.values.hairColor}
+                              onChange={(val) =>
+                                formik.setFieldValue("hairColor", val)
+                              }
+                            />
+                            {formik.touched.hairColor &&
+                              formik.errors.hairColor && (
+                                <span className="error-message">
+                                  {formik.errors.hairColor as string}
+                                </span>
+                              )}
                           </div>
 
-                          {/* Body Type */}
-                          <CustomSelect
-                            label="All Body Types"
-                            icon={<svg className="icons handbody svg-icon" />}
-                            options={creatorFormOptions.bodyTypeOptions}
-                            value={formData.bodyType || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, bodyType: val })
-                            }
-                          />
-
-                          {/* Sexual Orientation */}
-                          <CustomSelect
-                            label="All Sexual Orientations"
-                            icon={
-                              <svg className="icons timeIcon svg-icon"></svg>
-                            }
-                            options={
-                              creatorFormOptions.sexualOrientationOptions
-                            }
-                            value={formData.sexualOrientation || ""}
-                            onChange={(val) =>
-                              setFormData({
-                                ...formData,
-                                sexualOrientation: val,
-                              })
-                            }
-                          />
-
-                          {/* Age Group */}
-                          <CustomSelect
-                            label="All Ages"
-                            icon={
-                              <svg className="icons calendarClock svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.ageGroupOptions}
-                            value={formData.age || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, age: val })
-                            }
-                          />
-
-                          {/* Eye Color */}
-                          <CustomSelect
-                            label="All Eye Colors"
-                            icon={
-                              <svg className="icons cameraEye svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.eyeColorOptions}
-                            value={formData.eyeColor || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, eyeColor: val })
-                            }
-                          />
-
-                          {/* Hair Color */}
-                          <CustomSelect
-                            label="All Hair Colors"
-                            icon={
-                              <svg className="icons paintDrop svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.hairColorOptions}
-                            value={formData.hairColor || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, hairColor: val })
-                            }
-                          />
-
-                          {/* Ethnicity */}
-                          <CustomSelect
-                            label="All Ethnicities"
-                            icon={
-                              <svg className="icons multiUser svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.ethnicityOptions}
-                            value={formData.ethnicity || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, ethnicity: val })
-                            }
-                          />
-
-                          {/* Height */}
-                          <CustomSelect
-                            label="All Heights"
-                            icon={
-                              <svg className="icons uploadDownload svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.heightOptions}
-                            value={formData.height || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, height: val })
-                            }
-                          />
-
-                          {/* Style */}
-                          <CustomSelect
-                            label="All Styles"
-                            icon={
-                              <svg className="icons documentHeart svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.styleOptions}
-                            value={formData.style || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, style: val })
-                            }
-                          />
-
-                          {/* Size */}
-                          <CustomSelect
-                            label="All Sizes"
-                            icon={
-                              <svg className="icons expanddiagonal svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.sizeOptions}
-                            value={formData.size || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, size: val })
-                            }
-                          />
-
-                          {/* Popularity */}
-                          <CustomSelect
-                            label="All Popularity"
-                            icon={
-                              <svg className="icons zigzagchart svg-icon"></svg>
-                            }
-                            options={creatorFormOptions.popularityOptions}
-                            value={formData.popularity || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, popularity: val })
-                            }
-                          />
-                          <CustomSelect
-                            label="All Categories"
-                            options={categoryOptions}
-                            value={formData.category || ""}
-                            onChange={(value) =>
-                              setFormData((prev: any) => ({
-                                ...prev,
-                                category: value,
-                              }))
-                            }
-                            icon={
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="25"
-                                height="24"
-                                viewBox="0 0 25 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M22.4102 10.44L21.4302 14.62C20.5902 18.23 18.9302 19.69 15.8102 19.39C15.3102 19.35 14.7702 19.26 14.1902 19.12L12.5102 18.72C8.34018 17.73 7.05018 15.67 8.03018 11.49L9.01018 7.29999C9.21018 6.44999 9.45018 5.70999 9.75018 5.09999C10.9202 2.67999 12.9102 2.02999 16.2502 2.81999L17.9202 3.20999C22.1102 4.18999 23.3902 6.25999 22.4102 10.44Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M15.8099 19.39C15.1899 19.81 14.4099 20.16 13.4599 20.47L11.8799 20.99C7.90985 22.27 5.81985 21.2 4.52985 17.23L3.24985 13.28C1.96985 9.31001 3.02985 7.21001 6.99985 5.93001L8.57985 5.41001C8.98985 5.28001 9.37985 5.17001 9.74985 5.10001C9.44985 5.71001 9.20985 6.45001 9.00985 7.30001L8.02985 11.49C7.04985 15.67 8.33985 17.73 12.5099 18.72L14.1899 19.12C14.7699 19.26 15.3099 19.35 15.8099 19.39Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M13.3901 8.53L18.2401 9.76"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M12.4102 12.4L15.3102 13.14"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            }
-                          />
-
-                          {/* Update Button */}
-                          <div className="btm_btn one">
-                            <button
-                              className="premium-btn active-down-effect"
-                              onClick={handleUpdateProfile}
-                            >
-                              <span>Update Profile</span>
-                            </button>
+                          <div>
+                            <CustomSelect
+                              label="All Ethnicities"
+                              icon={
+                                <svg className="icons multiUser svg-icon"></svg>
+                              }
+                              options={ethnicityOptions}
+                              value={formik.values.ethnicity}
+                              onChange={(val) =>
+                                formik.setFieldValue("ethnicity", val)
+                              }
+                            />
+                            {formik.touched.ethnicity &&
+                              formik.errors.ethnicity && (
+                                <span className="error-message">
+                                  {formik.errors.ethnicity as string}
+                                </span>
+                              )}
                           </div>
+                          <div>
+                            <CustomSelect
+                              label="All Heights"
+                              icon={
+                                <svg className="icons uploadDownload svg-icon"></svg>
+                              }
+                              options={heightOptions}
+                              value={formik.values.height}
+                              onChange={(val) =>
+                                formik.setFieldValue("height", val)
+                              }
+                            />
+                            {formik.touched.height && formik.errors.height && (
+                              <span className="error-message">
+                                {formik.errors.height as string}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <CustomSelect
+                              label="All Styles"
+                              icon={
+                                <svg className="icons documentHeart svg-icon"></svg>
+                              }
+                              options={styleOptions}
+                              value={formik.values.style}
+                              onChange={(val) =>
+                                formik.setFieldValue("style", val)
+                              }
+                            />
+                            {formik.touched.style && formik.errors.style && (
+                              <span className="error-message">
+                                {formik.errors.style as string}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <CustomSelect
+                              label="All Sizes"
+                              icon={
+                                <svg className="icons expanddiagonal svg-icon size-18"></svg>
+                              }
+                              options={sizeOptions}
+                              value={formik.values.size}
+                              onChange={(val) =>
+                                formik.setFieldValue("size", val)
+                              }
+                            />
+                            {formik.touched.size && formik.errors.size && (
+                              <span className="error-message">
+                                {formik.errors.size as string}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="btm_btn">
+                          <button
+                            type="submit"
+                            className="premium-btn active-down-effect"
+                            onClick={() => formik.handleSubmit()}
+                            disabled={loading}
+                          >
+                            <span>Save Changes</span>
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
                 {/* ========== Pricing settings ========== */}
-                {tab === 1 && (
-                  <form onSubmit={subscriptionFormik.handleSubmit}>
-                    <div className="creator-profile-card-container">
-                      <div className="card filters-card-wrapper">
-                        <div className="creator-content-cards-wrapper pricing_account_wrap">
-                          <div className="subtop_cont">
-                            <h3>Subscription</h3>
-                            <button className="btn-primary">
-                              <GoDotFill size={20} />{" "}
-                              <span>Paid Subscriptions</span>
-                            </button>
-                          </div>
-                          <div className="form_grid">
-                            <div className="one">
-                              <label>Monthly Subscription Price*</label>
-                              <div className="label-input">
-                                <input
-                                  type="number"
-                                  name="monthlyPrice"
-                                  value={subscriptionFormik.values.monthlyPrice}
-                                  onChange={subscriptionFormik.handleChange}
-                                  onBlur={subscriptionFormik.handleBlur}
-                                />
-                              </div>
-                              {subscriptionFormik.touched.monthlyPrice &&
-                                subscriptionFormik.errors.monthlyPrice && (
-                                  <span className="error-message">
-                                    {subscriptionFormik.errors.monthlyPrice}
-                                  </span>
-                                )}
-                            </div>
-
-                            <div className="one">
-                              <label>Yearly Subscription Price*</label>
-                              <div className="label-input">
-                                <input
-                                  type="number"
-                                  name="yearlyPrice"
-                                  value={subscriptionFormik.values.yearlyPrice}
-                                  onChange={subscriptionFormik.handleChange}
-                                  onBlur={subscriptionFormik.handleBlur}
-                                />
-                              </div>
-                              {subscriptionFormik.touched.yearlyPrice &&
-                                subscriptionFormik.errors.yearlyPrice && (
-                                  <span className="error-message">
-                                    {subscriptionFormik.errors.yearlyPrice}
-                                  </span>
-                                )}
-                            </div>
-
-                            <div className="one">
-                              <label>PPV Request - Custom video</label>
-                              <div className="label-input">
-                                <input
-                                  type="number"
-                                  name="ppvVideoPrice"
-                                  value={
-                                    subscriptionFormik.values.ppvVideoPrice
-                                  }
-                                  onChange={subscriptionFormik.handleChange}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="one">
-                              <label>PPV Request - Custom Photo</label>
-                              <div className="label-input">
-                                <input
-                                  type="number"
-                                  name="ppvPhotoPrice"
-                                  value={
-                                    subscriptionFormik.values.ppvPhotoPrice
-                                  }
-                                  onChange={subscriptionFormik.handleChange}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="btm_btn">
-                            <button
-                              type="submit"
-                              className="premium-btn active-down-effect"
-                            >
-                              <span>Save Changes</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-                )}
+                {tab === 1 && <PricingSetting />}
                 {/* ========== Account and security ========== */}
-                {tab === 2 && (
-                  <div className="creator-profile-card-container">
-                    <div className="card filters-card-wrapper">
-                      <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
-                        <div className="form_grid">
-                          <div className="label-input one">
-                            <div className="input-placeholder-icon">
-                              <i className="icons message svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              value={profile?.email || ""}
-                              readOnly
-                            />
-                            <span className="righttext">
-                              {profile?.status === 5
-                                ? "Verified"
-                                : "Unverified"}
-                            </span>
-                          </div>
-                          <div className="label-input password">
-                            <div className="input-placeholder-icon">
-                              <i className="icons lock svg-icon"></i>
-                            </div>
-                            <input
-                              type={showPass ? "text" : "password"}
-                              placeholder="Password *"
-                              value={passwordData.password}
-                              onChange={(e) =>
-                                setPasswordData({
-                                  ...passwordData,
-                                  password: e.target.value,
-                                })
-                              }
-                            />
-                            <span
-                              onClick={() => setShowPass(!showPass)}
-                              className="input-placeholder-icon eye-icon"
-                            >
-                              {showPass ? (
-                                <i className="icons eye-slash svg-icon"></i>
-                              ) : (
-                                <i className="icons eye svg-icon"></i>
-                              )}
-                            </span>
-                          </div>
-                          <div className="label-input password">
-                            <div className="input-placeholder-icon">
-                              <i className="icons lock svg-icon"></i>
-                            </div>
-                            <input
-                              type={showConfirmPass ? "text" : "password"}
-                              placeholder="Confirm password*"
-                              value={passwordData.confirmPassword}
-                              onChange={(e) =>
-                                setPasswordData({
-                                  ...passwordData,
-                                  confirmPassword: e.target.value,
-                                })
-                              }
-                            />
-                            <span
-                              onClick={() =>
-                                setShowConfirmPass(!showConfirmPass)
-                              }
-                              className="input-placeholder-icon eye-icon"
-                            >
-                              {showConfirmPass ? (
-                                <i className="icons eye-slash svg-icon"></i>
-                              ) : (
-                                <i className="icons eye svg-icon"></i>
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="btm_btn">
-                          <button
-                            className="premium-btn active-down-effect"
-                            onClick={handleChangePassword}
-                          >
-                            <span>Save Changes</span>
-                          </button>
-                        </div>
-                      </div>
-                      <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap connect_social_wrap">
-                        <div className="select_countries_wrap">
-                          <h5>Connect Your Social accounts</h5>
-                          <p>
-                            Connect Your Social accounts to Your MoneYBoy
-                            Profile
-                          </p>
-                          <div className="btn_wrap">
-                            <label>Sign in With x</label>
-                            <button
-                              type="button"
-                              className="active-down-effect xbtn"
-                            >
-                              <div className="icons">
-                                <FaXTwitter size={18} />
-                              </div>{" "}
-                              SIGN IN WITH X
-                            </button>
-                          </div>
-                          <div className="btn_wrap">
-                            <label>Sign In With Google</label>
-                            <button
-                              type="button"
-                              className="active-down-effect googlebtn"
-                            >
-                              <div className="icons">
-                                <FcGoogle size={16} />
-                              </div>{" "}
-                              SIGN IN WITH GOOGLE
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
-                        <div className="deactivate_wrap">
-                          <div className="">
-                            <h5>Deactivate account</h5>
-                            <p>
-                              Hides the profile temporarily (Does not delete it)
-                            </p>
-                          </div>
-                          <button
-                            className={`btn-danger ${userProfile?.status ===
-                              UserStatus.SELF_DEACTIVATED
-                              ? "reactivate-btn"
-                              : ""
-                              }`}
-                            onClick={handleToggleAccount}
-                          >
-                            {userProfile?.status === UserStatus.SELF_DEACTIVATED
-                              ? "Reactivate account"
-                              : "Deactivate account"}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="creator-content-cards-wrapper pricing_account_wrap select">
-                        <div className="select_countries_wrap">
-                          <h5>Block Countries</h5>
-                          <p>Select countries you want to block</p>
-                          <div className="form_grid">
-                            <div className="one">
-                              <CustomSelect
-                                label="Select Countries"
-                                options={countryOptions}
-                                value={blockedCountries}
-                                onChange={(value) =>
-                                  setBlockedCountries(value as string[])
-                                }
-                                multiple
-                                searchable
-                              />
-                            </div>
-                          </div>
-                          <div className="btm_btn">
-                            <button
-                              type="button"
-                              className="premium-btn active-down-effect"
-                              onClick={handleSaveBlockedCountries}
-                            >
-                              <span>Save Changes</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {tab === 2 && <AccountSecurity profile={formData} />}
               </div>
             </div>
           </div>
