@@ -3114,7 +3114,7 @@ body {
       }
       h3.title {
         gap: 5px;
-        font-size: 26px;
+        font-size: 22px;
         margin-bottom: 0px;
         align-items: baseline;
         span.gradinttext {
@@ -3609,6 +3609,16 @@ body {
       .modal_head {
         display: flex;
       }
+      &.ageverify-modal {
+        padding: 20px;
+        .actions {
+          button {
+            max-width: 47%;
+            font-size: 14px;
+            line-height: normal;
+          }
+        }
+      }
       &.post-modal {
         padding: 20px;
         h3 {
@@ -3808,9 +3818,10 @@ body {
         padding: 20px;
         max-width: 90%;
         h3.title {
-          font-size: 20px;
+          font-size: 18px;
+          display: inline;
           sub {
-            font-size: 14px;
+            font-size: 13px;
           }
         }
         .actions {
@@ -5643,7 +5654,7 @@ body {
   &.show_mobail {
     display: none;
   }
-  .hide_mobile {
+  &.hide_mobile {
     display: inline-flex;
   }
   /* ========== Mobile (max-width: 767px) ========== */
@@ -5654,7 +5665,7 @@ body {
     &.show_mobail {
       display: inline-flex;
     }
-    .hide_mobail {
+    &.hide_mobile {
       display: none !important;
     }
   }

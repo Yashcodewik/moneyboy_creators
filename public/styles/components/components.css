@@ -3435,6 +3435,27 @@
                       }
                   }
                 }
+                .hidecnvt_wrapp {
+                  background: #f9f9f9;
+                  border: 1.5px solid #ebebeb;
+                  width: 100%;
+                  margin-bottom: 15px;
+                  &:last-child {
+                    margin-bottom: 0px;
+                  }
+                  h3 {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 7px 14px;
+                    font-size: 16px;
+                    line-height: normal;
+                    font-weight: 500;
+                  }
+                  .msg-contact-box {
+                    filter: grayscale(100%);
+                  }
+                }
             }
           }
       }
