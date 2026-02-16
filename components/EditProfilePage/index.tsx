@@ -487,6 +487,7 @@ const EditProfilePage = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 name="userName"
+                                disabled
                               />
                             </div>
                             {formik.touched.userName &&
@@ -508,7 +509,7 @@ const EditProfilePage = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 name="gender"
-                                disabled
+                                
                               />
                             </div>
                             {/* <CustomSelect
