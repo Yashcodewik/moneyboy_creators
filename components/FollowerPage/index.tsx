@@ -302,10 +302,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                  ...user,
-                  isFollowing: false,
-                  isFollowingYou: true,
-                }
+                ...user,
+                isFollowing: false,
+                isFollowingYou: true,
+              }
               : user,
           ),
         );
@@ -316,10 +316,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                  ...user,
-                  isFollowing: true,
-                  isFollowingYou: true,
-                }
+                ...user,
+                isFollowing: true,
+                isFollowingYou: true,
+              }
               : user,
           ),
         );
@@ -357,10 +357,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                  ...user,
-                  isFollowing: false,
-                  isFollowingYou: user.isFollowingYou,
-                }
+                ...user,
+                isFollowing: false,
+                isFollowingYou: user.isFollowingYou,
+              }
               : user,
           ),
         );
@@ -417,10 +417,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                    ...user,
-                    isFollowing: true,
-                    isFollowingYou: true,
-                  }
+                  ...user,
+                  isFollowing: true,
+                  isFollowingYou: true,
+                }
                 : user,
             ),
           );
@@ -429,10 +429,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                    ...user,
-                    isFollowing: false,
-                    isFollowingYou: true,
-                  }
+                  ...user,
+                  isFollowing: false,
+                  isFollowingYou: true,
+                }
                 : user,
             ),
           );
@@ -497,37 +497,15 @@ const FollowersPage = () => {
 
     return (
       <div className="pagination_wrap">
-        <button
-          className="btn-prev"
-          disabled={page === 1}
-          onClick={() => fetchFollowers(page - 1, followersSearchQuery)}
-        >
-          ‹
-        </button>
-
+        <button className="btn-prev" disabled={page === 1} onClick={() => fetchFollowers(page - 1, followersSearchQuery)}><CircleArrowLeft color="#000" /></button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <button key={i} className="premium-btn" disabled>
-              <span>…</span>
-            </button>
+            <button key={i} className="premium-btn" disabled><span>…</span></button>
           ) : (
-            <button
-              key={i}
-              className={page === p ? "premium-btn" : "btn-primary"}
-              onClick={() => fetchFollowers(p as number, followersSearchQuery)}
-            >
-              <span>{p}</span>
-            </button>
+            <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => fetchFollowers(p as number, followersSearchQuery)}><span>{p}</span></button>
           ),
         )}
-
-        <button
-          className="btn-next"
-          disabled={page === totalPages}
-          onClick={() => fetchFollowers(page + 1, followersSearchQuery)}
-        >
-          ›
-        </button>
+        <button className="btn-next" disabled={page === totalPages} onClick={() => fetchFollowers(page + 1, followersSearchQuery)}><CircleArrowRight color="#000" /></button>
       </div>
     );
   };
@@ -615,7 +593,7 @@ const FollowersPage = () => {
                   <div className="profile-card__avatar-settings">
                     <div className="profile-card__avatar">
                       {follower.profileImage &&
-                      !avatarErrorMap[follower._id] ? (
+                        !avatarErrorMap[follower._id] ? (
                         <img
                           src={follower.profileImage}
                           alt={`${follower.firstName}'s profile`}
@@ -1148,9 +1126,8 @@ const FollowersPage = () => {
               </svg>
             </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${
-                follow === "Followers" ? "active" : ""
-              }`}
+              className={`page-content-type-button active-down-effect ${follow === "Followers" ? "active" : ""
+                }`}
               data-multi-tabs-switch-btndata__active
               data-identifier="1"
               onClick={() => setFollow("Followers")}
@@ -1158,9 +1135,8 @@ const FollowersPage = () => {
               Followers
             </button>
             <button
-              className={`page-content-type-button active-down-effect ${
-                follow === "Following" ? "active" : ""
-              }`}
+              className={`page-content-type-button active-down-effect ${follow === "Following" ? "active" : ""
+                }`}
               data-multi-tabs-switch-btn
               data-identifier="1"
               onClick={() => setFollow("Following")}
@@ -1314,10 +1290,10 @@ const FollowersPage = () => {
                               options={timeOptions}
                               value={time}
                               searchable={false}
-                              // onChange={(val) => {
-                              //   setTime(val);
-                              //   fetchLikedPosts(1);
-                              // }}
+                            // onChange={(val) => {
+                            //   setTime(val);
+                            //   fetchLikedPosts(1);
+                            // }}
                             />
                           </div>
                         </div>
@@ -1435,7 +1411,7 @@ const FollowersPage = () => {
                           <div className="profile-card__avatar-settings">
                             <div className="profile-card__avatar">
                               {creator.profileImage &&
-                              !avatarErrorMap[creator._id] ? (
+                                !avatarErrorMap[creator._id] ? (
                                 <img
                                   src={creator.profileImage}
                                   alt={`${creator.displayName} profile avatar`}
@@ -1508,9 +1484,8 @@ const FollowersPage = () => {
                     <div className="rel-user-actions">
                       <div className="rel-user-action-btn">
                         <button
-                          className={`btn-txt-gradient ${
-                            creator.isFollowing ? "btn-grey" : ""
-                          }`}
+                          className={`btn-txt-gradient ${creator.isFollowing ? "btn-grey" : ""
+                            }`}
                           onClick={() =>
                             handleFollowToggle(
                               creator._id,

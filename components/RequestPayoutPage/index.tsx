@@ -12,10 +12,14 @@ const RequestPayoutPage = () => {
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className="cate-back-btn active-down-effect" onClick={() => router.back()}><span className="icons arrowLeft"></span></button>
-            <button className="page-content-type-button active-down-effect active max-w-50">Request a Payout</button>
-          </div>
+            <div className="moneyboy-feed-page-cate-buttons card show_mobail" id="posts-tabs-btn-card">
+              <button className="cate-back-btn active-down-effect" onClick={() => router.back()}><span className="icons arrowLeft"></span></button>
+              <button className="page-content-type-button active-down-effect active">Request a Payout</button>
+            </div>
+            <div className="moneyboy-feed-page-cate-buttons card hide_mobile" id="posts-tabs-btn-card">
+              <button className="cate-back-btn active-down-effect" onClick={() => router.back()}><span className="icons arrowLeft"></span></button>
+              <button className="page-content-type-button active-down-effect active max-w-50">Request a Payout</button>
+            </div>
             <div className="tabs-content-wrapper-layout">
               <div data-multi-dem-cards-layout>
                 <div className="creator-content-filter-grid-container">
