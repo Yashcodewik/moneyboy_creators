@@ -901,7 +901,7 @@ const Sidebar: React.FC = () => {
                 </li>
 
                 {/* Mobile Navigation - Search */}
-                <li>
+                {/* <li>
                   <Link
                     href="#"
                     className={activePage === "search" ? "active" : ""}
@@ -947,7 +947,7 @@ const Sidebar: React.FC = () => {
                       <span> Search </span>
                     </div>
                   </Link>
-                </li>
+                </li> */}
 
                 {/* Mobile Navigation - Discover */}
                 <li>
@@ -983,6 +983,7 @@ const Sidebar: React.FC = () => {
                 </li>
 
                 {/* Mobile Navigation - Subscriptions */}
+                {session?.isAuthenticated && (
                 <li>
                   <Link
                     href="#"
@@ -1038,8 +1039,10 @@ const Sidebar: React.FC = () => {
                     </div>
                   </Link>
                 </li>
-
+                )}
+                
                 {/* Mobile Navigation - Messages */}
+                {session?.isAuthenticated && (
                 <li>
                   <Link
                     href="#"
@@ -1095,6 +1098,7 @@ const Sidebar: React.FC = () => {
                     </div>
                   </Link>
                 </li>
+                )}
               </ul>
             </nav>
           </div>

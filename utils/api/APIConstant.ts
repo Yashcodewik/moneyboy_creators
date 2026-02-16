@@ -107,3 +107,10 @@ export const API_TRENDING_CREATORS = "/social/trending";
 
 export const API_UPDATE_STORE_IMAGES = "/creator/update-store-images";
 export const API_GET_STORE_IMAGES = "/creator/store-images";
+export const API_GET_CONNECTIONS = "/creator/connections";
+export const API_BLOCK_THREAD_USER = "/messages/thread/block";
+export const API_BLOCK_USER = "/creator/block-user";
+export const API_GET_BLOCKED_USERS = "/creator/blocked-users";
+
+
+
