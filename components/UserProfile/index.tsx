@@ -19,7 +19,13 @@ import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import Featuredboys from "../Featuredboys";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
-import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost } from "@/redux/other/feedPostsSlice";
+import {
+  fetchFeedPosts,
+  fetchFollowingPosts,
+  fetchPopularPosts,
+  incrementFeedPostCommentCount,
+  updateFeedPost,
+} from "@/redux/other/feedPostsSlice";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import PostCard from "../FeedPage/PostCard";
 
@@ -61,7 +67,6 @@ const UserProfilepage = () => {
 
   const dispatch = useDispatch<AppDispatch>();
 
-
   const {
     posts,
     feedPage,
@@ -79,48 +84,12 @@ const UserProfilepage = () => {
   const followingPosts = allPosts.filter((p: any) => p.source === "following");
   const popularPosts = allPosts.filter((p: any) => p.source === "popular");
 
-
-
   const [activeTab, setActiveTab] = useState<string>("feed");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
   const buttonRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
-
-  const setMenuRef = (id: number, element: HTMLDivElement | null) => {
-    menuRefs.current.set(id, element);
-  };
-
-  const setButtonRef = (id: number, element: HTMLButtonElement | null) => {
-    buttonRefs.current.set(id, element);
-  };
-
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prev) => (prev === id ? null : id));
-  };
-
-
   const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
-  const [followingHasMore, setFollowingHasMore] = useState(true);
-  const [followingLoadingMore, setFollowingLoadingMore] = useState(false);
-
-  const [popularHasMore, setPopularHasMore] = useState(true);
-  const [popularLoadingMore, setPopularLoadingMore] = useState(false);
-
-  const [page, setPage] = useState(1);
-  const [limit] = useState(4);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-
-  const [expandedPosts, setExpandedPosts] = useState<
-    Record<string, Record<string, boolean>>
-  >({
-    feed: {},
-    following: {},
-    popular: {},
-  });
-
-  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -213,40 +182,6 @@ const UserProfilepage = () => {
       year: "numeric",
     })}`;
   };
-
-  const getTimeAgo = (dateString: string) => {
-    const postDate = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor(
-      (now.getTime() - postDate.getTime()) / 1000,
-    );
-
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
-    const diffInWeeks = Math.floor(diffInDays / 7);
-    const diffInMonths = Math.floor(diffInDays / 30);
-    const diffInYears = Math.floor(diffInDays / 365);
-
-    if (diffInSeconds < 60) return "Just now";
-    if (diffInMinutes < 60)
-      return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
-    if (diffInHours < 24)
-      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-    if (diffInDays < 7)
-      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-    if (diffInWeeks < 4)
-      return `${diffInWeeks} week${diffInWeeks > 1 ? "s" : ""} ago`;
-    if (diffInMonths < 12)
-      return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
-    return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
-  };
-
-  const updatePostInList = (
-    list: any[],
-    postId: string,
-    updater: (post: any) => any,
-  ) => list.map((p) => (p._id === postId ? updater(p) : p));
 
   useEffect(() => {
     if (activeTab === "feed" && feedPosts.length === 0) {
@@ -402,7 +337,6 @@ const UserProfilepage = () => {
     }
     setActiveTab(tab);
   };
-
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -672,48 +606,48 @@ const UserProfilepage = () => {
             </div>
           </div>
 
-                <div className="moneyboy-feed-page-cate-buttons card">
-              <button
-                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
-                onClick={() => handleTabClick("feed")}
-              >
-                Feed
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
-                onClick={() => handleTabClick("following")}
-              >
-                {isLoggedIn ? "Following" : "Discover"}
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
-                onClick={() => handleTabClick("popular")}
-              >
-                Popular
-              </button>
-            </div>
-        <div
-              id="feed-scroll-container"
-              className="moneyboy-posts-scroll-container"
+          <div className="moneyboy-feed-page-cate-buttons card">
+            <button
+              className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
+              onClick={() => handleTabClick("feed")}
             >
-              <InfiniteScrollWrapper
-                className="moneyboy-posts-wrapper"
-                scrollableTarget="feed-scroll-container"
-                dataLength={activeList.length}
-                fetchMore={fetchMoreHandler}
-                hasMore={activeHasMore}
-              >
-                {activeList.map((post: any) => (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    onLike={handleLike}
-                    onSave={handleSave}
-                    onCommentAdded={incrementCommentCount}
-                  />
-                ))}
-              </InfiniteScrollWrapper>
-              {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
+              Feed
+            </button>
+            <button
+              className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
+              onClick={() => handleTabClick("following")}
+            >
+              {isLoggedIn ? "Following" : "Discover"}
+            </button>
+            <button
+              className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
+              onClick={() => handleTabClick("popular")}
+            >
+              Popular
+            </button>
+          </div>
+          <div
+            id="feed-scroll-container"
+            className="moneyboy-posts-scroll-container"
+          >
+            <InfiniteScrollWrapper
+              className="moneyboy-posts-wrapper"
+              scrollableTarget="feed-scroll-container"
+              dataLength={activeList.length}
+              fetchMore={fetchMoreHandler}
+              hasMore={activeHasMore}
+            >
+              {activeList.map((post: any) => (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  onLike={handleLike}
+                  onSave={handleSave}
+                  onCommentAdded={incrementCommentCount}
+                />
+              ))}
+            </InfiniteScrollWrapper>
+            {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
                 fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
                 hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>
                   {(activeTab === "feed" ? posts :
@@ -722,7 +656,7 @@ const UserProfilepage = () => {
                     <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave}/>
                   ))}
               </InfiniteScrollWrapper> */}
-            </div>
+          </div>
         </div>
       </div>
 

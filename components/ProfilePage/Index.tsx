@@ -128,13 +128,9 @@ const ProfilePage = () => {
     "subscribe" | "upgrade" | "renew" | null
   >(null);
   const [showTipModal, setShowTipModal] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<any | null>(null);
-  const [showPPVRequestModal, setShowPPVRequestModal] = useState(false);
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [unlockLoading, setUnlockLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [timeFilter, setTimeFilter] = useState<string>("all_time");
-
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [unlockPost, setUnlockPost] = useState<any>(null);
   const router = useRouter();
@@ -161,8 +157,6 @@ const ProfilePage = () => {
   });
 
   const dispatch = useDispatch<AppDispatch>();
-  const followState = useSelector((state: RootState) => state.follow);
-
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
   };
@@ -342,19 +336,10 @@ const ProfilePage = () => {
     },
   });
 
-  const handleSaveToggle = () => {
-    if (!profile?.creator?._id) return;
-
-    if (isSaved) {
-      unSaveCreatorMutation.mutate();
-    } else {
-      saveCreatorMutation.mutate();
-    }
-  };
-
   const openTipModal = () => {
     setShowTipModal(true);
   };
+
   const confirmUnlockPost = async () => {
     if (!unlockPost) return;
 
@@ -370,13 +355,9 @@ const ProfilePage = () => {
       });
 
       if (res?.success) {
-        // update local post
         unlockPost.isUnlocked = true;
-
         setShowUnlockModal(false);
         setUnlockPost(null);
-
-        // redirect to post
         router.push(`/post?page&publicId=${unlockPost.publicId}`);
       } else {
         alert(res?.message || "Failed to unlock post");
@@ -402,7 +383,6 @@ const ProfilePage = () => {
     if (!res?.success) {
       alert(res?.message || "Upgrade failed");
     }
-
     setSubLoading(false);
   };
 
@@ -582,11 +562,6 @@ const ProfilePage = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     const isPostSaved = post.isSaved;
-
-    const saveLoading = useSelector(
-      (state: RootState) => state.savedPosts.loading,
-    );
-
     const handleSavePost = (e: React.MouseEvent) => {
       e.stopPropagation();
 
@@ -1295,30 +1270,41 @@ const ProfilePage = () => {
                 </div>
                 {session?.isAuthenticated && profile && (
                   <div className="profile-card__geo-details">
-                    <div className="profile-card__geo-detail">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M3.61971 8.49C5.58971 -0.169998 18.4197 -0.159997 20.3797 8.5C21.5297 13.58 18.3697 17.88 15.5997 20.54C13.5897 22.48 10.4097 22.48 8.38971 20.54C5.62971 17.88 2.46971 13.57 3.61971 8.49Z"
-                          stroke="none"
-                          strokeWidth="1.5"
-                        />
-                        <path
-                          d="M11.9999 13.43C13.723 13.43 15.1199 12.0331 15.1199 10.31C15.1199 8.58687 13.723 7.19 11.9999 7.19C10.2768 7.19 8.87988 8.58687 8.87988 10.31C8.87988 12.0331 10.2768 13.43 11.9999 13.43Z"
-                          stroke="none"
-                          strokeWidth="1.5"
-                        />
-                      </svg>
-                      <span>
-                        {profile?.creator?.city || "Unknown City"},{" "}
-                        {profile?.creator?.country || "Unknown Country"}
-                      </span>
-                    </div>
+                    {session?.isAuthenticated &&
+                      profile &&
+                      (profile?.creator?.city || profile?.creator?.country) && (
+                        <div className="profile-card__geo-details">
+                          <div className="profile-card__geo-detail">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M3.61971 8.49C5.58971 -0.169998 18.4197 -0.159997 20.3797 8.5C21.5297 13.58 18.3697 17.88 15.5997 20.54C13.5897 22.48 10.4097 22.48 8.38971 20.54C5.62971 17.88 2.46971 13.57 3.61971 8.49Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                              />
+                              <path
+                                d="M11.9999 13.43C13.723 13.43 15.1199 12.0331 15.1199 10.31C15.1199 8.58687 13.723 7.19 11.9999 7.19C10.2768 7.19 8.87988 8.58687 8.87988 10.31C8.87988 12.0331 10.2768 13.43 11.9999 13.43Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                              />
+                            </svg>
+
+                            <span>
+                              {profile?.creator?.city}
+                              {profile?.creator?.city &&
+                                profile?.creator?.country &&
+                                ", "}
+                              {profile?.creator?.country}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                     <div className="profile-card__geo-detail">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
