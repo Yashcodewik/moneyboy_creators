@@ -81,7 +81,7 @@ const BlockCountriesPage = () => {
               <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft"></span></button>
               <button className="page-content-type-button active">Block Countries</button>
             </div>
-            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card" >
+            <div className="moneyboy-feed-page-cate-buttons card hide_mobile" id="posts-tabs-btn-card" >
               <button className="cate-back-btn active-down-effect"  onClick={() => router.push("/feed")}><span className="icons arrowLeft hwhite"></span></button>
               <button className={`page-content-type-button active-down-effect max-w-50 ${tab === 0 ? "active" : ""}`} onClick={() => setTab(0)}>Block Countries</button>
             </div>

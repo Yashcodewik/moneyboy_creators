@@ -195,38 +195,23 @@ const Dashboard = () => {
       <div className="moneyboy-2x-1x-layout-container">
         <div className="discovery-page-container">
           <div className="discovery-page-content-container">
-            <Filter
-              search={search}
-              setSearch={setSearch}
-              setPage={() => {}}
-              filterValues={filterValues}
-              setFilterValues={setFilterValues}
-            />
+            <Filter search={search} setSearch={setSearch} setPage={() => {}} filterValues={filterValues} setFilterValues={setFilterValues}/>
 
             <div className="discovery-page-content-wrapper">
               <div className="discovery-page-cards-layouts">
                 {creators.map((creator: any) => {
                   const isSaved = creator.issaved;
-
                   return (
-                    <div
-                      key={creator.creatorUserId}
-                      className="user-profile-card-wrapper"
-                      data-creator-profile-card
-                      onClick={() => handleProfileClick(creator.publicId)}
-                    >
+                    <div key={creator.creatorUserId} className="user-profile-card-wrapper" data-creator-profile-card onClick={() => handleProfileClick(creator.publicId)}>
                       <div className="user-profile-card-container">
                         <div className="user-profile-card__img">
+                          
                           {creator.profile ? (
-                            <img
-                              src={creator.profile}
-                              alt={creator.displayName}
-                            />
+                            <img src={creator.profile} alt={creator.displayName}/>
                           ) : (
-                            <NoProfileSvg size={200} bgColor={"#3a3838"} />
+                            <NoProfileSvg />
                           )}
                         </div>
-
                         <div className="user-profile-content-overlay-container">
                           <div className="user-profile-card__action-btns">
                             {/* <div className="user-profile-card__like-btn">
@@ -252,58 +237,18 @@ const Dashboard = () => {
                           <div className="user-profile-card__info-container">
                             <div className="user-profile-card__info">
                               <div className="user-profile-card__name-badge">
-                                <div className="user-profile-card__name">
-                                  {creator.displayName}
-                                </div>
+                                <div className="user-profile-card__name">{creator.displayName}</div>
                                 <div className="user-profile-card__badge">
-                                  <img
-                                    src="/images/logo/profile-badge.png"
-                                    alt="Profile Badge"
-                                  />
+                                  <img src="/images/logo/profile-badge.png" alt="Profile Badge"/>
                                 </div>
                               </div>
-                              <div className="user-profile-card__username">
-                                @{creator.userName}
-                              </div>
+                              <div className="user-profile-card__username">@{creator.userName}</div>
                             </div>
-
-                            <div
-                              className={`user-profile-card__wishlist-btn ${isSaved ? "active" : ""}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                isSaved
-                                  ? handleUnsaveCreator(creator.creatorUserId)
-                                  : handleSaveCreator(creator.creatorUserId);
-                              }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="21"
-                                height="20"
-                                viewBox="0 0 21 20"
-                                fill="none"
-                              >
-                                <path
-                                  d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                  stroke="none"
-                                  stroke-width="1.5"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                ></path>
-                                <path
-                                  d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                  stroke="none"
-                                  stroke-width="1.5"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                ></path>
-                                <path
-                                  d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                                  stroke="none"
-                                  stroke-width="1.5"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                ></path>
+                            <div className={`user-profile-card__wishlist-btn ${isSaved ? "active" : ""}`} onClick={(e) => {e.stopPropagation(); isSaved ? handleUnsaveCreator(creator.creatorUserId) : handleSaveCreator(creator.creatorUserId);}}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                                <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                               </svg>
                             </div>
                           </div>
@@ -313,7 +258,6 @@ const Dashboard = () => {
                   );
                 })}
               </div>
-
               {renderPagination()}
             </div>
           </div>
