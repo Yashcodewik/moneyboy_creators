@@ -856,8 +856,8 @@ const MessagePage = () => {
                                       />
                                     ) : (
                                       <NoProfileSvg
-                                        size={40}
-                                        bgColor="#ebd198"
+                                        // size={40}
+                                        // bgColor="#ebd198"
                                       />
                                     )}
                                   </div>
