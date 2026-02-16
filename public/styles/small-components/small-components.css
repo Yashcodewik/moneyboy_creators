@@ -2268,6 +2268,23 @@
             padding: 20px;
             gap: 8px;
 
+            .edit_image {
+                z-index: 6;
+                cursor: pointer;
+                width: 24px;
+                height: 24px;
+                transition: var(--transition-fast);
+                background-color: #fdfdfd;
+                border-radius: 8px;
+                place-items: center;
+                padding: 3px;
+                display: grid;
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                box-shadow: 0 6px 4px -4px #08080803, 0 2px 1.5px -4px #0808080a, 0 4px 4px #00000017;
+            }
+
             h2 {
                 font-family: var(--font-family-heading);
                 font-weight: 500;
@@ -2590,13 +2607,18 @@
             inset: 0;
             display: flex;
 
-            img, video {
+            img, video, .noprofile {
                 transition: var(--transition-fast);
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
                 /* object-position: 0px 15%; */
                 /* transform: scale(1.12); */
+                &.noprofile {
+                    svg {
+                        max-width: 60%;
+                    }
+                }
             }
         }
 
@@ -2827,12 +2849,34 @@
             justify-content: center;
             border-radius: 28px;
 
-            img {
+            .edit_image {
+                z-index: 6;
+                cursor: pointer;
+                width: 24px;
+                height: 24px;
+                transition: var(--transition-fast);
+                background-color: #fdfdfd;
+                border-radius: 8px;
+                place-items: center;
+                padding: 3px;
+                display: grid;
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                box-shadow: 0 6px 4px -4px #08080803, 0 2px 1.5px -4px #0808080a, 0 4px 4px #00000017;
+            }
+
+            img, .noprofile {
                 width: 100%;
                 height: 100%;
                 inset: 0;
                 object-fit: cover;
                 transition: var(--transition-fast);
+                &.noprofile {
+                    svg {
+                        max-width: 60%;
+                    }
+                }
             }
 
             .text-overlay {

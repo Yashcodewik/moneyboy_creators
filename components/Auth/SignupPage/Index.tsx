@@ -37,7 +37,7 @@ export const signupSchema = yup.object().shape({
 });
 
 const SignupPage = () => {
-  const [token, setToken] = useState("");
+ 
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
@@ -89,36 +89,26 @@ const SignupPage = () => {
     },
   });
 
+
+
   const verifyOtp = async (otp: string) => {
     try {
-      const res = await apiPost({
-        url: API_VERIFY_OTP,
-        values: {
-          email: emailForOtp,
-          otp: otp,
-        },
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: emailForOtp,
+        otp,
       });
-      console.log(res?.data ,"==============res?.data==============");
-      if (res?.success) {
-        console.log(res?.data ,"==============res?.data==============");
-      //  setToken(res?.data?.data?.token);
+
+      if (res?.error) {
+        ShowToast(res.error, "error");
+        return;
       }
-      // const res = await signIn("credentials", {
-      //   redirect: false,
-      //   email: emailForOtp,
-      //   otp,
-      // });
 
-      // if (res?.error) {
-      //   ShowToast(res.error, "error");
-      //   return;
-      // }
-
-      // ShowToast("OTP verified successfully", "success");
-      // setOtpOpen(false);
+      ShowToast("OTP verified successfully", "success");
+      setOtpOpen(false);
 
       // redirect to feed
-      //router.push("/discover");
+      router.push("/feed");
     } catch (err: any) {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
@@ -144,10 +134,16 @@ const SignupPage = () => {
             <h3 className="heading">User Sign up</h3>
             <p>Sign up to interact with your idols!</p>
             <div className="loginbtn_wrap">
-              <button className="google-button active-down-effect ">
+              <button
+                className="google-button active-down-effect "
+                onClick={() => signIn("google")}
+              >
                 <FcGoogle size={18} /> Sign up with Google
               </button>
-              <button className="x-button active-down-effect">
+              <button
+                className="x-button active-down-effect"
+                onClick={() => signIn("twitter")}
+              >
                 <FaXTwitter size={18} /> Sign up with X
               </button>
             </div>
@@ -346,17 +342,7 @@ const SignupPage = () => {
         />
       )}
 
-      {token && (
-        <SumsubWebSdk
-          accessToken={token}
-          expirationHandler={() => window.location.reload()}
-          config={{ lang: "en" }}
-          options={{ adaptIframeHeight: true }}
-          onMessage={(type: any, payload: any) => {
-            console.log(type, payload, "================================");
-          }}
-        />
-      )}
+      
     </div>
   );
 };

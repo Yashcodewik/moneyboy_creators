@@ -59,9 +59,15 @@ const WishlistPage = () => {
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [unlockLoading, setUnlockLoading] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
-  const [modalAction, setModalAction] = useState<"subscribe" | "upgrade" | "renew">("subscribe");
+  const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY">(
+    "MONTHLY",
+  );
+  const [modalAction, setModalAction] = useState<
+    "subscribe" | "upgrade" | "renew"
+  >("subscribe");
   const [selectedCreator, setSelectedCreator] = useState<any>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const searchTimeout = React.useRef<NodeJS.Timeout | null>(null);
   const [removedCreatorIds, setRemovedCreatorIds] = useState<Set<string>>(
     new Set(),
   );
@@ -84,6 +90,9 @@ const WishlistPage = () => {
 
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
+    setPage(1);
+    setSearchInput("");
+    setSearchTerm("");
   };
 
   const toggleLike = (id: number) => {
@@ -121,6 +130,7 @@ const WishlistPage = () => {
           limit: 9,
           search: searchTerm,
           type: subActiveTab === "videos" ? "video" : "photo",
+          time: time,
         }) as any,
       );
     }
@@ -191,6 +201,19 @@ const WishlistPage = () => {
 
   const handleProfileClick = (publicId: string) => {
     router.push(`/profile/${publicId}`);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    searchTimeout.current = setTimeout(() => {
+      setPage(1); // 🔥 Reset page on search
+      setSearchTerm(value); // 🔥 Triggers useEffect
+    }, 500);
   };
 
   const renderPagination = () => {
@@ -344,8 +367,9 @@ const WishlistPage = () => {
                               data-multi-dem-cards-layout-btns
                             >
                               <button
-                                className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"
-                                  }`}
+                                className={`creator-content-grid-layout-btn ${
+                                  layout === "grid" ? "active" : "inactive"
+                                }`}
                                 onClick={() => setLayout("grid")}
                               >
                                 <svg
@@ -374,8 +398,9 @@ const WishlistPage = () => {
                                 </svg>
                               </button>
                               <button
-                                className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"
-                                  }`}
+                                className={`creator-content-grid-layout-btn ${
+                                  layout === "list" ? "active" : "inactive"
+                                }`}
                                 onClick={() => setLayout("list")}
                               >
                                 <svg
@@ -489,8 +514,9 @@ const WishlistPage = () => {
                                     </div> */}
 
                                     <div
-                                      className={`user-profile-card__wishlist-btn ${creator.isSaved ? "active" : ""
-                                        }`}
+                                      className={`user-profile-card__wishlist-btn ${
+                                        creator.isSaved ? "active" : ""
+                                      }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleUnsaveCreator(
@@ -592,6 +618,10 @@ const WishlistPage = () => {
                             <input
                               type="text"
                               placeholder="Enter keyword here"
+                              value={searchInput}
+                              onChange={(e) =>
+                                handleSearchChange(e.target.value)
+                              }
                             />
                           </div>
                         </div>
@@ -600,7 +630,12 @@ const WishlistPage = () => {
                             <button
                               className={`multi-tab-switch-btn videos-btn ${subActiveTab === "videos" ? "active" : ""}`}
                               data-multi-tabs-switch-btn
-                              onClick={() => setSubActiveTab("videos")}
+                              onClick={() => {
+                                setSubActiveTab("videos");
+                                setPage(1);
+                                setSearchInput(""); // 🔥 clear input
+                                setSearchTerm(""); // 🔥 clear actual search
+                              }}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -636,7 +671,12 @@ const WishlistPage = () => {
                             <button
                               className={`multi-tab-switch-btn photos-btn ${subActiveTab === "photos" ? "active" : ""}`}
                               data-multi-tabs-switch-btn
-                              onClick={() => setSubActiveTab("photos")}
+                              onClick={() => {
+                                setSubActiveTab("photos");
+                                setPage(1);
+                                setSearchInput("");
+                                setSearchTerm("");
+                              }}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -679,49 +719,147 @@ const WishlistPage = () => {
                               options={timeOptions}
                               value={time}
                               searchable={false}
-                            // onChange={(val) => {
-                            //   setTime(val);
-                            //   fetchLikedPosts(1);
-                            // }}
+                              onChange={(val) => {
+                                const selected = Array.isArray(val)
+                                  ? val[0]
+                                  : val;
+                                setTime(selected);
+                                setPage(1); // reset page
+                              }}
                             />
                           </div>
-                          <div className="creator-content-grid-layout-options" data-multi-dem-cards-layout-btns>
-                            <button className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"}`} onClick={() => setLayout("grid")}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M22 8.52V3.98C22 2.57 21.36 2 19.77 2H15.73C14.14 2 13.5 2.57 13.5 3.98V8.51C13.5 9.93 14.14 10.49 15.73 10.49H19.77C21.36 10.5 22 9.93 22 8.52Z" fill="none" />
-                                <path d="M22 19.77V15.73C22 14.14 21.36 13.5 19.77 13.5H15.73C14.14 13.5 13.5 14.14 13.5 15.73V19.77C13.5 21.36 14.14 22 15.73 22H19.77C21.36 22 22 21.36 22 19.77Z" fill="none" />
-                                <path d="M10.5 8.52V3.98C10.5 2.57 9.86 2 8.27 2H4.23C2.64 2 2 2.57 2 3.98V8.51C2 9.93 2.64 10.49 4.23 10.49H8.27C9.86 10.5 10.5 9.93 10.5 8.52Z" fill="none" />
-                                <path d="M10.5 19.77V15.73C10.5 14.14 9.86 13.5 8.27 13.5H4.23C2.64 13.5 2 14.14 2 15.73V19.77C2 21.36 2.64 22 4.23 22H8.27C9.86 22 10.5 21.36 10.5 19.77Z" fill="none" />
+                          <div
+                            className="creator-content-grid-layout-options"
+                            data-multi-dem-cards-layout-btns
+                          >
+                            <button
+                              className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"}`}
+                              onClick={() => setLayout("grid")}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M22 8.52V3.98C22 2.57 21.36 2 19.77 2H15.73C14.14 2 13.5 2.57 13.5 3.98V8.51C13.5 9.93 14.14 10.49 15.73 10.49H19.77C21.36 10.5 22 9.93 22 8.52Z"
+                                  fill="none"
+                                />
+                                <path
+                                  d="M22 19.77V15.73C22 14.14 21.36 13.5 19.77 13.5H15.73C14.14 13.5 13.5 14.14 13.5 15.73V19.77C13.5 21.36 14.14 22 15.73 22H19.77C21.36 22 22 21.36 22 19.77Z"
+                                  fill="none"
+                                />
+                                <path
+                                  d="M10.5 8.52V3.98C10.5 2.57 9.86 2 8.27 2H4.23C2.64 2 2 2.57 2 3.98V8.51C2 9.93 2.64 10.49 4.23 10.49H8.27C9.86 10.5 10.5 9.93 10.5 8.52Z"
+                                  fill="none"
+                                />
+                                <path
+                                  d="M10.5 19.77V15.73C10.5 14.14 9.86 13.5 8.27 13.5H4.23C2.64 13.5 2 14.14 2 15.73V19.77C2 21.36 2.64 22 4.23 22H8.27C9.86 22 10.5 21.36 10.5 19.77Z"
+                                  fill="none"
+                                />
                               </svg>
                             </button>
-                            <button className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"}`} onClick={() => setLayout("list")}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M19.9 13.5H4.1C2.6 13.5 2 14.14 2 15.73V19.77C2 21.36 2.6 22 4.1 22H19.9C21.4 22 22 21.36 22 19.77V15.73C22 14.14 21.4 13.5 19.9 13.5Z" stroke="none" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M19.9 2H4.1C2.6 2 2 2.64 2 4.23V8.27C2 9.86 2.6 10.5 4.1 10.5H19.9C21.4 10.5 22 9.86 22 8.27V4.23C22 2.64 21.4 2 19.9 2Z" stroke="none" strokeLinecap="round" strokeLinejoin="round" />
+                            <button
+                              className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"}`}
+                              onClick={() => setLayout("list")}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M19.9 13.5H4.1C2.6 13.5 2 14.14 2 15.73V19.77C2 21.36 2.6 22 4.1 22H19.9C21.4 22 22 21.36 22 19.77V15.73C22 14.14 21.4 13.5 19.9 13.5Z"
+                                  stroke="none"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M19.9 2H4.1C2.6 2 2 2.64 2 4.23V8.27C2 9.86 2.6 10.5 4.1 10.5H19.9C21.4 10.5 22 9.86 22 8.27V4.23C22 2.64 21.4 2 19.9 2Z"
+                                  stroke="none"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
                               </svg>
                             </button>
                           </div>
                         </div>
                       </div>
-                      <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout" data-multi-child-grid-layout-wishlist data-layout-toggle-rows={layout === "list" ? true : undefined}>
+                      <div
+                        className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
+                        data-multi-child-grid-layout-wishlist
+                        data-layout-toggle-rows={
+                          layout === "list" ? true : undefined
+                        }
+                      >
                         {subActiveTab === "videos" && (
                           <>
                             {mediaLoading ? (
-                              <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }} >{char}</span>))}</div>
+                              <div className="loadingtext">
+                                {"Loading".split("").map((char, i) => (
+                                  <span
+                                    key={i}
+                                    style={{
+                                      animationDelay: `${(i + 1) * 0.1}s`,
+                                    }}
+                                  >
+                                    {char}
+                                  </span>
+                                ))}
+                              </div>
                             ) : savedMediaPosts.length === 0 ? (
                               <div className="nofound small">
                                 <h3 className="first">No media found</h3>
                                 <h3 className="second">No media found</h3>
                               </div>
                             ) : (
-                              <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tab data-active>
+                              <div
+                                className="creator-content-type-container-wrapper"
+                                data-multi-tabs-content-tab
+                                data-active
+                              >
                                 {savedMediaPosts.map((item: any) => {
                                   const media = item.media?.[0];
                                   const mediaFile = media?.mediaFiles?.[0];
-                                  const isSubscriberOnly = item.post.accessType?.toLowerCase() === "subscriber";
-                                  const price = !isSubscriberOnly && item.post.price ? `$${item.post.price}` : undefined;
+                                  const isSubscriberOnly =
+                                    item.post.accessType?.toLowerCase() ===
+                                    "subscriber";
+                                  const price =
+                                    !isSubscriberOnly && item.post.price
+                                      ? `$${item.post.price}`
+                                      : undefined;
                                   return (
-                                    <WishlistMediaCard key={item.post._id} id={item.post._id} image={mediaFile} mediaType={media?.type} description={item.post.text} price={price} likes={item.post.likeCount} views={item.post.viewCount} isSubscriberOnly={isSubscriberOnly} isSaved={item.isSaved} onToggleSave={() => handleUnsaveMedia(item.post._id)} onUnlock={() => handleUnlockClick({ post: item.post, creator: item.creator, })} onSubscribe={() => { setSelectedCreator(item.creator); setModalAction("subscribe"); setSelectedPlan("MONTHLY"); setShowSubscriptionModal(true); }} />
+                                    <WishlistMediaCard
+                                      key={item.post._id}
+                                      id={item.post._id}
+                                      image={mediaFile}
+                                      mediaType={media?.type}
+                                      description={item.post.text}
+                                      price={price}
+                                      likes={item.post.likeCount}
+                                      views={item.post.viewCount}
+                                      isSubscriberOnly={isSubscriberOnly}
+                                      isSaved={item.isSaved}
+                                      onToggleSave={() =>
+                                        handleUnsaveMedia(item.post._id)
+                                      }
+                                      onUnlock={() =>
+                                        handleUnlockClick({
+                                          post: item.post,
+                                          creator: item.creator,
+                                        })
+                                      }
+                                      onSubscribe={() => {
+                                        setSelectedCreator(item.creator);
+                                        setModalAction("subscribe");
+                                        setSelectedPlan("MONTHLY");
+                                        setShowSubscriptionModal(true);
+                                      }}
+                                    />
                                   );
                                 })}
                               </div>
@@ -731,21 +869,68 @@ const WishlistPage = () => {
                         {subActiveTab === "photos" && (
                           <>
                             {mediaLoading ? (
-                              <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>
+                              <div className="loadingtext">
+                                {"Loading".split("").map((char, i) => (
+                                  <span
+                                    key={i}
+                                    style={{
+                                      animationDelay: `${(i + 1) * 0.1}s`,
+                                    }}
+                                  >
+                                    {char}
+                                  </span>
+                                ))}
+                              </div>
                             ) : savedMediaPosts.length === 0 ? (
                               <div className="nofound small">
                                 <h3 className="first">No media found</h3>
                                 <h3 className="second">No media found</h3>
                               </div>
                             ) : (
-                              <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tab>
+                              <div
+                                className="creator-content-type-container-wrapper"
+                                data-multi-tabs-content-tab
+                              >
                                 {savedMediaPosts.map((item: any) => {
                                   const media = item.media?.[0];
-                                  const image = media?.mediaFiles?.[0] || item.post.thumbnail;
-                                  const isSubscriberOnly = item.post.accessType?.toLowerCase() === "subscriber";
-                                  const price = !isSubscriberOnly && item.post.price ? `$${item.post.price}` : undefined;
+                                  const image =
+                                    media?.mediaFiles?.[0] ||
+                                    item.post.thumbnail;
+                                  const isSubscriberOnly =
+                                    item.post.accessType?.toLowerCase() ===
+                                    "subscriber";
+                                  const price =
+                                    !isSubscriberOnly && item.post.price
+                                      ? `$${item.post.price}`
+                                      : undefined;
                                   return (
-                                    <WishlistMediaCard key={item.post._id} id={item.post._id} image={image} mediaType={media?.type} description={item.post.text} price={price} likes={item.post.likeCount} views={item.post.viewCount} isSubscriberOnly={isSubscriberOnly} isSaved={item.isSaved} onToggleSave={() => handleUnsaveMedia(item.post._id)} onUnlock={() => handleUnlockClick({ post: item.post, creator: item.creator, })} onSubscribe={() => { setSelectedCreator(item.creator); setModalAction("subscribe"); setSelectedPlan("MONTHLY"); setShowSubscriptionModal(true); }} />
+                                    <WishlistMediaCard
+                                      key={item.post._id}
+                                      id={item.post._id}
+                                      image={image}
+                                      mediaType={media?.type}
+                                      description={item.post.text}
+                                      price={price}
+                                      likes={item.post.likeCount}
+                                      views={item.post.viewCount}
+                                      isSubscriberOnly={isSubscriberOnly}
+                                      isSaved={item.isSaved}
+                                      onToggleSave={() =>
+                                        handleUnsaveMedia(item.post._id)
+                                      }
+                                      onUnlock={() =>
+                                        handleUnlockClick({
+                                          post: item.post,
+                                          creator: item.creator,
+                                        })
+                                      }
+                                      onSubscribe={() => {
+                                        setSelectedCreator(item.creator);
+                                        setModalAction("subscribe");
+                                        setSelectedPlan("MONTHLY");
+                                        setShowSubscriptionModal(true);
+                                      }}
+                                    />
                                   );
                                 })}
                               </div>
@@ -781,7 +966,6 @@ const WishlistPage = () => {
             />
           )}
 
-
           {showSubscriptionModal && selectedCreator && (
             <SubscriptionModal
               onClose={() => setShowSubscriptionModal(false)}
@@ -805,7 +989,6 @@ const WishlistPage = () => {
               }}
             />
           )}
-
         </div>
       </div>
       <Featuredboys />

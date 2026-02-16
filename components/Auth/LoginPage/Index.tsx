@@ -42,7 +42,7 @@ const LoginPage = () => {
         return;
       }
 
-      window.location.href = "/discover";
+      router.push("/feed");
     },
   });
 
@@ -66,23 +66,25 @@ const LoginPage = () => {
             <div className="moneyboy-post__container card">
               <h3 className="heading">Login</h3>
               <p>Welcome back! Sign in to your account</p>
-              <div className="loginbtn_wrap">
+              {/* <div className="loginbtn_wrap">
                 <button
+                type="button"
                   className="google-button active-down-effect "
                   onClick={() => signIn("google")}
                 >
                   <FcGoogle size={18} /> Sign up with Google
                 </button>
                 <button
+                type="button"
                   className="x-button active-down-effect"
                   onClick={() => signIn("twitter")}
                 >
                   <FaXTwitter size={18} /> Sign up with X
                 </button>
-              </div>
-              <div className="or-divider">
+              </div> */}
+              {/* <div className="or-divider">
                 <span>Or</span>
-              </div>
+              </div> */}
               <div className="form_grid">
                 <div className="one">
                   <div className="label-input">

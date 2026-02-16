@@ -2,8 +2,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_GET_SAVED_LOCKED_POSTS } from "@/utils/api/APIConstant";
 
-
-
 export interface LockedPostMedia {
   type: "photo" | "video";
   mediaFiles: string[];
@@ -49,9 +47,8 @@ interface SavedLockedPostsState {
   totalPages: number;
   loading: boolean;
   error: string | null;
+  time: string; // ✅ added
 }
-
-
 
 const initialState: SavedLockedPostsState = {
   posts: [],
@@ -61,9 +58,8 @@ const initialState: SavedLockedPostsState = {
   totalPages: 1,
   loading: false,
   error: null,
+  time: "all_time", // ✅ default
 };
-
-
 
 export const fetchSavedLockedPosts = createAsyncThunk(
   "savedLockedPosts/fetch",
@@ -73,6 +69,7 @@ export const fetchSavedLockedPosts = createAsyncThunk(
       limit?: number;
       search?: string;
       type?: "photo" | "video";
+      time?: string; // ✅ added
     },
     { rejectWithValue }
   ) => {
@@ -87,14 +84,18 @@ export const fetchSavedLockedPosts = createAsyncThunk(
       }
 
       if (params.type) {
-        searchParams.append("type", params.type); // photo | video
+        searchParams.append("type", params.type);
+      }
+
+      if (params.time) {
+        searchParams.append("time", params.time); // ✅ important
       }
 
       const url = `${API_GET_SAVED_LOCKED_POSTS}?${searchParams.toString()}`;
       const res = await getApiWithOutQuery({ url });
 
       if (!res?.success) {
-        // throw new Error(res?.message || "Failed to fetch locked posts");
+        return rejectWithValue(res?.message || "Failed to fetch locked posts");
       }
 
       return res;
@@ -103,8 +104,6 @@ export const fetchSavedLockedPosts = createAsyncThunk(
     }
   }
 );
-
-
 
 const savedLockedPostsSlice = createSlice({
   name: "savedLockedPosts",
@@ -115,9 +114,14 @@ const savedLockedPostsSlice = createSlice({
       state.page = 1;
       state.total = 0;
       state.totalPages = 1;
+      state.time = "all_time";
     },
 
-    /* 🔥 Optimistic remove saved post */
+    setTimeFilter(state, action: PayloadAction<string>) { // ✅ optional helper
+      state.time = action.payload;
+      state.page = 1;
+    },
+
     removeSavedLockedPost(
       state,
       action: PayloadAction<{ postId: string }>
@@ -135,7 +139,6 @@ const savedLockedPostsSlice = createSlice({
         state.error = null;
       })
 
-      /* ✅ Replace posts (pagination + search safe) */
       .addCase(
         fetchSavedLockedPosts.fulfilled,
         (state, action: PayloadAction<any>) => {
@@ -156,13 +159,10 @@ const savedLockedPostsSlice = createSlice({
   },
 });
 
-/* =========================
-   EXPORTS
-   ========================= */
-
 export const {
   resetSavedLockedPosts,
   removeSavedLockedPost,
+  setTimeFilter, // ✅ export this if needed
 } = savedLockedPostsSlice.actions;
 
 export default savedLockedPostsSlice.reducer;

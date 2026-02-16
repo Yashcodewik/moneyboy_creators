@@ -3,7 +3,9 @@ import {
   fetchAllCreators,
   fetchMyPaidPosts,
   fetchFeaturedPosts,
+  fetchPaidContentFeed,
 } from "./Action";
+import { savePost, unsavePost } from "../other/savedPostsSlice";
 
 /* ---------- Types ---------- */
 interface Creator {
@@ -19,12 +21,14 @@ interface PaidPost {
   text?: string;
   accessType: string;
   price?: number;
-  media: any[];
+  media: any;
   createdAt: string;
   userId: string;
-  isUnlocked: boolean;
-  isSubscribed: boolean;
-  isSaved: boolean;
+  isUnlocked?: boolean;
+  isSubscribed?: boolean;
+  isSaved?: boolean;
+  creatorInfo: Creator;
+  publicId: string;
 }
 
 interface FeaturedPost extends PaidPost {
@@ -40,24 +44,24 @@ interface Pagination {
 }
 
 interface CreatorsState {
-  /* creators */
   items: Creator[];
   loadingCreators: boolean;
   creatorsPagination: Pagination;
 
-  /* paid posts */
   paidPosts: PaidPost[];
   loadingPaidPosts: boolean;
   paidPostsPagination: Pagination;
 
-  /* featured posts */
+  paidContentFeed: PaidPost[];
+  loadingPaidContentFeed: boolean;
+  paidContentFeedPagination: Pagination;
+
   featuredPosts: FeaturedPost[];
   loadingFeaturedPosts: boolean;
 
   error: string | null;
 }
 
-/* ---------- Initial State ---------- */
 const initialState: CreatorsState = {
   items: [],
   loadingCreators: false,
@@ -79,43 +83,26 @@ const initialState: CreatorsState = {
     hasNextPage: false,
   },
 
+  paidContentFeed: [],
+  loadingPaidContentFeed: false,
+  paidContentFeedPagination: {
+    page: 1,
+    limit: 8,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+  },
+
   featuredPosts: [],
   loadingFeaturedPosts: false,
-
   error: null,
 };
 
-/* ---------- Slice ---------- */
 const creatorsSlice = createSlice({
   name: "creators",
   initialState,
   reducers: {
     resetCreatorsState: () => initialState,
-
-    updateCreator: (
-      state,
-      action: PayloadAction<{
-        creatorId: string;
-        data: Partial<Creator>;
-      }>
-    ) => {
-      const creator = state.items.find(
-        (c) => c._id === action.payload.creatorId
-      );
-      if (creator) {
-        Object.assign(creator, action.payload.data);
-      }
-    },
-
-    removeCreator: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(
-        (c) => c._id !== action.payload
-      );
-      state.creatorsPagination.total = Math.max(
-        0,
-        state.creatorsPagination.total - 1
-      );
-    },
   },
 
   extraReducers: (builder) => {
@@ -123,7 +110,6 @@ const creatorsSlice = createSlice({
     builder
       .addCase(fetchAllCreators.pending, (state) => {
         state.loadingCreators = true;
-        state.error = null;
       })
       .addCase(fetchAllCreators.fulfilled, (state, action) => {
         state.loadingCreators = false;
@@ -133,21 +119,17 @@ const creatorsSlice = createSlice({
           ...pagination,
           hasNextPage: pagination.page < pagination.totalPages,
         };
-      })
-      .addCase(fetchAllCreators.rejected, (state, action) => {
-        state.loadingCreators = false;
-        state.error = action.payload as string;
       });
 
     /* ---------- Paid Posts ---------- */
     builder
       .addCase(fetchMyPaidPosts.pending, (state) => {
         state.loadingPaidPosts = true;
-        state.error = null;
       })
       .addCase(fetchMyPaidPosts.fulfilled, (state, action) => {
         state.loadingPaidPosts = false;
         const { data, meta } = action.payload;
+
         state.paidPosts = data;
         state.paidPostsPagination = {
           page: meta.page,
@@ -156,34 +138,64 @@ const creatorsSlice = createSlice({
           totalPages: meta.totalPages,
           hasNextPage: meta.page < meta.totalPages,
         };
-      })
-      .addCase(fetchMyPaidPosts.rejected, (state, action) => {
-        state.loadingPaidPosts = false;
-        state.error = action.payload as string;
       });
 
-    /* ---------- Featured Posts ---------- */
+    /* ---------- Paid Content Feed ---------- */
     builder
-      .addCase(fetchFeaturedPosts.pending, (state) => {
-        state.loadingFeaturedPosts = true;
-        state.error = null;
+      .addCase(fetchPaidContentFeed.pending, (state) => {
+        state.loadingPaidContentFeed = true;
       })
-      .addCase(fetchFeaturedPosts.fulfilled, (state, action) => {
-        state.loadingFeaturedPosts = false;
-        state.featuredPosts = action.payload.data;
+      .addCase(fetchPaidContentFeed.fulfilled, (state, action) => {
+        state.loadingPaidContentFeed = false;
+
+        const { data, total, page, totalPages } = action.payload;
+
+        state.paidContentFeed = data;
+
+        state.paidContentFeedPagination = {
+          page,
+          limit: state.paidContentFeedPagination.limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+        };
+      });
+
+    /* ---------- Featured ---------- */
+    builder.addCase(fetchFeaturedPosts.fulfilled, (state, action) => {
+      state.featuredPosts = action.payload.data;
+    });
+
+    /* ---------- Save / Unsave ---------- */
+    builder
+      .addCase(savePost.fulfilled, (state, action: any) => {
+        const postId = action.payload?.postId;
+        if (!postId) return;
+
+        const update = (list: PaidPost[]) => {
+          const post = list.find((p) => p._id === postId);
+          if (post) post.isSaved = true;
+        };
+
+        update(state.paidPosts);
+        update(state.paidContentFeed);
+        update(state.featuredPosts);
       })
-      .addCase(fetchFeaturedPosts.rejected, (state, action) => {
-        state.loadingFeaturedPosts = false;
-        state.error = action.payload as string;
+      .addCase(unsavePost.fulfilled, (state, action: any) => {
+        const postId = action.payload?.postId;
+        if (!postId) return;
+
+        const update = (list: PaidPost[]) => {
+          const post = list.find((p) => p._id === postId);
+          if (post) post.isSaved = false;
+        };
+
+        update(state.paidPosts);
+        update(state.paidContentFeed);
+        update(state.featuredPosts);
       });
   },
 });
 
-/* ---------- Exports ---------- */
-export const {
-  resetCreatorsState,
-  updateCreator,
-  removeCreator,
-} = creatorsSlice.actions;
-
+export const { resetCreatorsState } = creatorsSlice.actions;
 export default creatorsSlice.reducer;

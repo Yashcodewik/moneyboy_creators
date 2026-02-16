@@ -18,7 +18,9 @@ import {
   fetchPopularPosts,
   incrementFeedPostCommentCount,
   updateFeedPost,
+  resetFeedPosts,
 } from "@/redux/other/feedPostsSlice";
+import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
@@ -36,6 +38,7 @@ const FeedPage = () => {
   const {
     posts,
     feedPage,
+    totalPagesFeed,    
     followingPage,
     popularPage,
     hasMoreFeed,
@@ -212,8 +215,100 @@ const FeedPage = () => {
       router.push("/discover");
       return;
     }
+    
     setActiveTab(tab);
   };
+  const currentPage = feedPage;
+const totalPages = totalPagesFeed;
+
+
+
+    const renderPagination = () => {
+  if (!totalPages || totalPages <= 1) return null;
+
+  const pages: (number | string)[] = [];
+
+  if (totalPages <= 6) {
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    pages.push(1, 2, 3);
+
+    if (currentPage > 4) pages.push("...");
+
+    if (currentPage > 3 && currentPage < totalPages - 2) {
+      pages.push(currentPage);
+    }
+
+    if (currentPage < totalPages - 3) pages.push("...");
+
+    pages.push(totalPages - 1, totalPages);
+  }
+
+  return (
+    <div className="pagination_wrap">
+      {/* PREVIOUS */}
+      <button
+        className="btn-prev"
+        disabled={currentPage === 1}
+        onClick={() =>
+          dispatch(
+            fetchFeedPosts({
+              userId: (session?.user as any)?.id,
+              page: currentPage - 1,
+              limit: LIMIT,
+            })
+          )
+        }
+      >
+        <CircleArrowLeft color="#000" />
+      </button>
+
+      {/* PAGE NUMBERS */}
+      {pages.map((p, i) =>
+        p === "..." ? (
+          <button key={i} className="premium-btn" disabled>
+            <span>…</span>
+          </button>
+        ) : (
+          <button
+            key={i}
+            className={currentPage === p ? "premium-btn" : "btn-primary"}
+            onClick={() =>
+              dispatch(
+                fetchFeedPosts({
+                  userId: (session?.user as any)?.id,
+                  page: p as number,
+                  limit: LIMIT,
+                })
+              )
+            }
+          >
+            <span>{p}</span>
+          </button>
+        )
+      )}
+
+      {/* NEXT */}
+      <button
+        className="btn-next"
+        disabled={currentPage === totalPages}
+        onClick={() =>
+          dispatch(
+            fetchFeedPosts({
+              userId: (session?.user as any)?.id,
+              page: currentPage + 1,
+              limit: LIMIT,
+            })
+          )
+        }
+      >
+        <CircleArrowRight color="#000" />
+      </button>
+    </div>
+  );
+};
 
   /* ================= RENDER ================= */
 
@@ -247,13 +342,7 @@ const FeedPage = () => {
               id="feed-scroll-container"
               className="moneyboy-posts-scroll-container"
             >
-              <InfiniteScrollWrapper
-                className="moneyboy-posts-wrapper"
-                scrollableTarget="feed-scroll-container"
-                dataLength={ activeList?.length}
-                fetchMore={fetchMoreHandler}
-                hasMore={activeHasMore}
-              >
+              <div className="moneyboy-posts-wrapper">
                 {activeList?.map((post: any) => (
                   <PostCard
                     key={post._id}
@@ -263,7 +352,10 @@ const FeedPage = () => {
                     onCommentAdded={incrementCommentCount}
                   />
                 ))}
-              </InfiniteScrollWrapper>
+              </div>
+
+              {renderPagination()}
+
               {/* <InfiniteScrollWrapper className="moneyboy-posts-wrapper"  scrollableTarget="feed-scroll-container" dataLength={activeTab === "feed" ? posts.length : activeTab === "following" ? followingPosts.length : popularPosts.length}
                 fetchMore={() => {if (activeTab === "feed") fetchPosts(); if (activeTab === "following") fetchFollowingPosts(); if (activeTab === "popular") fetchPopularPosts();}}
                 hasMore={activeTab === "feed" ? hasMore : activeTab === "following" ? followingHasMore : popularHasMore }>

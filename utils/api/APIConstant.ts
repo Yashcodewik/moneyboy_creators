@@ -1,11 +1,13 @@
 export const API_REGISTER: string = "/auth/register/user";
 export const API_VERIFY_OTP = "/auth/verify-otp";
+export const API_RESEND_OTP = "/auth/resend";
 export const API_LOGIN: string = "/auth/login";
 export const API_CONTACT_US = "/auth/contactus";
 export const API_CREATOR_REGISTER: string = "/auth/register/creator";
 export const API_CREATOR_UPLOAD_KYC = "/auth/creator/upload-kyc";
 export const API_USER_PROFILE = "/auth/get-profile";
 export const API_CREATOR_PROFILE = "/creator/get-profile";
+export const API_CREATOR_PROFILE_INFO = "/creator/get-profile-info";
 export const API_LOGOUT: string = "/auth/logout";
 export const API_GET_CREATORS = "/social/creators";
 export const API_FOLLOW_USER = "/social/follow";
@@ -59,6 +61,7 @@ export const API_SUBSCRIBE_CREATOR: string = "/subscription/subscribe-creator";
 export const API_UPGRADE_SUBSCRIPTION: string = "/subscription/upgrade-subscription";
 export const API_MY_SUBSCRIPTIONS: string = "/subscription/my-subscriptions";
 export const API_MY_SUBSCRIBERS: string = "/subscription/my-subscribers";
+export const API_CANCEL_SUBSCRIPTION: string = "/subscription/cancel";
 export const API_CREATE_PPV_REQUEST: string = "/subscription/ppv/request";
 export const API_GET_TRANSACTIONS: string = "/subscription/get-transactions";
 export const API_UNLOCK_POST: string = "/subscription/unlock-post";
@@ -96,5 +99,11 @@ export const API_GET_MY_PAID_POSTS = "/post/paid-posts";
 export const API_MESSAGE_SIDEBAR = "/messages/sidebar";
 export const API_MESSAGE_CHAT = "/messages/chat";
 export const API_MESSAGE_CHAT_UPLOAD_MEDIA = "/messages/upload-media";
+export const API_DELETE_CONVERSATION = `/messages/thread`;
 
-export const API_GET_FEATURED_POSTS = "/post/featured-posts";
+export const API_GET_FEATURED_POSTS = "/post/featured-posts"; 
+export const API_GET_PAID_CONTENT_FEED = "/post/paid-content-feed";
+export const API_TRENDING_CREATORS = "/social/trending";
+
+export const API_UPDATE_STORE_IMAGES = "/creator/update-store-images";
+export const API_GET_STORE_IMAGES = "/creator/store-images";

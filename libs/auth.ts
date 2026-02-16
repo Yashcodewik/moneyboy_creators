@@ -97,12 +97,11 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    
     async signIn({ user, account }) {
       if (account?.provider === "google" || account?.provider === "twitter") {
         try {
           const res = await apiPost({
-            url: "/auth/social-login",
+            url: "/creator/social-login",
             values: {
               provider: account.provider,
               providerAccountId: account.providerAccountId,
@@ -111,14 +110,11 @@ export const authOptions: NextAuthOptions = {
               avatar: user.image,
             },
           });
-
+          console.log("SOCIAL LOGIN RESPONSE:", res);
           if (!res?.success) return false;
-
-          // Attach backend token
           user.id = res.user._id;
           user.accessToken = res.token;
           user.publicId = res.user.publicId;
-
           return true;
         } catch (err) {
           console.error("Social login failed:", err);
