@@ -66,7 +66,7 @@ const LoginPage = () => {
             <div className="moneyboy-post__container card">
               <h3 className="heading">Login</h3>
               <p>Welcome back! Sign in to your account</p>
-              <div className="loginbtn_wrap">
+              {/* <div className="loginbtn_wrap">
                 <button
                 type="button"
                   className="google-button active-down-effect "
@@ -81,10 +81,10 @@ const LoginPage = () => {
                 >
                   <FaXTwitter size={18} /> Sign up with X
                 </button>
-              </div>
-              <div className="or-divider">
+              </div> */}
+              {/* <div className="or-divider">
                 <span>Or</span>
-              </div>
+              </div> */}
               <div className="form_grid">
                 <div className="one">
                   <div className="label-input">

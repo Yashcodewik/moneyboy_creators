@@ -37,7 +37,7 @@ export const signupSchema = yup.object().shape({
 });
 
 const SignupPage = () => {
-  const [token, setToken] = useState("");
+ 
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
@@ -89,44 +89,9 @@ const SignupPage = () => {
     },
   });
 
-  // const verifyOtp = async (otp: string) => {
-  //   try {
-  //     const res = await apiPost({
-  //       url: API_VERIFY_OTP,
-  //       values: {
-  //         email: emailForOtp,
-  //         otp: otp,
-  //       },
-  //     });
-  //     // console.log(res?.data ,"==============res?.data==============");
-  //     // if (res?.success) {
-  //     //   console.log(res?.data ,"==============res?.data==============");
-  //     // //  setToken(res?.data?.data?.token);
-  //     // }
-  //     const res = await signIn("credentials", {
-  //       redirect: false,
-  //       email: emailForOtp,
-  //       otp,
-  //     });
-
-  //     if (res?.error) {
-  //       ShowToast(res.error, "error");
-  //       return;
-  //     }
-
-  //     ShowToast("OTP verified successfully", "success");
-  //     setOtpOpen(false);
-
-  //     // redirect to feed
-  //     router.push("/feed");
-  //     //router.push("/discover");
-  //   } catch (err: any) {
-  //     ShowToast(err?.message || "OTP verification failed", "error");
-  //   }
-  // };
 
 
-    const verifyOtp = async (otp: string) => {
+  const verifyOtp = async (otp: string) => {
     try {
       const res = await signIn("credentials", {
         redirect: false,
@@ -148,7 +113,7 @@ const SignupPage = () => {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
   };
-  
+
   return (
     <div className="container login_wrap lg_wrap">
       <div className="img_wrap">
@@ -377,17 +342,7 @@ const SignupPage = () => {
         />
       )}
 
-      {token && (
-        <SumsubWebSdk
-          accessToken={token}
-          expirationHandler={() => window.location.reload()}
-          config={{ lang: "en" }}
-          options={{ adaptIframeHeight: true }}
-          onMessage={(type: any, payload: any) => {
-            console.log(type, payload, "================================");
-          }}
-        />
-      )}
+      
     </div>
   );
 };

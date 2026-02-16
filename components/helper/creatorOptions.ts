@@ -123,11 +123,11 @@ export const popularityOptions = [
 // Gender options
 export const genderOptions = [
   { label: "Male", value: "Male" },
-  { label: "Female", value: "Female" },
-  { label: "Non-binary", value: "Non-binary" },
-  { label: "Transgender", value: "Transgender" },
-  { label: "Genderqueer", value: "Genderqueer" },
-  { label: "Other", value: "Other" },
+  // { label: "Female", value: "Female" },
+  // { label: "Non-binary", value: "Non-binary" },
+  // { label: "Transgender", value: "Transgender" },
+  // { label: "Genderqueer", value: "Genderqueer" },
+  // { label: "Other", value: "Other" },
 ];
 
 export const categoryOptions = [
