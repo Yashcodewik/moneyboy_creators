@@ -487,6 +487,7 @@
                 &[data-layout-toggle-rows] {
                     & .creator-content-card {
                         .creator-content-card__media {
+                            min-width: 150px;
                             max-width: 150px;
                         }
                     }
