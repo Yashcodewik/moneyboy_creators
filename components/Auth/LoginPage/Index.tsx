@@ -129,21 +129,11 @@ const LoginPage = () => {
                   )}
                 </div>
                 <div className="one text-right">
-                  <Link href="#" className="forget_link">
-                    Forgot password?
-                  </Link>
+                  <Link href="/forgot-password" className="forget_link">Forgot password?</Link>
                 </div>
               </div>
-              <button
-                type="submit"
-                className="premium-btn mb-10"
-                disabled={formik.isSubmitting}
-              >
-                <span>{formik.isSubmitting ? "Signing in..." : "Sign in"}</span>
-              </button>
-              <p className="fs-18 mb-0">
-                Don’t have an account? <Link href="/signup">Sign up</Link>
-              </p>
+              <button type="submit" className="premium-btn mb-10" disabled={formik.isSubmitting}><span>{formik.isSubmitting ? "Signing in..." : "Sign in"}</span></button>
+              <p className="fs-18 mb-0">Don’t have an account? <Link href="/signup">Sign up</Link></p>
             </div>
           </form>
         </div>

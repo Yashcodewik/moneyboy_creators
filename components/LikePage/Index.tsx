@@ -260,10 +260,7 @@
             </div>
 
             <div className="moneyboy-posts-wrapper">
-              <div
-                id="feed-scroll-container"
-                className="moneyboy-posts-scroll-container"
-              >
+              <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
                 <InfiniteScrollWrapper
                   className="moneyboy-posts-wrapper"
                   scrollableTarget="feed-scroll-container"
