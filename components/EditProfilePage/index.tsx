@@ -411,7 +411,7 @@ const EditProfilePage = () => {
                       </div>
 
                       <div className="creator-subscriptions-container">
-                        <div className="form_grid">
+                        <div className="form_grid mb-10">
                           <div>
                             <div className="label-input">
                               <div className="input-placeholder-icon">
@@ -812,7 +812,7 @@ const EditProfilePage = () => {
                             )}
                           </div>
                         </div>
-                        <div className="btm_btn">
+                        <div className="btm_btn ">
                           <button
                             type="submit"
                             className="premium-btn active-down-effect"
