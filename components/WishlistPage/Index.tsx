@@ -30,6 +30,7 @@ import {
 } from "@/redux/wishlist/savedLockedPostsSlice";
 import UnlockContentModal from "../ProfilePage/UnlockContentModal";
 import SubscriptionModal from "../ProfilePage/SubscriptionModal";
+import NoProfileSvg from "../common/NoProfileSvg";
 
 interface SavedCreator {
   creatorUserId: string;
@@ -455,6 +456,17 @@ const WishlistPage = () => {
                                     alt="Discover Profile Avatar"
                                   />
                                 </div>
+
+                                {/* <div className="user-profile-card__img">
+                                      {creator?.profile ? (
+                                        <img
+                                          src={creator.profile}
+                                          alt="Discover Profile Avatar"
+                                        />
+                                      ) : (
+                                        <NoProfileSvg size={200} bgColor={"#3a3838"} />
+                                      )}
+                                    </div> */}
 
                                 <div className="user-profile-content-overlay-container">
                                   <div className="user-profile-card__action-btns">
