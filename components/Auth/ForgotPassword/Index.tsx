@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 import OtpModal from "@/components/OtpModal";
 import { apiPost } from "@/utils/endpoints/common";
-import { API_FORGOT_PASSWORD, API_RESET_PASSWORD, API_VERIFY_RESET_OTP } from "@/utils/api/APIConstant";
+import { API_FORGOT_PASSWORD, API_FORGOT_PASSWORD_RESEND_OTP, API_RESET_PASSWORD, API_VERIFY_RESET_OTP } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
 
 const ForgotPassword = () => {
@@ -197,6 +197,7 @@ const handleOtpSubmit = async (otp: string) => {
   onClose={() => setOtpOpen(false)}
   onSubmit={handleOtpSubmit}
   email={formik.values.email}
+  resendApi={API_FORGOT_PASSWORD_RESEND_OTP}
 />
     </div>
 

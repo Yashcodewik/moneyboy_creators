@@ -1,9 +1,12 @@
 "use client";
 import {
+  API_BLOCK_USER,
   API_FOLLOW_USER,
   API_GET_CREATORS,
   API_GET_FOLLOWERS,
   API_GET_FOLLOWING,
+  API_REMOVE_FOLLOWER,
+  API_REPORT_USER,
   API_TRENDING_CREATORS,
   API_UNFOLLOW_USER,
 } from "@/utils/api/APIConstant";
@@ -21,9 +24,11 @@ import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
+import ShowToast from "../common/ShowToast";
 
 interface Creator {
   _id: string;
+  publicId: string;
   firstName: string;
   creatorUserId: string;
   lastName: string;
@@ -38,6 +43,7 @@ interface Creator {
 
 interface Follower {
   _id: string;
+  publicId: string;
   firstName: string;
   lastName: string;
   displayName?: string;
@@ -47,6 +53,7 @@ interface Follower {
   isFollowingYou: boolean;
   profileImage?: string;
   role: number;
+  isReported?: boolean;
 }
 
 const FollowersPage = () => {
@@ -81,9 +88,57 @@ const FollowersPage = () => {
   const [avatarErrorMap, setAvatarErrorMap] = useState<Record<string, boolean>>(
     {},
   );
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportedUserName, setReportedUserName] = useState("");
+  const [reportedUserId, setReportedUserId] = useState("");
+  const [reportMessage, setReportMessage] = useState("");
+
+  const openReportModal = (user: Follower) => {
+    setReportedUserName(user.userName);
+    setReportedUserId(user._id);
+    setIsReportModalOpen(true);
+  };
+
+  const handleReportUser = async () => {
+    if (!reportMessage.trim()) {
+      ShowToast("Please enter reason", "error");
+      return;
+    }
+
+    try {
+      const res = await apiPost({
+        url: API_REPORT_USER,
+        values: {
+          reportedUserId,
+          message: reportMessage,
+        },
+      });
+
+      if (res?.success) {
+        ShowToast("Report submitted", "success");
+        setReportMessage("");
+        setIsReportModalOpen(false);
+      } else {
+        ShowToast(res?.message || "Failed to submit report", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      ShowToast("Something went wrong", "error");
+    }
+  };
 
   const toggleMore = (id: string) => {
     setOpenMoreId((prev) => (prev === id ? null : id));
+  };
+
+  const handleShareProfile = (publicId: string, role: number) => {
+    const basePath = role === 2 ? "profile" : "userprofile";
+
+    const url = `${window.location.origin}/${basePath}/${publicId}`;
+
+    navigator.clipboard.writeText(url);
+
+    ShowToast("Profile link copied", "success");
   };
 
   useEffect(() => {
@@ -170,6 +225,37 @@ const FollowersPage = () => {
     }
 
     setLoading(false);
+  };
+
+  const handleBlockUser = async (userId: string) => {
+    try {
+      const res = await apiPost({
+        url: API_BLOCK_USER,
+        values: {
+          blockedId: userId,
+          // reason: "", // optional
+        },
+      });
+
+      if (res?.success) {
+        // ✅ remove from UI instantly
+        setFollowers((prev) => prev.filter((u) => u._id !== userId));
+        setFollowing((prev) => prev.filter((u) => u._id !== userId));
+        setCreators((prev) => prev.filter((u) => u._id !== userId));
+
+        dispatch(fetchFollowerCounts());
+
+        ShowToast("User blocked successfully", "success");
+
+        // close popup
+        setOpenMoreId(null);
+      } else {
+        ShowToast(res?.message || "Failed to block user", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      ShowToast("Something went wrong", "error");
+    }
   };
 
   const fetchFollowers = async (pageNo = 1, search = "") => {
@@ -302,10 +388,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: false,
-                isFollowingYou: true,
-              }
+                  ...user,
+                  isFollowing: false,
+                  isFollowingYou: true,
+                }
               : user,
           ),
         );
@@ -316,10 +402,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: true,
-                isFollowingYou: true,
-              }
+                  ...user,
+                  isFollowing: true,
+                  isFollowingYou: true,
+                }
               : user,
           ),
         );
@@ -357,10 +443,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: false,
-                isFollowingYou: user.isFollowingYou,
-              }
+                  ...user,
+                  isFollowing: false,
+                  isFollowingYou: user.isFollowingYou,
+                }
               : user,
           ),
         );
@@ -417,10 +503,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                  ...user,
-                  isFollowing: true,
-                  isFollowingYou: true,
-                }
+                    ...user,
+                    isFollowing: true,
+                    isFollowingYou: true,
+                  }
                 : user,
             ),
           );
@@ -429,10 +515,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                  ...user,
-                  isFollowing: false,
-                  isFollowingYou: true,
-                }
+                    ...user,
+                    isFollowing: false,
+                    isFollowingYou: true,
+                  }
                 : user,
             ),
           );
@@ -458,6 +544,29 @@ const FollowersPage = () => {
       syncRelationships();
     }
   }, []);
+
+  const handleRemoveFollower = async (userId: string) => {
+    try {
+      await apiPost({
+        url: API_REMOVE_FOLLOWER,
+        values: { userId },
+      });
+
+      // ✅ remove from UI instantly
+      setFollowers((prev) => prev.filter((f) => f._id !== userId));
+
+      // update counts
+      dispatch(fetchFollowerCounts());
+
+      ShowToast("Follower removed", "success");
+
+      // close popup
+      setOpenMoreId(null);
+    } catch (error) {
+      console.error(error);
+      ShowToast("Failed to remove follower", "error");
+    }
+  };
 
   const getFollowButtonProps = (user: Follower | Creator) => {
     if (user.isFollowing) {
@@ -497,15 +606,35 @@ const FollowersPage = () => {
 
     return (
       <div className="pagination_wrap">
-        <button className="btn-prev" disabled={page === 1} onClick={() => fetchFollowers(page - 1, followersSearchQuery)}><CircleArrowLeft color="#000" /></button>
+        <button
+          className="btn-prev"
+          disabled={page === 1}
+          onClick={() => fetchFollowers(page - 1, followersSearchQuery)}
+        >
+          <CircleArrowLeft color="#000" />
+        </button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <button key={i} className="premium-btn" disabled><span>…</span></button>
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
           ) : (
-            <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => fetchFollowers(p as number, followersSearchQuery)}><span>{p}</span></button>
+            <button
+              key={i}
+              className={page === p ? "premium-btn" : "btn-primary"}
+              onClick={() => fetchFollowers(p as number, followersSearchQuery)}
+            >
+              <span>{p}</span>
+            </button>
           ),
         )}
-        <button className="btn-next" disabled={page === totalPages} onClick={() => fetchFollowers(page + 1, followersSearchQuery)}><CircleArrowRight color="#000" /></button>
+        <button
+          className="btn-next"
+          disabled={page === totalPages}
+          onClick={() => fetchFollowers(page + 1, followersSearchQuery)}
+        >
+          <CircleArrowRight color="#000" />
+        </button>
       </div>
     );
   };
@@ -591,9 +720,16 @@ const FollowersPage = () => {
               <div className="profile-card">
                 <a href={"#"} className="profile-card__main">
                   <div className="profile-card__avatar-settings">
-                    <div className="profile-card__avatar">
+                    <div
+                      className="profile-card__avatar"
+                      onClick={() => {
+                        const basePath =
+                          follower.role === 2 ? "profile" : "userprofile";
+                        router.push(`/${basePath}/${follower.publicId}`);
+                      }}
+                    >
                       {follower.profileImage &&
-                        !avatarErrorMap[follower._id] ? (
+                      !avatarErrorMap[follower._id] ? (
                         <img
                           src={follower.profileImage}
                           alt={`${follower.firstName}'s profile`}
@@ -724,11 +860,7 @@ const FollowersPage = () => {
                       <ul>
                         <li
                           onClick={() =>
-                            handleFollowToggle(
-                              follower._id,
-                              follower.isFollowing,
-                              "followers",
-                            )
+                            handleShareProfile(follower.publicId, follower.role)
                           }
                         >
                           <div className="icon share-icon">
@@ -764,55 +896,55 @@ const FollowersPage = () => {
                           </div>
                           <span>Share @{follower.userName}</span>
                         </li>
-                        <li>
-                          <div className="icon mute-icon">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M22 2L2 22"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <span>Mute</span>
-                        </li>
-                        <li>
+                        {/* <li>
+                            <div className="icon mute-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M22 2L2 22"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Mute</span>
+                          </li> */}
+                        <li onClick={() => handleRemoveFollower(follower._id)}>
                           <div className="icon remove-icon">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -863,7 +995,7 @@ const FollowersPage = () => {
                           </div>
                           <span>Remove this follower</span>
                         </li>
-                        <li>
+                        <li onClick={() => handleBlockUser(follower._id)}>
                           <div className="icon block-icon">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -906,7 +1038,12 @@ const FollowersPage = () => {
                           </div>
                           <span>Block @{follower.userName}</span>
                         </li>
-                        <li>
+                        <li
+                          onClick={() => {
+                            if (follower.isReported) return;
+                            openReportModal(follower);
+                          }}
+                        >
                           <div className="icon report-icon">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -933,7 +1070,11 @@ const FollowersPage = () => {
                               />
                             </svg>
                           </div>
-                          <span>Report @{follower.userName}</span>
+                          <span>
+                            {follower.isReported
+                              ? `Reported @${follower.userName}`
+                              : `Report @${follower.userName}`}
+                          </span>
                         </li>
                       </ul>
                     </div>
@@ -943,10 +1084,10 @@ const FollowersPage = () => {
             </div>
           </div>
           {/* {follower.bio && (
-              <div className="rel-user-desc">
-                <p>{follower.bio}</p>
-              </div>
-            )} */}
+                <div className="rel-user-desc">
+                  <p>{follower.bio}</p>
+                </div>
+              )} */}
         </div>
       );
     });
@@ -954,16 +1095,15 @@ const FollowersPage = () => {
 
   const renderFollowingList = () => {
     if (loading && following.length < 0) {
-      return <div className="loadingtext">
-        {"Loading".split("").map((char, i) => (
-          <span
-            key={i}
-            style={{ animationDelay: `${(i + 1) * 0.1}s` }}
-          >
-            {char}
-          </span>
-        ))}
-      </div>;
+      return (
+        <div className="loadingtext">
+          {"Loading".split("").map((char, i) => (
+            <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+              {char}
+            </span>
+          ))}
+        </div>
+      );
     }
     if (following.length === 0) {
       return <div className="nodeta">Not following anyone yet</div>;
@@ -979,7 +1119,15 @@ const FollowersPage = () => {
               <div className="profile-card">
                 <a href={"#"} className="profile-card__main">
                   <div className="profile-card__avatar-settings">
-                    <div className="profile-card__avatar">
+                    <div
+                      className="profile-card__avatar"
+                      onClick={() => {
+                        const basePath =
+                          follow.role === 2 ? "profile" : "userprofile";
+                        router.push(`/${basePath}/${follow.publicId}`);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
                       {follow.profileImage && !avatarErrorMap[follow._id] ? (
                         <img
                           src={follow.profileImage}
@@ -1074,10 +1222,10 @@ const FollowersPage = () => {
             </div>
           </div>
           {/* {follow.bio && (
-              <div className="rel-user-desc">
-                <p>{follow.bio}</p>
-              </div>
-            )} */}
+                <div className="rel-user-desc">
+                  <p>{follow.bio}</p>
+                </div>
+              )} */}
         </div>
       );
     });
@@ -1097,37 +1245,38 @@ const FollowersPage = () => {
             id="posts-tabs-btn-card"
           >
             {/* <button
-              className="cate-back-btn active-down-effect"
-              onClick={() => router.push("/feed")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
+                className="cate-back-btn active-down-effect"
+                onClick={() => router.push("/feed")}
               >
-                <path
-                  d="M9.57 5.92999L3.5 12L9.57 18.07"
-                  stroke="none"
-                  strokeWidth="2.5"
-                  strokeMiterlimit="10"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M20.4999 12H3.66992"
-                  stroke="none"
-                  strokeWidth="2.5"
-                  strokeMiterlimit="10"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button> */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M9.57 5.92999L3.5 12L9.57 18.07"
+                    stroke="none"
+                    strokeWidth="2.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M20.4999 12H3.66992"
+                    stroke="none"
+                    strokeWidth="2.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${follow === "Followers" ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                follow === "Followers" ? "active" : ""
+              }`}
               data-multi-tabs-switch-btndata__active
               data-identifier="1"
               onClick={() => setFollow("Followers")}
@@ -1135,8 +1284,9 @@ const FollowersPage = () => {
               Followers
             </button>
             <button
-              className={`page-content-type-button active-down-effect ${follow === "Following" ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                follow === "Following" ? "active" : ""
+              }`}
               data-multi-tabs-switch-btn
               data-identifier="1"
               onClick={() => setFollow("Following")}
@@ -1290,10 +1440,10 @@ const FollowersPage = () => {
                               options={timeOptions}
                               value={time}
                               searchable={false}
-                            // onChange={(val) => {
-                            //   setTime(val);
-                            //   fetchLikedPosts(1);
-                            // }}
+                              // onChange={(val) => {
+                              //   setTime(val);
+                              //   fetchLikedPosts(1);
+                              // }}
                             />
                           </div>
                         </div>
@@ -1411,7 +1561,7 @@ const FollowersPage = () => {
                           <div className="profile-card__avatar-settings">
                             <div className="profile-card__avatar">
                               {creator.profileImage &&
-                                !avatarErrorMap[creator._id] ? (
+                              !avatarErrorMap[creator._id] ? (
                                 <img
                                   src={creator.profileImage}
                                   alt={`${creator.displayName} profile avatar`}
@@ -1484,8 +1634,9 @@ const FollowersPage = () => {
                     <div className="rel-user-actions">
                       <div className="rel-user-action-btn">
                         <button
-                          className={`btn-txt-gradient ${creator.isFollowing ? "btn-grey" : ""
-                            }`}
+                          className={`btn-txt-gradient ${
+                            creator.isFollowing ? "btn-grey" : ""
+                          }`}
                           onClick={() =>
                             handleFollowToggle(
                               creator._id,
@@ -1527,6 +1678,55 @@ const FollowersPage = () => {
           <Featuredboys />
         </div>
       </aside>
+      {isReportModalOpen && (
+        <div className="modal show" role="dialog" aria-modal="true">
+          <div className="modal-wrap blacklist">
+            <button
+              className="close-btn"
+              onClick={() => setIsReportModalOpen(false)}
+            >
+              ✕
+            </button>
+
+            <h3>Report User</h3>
+
+            <div className="containt_wrap">
+              <div>
+                <label>User</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={`@${reportedUserName}`}
+                  disabled
+                />
+              </div>
+
+              <div>
+                <label>Reason</label>
+                <textarea
+                  rows={3}
+                  placeholder="Describe the issue..."
+                  value={reportMessage}
+                  onChange={(e) => setReportMessage(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="actions">
+              <button className="premium-btn" onClick={handleReportUser}>
+                <span>Submit</span>
+              </button>
+
+              <button
+                className="cate-back-btn active-down-effect"
+                onClick={() => setIsReportModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

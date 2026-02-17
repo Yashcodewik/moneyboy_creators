@@ -261,6 +261,7 @@
 
             <div className="moneyboy-posts-wrapper">
               <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
+              
                 <InfiniteScrollWrapper
                   className="moneyboy-posts-wrapper"
                   scrollableTarget="feed-scroll-container"
@@ -268,7 +269,7 @@
                   hasMore={pagination.hasNextPage}
                   fetchMore={fetchMore}
                 >
-                  <div className="creator-content-filter-grid-container">
+                    <div className="creator-content-filter-grid-container">
                     <div className="card filters-card-wrapper">
                       <div className="search-features-grid-btns">
                         <div className="creator-content-search-input">

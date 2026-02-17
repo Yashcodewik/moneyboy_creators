@@ -684,7 +684,7 @@ const Header = () => {
 
                           if (session?.user?.role === 1) {
                             console.log("role 1");
-                            router.push("/userprofile");
+                            router.push(`/userprofile/${session?.user?.publicId}`);
                           } else if (session?.user?.role === 2) {
                             console.log(" role 2");
                             router.push(`/profile/${session?.user?.publicId}`);

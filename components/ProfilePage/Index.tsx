@@ -812,7 +812,8 @@ const ProfilePage = () => {
             )}
             {!isFreecomment && (
               <>
-                <div className="creator-content-stat-box views-btn">
+              {/* views-btn */}
+                <div className="creator-content-stat-box ">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -838,7 +839,8 @@ const ProfilePage = () => {
                   </button>
                   <span>{post?.commentCount}</span>
                 </div>
-                <div className="creator-content-stat-box thumup-btn ">
+                {/* thumup-btn  */}
+                <div className="creator-content-stat-box ">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

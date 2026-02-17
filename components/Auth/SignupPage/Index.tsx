@@ -1,7 +1,11 @@
 "use client";
 import ShowToast from "@/components/common/ShowToast";
 import OtpModal from "@/components/OtpModal";
-import { API_REGISTER, API_VERIFY_OTP } from "@/utils/api/APIConstant";
+import {
+  API_REGISTER,
+  API_RESEND_OTP,
+  API_VERIFY_OTP,
+} from "@/utils/api/APIConstant";
 import { apiPost } from "@/utils/endpoints/common";
 import { useFormik } from "formik";
 import { signIn } from "next-auth/react";
@@ -13,6 +17,12 @@ import { FcGoogle } from "react-icons/fc";
 import { IoArrowBackOutline } from "react-icons/io5";
 import * as yup from "yup";
 import SumsubWebSdk from "@sumsub/websdk-react";
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+import { countryOptions } from "@/components/helper/creatorOptions";
+import CustomSelect from "@/components/CustomSelect";
+
+countries.registerLocale(enLocale);
 
 export const signupSchema = yup.object().shape({
   firstName: yup.string().required("First name is required"),
@@ -34,10 +44,10 @@ export const signupSchema = yup.object().shape({
     .string()
     .oneOf([yup.ref("password")], "Passwords do not match")
     .required("Confirm password is required"),
+  country: yup.string().required("Country is required"),
 });
 
 const SignupPage = () => {
- 
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
@@ -54,6 +64,7 @@ const SignupPage = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      country: "",
     },
     validationSchema: signupSchema,
     onSubmit: async (values) => {
@@ -66,6 +77,7 @@ const SignupPage = () => {
           userName: values.userName,
           email: values.email,
           password: values.password,
+          country: values.country, 
         };
 
         const res = await apiPost({
@@ -89,8 +101,6 @@ const SignupPage = () => {
     },
   });
 
-
-
   const verifyOtp = async (otp: string) => {
     try {
       const res = await signIn("credentials", {
@@ -113,6 +123,12 @@ const SignupPage = () => {
       ShowToast(err?.message || "OTP verification failed", "error");
     }
   };
+
+  const selectedCountry = formik.values.country;
+
+  const countryCode = selectedCountry
+    ? countries.getAlpha2Code(selectedCountry, "en")
+    : null;
 
   return (
     <div className="container login_wrap lg_wrap">
@@ -309,6 +325,31 @@ const SignupPage = () => {
                   )}
               </div>
 
+              <div>
+                <CustomSelect
+                  label="Select Country *"
+                  icon={
+                    countryCode ? (
+                      <div className="flag-circle">
+                        <img
+                          src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+                          alt="flag"
+                        />
+                      </div>
+                    ) : (
+                      <svg className="icons locationIcon svg-icon"></svg>
+                    )
+                  }
+                  options={countryOptions}
+                  value={formik.values.country}
+                  onChange={(val) => formik.setFieldValue("country", val)}
+                />
+
+                {formik.touched.country && formik.errors.country && (
+                  <span className="error-message">{formik.errors.country}</span>
+                )}
+              </div>
+
               <button className="premium-btn mb-10" disabled={loading}>
                 {loading ? (
                   <span className="loader"></span>
@@ -339,10 +380,9 @@ const SignupPage = () => {
           onClose={() => setOtpOpen(false)}
           email={emailForOtp}
           onSubmit={verifyOtp}
+          resendApi={API_RESEND_OTP}
         />
       )}
-
-      
     </div>
   );
 };

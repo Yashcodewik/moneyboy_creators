@@ -9,11 +9,12 @@ type OtpModalProps = {
   onClose: () => void;
   onSubmit: (otp: string) => void;
   email?: string;
+    resendApi: string; 
 };
 
 const OTP_LENGTH = 6;
 const RESEND_TIME = 60;
-const OtpModal = ({ open, onClose, onSubmit, email }: OtpModalProps) => {
+const OtpModal = ({ open, onClose, onSubmit, email ,resendApi }: OtpModalProps) => {
   const [timer, setTimer] = useState(RESEND_TIME);
   const [isResending, setIsResending] = useState(false);
   const [canResend, setCanResend] = useState(false);
@@ -64,10 +65,10 @@ const OtpModal = ({ open, onClose, onSubmit, email }: OtpModalProps) => {
     if (!canResend || isResending) return;
     try {
       setIsResending(true);
-      await apiPost({
-        url: API_RESEND_OTP,
-        values: { email },
-      });
+     await apiPost({
+    url: resendApi,
+    values: { email },
+});
 
       startTimer();
       // restart timer

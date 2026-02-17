@@ -452,7 +452,7 @@ const handleFilterChange = (filterName: string, value: string) => {
                 </div>
               </div>
 
-              <div className="content-filter-card-wrapper">
+              {/* <div className="content-filter-card-wrapper">
                 <div className="content-filter-card">
                   <CustomSelect
                     label="All Popularity"
@@ -463,7 +463,7 @@ const handleFilterChange = (filterName: string, value: string) => {
                     }
                   />
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         )}

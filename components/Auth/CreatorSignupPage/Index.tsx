@@ -6,10 +6,12 @@ import {} from "react";
 import { TbCamera } from "react-icons/tb";
 import { useFormik } from "formik";
 
+
 import { apiPost, apiPostWithMultiForm } from "@/utils/endpoints/common";
 import {
   API_CREATOR_REGISTER,
   API_CREATOR_UPLOAD_KYC,
+  API_RESEND_OTP,
   API_VERIFY_OTP,
 } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
@@ -258,6 +260,7 @@ const CreatorSignupPage = () => {
                       </p>
                     </div>
                   </div>
+                  <form onSubmit={formik.handleSubmit}>
                   <div className="creator_maingrid">
                     <div className="form_grid">
                       <div>
@@ -721,17 +724,15 @@ const CreatorSignupPage = () => {
                       </div>
                     </div>
                   </div>
-                  <button
-                    className="premium-btn"
-                    onClick={() => formik.handleSubmit()}
-                    disabled={loading}
-                  >
+                 <button type="submit" className="premium-btn" disabled={loading}>
+
                     {loading ? (
                       <span className="loader"></span>
                     ) : (
                       <span>Create your account</span>
                     )}
                   </button>
+                  </form>
                   <p>
                     By signing up you agree to our{" "}
                     <Link href="/terms">Terms of Service</Link> and{" "}
@@ -758,6 +759,7 @@ const CreatorSignupPage = () => {
           onClose={() => setOtpOpen(false)}
           email={emailForOtp}
           onSubmit={verifyOtp}
+           resendApi={API_RESEND_OTP}
         />
       )}
 

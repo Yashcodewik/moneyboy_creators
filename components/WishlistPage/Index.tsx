@@ -19,7 +19,7 @@ import {
   removeSavedFreeCreator,
   updateSavedFreeCreatorState,
 } from "@/redux/wishlist/savedFreeCreatorsSlice";
-import { unsavePost } from "@/redux/other/savedPostsSlice";
+import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import { updateCreatorSavedState } from "@/redux/discover/discoverCreatorsSlice";
 import { useRouter } from "next/navigation";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
@@ -137,29 +137,32 @@ const WishlistPage = () => {
     }
   }, [activeTab, subActiveTab, searchTerm, page, time]);
 
-  const handleUnsaveCreator = (creatorUserId: string) => {
-    // 1️⃣ Optimistic UI
-    dispatch(removeSavedFreeCreator({ creatorUserId }));
+const handleToggleSaveCreator = (creator: SavedCreator) => {
+  const isCurrentlySaved = creator.isSaved;
 
-    dispatch(
-      updateCreatorSavedState({
-        creatorId: creatorUserId,
-        saved: false,
-      }),
-    );
+  // 🔥 instant icon toggle
+  dispatch(
+    updateSavedFreeCreatorState({
+      creatorUserId: creator.creatorUserId,
+      isSaved: !isCurrentlySaved,
+    })
+  );
 
-    // 2️⃣ API call
-    dispatch(unsavePost({ creatorUserId }) as any);
+  dispatch(
+    updateCreatorSavedState({
+      creatorId: creator.creatorUserId,
+      saved: !isCurrentlySaved,
+    })
+  );
 
-    // 3️⃣ 🔥 REFILL the page
-    dispatch(
-      fetchSavedFreeCreators({
-        page: 1,
-        limit: 9,
-        search: searchTerm,
-      }) as any,
-    );
-  };
+  // 🔥 API call
+  if (isCurrentlySaved) {
+    dispatch(unsavePost({ creatorUserId: creator.creatorUserId }) as any);
+  } else {
+    dispatch(savePost({ creatorUserId: creator.creatorUserId }) as any);
+  }
+};
+
 
   const handleUnsaveMedia = (postId: string) => {
     // 1️⃣ Optimistic UI (instant remove from grid)
@@ -447,7 +450,7 @@ const WishlistPage = () => {
                               }
                             >
                               <div className="user-profile-card-container">
-                                <div className="user-profile-card__img">
+                                {/* <div className="user-profile-card__img">
                                   <img
                                     src={
                                       creator.profile ||
@@ -455,18 +458,18 @@ const WishlistPage = () => {
                                     }
                                     alt="Discover Profile Avatar"
                                   />
-                                </div>
+                                </div> */}
 
-                                {/* <div className="user-profile-card__img">
+                                <div className="user-profile-card__img">
                                       {creator?.profile ? (
                                         <img
                                           src={creator.profile}
                                           alt="Discover Profile Avatar"
                                         />
                                       ) : (
-                                        <NoProfileSvg size={200} bgColor={"#3a3838"} />
+                                        <NoProfileSvg   />
                                       )}
-                                    </div> */}
+                                    </div>
 
                                 <div className="user-profile-content-overlay-container">
                                   <div className="user-profile-card__action-btns">
@@ -531,8 +534,8 @@ const WishlistPage = () => {
                                       }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleUnsaveCreator(
-                                          creator.creatorUserId,
+                                        handleToggleSaveCreator(
+                                          creator,
                                         );
                                       }}
                                     >

@@ -125,6 +125,7 @@ const EditProfilePage = () => {
         }
         if (res?.success) {
           ShowToast("Profile updated successfully", "success");
+           await fetchProfile(); 
         }
       } catch (err: any) {
         const backendMessage = err?.response?.data?.message;
