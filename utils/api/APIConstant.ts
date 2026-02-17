@@ -111,6 +111,13 @@ export const API_GET_CONNECTIONS = "/creator/connections";
 export const API_BLOCK_THREAD_USER = "/messages/thread/block";
 export const API_BLOCK_USER = "/creator/block-user";
 export const API_GET_BLOCKED_USERS = "/creator/blocked-users";
+export const API_FORGOT_PASSWORD = "/auth/forgot-password";
+export const API_RESET_PASSWORD = "/auth/reset-password";
+export const API_FORGOT_PASSWORD_RESEND_OTP ="/auth/forgot-password/resend-otp";
+export const API_VERIFY_RESET_OTP = "/auth/verify-reset-otp";
+
+
+
 
 
 
