@@ -3,14 +3,12 @@ import React, { useState, useRef, useEffect } from "react";
 import CustomSelect from "@/components/CustomSelect";
 import Link from "next/link";
 import {} from "react";
-import { TbCamera } from "react-icons/tb";
 import { useFormik } from "formik";
 
 
-import { apiPost, apiPostWithMultiForm } from "@/utils/endpoints/common";
+import { apiPost } from "@/utils/endpoints/common";
 import {
   API_CREATOR_REGISTER,
-  API_CREATOR_UPLOAD_KYC,
   API_RESEND_OTP,
   API_VERIFY_OTP,
 } from "@/utils/api/APIConstant";
@@ -21,19 +19,14 @@ import {
   countryOptions,
   ethnicityOptions,
   eyeColorOptions,
-  genderOptions,
   hairColorOptions,
   heightOptions,
-  popularityOptions,
   sexualOrientationOptions,
   sizeOptions,
   styleOptions,
 } from "@/components/helper/creatorOptions";
 import OtpModal from "@/components/OtpModal";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FaFilePdf, FaTrash } from "react-icons/fa6";
-import { FiEdit } from "react-icons/fi";
 import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -53,16 +46,10 @@ const CreatorSignupPage = () => {
   const [emailForOtp, setEmailForOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
-  // const [idPreview, setIdPreview] = useState<string | null>(null);
-  // const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
-  // const [governmentIdFile, setGovernmentIdFile] = useState<File | null>(null);
-  // const [selfieWithIdFile, setSelfieWithIdFile] = useState<File | null>(null);
-
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  // CLOSE ON OUTSIDE CLICK
   useEffect(() => {
     const handleClickOutside = (e: any) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
