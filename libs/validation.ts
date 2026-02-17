@@ -19,7 +19,7 @@ export const validationSchemaCreator = yup.object({
     .required("Confirm password is required"),
   gender: yup.string().required("Gender is required"),
   dob: yup.string().required("Date of birth is required"),
-  bio: yup.string().required("Bio is required"),
+  // bio: yup.string().required("Bio is required"),
   country: yup.string().required("Country is required"),
   city: yup.string().required("City is required"),
   age: yup.string(),
