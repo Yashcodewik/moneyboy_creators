@@ -6876,6 +6876,60 @@ body {
                   }
                 }
               }
+              .block_wrap {
+                position: sticky;
+                top: 5px;
+                max-width: 98%;
+                margin: 0 auto;
+                z-index: 9;
+                background-color: #f5d8d8;
+                border: 1px solid #cd3f3f;
+                border-radius: 11px;
+                gap: 8px;
+                width: 100%;
+                padding: 6px 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #cd3f3f;
+                font-size: 14px;
+                font-weight: 600;
+                font-family: var(--font-family-secondary);
+                box-shadow: 0 6px 4px -4px #08080816, 0 2px 13.5px 1px #08080825;
+                transition: var(--transition-normal);
+                animation: fadeUp 0.4s ease-out;
+                &:hover {
+                  .icon {
+                    svg path {
+                      &:nth-child(1),
+                      &:nth-child(2) {
+                          fill: #cd3f3f;
+                      }
+                    }
+                  }
+                }
+                .icon {
+                  display: flex;
+                  width: 28px;
+                  aspect-ratio: 1/1;
+                  min-width: 28px;
+                  align-items: center;
+                  justify-content: center;
+
+                  svg {
+                      width: 28px;
+                      transition: var(--transition-fast);
+                      aspect-ratio: 1/1;
+                      width: 22px;
+                      height: 22px;
+                    path {
+                        transition: var(--transition-fast);
+                        stroke: #cd3f3f;
+                        stroke: #cd3f3f;
+                    }
+                  }
+                }
+              }
             }
           }
         }

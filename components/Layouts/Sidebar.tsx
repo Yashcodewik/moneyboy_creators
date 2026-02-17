@@ -864,7 +864,11 @@ const Sidebar: React.FC = () => {
         </aside>
 
         <div className="mobile-navigations-container">
-          <div className="mobile-navigations">
+          <div
+  className={`mobile-navigations ${
+    !session?.isAuthenticated ? "lgout" : ""
+  }`}
+>
             <nav>
               <ul>
                 {/* Mobile Navigation - Home (Feed) */}
@@ -954,7 +958,7 @@ const Sidebar: React.FC = () => {
                   <Link
                     href="#"
                     className={activePage === "discover" ? "active" : ""}
-                    onClick={(e) => handleMobileNavClick("discover", "/", e)}
+                    onClick={(e) => handleMobileNavClick("discover", "/discover", e)}
                   >
                     <div>
                       <svg
@@ -1046,9 +1050,9 @@ const Sidebar: React.FC = () => {
                 <li>
                   <Link
                     href="#"
-                    className={activePage === "messages" ? "active" : ""}
+                    className={activePage === "message" ? "active" : ""}
                     onClick={(e) =>
-                      handleMobileNavClick("messages", "/messages", e)
+                      handleMobileNavClick("message", "/message", e)
                     }
                   >
                     <div>

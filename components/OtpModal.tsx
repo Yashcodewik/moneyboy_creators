@@ -21,7 +21,6 @@ const OtpModal = ({ open, onClose, onSubmit, email }: OtpModalProps) => {
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [isVerifying, setIsVerifying] = useState(false);
-  if (!open) return null;
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
     const newOtp = [...otp];
@@ -39,6 +38,7 @@ const OtpModal = ({ open, onClose, onSubmit, email }: OtpModalProps) => {
 
     return () => clearInterval(interval);
   }, [open]);
+  if (!open) return null;
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -48,7 +48,6 @@ const OtpModal = ({ open, onClose, onSubmit, email }: OtpModalProps) => {
       inputsRef.current[index - 1]?.focus();
     }
   };
-
 
   const handleSubmit = async () => {
     const finalOtp = otp.join("");
