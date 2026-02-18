@@ -32,6 +32,9 @@ import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import AccountSecurity from "./AccountSecurity";
 import PricingSetting from "./PricingSetting";
+import { CgClose } from "react-icons/cg";
+import ImageCropModal from "./ImageCropModal";
+
 
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
@@ -46,6 +49,20 @@ const EditProfilePage = () => {
   const [activeField, setActiveField] = useState<string | null>(null);
   const [coverError, setCoverError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropType, setCropType] = useState<"avatar" | "cover" | null>(null);
+
+  const handleCropSave = async (croppedBase64: string) => {
+    const blob = await (await fetch(croppedBase64)).blob();
+    const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
+
+    if (cropType === "avatar") {
+      setProfileFile(file);
+    } else {
+      setCoverFile(file);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -106,9 +123,9 @@ const EditProfilePage = () => {
         (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
           const value = values[key];
 
-         if (value !== "" && value !== null && value !== undefined) {
-  payload.append(key, value as any);
-}
+          if (value !== "" && value !== null && value !== undefined) {
+            payload.append(key, value as any);
+          }
 
         });
 
@@ -126,7 +143,7 @@ const EditProfilePage = () => {
         }
         if (res?.success) {
           ShowToast("Profile updated successfully", "success");
-           await fetchProfile(); 
+          await fetchProfile();
         }
       } catch (err: any) {
         const backendMessage = err?.response?.data?.message;
@@ -136,9 +153,9 @@ const EditProfilePage = () => {
         } else {
           ShowToast(
             backendMessage ||
-              err?.response?.data?.error ||
-              err?.message ||
-              "Something went wrong",
+            err?.response?.data?.error ||
+            err?.message ||
+            "Something went wrong",
             "error",
           );
         }
@@ -238,25 +255,22 @@ const EditProfilePage = () => {
                 <span className="icons arrowLeft"></span>
               </button> */}
               <button
-                className={`page-content-type-button active-down-effect ${
-                  tab === 0 ? "active" : ""
-                }`}
+                className={`page-content-type-button active-down-effect ${tab === 0 ? "active" : ""
+                  }`}
                 onClick={() => setTab(0)}
               >
                 Basic information
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${
-                  tab === 1 ? "active" : ""
-                }`}
+                className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""
+                  }`}
                 onClick={() => setTab(1)}
               >
                 Pricing settings
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${
-                  tab === 2 ? "active" : ""
-                }`}
+                className={`page-content-type-button active-down-effect ${tab === 2 ? "active" : ""
+                  }`}
                 onClick={() => setTab(2)}
               >
                 Account and security
@@ -270,16 +284,9 @@ const EditProfilePage = () => {
                   <div className="creator-profile-card-container card">
                     <div className="creator-profile-banner">
                       {coverFile ? (
-                        <img
-                          src={URL.createObjectURL(coverFile)}
-                          alt="Creator Profile Banner"
-                        />
+                        <img src={URL.createObjectURL(coverFile)} alt="Creator Profile Banner"/>
                       ) : formData?.coverImage && !coverError ? (
-                        <img
-                          src={formData.coverImage}
-                          alt="Creator Profile Banner"
-                          onError={() => setCoverError(true)}
-                        />
+                        <img src={formData.coverImage} alt="Creator Profile Banner" onError={() => setCoverError(true)}/>
                       ) : (
                         <div className="noprofile">
                           <svg
@@ -318,10 +325,16 @@ const EditProfilePage = () => {
                         accept="image/*"
                         id="coverUpload"
                         onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            setCoverFile(e.target.files[0]);
-                            setCoverError(false);
-                          }
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                        
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setCropImage(reader.result as string);
+                            setCropType("cover");
+                            setCropOpen(true);
+                          };
+                          reader.readAsDataURL(file);
                         }}
                       />
                       <label
@@ -393,10 +406,16 @@ const EditProfilePage = () => {
                                   accept="image/*"
                                   id="profileUpload"
                                   onChange={(e) => {
-                                    if (e.target.files?.[0]) {
-                                      setProfileFile(e.target.files[0]);
-                                      setAvatarError(false);
-                                    }
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                      setCropImage(reader.result as string);
+                                      setCropType("avatar");
+                                      setCropOpen(true);
+                                    };
+                                    reader.readAsDataURL(file);
                                   }}
                                 />
 
@@ -511,7 +530,7 @@ const EditProfilePage = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 name="gender"
-                                
+
                               />
                             </div>
                             {/* <CustomSelect
@@ -555,7 +574,7 @@ const EditProfilePage = () => {
                                     maxDate={maxAllowedDate}
                                     onChange={(date: Date | null) => {
                                       if (date) {
-                                      const formattedDate = date.toISOString();
+                                        const formattedDate = date.toISOString();
                                         formik.setFieldValue(
                                           "dob",
                                           formattedDate,
@@ -836,159 +855,29 @@ const EditProfilePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Start */}
+      {/* <ImageCropModal
+        show={cropOpen}
+        image={cropImage}
+        aspect={cropType === "cover" ? 16 / 6 : 1}
+        onClose={() => setCropOpen(false)}
+        onSave={handleCropSave}
+      /> */}
+      {/* <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+        <form className="modal-wrap imgcrop-modal">
+          <button className="close-btn"><CgClose size={22} /></button>
+          <h3 className="title">Edit Profile Photo</h3>
+          <div className="img_wrap">
+            <img alt="Post Image" src="https://res.cloudinary.com/drhj03nvv/image/upload/v1771397982/posts/6995635dd577ca04fd5c7755/1771397981555-post-img-4.jpg.jpg"/>
+          </div>
+          <div className="actions">
+            <button className="premium-btn active-down-effect" type="submit"><span>Save</span></button>
+          </div>
+        </form>
+      </div> */}
     </>
   );
 };
 
 export default EditProfilePage;
-
-
-
-
-// "use client";
-
-// import React, { useEffect, useState, useCallback } from "react";
-// import { Modal } from "react-bootstrap";
-// import { GrRotateLeft } from "react-icons/gr";
-// import { IoAddCircleOutline, IoRemoveCircleOutline } from "react-icons/io5";
-// import Cropper, { Area } from "react-easy-crop";
-// import getCroppedImg from "@/libs/cropImage";
-
-// interface EditProfilePhotoProps {
-//   show: boolean;
-//   handleClose: () => void;
-//   handleImageImport: (croppedImage: string | null) => void;
-//   imagePreview?: string;
-// }
-
-// const EditProfilePhoto = ({
-//   show,
-//   handleClose,
-//   handleImageImport,
-//   imagePreview,
-// }: EditProfilePhotoProps) => {
-//   const [image, setImage] = useState<string>("/assets/img/list-img1.jpg");
-//   const [crop, setCrop] = useState({ x: 0, y: 0 });
-//   const [rotation, setRotation] = useState<number>(0);
-//   const [zoom, setZoom] = useState<number>(1);
-//   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-
-//   // -------------------------
-//   // Handlers
-//   // -------------------------
-
-//   const zoomIn = () => setZoom((prev) => Math.min(prev + 0.2, 3));
-//   const zoomOut = () => setZoom((prev) => Math.max(prev - 0.2, 1));
-
-//   const rotateLeft = () => {
-//     setRotation((prev) => (prev - 90 + 360) % 360);
-//   };
-
-//   const onCropComplete = useCallback(
-//     (_: Area, croppedPixels: Area) => {
-//       setCroppedAreaPixels(croppedPixels);
-//     },
-//     []
-//   );
-
-//   useEffect(() => {
-//     if (imagePreview) {
-//       setImage(imagePreview);
-//     }
-//   }, [imagePreview]);
-
-//   const handleSave = async () => {
-//     if (!croppedAreaPixels) return;
-
-//     try {
-//       const croppedImage = await getCroppedImg(
-//         image,
-//         croppedAreaPixels,
-//         rotation
-//       );
-//       handleImageImport(croppedImage);
-//       handleClose();
-//     } catch (error) {
-//       console.error("Error while cropping image:", error);
-//     }
-//   };
-
-//   // -------------------------
-//   // Styles
-//   // -------------------------
-
-//   const controlBarStyle: React.CSSProperties = {
-//     position: "absolute",
-//     bottom: "10px",
-//     left: "50%",
-//     transform: "translateX(-50%)",
-//     width: "80%",
-//     background: "rgba(0, 0, 0, 0.6)",
-//     borderRadius: "6px",
-//     padding: "10px 0",
-//     zIndex: 10,
-//     listStyle: "none",
-//     margin: 0,
-//     color: "#fff",
-//   };
-
-//   return (
-//     <Modal show={show} onHide={handleClose} centered className="common-modal">
-//       <Modal.Body>
-//         <div className="row justify-content-center">
-//           <div className="col-md-12 col-lg-11">
-//             <h3 className="fw-semibold heading3 mb-3 text-center text-uppercase">
-//               Edit Profile Photo
-//             </h3>
-
-//             <div
-//               className="change_pro_wrap"
-//               style={{ position: "relative", height: 400 }}
-//             >
-//               <Cropper
-//                 image={image}
-//                 crop={crop}
-//                 rotation={rotation}
-//                 zoom={zoom}
-//                 aspect={4 / 3}
-//                 onCropChange={setCrop}
-//                 onRotationChange={setRotation}
-//                 onCropComplete={onCropComplete}
-//                 onZoomChange={setZoom}
-//               />
-
-//               <ul
-//                 className="img-feature-list d-flex justify-content-between"
-//                 style={controlBarStyle}
-//               >
-//                 <li onClick={rotateLeft} className="cursor-pointer">
-//                   <GrRotateLeft className="me-1 text-grey" />
-//                   Rotate
-//                 </li>
-
-//                 <li onClick={zoomIn} className="cursor-pointer">
-//                   <IoAddCircleOutline className="me-1 text-grey" />
-//                   Zoom In
-//                 </li>
-
-//                 <li onClick={zoomOut} className="cursor-pointer">
-//                   <IoRemoveCircleOutline className="me-1 text-grey" />
-//                   Zoom Out
-//                 </li>
-//               </ul>
-//             </div>
-
-//             <button
-//               className="btn btn_gradient text-uppercase fs-16 w-100 mt-3"
-//               onClick={handleSave}
-//             >
-//               Save
-//             </button>
-//           </div>
-//         </div>
-//       </Modal.Body>
-//     </Modal>
-//   );
-// };
-
-// export default EditProfilePhoto;
