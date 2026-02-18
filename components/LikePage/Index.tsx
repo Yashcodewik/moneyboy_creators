@@ -321,7 +321,7 @@
                         <div className="creater-content-filters-layouts">
                           <div className="creator-content-select-filter">
                             <CustomSelect
-                              className="bg-white p-sm size-sm"
+                              className="bg-white p-sm size-sm optionsright"
                               label="All Time"
                               value={time}   
                               searchable={false}

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import Link from "next/link";
@@ -18,6 +18,8 @@ import {
 } from "@/utils/api/APIConstant";
 import { countryOptions, genderOptions } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
+import { CalendarDays } from "lucide-react";
+import DatePicker from "react-datepicker";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -145,6 +147,44 @@ const UserEditProfilePage = () => {
       ShowToast(error?.message || "Failed to toggle account", "error");
     }
   };
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [open, setOpen] = useState(false);
+
+  /* close when clicking outside */
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      // ignore clicks inside calendar or custom select dropdown
+      if (
+        target.closest(".calendar-dropdown") ||
+        target.closest(".react-datepicker") ||
+        target.closest(".custom-select-menu")
+      ) {
+        return;
+      }
+
+      setOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  /* month + year dropdown */
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ].map((m, i) => ({ label: m, value: i.toString() }));
+
+  const years = Array.from({ length: 100 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { label: year.toString(), value: year.toString() };
+  });
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
@@ -157,17 +197,15 @@ const UserEditProfilePage = () => {
               <span className="icons arrowLeft hwhite"></span>
             </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${
-                tab === 0 ? "active" : ""
-              }`}
+              className={`page-content-type-button active-down-effect ${tab === 0 ? "active" : ""
+                }`}
               onClick={() => setTab(0)}
             >
               basic information
             </button>
             <button
-              className={`page-content-type-button active-down-effect ${
-                tab === 1 ? "active" : ""
-              }`}
+              className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""
+                }`}
               onClick={() => setTab(1)}
             >
               Account and security
@@ -185,7 +223,7 @@ const UserEditProfilePage = () => {
                           coverFile
                             ? URL.createObjectURL(coverFile)
                             : userProfile.coverImage ||
-                              "/images/profile-banners/profile-banner-10.png"
+                            "/images/profile-banners/profile-banner-10.png"
                         }
                         alt="Creator Profile Banner Image"
                       />
@@ -203,7 +241,7 @@ const UserEditProfilePage = () => {
                       />
 
                       <label htmlFor="coverUpload" className="imgicons"
-                       style={{ cursor: "pointer" }}>
+                        style={{ cursor: "pointer" }}>
                         <TbCamera size="16" />
                       </label>
                     </div>
@@ -219,7 +257,7 @@ const UserEditProfilePage = () => {
                                     profileFile
                                       ? URL.createObjectURL(profileFile)
                                       : userProfile.profile ||
-                                        "/images/profile-avatars/profile-avatar-13.jpg"
+                                      "/images/profile-avatars/profile-avatar-13.jpg"
                                   }
                                   alt="MoneyBoy Social Profile Avatar"
                                 />
@@ -319,88 +357,38 @@ const UserEditProfilePage = () => {
                             />
                           </div>
 
-                          <CustomSelect
-                            label="Select Your Gender"
-                            icon={<svg className="icons groupUser svg-icon" />}
-                            options={genderOptions}
-                            value={formData.gender || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, gender: val })
-                            }
-                          />
+                          <CustomSelect label="Select Your Gender" icon={<svg className="icons groupUser svg-icon" />} options={genderOptions} value={formData.gender || ""} onChange={(val) => setFormData({ ...formData, gender: val })} />
 
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons bookmarkIcon svg-icon"></i>
-                            </div>
-                            <input
-                              type="date"
-                              placeholder="Date of Birth (DD/MM/YYYY) *"
-                              value={formData.dob || ""}
-                              max={minAdultDate}
-                              onChange={(e) => {
-                                const selectedDate = e.target.value;
-
-                                if (selectedDate > minAdultDate) {
-                                  alert("You must be at least 18 years old");
-                                  return;
-                                }
-
-                                setFormData({
-                                  ...formData,
-                                  dob: selectedDate,
-                                });
-                              }}
-                            />
+                          <div className="label-input calendar-dropdown" ref={wrapperRef}>
+                            <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
+                            <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={selectedDate ? selectedDate.toLocaleDateString("en-GB") : ""} onClick={(e) => { e.stopPropagation(); setOpen(true); }} />
+                            {open && (
+                              <div className="calendar_show shadow" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                                <DatePicker selected={selectedDate} inline renderCustomHeader={({ date, changeYear, changeMonth, }) => (
+                                  <div className="flex gap-5 select_wrap p-2" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                                    <CustomSelect options={months} searchable={false} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} />
+                                    <CustomSelect options={years} searchable={false} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} />
+                                  </div>
+                                )} onChange={(date: Date | null) => { setSelectedDate(date); setOpen(false); }} />
+                              </div>
+                            )}
                           </div>
 
-                          <CustomSelect
-                            label="United States of America *"
-                            icon={
-                              <img
-                                src="/images/united_flag.png"
-                                className="svg-icon"
-                              />
-                            }
-                            options={countryOptions}
-                            value={formData.country || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, country: val })
-                            }
-                          />
+                          {/* <div className="label-input">
+                            <div className="input-placeholder-icon"><i className="icons bookmarkIcon svg-icon"></i></div>
+                            <input type="date" placeholder="Date of Birth (DD/MM/YYYY) *" value={formData.dob || ""} max={minAdultDate} onChange={(e) => {const selectedDate = e.target.value; if (selectedDate > minAdultDate) {alert("You must be at least 18 years old"); return;} setFormData({...formData, dob: selectedDate,});}}/>
+                          </div> */}
+
+                          <CustomSelect label="United States of America *" icon={<img src="/images/united_flag.png" className="svg-icon"/>} options={countryOptions} value={formData.country || ""} onChange={(val) =>setFormData({ ...formData, country: val })}/>
 
                           <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <svg className="icons locationIcon svg-icon"></svg>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="City *"
-                              value={formData.city || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  city: e.target.value,
-                                })
-                              }
-                            />
+                            <div className="input-placeholder-icon"><svg className="icons locationIcon svg-icon"></svg></div>
+                            <input type="text" placeholder="City *" value={formData.city || ""} onChange={(e) => setFormData({...formData, city: e.target.value,})}/>
                           </div>
 
                           <div className="label-input textarea one">
-                            <div className="input-placeholder-icon">
-                              <svg className="icons messageUser svg-icon"></svg>
-                            </div>
-                            <textarea
-                              rows={4}
-                              placeholder="Bio"
-                              value={formData.bio || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  bio: e.target.value,
-                                })
-                              }
-                            />
+                            <div className="input-placeholder-icon"><svg className="icons messageUser svg-icon"></svg></div>
+                            <textarea rows={4} placeholder="Bio" value={formData.bio || ""} onChange={(e) => setFormData({...formData, bio: e.target.value,})}/>
                           </div>
                         </div>
                       </div>
@@ -408,12 +396,7 @@ const UserEditProfilePage = () => {
                   </div>
 
                   <div className="btm_btn one">
-                    <button
-                      className="premium-btn active-down-effect"
-                      onClick={handleUpdateProfile}
-                    >
-                      <span>Save changes</span>
-                    </button>
+                    <button className="premium-btn active-down-effect" onClick={handleUpdateProfile}><span>Save changes</span></button>
                   </div>
                 </>
               )}
@@ -428,37 +411,13 @@ const UserEditProfilePage = () => {
                           <div className="input-placeholder-icon">
                             <i className="icons message svg-icon"></i>
                           </div>
-                          <input
-                            type="text"
-                            value={userProfile?.email || ""}
-                            readOnly
-                          />
-
-                          <span className="righttext">
-                            {userProfile?.status === 5
-                              ? "Verified"
-                              : "Unverified"}
-                          </span>
+                          <input type="text" value={userProfile?.email || ""} readOnly/>
+                          <span className="righttext">{userProfile?.status === 5 ? "Verified" : "Unverified"}</span>
                         </div>
                         <div className="label-input password">
-                          <div className="input-placeholder-icon">
-                            <i className="icons lock svg-icon"></i>
-                          </div>
-                          <input
-                            type={showPass ? "text" : "password"}
-                            placeholder="Password *"
-                            value={passwordData.password}
-                            onChange={(e) =>
-                              setPasswordData({
-                                ...passwordData,
-                                password: e.target.value,
-                              })
-                            }
-                          />
-                          <span
-                            onClick={() => setShowPass(!showPass)}
-                            className="input-placeholder-icon eye-icon"
-                          >
+                          <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
+                          <input type={showPass ? "text" : "password"} placeholder="Password *" value={passwordData.password} onChange={(e) => setPasswordData({...passwordData,password: e.target.value,})}/>
+                          <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon">
                             {showPass ? (
                               <i className="icons eye-slash svg-icon"></i>
                             ) : (
@@ -512,11 +471,10 @@ const UserEditProfilePage = () => {
                           </p>
                         </div>
                         <button
-                          className={`btn-danger ${
-                            userProfile?.status === UserStatus.SELF_DEACTIVATED
-                              ? "reactivate-btn"
-                              : ""
-                          }`}
+                          className={`btn-danger ${userProfile?.status === UserStatus.SELF_DEACTIVATED
+                            ? "reactivate-btn"
+                            : ""
+                            }`}
                           onClick={handleToggleAccount}
                         >
                           {userProfile?.status === UserStatus.SELF_DEACTIVATED

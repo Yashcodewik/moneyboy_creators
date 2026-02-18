@@ -242,10 +242,8 @@ const handleFilterChange = (filterName: string, value: string) => {
                   <CustomSelect
                     label="Featured"
                     options={featureOptions}
-                   value={filterValues.feature || "all"}
-                    onChange={(value) =>
-                      handleFilterChange("feature", value as string)
-                    }
+                    value={filterValues.feature || "all"}
+                    onChange={(value) =>handleFilterChange("feature", value as string)}
                     icon={
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
