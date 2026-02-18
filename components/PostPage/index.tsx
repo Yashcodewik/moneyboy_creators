@@ -5,30 +5,21 @@ import Link from "next/link";
 import CustomSelect from "../CustomSelect";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiPost, getApiByParams } from "@/utils/endpoints/common";
-import {
-  API_GET_POST_BY_PUBLIC_ID,
-  API_LIKE_POST,
-  API_SAVE_POST,
-  API_UNLIKE_POST,
-  API_UNSAVE_POST,
-} from "@/utils/api/APIConstant";
+import { API_GET_POST_BY_PUBLIC_ID, API_LIKE_POST, API_SAVE_POST, API_UNLIKE_POST, API_UNSAVE_POST, } from "@/utils/api/APIConstant";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
-import {
-  dislikeComment,
-  fetchComments,
-  likeComment,
-} from "../../redux/other/commentSlice";
+import { dislikeComment, fetchComments, likeComment, } from "../../redux/other/commentSlice";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { addComment } from "../../redux/other/commentSlice";
 import ReportModal from "../ReportModal";
 import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 const PostPage = () => {
   const router = useRouter();
@@ -54,12 +45,47 @@ const PostPage = () => {
   const [likeLoading, setLikeLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const dispatch = useAppDispatch();
+  const isMobile = useDeviceType();
 
+  const desktopStyle: React.CSSProperties = {
+    transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
+    height: open ? "auto" : "0px",
+    opacity: open ? 1 : 0,
+    display: open ? "block" : "none",
+    overflow: "visible",
+    left: "auto",
+    transition: "all 0.2s ease",
+  };
+  const mobileStyle: React.CSSProperties = {
+    position: "fixed",
+    left: "0%",
+    bottom: "25px",
+    width: "100%",
+    zIndex: 1000,
+    transform: open ? "translate(0px, 0px)" : "translate(0px, 100%)",
+    height: open ? "auto" : "0px",
+    opacity: 1,
+    display: open ? "block" : "none",
+    overflow: "hidden",
+    transition: "transform 0.25s ease",
+  };
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const overlay = document.querySelector(".mobile-popup-overlay");
+    if (!overlay) return;
+    if (open) {
+      overlay.classList.add("active");
+    } else {
+      overlay.classList.remove("active");
+    }
+    return () => {
+      overlay.classList.remove("active");
+    };
+  }, [open, isMobile]);
   const [showComment, setShowComment] = useState(false);
-
   const commentsState = useAppSelector((state) => state.comments);
   const postComments = commentsState.comments[post?._id] || [];
-
   useEffect(() => {
     if (showComment && post?._id) {
       dispatch(fetchComments(post._id));
@@ -68,7 +94,6 @@ const PostPage = () => {
 
   useEffect(() => {
     if (!publicId) return;
-
     const fetchPost = async () => {
       try {
         const data = await apiPost({
@@ -88,20 +113,16 @@ const PostPage = () => {
         setLoading(false);
       }
     };
-
     fetchPost();
   }, [publicId, (session?.user as any)?.id || ""]);
-
   const formatRelativeTime = (dateString: string) => {
     const postDate = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - postDate.getTime();
-
     const seconds = Math.floor(diffMs / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-
     if (seconds < 60) return "just now";
     if (minutes < 60) return `${minutes} min ago`;
     if (hours < 24) return `${hours} hr ago`;
@@ -110,7 +131,6 @@ const PostPage = () => {
       return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
     if (days < 365)
       return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
-
     return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
   };
 
@@ -147,9 +167,7 @@ const PostPage = () => {
   const handleSave = async () => {
     if (!isLoggedIn) return router.push("/login");
     if (saveLoading) return;
-
     setSaveLoading(true);
-
     setPost((prev: any) => ({
       ...prev,
       isSaved: !prev.isSaved,
@@ -238,7 +256,6 @@ const PostPage = () => {
         setShowEmojiPicker(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -279,46 +296,24 @@ const PostPage = () => {
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container">
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            <button className="page-content-type-button active-down-effect active">
-              Feed
-            </button>
-            <button className="page-content-type-button active-down-effect">
-              Following
-            </button>
-            <button className="page-content-type-button active-down-effect">
-              Popular
-            </button>
+          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            <button className="page-content-type-button active-down-effect active">Feed</button>
+            <button className="page-content-type-button active-down-effect">Following</button>
+            <button className="page-content-type-button active-down-effect">Popular</button>
           </div>
           <div className="moneyboy-posts-wrapper">
             {/* ================= Post ================= */}
             <div className="moneyboy-post__container card">
               <div className="moneyboy-post__header">
-                <a
-  href={`/profile/${post?.creatorInfo?.publicId}`}
-  className="profile-card"
-  onClick={(e) => {
-    e.preventDefault(); // 🚀 prevent full page reload
-    router.push(`/profile/${post?.creatorInfo?.publicId}`);
-  }}
->
+                <a href={`/profile/${post?.creatorInfo?.publicId}`} className="profile-card" onClick={(e) => { e.preventDefault(); router.push(`/profile/${post?.creatorInfo?.publicId}`); }}>
                   <div className="profile-card__main">
                     <div className="profile-card__avatar-settings">
                       <div className="profile-card__avatar">
                         {post?.creatorInfo?.profile?.trim() ? (
-                          <img
-                            src={post.creatorInfo.profile}
-                            alt={
-                              post?.creatorInfo?.displayName || "Profile Avatar"
-                            }
-                            onError={(e) => {
-                              (
-                                e.currentTarget as HTMLImageElement
-                              ).style.display = "none";
-                            }}
+                          <img src={post.creatorInfo.profile} alt={post?.creatorInfo?.displayName || "Profile Avatar"} onError={(e) => {
+                            (e.currentTarget as HTMLImageElement
+                            ).style.display = "none";
+                          }}
                           />
                         ) : (
                           <div className="noprofile">
@@ -406,41 +401,13 @@ const PostPage = () => {
                       </svg>
                     </button>
 
-                    <div
-                      ref={menuRef}
-                      className="rel-users-more-opts-popup-wrapper"
-                      style={{
-                        transform: open
-                          ? "translate(0px, 0px)"
-                          : "translate(0px, -10px)",
-                        height: open ? "auto" : "0px",
-                        opacity: open ? 1 : 0,
-                        display: open ? "block" : "none",
-                        overflow: "visible",
-                        left: "auto",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
+                    <div ref={menuRef} className="rel-users-more-opts-popup-wrapper" style={isMobile ? mobileStyle : desktopStyle}>
                       <div className="rel-users-more-opts-popup-container">
                         <ul>
-                          <li
-                            onClick={handleCopy}
-                            className="copy-post-link"
-                            data-copy-post-link="inset-post-link-here"
-                          >
+                          <li onClick={handleCopy} className="copy-post-link" data-copy-post-link="inset-post-link-here">
                             <div className="icon copy-link-icon">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                ></path>
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"></path>
                               </svg>
                             </div>
                             <span>{copied ? "Copied!" : "Copy Link"}</span>
@@ -871,21 +838,13 @@ const PostPage = () => {
                       <p>{comment.comment}</p>
                     </div>
 
-                    <div
-                      className="like-deslike-wrap"
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <ul style={{ display: "flex", gap: "10px" }}>
+                    <div className="like-deslike-wrap">
+                      <ul>
                         <li>
                           <Link
                             href="#"
-                            className={`comment-like-btn ${
-                              comment.isLiked ? "active" : ""
-                            }`}
+                            className={`comment-like-btn ${comment.isLiked ? "active" : ""
+                              }`}
                             onClick={(e) => {
                               e.preventDefault();
                               dispatch(likeComment({ commentId: comment._id }));
@@ -898,9 +857,8 @@ const PostPage = () => {
                         <li>
                           <Link
                             href="#"
-                            className={`comment-dislike-btn ${
-                              comment.isDisliked ? "active" : ""
-                            }`}
+                            className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""
+                              }`}
                             onClick={(e) => {
                               e.preventDefault();
                               dispatch(
