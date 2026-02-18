@@ -106,9 +106,10 @@ const EditProfilePage = () => {
         (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
           const value = values[key];
 
-          if (value !== null && value !== undefined) {
-            payload.append(key, String(value));
-          }
+         if (value !== "" && value !== null && value !== undefined) {
+  payload.append(key, value as any);
+}
+
         });
 
         if (profileFile) payload.append("profile", profileFile);
@@ -554,9 +555,7 @@ const EditProfilePage = () => {
                                     maxDate={maxAllowedDate}
                                     onChange={(date: Date | null) => {
                                       if (date) {
-                                        const formattedDate = date
-                                          .toISOString()
-                                          .split("T")[0];
+                                      const formattedDate = date.toISOString();
                                         formik.setFieldValue(
                                           "dob",
                                           formattedDate,
@@ -842,3 +841,154 @@ const EditProfilePage = () => {
 };
 
 export default EditProfilePage;
+
+
+
+
+// "use client";
+
+// import React, { useEffect, useState, useCallback } from "react";
+// import { Modal } from "react-bootstrap";
+// import { GrRotateLeft } from "react-icons/gr";
+// import { IoAddCircleOutline, IoRemoveCircleOutline } from "react-icons/io5";
+// import Cropper, { Area } from "react-easy-crop";
+// import getCroppedImg from "@/libs/cropImage";
+
+// interface EditProfilePhotoProps {
+//   show: boolean;
+//   handleClose: () => void;
+//   handleImageImport: (croppedImage: string | null) => void;
+//   imagePreview?: string;
+// }
+
+// const EditProfilePhoto = ({
+//   show,
+//   handleClose,
+//   handleImageImport,
+//   imagePreview,
+// }: EditProfilePhotoProps) => {
+//   const [image, setImage] = useState<string>("/assets/img/list-img1.jpg");
+//   const [crop, setCrop] = useState({ x: 0, y: 0 });
+//   const [rotation, setRotation] = useState<number>(0);
+//   const [zoom, setZoom] = useState<number>(1);
+//   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+//   // -------------------------
+//   // Handlers
+//   // -------------------------
+
+//   const zoomIn = () => setZoom((prev) => Math.min(prev + 0.2, 3));
+//   const zoomOut = () => setZoom((prev) => Math.max(prev - 0.2, 1));
+
+//   const rotateLeft = () => {
+//     setRotation((prev) => (prev - 90 + 360) % 360);
+//   };
+
+//   const onCropComplete = useCallback(
+//     (_: Area, croppedPixels: Area) => {
+//       setCroppedAreaPixels(croppedPixels);
+//     },
+//     []
+//   );
+
+//   useEffect(() => {
+//     if (imagePreview) {
+//       setImage(imagePreview);
+//     }
+//   }, [imagePreview]);
+
+//   const handleSave = async () => {
+//     if (!croppedAreaPixels) return;
+
+//     try {
+//       const croppedImage = await getCroppedImg(
+//         image,
+//         croppedAreaPixels,
+//         rotation
+//       );
+//       handleImageImport(croppedImage);
+//       handleClose();
+//     } catch (error) {
+//       console.error("Error while cropping image:", error);
+//     }
+//   };
+
+//   // -------------------------
+//   // Styles
+//   // -------------------------
+
+//   const controlBarStyle: React.CSSProperties = {
+//     position: "absolute",
+//     bottom: "10px",
+//     left: "50%",
+//     transform: "translateX(-50%)",
+//     width: "80%",
+//     background: "rgba(0, 0, 0, 0.6)",
+//     borderRadius: "6px",
+//     padding: "10px 0",
+//     zIndex: 10,
+//     listStyle: "none",
+//     margin: 0,
+//     color: "#fff",
+//   };
+
+//   return (
+//     <Modal show={show} onHide={handleClose} centered className="common-modal">
+//       <Modal.Body>
+//         <div className="row justify-content-center">
+//           <div className="col-md-12 col-lg-11">
+//             <h3 className="fw-semibold heading3 mb-3 text-center text-uppercase">
+//               Edit Profile Photo
+//             </h3>
+
+//             <div
+//               className="change_pro_wrap"
+//               style={{ position: "relative", height: 400 }}
+//             >
+//               <Cropper
+//                 image={image}
+//                 crop={crop}
+//                 rotation={rotation}
+//                 zoom={zoom}
+//                 aspect={4 / 3}
+//                 onCropChange={setCrop}
+//                 onRotationChange={setRotation}
+//                 onCropComplete={onCropComplete}
+//                 onZoomChange={setZoom}
+//               />
+
+//               <ul
+//                 className="img-feature-list d-flex justify-content-between"
+//                 style={controlBarStyle}
+//               >
+//                 <li onClick={rotateLeft} className="cursor-pointer">
+//                   <GrRotateLeft className="me-1 text-grey" />
+//                   Rotate
+//                 </li>
+
+//                 <li onClick={zoomIn} className="cursor-pointer">
+//                   <IoAddCircleOutline className="me-1 text-grey" />
+//                   Zoom In
+//                 </li>
+
+//                 <li onClick={zoomOut} className="cursor-pointer">
+//                   <IoRemoveCircleOutline className="me-1 text-grey" />
+//                   Zoom Out
+//                 </li>
+//               </ul>
+//             </div>
+
+//             <button
+//               className="btn btn_gradient text-uppercase fs-16 w-100 mt-3"
+//               onClick={handleSave}
+//             >
+//               Save
+//             </button>
+//           </div>
+//         </div>
+//       </Modal.Body>
+//     </Modal>
+//   );
+// };
+
+// export default EditProfilePhoto;

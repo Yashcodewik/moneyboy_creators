@@ -69,6 +69,9 @@ const FollowersPage = () => {
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Follower[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
+  const [followersLoading, setFollowersLoading] = useState(false);
+const [followingLoading, setFollowingLoading] = useState(false);
+const [creatorsLoading, setCreatorsLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -204,28 +207,28 @@ const FollowersPage = () => {
     fetchAllData();
   }, []);
 
-  const fetchCreators = async (pageNo = 1) => {
-    setLoading(true);
+const fetchCreators = async (pageNo = 1) => {
+  setCreatorsLoading(true);
 
-    const res = await getApiWithOutQuery({
-      url: `${API_TRENDING_CREATORS}?page=${pageNo}`,
-    });
+  const res = await getApiWithOutQuery({
+    url: `${API_TRENDING_CREATORS}?page=${pageNo}`,
+  });
 
-    if (res?.success) {
-      // 👇 map API response to match UI expectations
-      const creatorsWithStatus = res.data.map((creator: any) => ({
-        ...creator,
-        _id: creator.creatorUserId, // 👈 normalize id
-        isFollowing: creator.isFollowing, // default (sync will update later)
-      }));
+  if (res?.success) {
+    const creatorsWithStatus = res.data.map((creator: any) => ({
+      ...creator,
+      _id: creator.creatorUserId,
+      isFollowing: creator.isFollowing,
+    }));
 
-      setCreators(creatorsWithStatus);
-      setPage(res.meta?.page || 1);
-      setTotalPages(res.meta?.totalPages || 1);
-    }
+    setCreators(creatorsWithStatus);
+    setPage(res.meta?.page || 1);
+    setTotalPages(res.meta?.totalPages || 1);
+  }
 
-    setLoading(false);
-  };
+  setCreatorsLoading(false);
+};
+
 
   const handleBlockUser = async (userId: string) => {
     try {
@@ -258,8 +261,8 @@ const FollowersPage = () => {
     }
   };
 
-  const fetchFollowers = async (pageNo = 1, search = "") => {
-    setLoading(true);
+const fetchFollowers = async (pageNo = 1, search = "") => {
+  setFollowersLoading(true);
     try {
       const res = await getApi({
         url: API_GET_FOLLOWERS,
@@ -282,12 +285,12 @@ const FollowersPage = () => {
       console.error("Error fetching followers:", error);
       // ShowToast("Failed to load followers", "error");
     } finally {
-      setLoading(false);
+      setFollowersLoading(false);
     }
   };
 
   const fetchFollowing = async (pageNo = 1, search = "") => {
-    setLoading(true);
+    setFollowingLoading(true);
     try {
       const res = await getApi({
         url: API_GET_FOLLOWING,
@@ -317,7 +320,7 @@ const FollowersPage = () => {
       console.error("Error fetching following:", error);
       // ShowToast("Failed to load following", "error");
     } finally {
-      setLoading(false);
+      setFollowingLoading(false);
     }
   };
 
@@ -694,7 +697,7 @@ const FollowersPage = () => {
   };
 
   const renderFollowersList = () => {
-    if (loading && followers.length === 0) {
+    if (followersLoading && followers.length === 0) {
       return (
         <div className="loadingtext">
           {"Loading".split("").map((char, i) => (
@@ -1094,7 +1097,7 @@ const FollowersPage = () => {
   };
 
   const renderFollowingList = () => {
-    if (loading && following.length < 0) {
+    if (followingLoading && following.length === 0) {
       return (
         <div className="loadingtext">
           {"Loading".split("").map((char, i) => (
@@ -1471,7 +1474,7 @@ const FollowersPage = () => {
                 <h3 className="card-heading">Trending Moneyboys</h3>
               </div>
               <div className="featured-card-opts">
-                <button className="icon-btn hover-scale-icon">
+                <button className="icon-btn hover-scale-icon" onClick={() => fetchCreators(page)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -1552,7 +1555,17 @@ const FollowersPage = () => {
             </div>
 
             <div className="featured-profiles-wrapper rel-users-wrapper">
-              {creators.map((creator) => (
+                {creatorsLoading && (
+    <div className="loadingtext">
+      {"Loading".split("").map((char, i) => (
+        <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+          {char}
+        </span>
+      ))}
+    </div>
+  )}
+
+  {!creatorsLoading && creators.map((creator) => (
                 <div className="rel-user-box" key={creator._id}>
                   <div className="rel-user-profile-action">
                     <div className="rel-user-profile">
