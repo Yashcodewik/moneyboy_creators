@@ -36,6 +36,7 @@ const UserEditProfilePage = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
   const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [passwordData, setPasswordData] = useState({
     password: "",
