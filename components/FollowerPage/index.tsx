@@ -688,7 +688,7 @@ const fetchFollowers = async (pageNo = 1, search = "") => {
         <button
           className="btn-next"
           disabled={page === totalPages}
-          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          onClick={() => fetchFollowing(page + 1, followingSearchQuery)}
         >
           <CircleArrowRight color="#000" />
         </button>

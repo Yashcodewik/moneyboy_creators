@@ -6,15 +6,32 @@ import { Navigation } from "swiper/modules";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import {ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, X,} from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  X,
+} from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
-import {addComment, dislikeComment, fetchComments, likeComment,} from "../../redux/other/commentSlice";
+import {
+  addComment,
+  dislikeComment,
+  fetchComments,
+  likeComment,
+} from "../../redux/other/commentSlice";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 
-interface PostCardProps {post: any; onLike: (postId: string) => void; onSave: (postId: string, isSaved: boolean) => void; onCommentAdded?: (postId: string) => void;}
+interface PostCardProps {
+  post: any;
+  onLike: (postId: string) => void;
+  onSave: (postId: string, isSaved: boolean) => void;
+  onCommentAdded?: (postId: string) => void;
+}
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { ArrowUpRight, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -34,6 +51,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [showComment, setShowComment] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
   const isMobile = useDeviceType();
+  const playerRefs = useRef<Record<string, any>>({});
   const dispatch = useAppDispatch();
   const commentsState = useAppSelector((state) => state.comments);
   const postComments = commentsState.comments[post._id] || [];
@@ -204,6 +222,31 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    Object.values(playerRefs.current).forEach((ref: any) => {
+      if (!ref?.plyr) return;
+
+      const player = ref.plyr;
+
+      const onEnter = () => {
+        player.muted = true; // required for mobile autoplay
+        player.play();
+      };
+
+      const onExit = () => {
+        player.pause();
+      };
+
+      player.on("enterfullscreen", onEnter);
+      player.on("exitfullscreen", onExit);
+
+      return () => {
+        player.off("enterfullscreen", onEnter);
+        player.off("exitfullscreen", onExit);
+      };
+    });
+  }, []);
+
   const handleVideoClick = (
     e: React.MouseEvent<HTMLVideoElement>,
     videoId: string,
@@ -345,12 +388,19 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
 
               <div className="profile-card__info">
                 <div className="profile-card__name-badge">
-                  <div className="profile-card__name">{post.creatorInfo?.userName}</div>
+                  <div className="profile-card__name">
+                    {post.creatorInfo?.userName}
+                  </div>
                   <div className="profile-card__badge">
-                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge"/>
+                    <img
+                      src="/images/logo/profile-badge.png"
+                      alt="MoneyBoy Social Profile Badge"
+                    />
                   </div>
                 </div>
-                <div className="profile-card__username">@{post.creatorInfo?.displayName}</div>
+                <div className="profile-card__username">
+                  @{post.creatorInfo?.displayName}
+                </div>
               </div>
             </div>
           </div>
@@ -359,17 +409,47 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               {formatRelativeTime(post.createdAt)}
             </div>
             <div className="rel-user-more-opts-wrapper">
-              <button ref={buttonRef} className="rel-user-more-opts-trigger-icon" onClick={() => setOpen((prev) => !prev)}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                  <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" stroke="none" stroke-width="1.5"></path>
-                  <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" stroke="none" stroke-width="1.5"></path>
-                  <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" stroke="none" stroke-width="1.5"></path>
+              <button
+                ref={buttonRef}
+                className="rel-user-more-opts-trigger-icon"
+                onClick={() => setOpen((prev) => !prev)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="25"
+                  viewBox="0 0 24 25"
+                  fill="none"
+                >
+                  <path
+                    d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
+                    stroke="none"
+                    stroke-width="1.5"
+                  ></path>
+                  <path
+                    d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
+                    stroke="none"
+                    stroke-width="1.5"
+                  ></path>
+                  <path
+                    d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
+                    stroke="none"
+                    stroke-width="1.5"
+                  ></path>
                 </svg>
               </button>
-              <div ref={menuRef} className="rel-users-more-opts-popup-wrapper" style={isMobile ? mobileStyle : desktopStyle}>
+              <div
+                ref={menuRef}
+                className="rel-users-more-opts-popup-wrapper"
+                style={isMobile ? mobileStyle : desktopStyle}
+              >
                 <div className="rel-users-more-opts-popup-container">
                   <ul>
-                    <li onClick={handleCopy} className="copy-post-link" data-copy-post-link="inset-post-link-here">
+                    <li
+                      onClick={handleCopy}
+                      className="copy-post-link"
+                      data-copy-post-link="inset-post-link-here"
+                    >
                       <div className="icon copy-link-icon">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -438,9 +518,31 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                     <SwiperSlide key={i}>
                       {isVideo ? (
                         <Plyr
+                          ref={(ref: any) => {
+                            if (!ref) return;
+
+                            // Support both ref shapes
+                            const player = ref.plyr || ref;
+
+                            if (!player || typeof player.on !== "function")
+                              return;
+
+                            // prevent duplicate binding
+                            if (player.__eventsBound) return;
+                            player.__eventsBound = true;
+
+                            player.on("enterfullscreen", () => {
+                              player.muted = true; // required for mobile autoplay
+                              player.play();
+                            });
+
+                            player.on("exitfullscreen", () => {
+                              player.pause();
+                            });
+                          }}
                           source={{
                             type: "video",
-                            sources: [{ src: firstMedia, type: "video/mp4" }],
+                            sources: [{ src: file, type: "video/mp4" }],
                           }}
                           options={{
                             controls: [
