@@ -1199,6 +1199,58 @@ body {
   }
 }
 
+.btntooltip_wrapper {
+  display: flex;
+  gap: 6px;
+  position: relative;
+  button[data-tooltip] {
+    position: relative;
+    z-index: 1;
+    &::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: #1f1f1f;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-normal);
+      z-index: 9999;
+    }
+    &::before {
+      content: "";
+      position: absolute;
+      border-width: 5px;
+      border-style: solid;
+      opacity: 0;
+      z-index: 99;
+      bottom: calc(100% + -2px);
+      left: 50%;
+      transform: translateX(-50%);
+      border-color: #1f1f1f transparent transparent transparent;
+      transition: var(--transition-normal);
+    }
+    &:hover::after, &:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+  @media (hover: none) {
+    button[data-tooltip]:active::after,
+    button[data-tooltip]:active::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+}
+
 .rc-anchor {
  background-color: red !important;
 }
@@ -3680,11 +3732,11 @@ body {
       }
     }
     &.imgcrop-modal {
-      padding: 40px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 15px;
-      max-width: 550px;
+      max-width: 500px;
       .close-btn {
         position: absolute;
         top: 20px;
@@ -3697,10 +3749,16 @@ body {
       }
       .img_wrap {
         width: 100%;
-        max-width: 300px;
+        max-width: 400px;
         aspect-ratio: 1;
         margin: 0 auto;
+        position: relative;
+        border-radius: inherit;
+        .reactEasyCrop_Container {
+          border-radius: inherit;
+        }
         img {
+          border-radius: inherit;
           aspect-ratio: 1;
           width: 100%;
           height: 100%;
@@ -3712,6 +3770,22 @@ body {
           display: block;
         }
       }
+      .controlers_wrap {
+        gap: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        button {
+          width: 24px;
+          height: 24px;
+          display: grid;
+          place-items: center;
+          transition: var(--transition-fast);
+          svg {
+            max-width: 20px;
+          }
+        }
+      }
       .actions {
         gap: 10px;
         display: flex;
@@ -3721,7 +3795,7 @@ body {
         button {
           cursor: pointer;
           width: 100%;
-          max-width: 30%;
+          max-width: 50%;
           padding: 14px 8px;
           border-radius: 14px;
           height: -webkit-fill-available;
@@ -6288,7 +6362,7 @@ body {
             &.wishlist-icon {
               margin-left: auto;
 
-              &:hover {
+              &:hover, &.active {
                 svg {
                   path {
                     &:nth-child(1) {

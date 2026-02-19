@@ -833,12 +833,7 @@ const EditProfilePage = () => {
                           </div>
                         </div>
                         <div className="btm_btn ">
-                          <button
-                            type="submit"
-                            className="premium-btn active-down-effect"
-                            onClick={() => formik.handleSubmit()}
-                            disabled={loading}
-                          >
+                          <button type="submit" className="premium-btn active-down-effect" onClick={() => formik.handleSubmit()} disabled={loading}>
                             <span>Save Changes</span>
                           </button>
                         </div>
@@ -857,13 +852,8 @@ const EditProfilePage = () => {
       </div>
 
       {/* Modal Start */}
-      {/* <ImageCropModal
-        show={cropOpen}
-        image={cropImage}
-        aspect={cropType === "cover" ? 16 / 6 : 1}
-        onClose={() => setCropOpen(false)}
-        onSave={handleCropSave}
-      /> */}
+      <ImageCropModal show={cropOpen} image={cropImage} aspect={cropType === "cover" ? 16 / 6 : 1} onClose={() => setCropOpen(false)} onSave={handleCropSave} />
+
       {/* <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <form className="modal-wrap imgcrop-modal">
           <button className="close-btn"><CgClose size={22} /></button>
