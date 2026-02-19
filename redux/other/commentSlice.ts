@@ -86,18 +86,72 @@ const commentSlice = createSlice({
           if (comment) comment.replies.push(action.payload.reply);
         }
       })
-      .addCase(likeComment.fulfilled, (state, action) => {
-        for (const postId in state.comments) {
-          const index = state.comments[postId].findIndex((c) => c._id === action.payload.commentId);
-          if (index > -1) state.comments[postId][index] = action.payload.updatedComment;
-        }
-      })
-      .addCase(dislikeComment.fulfilled, (state, action) => {
-        for (const postId in state.comments) {
-          const index = state.comments[postId].findIndex((c) => c._id === action.payload.commentId);
-          if (index > -1) state.comments[postId][index] = action.payload.updatedComment;
-        }
-      });
+  // 🔥 LIKE COMMENT (instant UI update)
+.addCase(likeComment.pending, (state, action) => {
+  const { commentId } = action.meta.arg;
+
+  for (const postId in state.comments) {
+    const comment = state.comments[postId].find(c => c._id === commentId);
+    if (comment) {
+      if (comment.isLiked) {
+        comment.isLiked = false;
+        comment.likeCount = Math.max(0, (comment.likeCount || 1) - 1);
+      } else {
+        comment.isLiked = true;
+        comment.isDisliked = false;
+        comment.likeCount = (comment.likeCount || 0) + 1;
+      }
+    }
+  }
+})
+
+// keep backend sync
+.addCase(likeComment.fulfilled, (state, action) => {
+  const { commentId, updatedComment } = action.payload;
+
+  for (const postId in state.comments) {
+    const index = state.comments[postId].findIndex(c => c._id === commentId);
+    if (index > -1 && updatedComment) {
+      state.comments[postId][index] = {
+        ...state.comments[postId][index],
+        ...updatedComment,
+      };
+    }
+  }
+})
+
+
+// 🔥 DISLIKE COMMENT (instant UI update)
+.addCase(dislikeComment.pending, (state, action) => {
+  const { commentId } = action.meta.arg;
+
+  for (const postId in state.comments) {
+    const comment = state.comments[postId].find(c => c._id === commentId);
+    if (comment) {
+      comment.isDisliked = !comment.isDisliked;
+
+      if (comment.isDisliked) {
+        comment.isLiked = false;
+      }
+    }
+  }
+})
+
+// keep backend sync
+.addCase(dislikeComment.fulfilled, (state, action) => {
+  const { commentId, updatedComment } = action.payload;
+
+  for (const postId in state.comments) {
+    const index = state.comments[postId].findIndex(c => c._id === commentId);
+    if (index > -1 && updatedComment) {
+      state.comments[postId][index] = {
+        ...state.comments[postId][index],
+        ...updatedComment,
+      };
+    }
+  }
+});
+
       
   },
 });
