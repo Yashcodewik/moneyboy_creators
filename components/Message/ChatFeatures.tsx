@@ -4,6 +4,14 @@ import React, { useRef, useState } from 'react'
 import toast from 'react-hot-toast';
 import CustomSelect from '../CustomSelect';
 import { CgClose } from 'react-icons/cg';
+import { useAppDispatch } from "@/redux/store";
+import {
+  muteThread,
+  hideThread,
+  deleteThread,
+  searchMessages,
+} from "@/redux/message/messageActions";
+
 
 const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
 }: {
@@ -19,20 +27,25 @@ const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const router = useRouter();
-  const handleDelete = async () => {
-    const res = await apiPost({ url: `/messages/thread/${threadPublicId}`, values: {}, });
-    if (res?.message) { toast.success(res.message); router.push("/message"); }
-  };
+  const dispatch = useAppDispatch();
 
-  const handleMute = async () => {
-    const res = await apiPost({ url: `/messages/thread/mute/${threadPublicId}`, values: {}, });
-    toast.success(res?.message);
-  };
+const handleDelete = async () => {
+  await dispatch(deleteThread(threadPublicId));
+  toast.success("Conversation deleted");
+  router.push("/message");
+};
 
-  const handleHide = async () => {
-    const res = await apiPost({ url: `/messages/thread/hide/${threadPublicId}`, values: {}, });
-    toast.success(res?.message);
-    router.replace("/message");
+
+const handleMute = async () => {
+  await dispatch(muteThread(threadPublicId));
+  toast.success("Conversation muted");
+};
+
+
+const handleHide = async () => {
+  await dispatch(hideThread(threadPublicId));
+  toast.success("Conversation hidden");
+  router.replace("/message");
   };
 
   const handleBlock = async () => {
@@ -44,16 +57,17 @@ const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
     toast.success(res?.message);
   };
 
-  const handleSearch = async () => {
-    const res = await getApi({
-      url: `/messages/thread/search/${threadPublicId}`,
-      page: 1,
-      rowsPerPage: 20,
+const handleSearch = async () => {
+  await dispatch(
+    searchMessages({
+      threadId: threadPublicId,
       searchText,
-    });
+    })
+  );
 
-    console.log(res.data);
-  };
+  onSearch(searchText); 
+};
+
 
   return (
     <div className="rel-users-more-opts-popup-container">

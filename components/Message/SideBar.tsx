@@ -3,13 +3,21 @@ import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
 import { getApi } from "@/utils/endpoints/common";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
+import { useAppSelector, useAppDispatch } from "@/redux/store";
+import { updateUserOnlineStatus } from "@/redux/message/messageSlice";
+
 
 const SideBar = ({ onSelectChat, activeThreadId }: any) => {
-  const [chatList, setChatList] = useState<any[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
   const threadIdFromUrl = searchParams.get("threadId");
   const [searchText, setSearchText] = useState("");
+  const dispatch = useAppDispatch();
+
+const { chatList } = useAppSelector(
+  (state) => state.message
+);
+
 
 const filteredChatList = useMemo(() => {
   if (!searchText.trim()) return chatList;
@@ -33,61 +41,36 @@ const filteredChatList = useMemo(() => {
     console.log("SIDEBAR DATA:", chatList);
   }, [chatList]);
 
-  useEffect(() => {
-    const handleOnline = ({ userId }: any) => {
-      console.log("ONLINE EVENT RECEIVED:", userId);
+useEffect(() => {
+  const handleOnline = ({ userId }: any) => {
+    dispatch(updateUserOnlineStatus({ userId, isOnline: true }));
+  };
 
-      setChatList(prev =>
-        prev.map(chat =>
-          chat.user.id === userId
-            ? { ...chat, user: { ...chat.user, isOnline: true } }
-            : chat
-        )
-      );
-    };
+  const handleOffline = ({ userId }: any) => {
+    dispatch(updateUserOnlineStatus({ userId, isOnline: false }));
+  };
 
-    const handleOffline = ({ userId }: any) => {
-      setChatList(prev =>
-        prev.map(chat =>
-          chat.user.id === userId
-            ? { ...chat, user: { ...chat.user, isOnline: false } }
-            : chat
-        )
-      );
-    };
+  socket.on("userOnline", handleOnline);
+  socket.on("userOffline", handleOffline);
 
-    socket.on("userOnline", handleOnline);
-    socket.on("userOffline", handleOffline);
-
-    return () => {
-      socket.off("userOnline", handleOnline);
-      socket.off("userOffline", handleOffline);
-    };
-  }, []);
+  return () => {
+    socket.off("userOnline", handleOnline);
+    socket.off("userOffline", handleOffline);
+  };
+}, [dispatch]);
 
 
-  useEffect(() => {
-    const fetchSidebar = async () => {
-      try {
-        const res = await getApi({
-          url: API_MESSAGE_SIDEBAR,
-          page: 1,
-          rowsPerPage: 50,
-          searchText: "",
-        });
-        setChatList(res);
-      } catch (err) {
-        console.error("Sidebar fetch failed", err);
-      }
-    };
-    fetchSidebar();
-  }, []);
 
-  useEffect(() => {
-    if (!threadIdFromUrl && chatList.length > 0) {
-      router.replace(`/message?threadId=${chatList[0].publicId}`);
+useEffect(() => {
+  if (!threadIdFromUrl && chatList.length > 0) {
+    const firstThread = chatList[0]?.publicId;
+
+    if (firstThread) {
+      router.replace(`/message?threadId=${firstThread}`);
     }
-  }, [chatList]);
+  }
+}, [chatList, threadIdFromUrl, router]);
+
 
   return (
     <div className="msg-profiles-layout">

@@ -16,16 +16,16 @@ import CustomSelect from "../CustomSelect";
 import toast from "react-hot-toast";
 import ChatFeatures from "./ChatFeatures";
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { CgClose } from "react-icons/cg";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { fetchMessages, fetchSidebar, sendMessageAction } from "@/redux/message/messageActions";
+import { addSocketMessage, markMessagesReadFromSocket, setActiveThread } from "@/redux/message/messageSlice";
 
 const MessagePage = () => {
-  const [activeChat, setActiveChat] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { session } = useDecryptedSession();
-  const [messages, setMessages] = useState<any[]>([]);
   const searchParams = useSearchParams();
   const threadPublicIdFromUrl = searchParams.get("threadId");
   const [activeUser, setActiveUser] = useState<any>(null);
@@ -49,8 +49,15 @@ const MessagePage = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const isMobile = useDeviceType();
+      const dispatch = useAppDispatch();
+const { messages, chatList, activeThreadId } = useAppSelector(
+  (state) => state.message
+);
+useEffect(() => {
+  dispatch(fetchSidebar());
+}, [dispatch]);
 
-  useEffect(() => { console.log("ACTIVE CHAT:", activeChat); console.log("ACTIVE USER:", activeUser); }, [activeChat, activeUser]);
+
   // ✅ LOG: Socket connection
   useEffect(() => {
     console.log("🔌 Socket connected:", socket.connected);
@@ -85,122 +92,64 @@ const MessagePage = () => {
 
     return () => clearInterval(interval);
   }, [session?.user?.id]);
-  useEffect(() => {
-    const handler = (message: any) => {
-      console.log("📨 NEW MESSAGE RECEIVED:", message);
 
-      setMessages((prev) => {
-        // ✅ Remove any temp message from the same sender with similar timestamp
-        const withoutTemp = prev.filter(
-          (m) =>
-            !m._id.toString().startsWith("temp-") ||
-            m.senderId._id !== message.senderId._id,
-        );
+useEffect(() => {
+  const handler = (msg: any) => {
+    dispatch(addSocketMessage(msg));
+  };
 
-        // ✅ Check if real message already exists
-        const exists = withoutTemp.some((m) => m._id === message._id);
+  socket.on("newMessage", handler);
 
-        if (exists) {
-          console.log("⚠️ Message already exists, skipping");
-          return prev;
-        }
+  return () => {
+    socket.off("newMessage", handler);
+  };
+}, [dispatch]);
 
-        console.log("✅ Adding new message to state");
-        return [...withoutTemp, message];
-      });
-    };
 
-    socket.on("newMessage", handler);
+useEffect(() => {
+  if (activeThreadId) {
+    dispatch(fetchMessages(activeThreadId));
+  }
+}, [activeThreadId, dispatch]);
 
-    return () => {
-      socket.off("newMessage", handler);
-    };
-  }, []);
 
   useEffect(() => {
-    const handler = ({ readerId }: any) => {
-      if (readerId === session?.user?.id) return;
+  const handler = ({ readerId }: any) => {
+    if (readerId === session?.user?.id) return;
 
-      setMessages((prev) =>
-        prev.map((msg) => {
-          const senderId =
-            typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
+    dispatch(markMessagesReadFromSocket(readerId));
+  };
 
-          if (senderId === session?.user?.id) {
-            return { ...msg, isRead: true };
-          }
-          return msg;
-        }),
-      );
-    };
+  socket.on("messagesRead", handler);
 
-    socket.on("messagesRead", handler);
+  return () => {
+    socket.off("messagesRead", handler);
+  };
+}, [dispatch, session?.user?.id]);
 
-    return () => {
-      socket.off("messagesRead", handler);
-    };
-  }, [session?.user?.id]);
+
+useEffect(() => {
+  if (!threadPublicIdFromUrl) return;
+
+  dispatch(setActiveThread(threadPublicIdFromUrl));
+}, [threadPublicIdFromUrl, dispatch]);
+
 
   useEffect(() => {
-    if (!threadPublicIdFromUrl) return;
-
-    setActiveChat((prev: any) => {
-      if (prev?.publicId === threadPublicIdFromUrl) return prev;
-      return { publicId: threadPublicIdFromUrl };
-    });
-  }, [threadPublicIdFromUrl]);
-
-  useEffect(() => {
-    if (!activeChat?.publicId || !session?.user?.id) return;
+    if (!activeThreadId || !session?.user?.id) return;
 
     socket.emit("markRead", {
-      threadId: activeChat.publicId,
+      threadId: activeThreadId,
       userId: session.user.id,
     });
-  }, [activeChat?.publicId, session?.user?.id]);
-
-  const queryClient = useQueryClient();
-  // ✅ Fetch messages when chat changes
-
-  const {
-    data: chatData,
-    refetch,
-    isLoading,
-  } = useQuery({
-    queryKey: ["chatMessages", activeChat?.publicId],
-    queryFn: async () => {
-      if (!activeChat?.publicId) return [];
-
-      const res = await getApi({
-        url: API_MESSAGE_CHAT,
-        page: 1,
-        rowsPerPage: 50,
-        searchText: activeChat.publicId,
-      });
-
-      return res?.data || [];
-    },
-    enabled: !!activeChat?.publicId,
-  });
+  }, [activeThreadId, session?.user?.id]);
   useEffect(() => {
-    if (chatData) {
-      setMessages(chatData);
-    }
-  }, [chatData]);
-
-  // ✅ Fetch thread details (OTHER USER info)
-  useEffect(() => {
-    if (!chatBodyRef.current) return;
-    chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
-  }, [messages]);
-
-  useEffect(() => {
-    if (!activeChat?.publicId) return;
+    if (!activeThreadId) return;
     (async () => {
       try {
         const res = await getApiByParams({
           url: "/messages/thread",
-          params: activeChat.publicId,
+          params: activeThreadId,
         });
 
         console.log("THREAD DETAILS:", res);
@@ -209,16 +158,16 @@ const MessagePage = () => {
         console.error("THREAD DETAILS ERROR:", err);
       }
     })();
-  }, [activeChat?.publicId]);
+  }, [activeThreadId]);
 
   useEffect(() => {
     const handleTyping = ({ threadId, userId }: any) => {
-      if (threadId === activeChat?.publicId && userId !== session?.user?.id) {
+      if (threadId === activeThreadId && userId !== session?.user?.id) {
         setIsOtherUserTyping(true);
       }
     };
     const handleStopTyping = ({ threadId, userId }: any) => {
-      if (threadId === activeChat?.publicId && userId !== session?.user?.id) {
+      if (threadId === activeThreadId && userId !== session?.user?.id) {
         setIsOtherUserTyping(false);
       }
     };
@@ -228,79 +177,54 @@ const MessagePage = () => {
       socket.off("userTyping", handleTyping);
       socket.off("userStopTyping", handleStopTyping);
     };
-  }, [activeChat?.publicId, session?.user?.id]);
+  }, [activeThreadId, session?.user?.id]);
 
   useEffect(() => {
-    if (!activeChat?.publicId) {
+    if (!activeThreadId) {
       console.log("⚠️ No active chat to join");
       return;
     }
-    console.log("🚪 Joining thread room:", activeChat.publicId);
-    socket.emit("joinThread", activeChat.publicId);
-  }, [activeChat?.publicId]);
+    console.log("🚪 Joining thread room:", activeThreadId);
+    socket.emit("joinThread", activeThreadId);
+  }, [activeThreadId]);
 
-  useEffect(() => {
-    if (!session?.user?.id) {
-      console.error("❌ No userId in session");
-      return;
-    }
-    const userId = session.user.id;
-    console.log("🔗 Connecting user to socket:", userId);
-    socket.emit("connectUser", userId);
-    socket.on("connectListener", (data) => {
-      console.log("✅ User connected. Socket ID:", data.socketId);
-    });
-    return () => { socket.off("connectListener"); };
-  }, [session]);
+const hasConnectedRef = useRef(false);
 
-  const sendMessage = () => {
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("📤 ATTEMPTING TO SEND MESSAGE");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("📝 Message text:", newComment);
-    console.log("🔗 Thread ID:", activeChat?.threadId);
-    console.log("👤 Sender ID:", session?.user?.id);
-    console.log("👥 Receiver ID:", activeUser?._id);
-    if (!newComment.trim()) { console.error("❌ Message is empty"); return; }
-    if (!activeChat?.publicId || !session?.user?.id || !activeUser?._id) { console.error("❌ Missing required data"); return; }
-    if (!socket.connected) {
-      console.error("❌ Socket not connected");
-      return;
-    }
-    socket.emit("stopTyping", {
-      threadId: activeChat.publicId,
-      userId: session.user.id,
-    });
-    isTypingRef.current = false;
+useEffect(() => {
+  if (!session?.user?.id) return;
+  if (!socket.connected) return;
+  if (hasConnectedRef.current) return;
 
-    const payload = {
-      threadId: activeChat.publicId,
+  socket.emit("connectUser", session.user.id);
+  hasConnectedRef.current = true;
+
+  console.log("🔗 User connected to socket");
+
+}, [session?.user?.id]);
+
+const sendMessage = () => {
+  if (!newComment.trim()) return;
+  if (!activeThreadId || !session?.user?.id || !activeUser?._id) return;
+
+  dispatch(
+    sendMessageAction({
+      threadId: activeThreadId,
       senderId: session.user.id,
       receiverId: activeUser._id,
       text: newComment,
-    };
-    console.log("📤 Sending payload:", payload);
-    const tempMessage = {
-      _id: `temp-${Date.now()}`, // Temporary ID
-      senderId: {
-        _id: session.user.id,
-        userName: session.user.userName,
-        displayName: session.user.displayName,
-        profile: session.user.profile,
-      },
-      receiverId: activeUser._id,
-      message: newComment,
-      createdAt: new Date().toISOString(),
-      isRead: false,
-      type: 1,
-      isPending: true, // ✅ Mark as pending
-    };
-    setMessages((prev) => [...prev, tempMessage]);
-    socket.emit("sendMessage", payload);
-    console.log("✅ Message emitted to socket");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    setNewComment("");
-  };
+    })
+  );
+
+  socket.emit("sendMessage", {
+    threadId: activeThreadId,
+    senderId: session.user.id,
+    receiverId: activeUser._id,
+    text: newComment,
+  });
+
+  setNewComment("");
+};
+
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -441,7 +365,7 @@ const MessagePage = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    if (!activeThreadId || !activeUser?._id) return;
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
 
@@ -460,7 +384,7 @@ const MessagePage = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("threadId", activeChat.publicId);
+      formData.append("threadId", activeThreadId);
       formData.append("receiverId", activeUser._id);
 
       const res = await apiPostWithMultiForm({
@@ -473,7 +397,7 @@ const MessagePage = () => {
       }
 
       socket.emit("mediaMessageUploaded", {
-        threadId: activeChat.publicId,
+        threadId: activeThreadId,
         messageId: res._id,
       });
     } catch (error) {
@@ -495,7 +419,7 @@ const MessagePage = () => {
     setIsSearching(true);
 
     const res = await getApi({
-      url: `/messages/thread/search/${activeChat.publicId}`,
+      url: `/messages/thread/search/${activeThreadId}`,
       page: 1,
       rowsPerPage: 50,
       searchText: value,
@@ -539,7 +463,7 @@ const MessagePage = () => {
       values: {},
     });
 
-    refetch();
+    // refetch();
   };
 
   const handleUploadPPVMedia = async (
@@ -563,7 +487,7 @@ const MessagePage = () => {
       toast.success("Media uploaded");
 
       // Refresh chat
-      refetch();
+      // refetch();
     } catch (err) {
       toast.error("Upload failed");
     }
@@ -578,7 +502,7 @@ const MessagePage = () => {
 
       toast.success("PPV Rejected");
 
-      refetch();
+      // refetch();
     } catch (err) {
       toast.error("Failed");
     }
@@ -592,7 +516,7 @@ const MessagePage = () => {
       });
 
       toast.success("Payment successful");
-      refetch();
+      // refetch();
     } catch (err) {
       toast.error("Payment failed");
     }
@@ -604,11 +528,11 @@ const MessagePage = () => {
         <div className="moneyboy-2x-1x-a-layout">
           <div className="msg-page-wrapper card">
             <div className="msg-page-container" msg-page-wrapper={true}>
-              <SideBar activeThreadId={activeChat?.publicId} onSelectChat={(thread: any) => {setActiveChat(thread); router.replace(`/message?threadId=${thread.publicId}`);}} />
+              <SideBar activeThreadId={activeThreadId} onSelectChat={(thread: any) => {dispatch(setActiveThread(thread.publicId)); router.replace(`/message?threadId=${thread.publicId}`);}} />
               <div className="msg-chats-layout">
                 <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
                   <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
-                    {!activeChat?.publicId ? (
+                    {!activeThreadId ? (
                       <div className="messages-empty">
                         <div className="messages-empty-card">
                           <div className="glow-ring"></div>
@@ -712,7 +636,7 @@ const MessagePage = () => {
                                 {/* Popup */}
                                 {isOpen && !showReportModal && !showDeleteModal && (
                                   <div ref={dropdownRef} className="rel-users-more-opts-popup-wrapper" style={isMobile ? mobileStyle : desktopStyle}>
-                                    <ChatFeatures threadPublicId={activeChat.publicId} onSearch={handleSearchChange} onReport={() => setShowReportModal(true)} onDelete={() => setShowDeleteModal(true)} />
+                                    <ChatFeatures threadPublicId={activeThreadId} onSearch={handleSearchChange} onReport={() => setShowReportModal(true)} onDelete={() => setShowDeleteModal(true)} />
                                   </div>
                                 )}
                               </div>
@@ -721,7 +645,7 @@ const MessagePage = () => {
                         </div>
 
                         <div className="chat-room-body-layout">
-                          <div className="block_wrap">
+                          {/* <div className="block_wrap">
                             <div className="icon block-icon">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -763,7 +687,7 @@ const MessagePage = () => {
                               </svg>
                             </div>
                             <span>Block Messages</span>
-                          </div>
+                          </div> */}
                           <div
                             ref={chatBodyRef}
                             className="chat-room-body-container"
@@ -1138,7 +1062,7 @@ const MessagePage = () => {
                                   onChange={handleFileSelect}
                                   disabled={
                                     uploading ||
-                                    !activeChat?.threadId ||
+                                    !activeThreadId ||
                                     !activeUser?._id
                                   }
                                 />
@@ -1178,13 +1102,13 @@ const MessagePage = () => {
                                 onChange={(e) => {
                                   setNewComment(e.target.value);
 
-                                  if (!activeChat?.publicId || !session?.user?.id)
+                                  if (!activeThreadId || !session?.user?.id)
                                     return;
 
                                   // 🔥 Emit typing once
                                   if (!isTypingRef.current) {
                                     socket.emit("typing", {
-                                      threadId: activeChat.publicId,
+                                      threadId: activeThreadId,
                                       userId: session.user.id,
                                     });
                                     isTypingRef.current = true;
@@ -1197,7 +1121,7 @@ const MessagePage = () => {
 
                                   typingTimeoutRef.current = setTimeout(() => {
                                     socket.emit("stopTyping", {
-                                      threadId: activeChat.publicId,
+                                      threadId: activeThreadId,
                                       userId: session.user.id,
                                     });
                                     isTypingRef.current = false;
@@ -1409,7 +1333,7 @@ const MessagePage = () => {
             <p className="modal-subtitle">This will permanently delete the conversation and cannot be undone.</p>
             <div className="actions">
               <button className="btn-danger active-down-effect" onClick={() => setShowDeleteModal(false)}><span>Cancel</span></button>
-              <button className="premium-btn active-down-effect" type="submit" onClick={async () => { await apiPost({ url: `/messages/thread/${activeChat.publicId}`, values: {}, }); toast.success("Conversation deleted"); setShowDeleteModal(false); router.push("/message"); }}><span>Submit</span></button>
+              <button className="premium-btn active-down-effect" type="submit" onClick={async () => { await apiPost({ url: `/messages/thread/${activeThreadId}`, values: {}, }); toast.success("Conversation deleted"); setShowDeleteModal(false); router.push("/message"); }}><span>Submit</span></button>
             </div>
           </form>
         </div>
