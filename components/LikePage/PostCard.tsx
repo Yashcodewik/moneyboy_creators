@@ -259,6 +259,13 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     }
   };
 
+    const handleLikeComment = (commentId: string) => {
+    dispatch(likeComment({ commentId }));
+  };
+  
+  const handleDislikeComment = (commentId: string) => {
+    dispatch(dislikeComment({ commentId }));
+  };
   const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
     const aLikes = a.likeCount ?? a.likes?.length ?? 0;
     const bLikes = b.likeCount ?? b.likes?.length ?? 0;
@@ -983,25 +990,25 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </div>
               <div className="like-deslike-wrap">
                 <ul>
-                  <li>
+                  <li className={topComment.isLiked ? "active" : ""}>
                     <Link
                       href="#"
                       className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        dispatch(likeComment({ commentId: topComment._id }));
+                        handleLikeComment(topComment._id);
                       }}
                     >
                       <ThumbsUp color="black" strokeWidth={2} />
                     </Link>
                   </li>
-                  <li>
+                  <li className={topComment.isDisliked ? "active" : ""}>
                     <Link
                       href="#"
                       className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        dispatch(dislikeComment({ commentId: topComment._id }));
+                        handleDislikeComment(topComment._id);
                       }}
                     >
                       <ThumbsDown color="black" strokeWidth={2} />

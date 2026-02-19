@@ -41,12 +41,7 @@ type TagUser = {
 };
 
 const PostSchema = Yup.object({
-  text: Yup.string()
-    .max(300, "Maximum 300 characters allowed")
-    .when("hasMedia", {
-      is: false,
-      then: (s) => s.required("Post text is required"),
-    }),
+text: Yup.string().max(300, "Maximum 300 characters allowed"),
 
   accessType: Yup.string().required("Access type is required"),
 
@@ -394,9 +389,9 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           </span>
           
         </div>
-        {formik.touched.text && formik.errors.text && (
+        {/* {formik.touched.text && formik.errors.text && (
             <span className="error-message">{formik.errors.text}</span>
-          )}
+          )} */}
 
         <div className="select_wrap">
           <label className="radio_wrap">
