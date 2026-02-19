@@ -12,11 +12,21 @@ import ShowToast from "@/components/common/ShowToast";
 export const fetchAllCreators = createAsyncThunk(
   "creators/fetchAllCreators",
   async (
-    { page = 1, limit = 9 }: { page?: number; limit?: number },
+    {
+      page = 1,
+      limit = 9,
+      creatorPublicId,
+    }: {
+      page?: number;
+      limit?: number;
+      creatorPublicId?: string;
+    },
     { rejectWithValue }
   ) => {
     try {
-      const url = `${API_GET_ALL_CREATORS}?page=${page}&limit=${limit}`;
+      const url = `${API_GET_ALL_CREATORS}?page=${page}&limit=${limit}${
+        creatorPublicId ? `&creatorPublicId=${creatorPublicId}` : ""
+      }`;
 
       const res = await getApiWithOutQuery({ url });
 
