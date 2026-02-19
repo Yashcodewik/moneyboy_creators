@@ -74,8 +74,8 @@ export const API_TOGGLE_WATCH_LATER: string = "/post/watch-later/toggle";
 export const API_PURCHASED_MEDIA: string = "/subscription/get-purchasedMedia";
 export const API_UPDATE_VIDEO_PROGRESS: string = "/post/progress";
 
-export const API_SAVE_CREATOR = "/creator/save";
-export const API_UNSAVE_CREATOR = "/creator/unsave";
+export const API_SAVE_CREATOR = "/post/creator/save";
+export const API_UNSAVE_CREATOR = "/post/creator/unsave";
 export const API_GET_SAVED_ITEMS = "/post/saved";
 export const API_GET_SAVED_CREATORS = "/creator/saved-creators";
 export const API_UNSAVE_FREE_CREATOR = "/post/unsave-free-creator";
