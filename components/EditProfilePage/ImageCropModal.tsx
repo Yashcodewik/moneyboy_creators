@@ -61,13 +61,13 @@ export default function ImageCropModal({ show, image, aspect = 1, onClose, onSav
           <Cropper image={image} crop={crop} zoom={zoom} rotation={rotation} aspect={aspectRatio} onCropChange={setCrop} onZoomChange={setZoom} onRotationChange={setRotation} onCropComplete={onCropComplete} />
         </div>
         <div className="controlers_wrap btntooltip_wrapper">
-          <button type="button" className="btn btn-light" data-tooltip="Zoom Out" onClick={() => setZoom((z) => Math.max(1, z - 0.2))}><ZoomOut size={20} /></button>
-          <button type="button" className="btn btn-light" data-tooltip="Zoom In" onClick={() => setZoom((z) => Math.min(3, z + 0.2))}> <ZoomIn size={20} /></button>
-          <button type="button" className="btn btn-light" data-tooltip="Rotate" onClick={() => setRotation((r) => (r + 90) % 360)}> <RotateCw size={20} /></button>
-          <button type="button" className="btn btn-light" data-tooltip="Flip Horizontal" onClick={() =>   setFlip((f) => ({ ...f, horizontal: !f.horizontal })) }> <FlipHorizontal size={20} /></button>
-          <button type="button" className="btn btn-light" data-tooltip="Flip Vertical" onClick={() =>   setFlip((f) => ({ ...f, vertical: !f.vertical })) }> <FlipVertical size={20} /></button>
-          <button type="button" className="btn btn-light" data-tooltip="Change Ratio" onClick={changeRatio}> {React.createElement(RATIOS[ratioIndex].icon, { size: 20 })}</button>
-          <button type="button" className="btn btn-light" data-tooltip="Reset" onClick={resetCrop}><RefreshCcw size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Zoom Out" onClick={() => setZoom((z) => Math.max(1, z - 0.2))}><ZoomOut size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Zoom In" onClick={() => setZoom((z) => Math.min(3, z + 0.2))}> <ZoomIn size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Rotate" onClick={() => setRotation((r) => (r + 90) % 360)}> <RotateCw size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Flip Horizontal" onClick={() =>   setFlip((f) => ({ ...f, horizontal: !f.horizontal })) }> <FlipHorizontal size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Flip Vertical" onClick={() =>   setFlip((f) => ({ ...f, vertical: !f.vertical })) }> <FlipVertical size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Change Ratio" onClick={changeRatio}> {React.createElement(RATIOS[ratioIndex].icon, { size: 20 })}</button>
+          <button type="button" className="active-down-effect" data-tooltip="Reset" onClick={resetCrop}><RefreshCcw size={20} /></button>
         </div>
         <div className="actions mt-3">
           <button className="premium-btn active-down-effect" type="button" onClick={handleSave} disabled={loading}><span>{loading ? "Processing..." : "Save"}</span></button>

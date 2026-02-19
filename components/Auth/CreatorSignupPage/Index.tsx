@@ -322,7 +322,8 @@ const CreatorSignupPage = () => {
                             <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={startDate?.toLocaleDateString("en-GB") || ""} onClick={() => setActiveField("schedule")} />
                             {activeField === "schedule" && (
                               <div className="calendar_show">
-                                <DatePicker selected={startDate} inline maxDate={maxAllowedDate} minDate={new Date(1900, 0, 1)} showMonthDropdown showYearDropdown dropdownMode="select" scrollableYearDropdown yearDropdownItemNumber={100} renderCustomHeader={({ date, changeYear, changeMonth, }) => (
+                                <DatePicker selected={startDate} inline maxDate={maxAllowedDate} minDate={new Date(1900, 0, 1)} showMonthDropdown showYearDropdown dropdownMode="select" scrollableYearDropdown yearDropdownItemNumber={100} 
+                                renderCustomHeader={({ date, changeYear, changeMonth, }) => (
                                   <div className="flex gap-5 select_wrap" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
                                     <CustomSelect className="bg-white p-sm size-sm" options={months} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} searchable={false}/>
                                     <CustomSelect className="bg-white p-sm size-sm" options={years} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} searchable={false}/>

@@ -1190,7 +1190,7 @@
                                               <p>{post.text}</p>
                                             </div>
 
-                                            <div className="creator-media-card__btn">
+                                            <div className="creator-media-card__btn mt-auto">
                                               {/* OWN POST → NO BUTTON */}
 
                                               <>

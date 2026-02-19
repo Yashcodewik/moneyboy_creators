@@ -226,6 +226,26 @@ const EditProfilePage = () => {
     ? countries.getAlpha2Code(selectedCountry, "en")
     : null;
 
+    const months = [
+      { label: "January", value: "0" },
+      { label: "February", value: "1" },
+      { label: "March", value: "2" },
+      { label: "April", value: "3" },
+      { label: "May", value: "4" },
+      { label: "June", value: "5" },
+      { label: "July", value: "6" },
+      { label: "August", value: "7" },
+      { label: "September", value: "8" },
+      { label: "October", value: "9" },
+      { label: "November", value: "10" },
+      { label: "December", value: "11" },
+    ];
+    
+    const years = Array.from({ length: 100 }, (_, i) => {
+      const year = new Date().getFullYear() - i;
+      return { label: year.toString(), value: year.toString() };
+    });
+
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -284,9 +304,9 @@ const EditProfilePage = () => {
                   <div className="creator-profile-card-container card">
                     <div className="creator-profile-banner">
                       {coverFile ? (
-                        <img src={URL.createObjectURL(coverFile)} alt="Creator Profile Banner"/>
+                        <img src={URL.createObjectURL(coverFile)} alt="Creator Profile Banner" />
                       ) : formData?.coverImage && !coverError ? (
-                        <img src={formData.coverImage} alt="Creator Profile Banner" onError={() => setCoverError(true)}/>
+                        <img src={formData.coverImage} alt="Creator Profile Banner" onError={() => setCoverError(true)} />
                       ) : (
                         <div className="noprofile">
                           <svg
@@ -327,7 +347,7 @@ const EditProfilePage = () => {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                        
+
                           const reader = new FileReader();
                           reader.onload = () => {
                             setCropImage(reader.result as string);
@@ -549,52 +569,22 @@ const EditProfilePage = () => {
                             )}
                           </div>
                           <div>
-                            <div
-                              className="label-input calendar-dropdown"
-                              ref={wrapperRef}
-                            >
-                              <div className="input-placeholder-icon">
-                                <CalendarDays className="icons svg-icon" />
-                              </div>
-                              <input
-                                type="text"
-                                placeholder="(DD/MM/YYYY)"
-                                className="form-input"
-                                readOnly
-                                value={
-                                  startDate?.toLocaleDateString("en-GB") || ""
-                                }
-                                onClick={() => setActiveField("schedule")}
-                              />
+                            <div className="label-input calendar-dropdown" ref={wrapperRef}>
+                              <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
+                              <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={startDate?.toLocaleDateString("en-GB") || ""} onClick={() => setActiveField("schedule")} />
                               {activeField === "schedule" && (
                                 <div className="calendar_show">
-                                  <DatePicker
-                                    selected={startDate}
-                                    inline
-                                    maxDate={maxAllowedDate}
-                                    onChange={(date: Date | null) => {
-                                      if (date) {
-                                        const formattedDate = date.toISOString();
-                                        formik.setFieldValue(
-                                          "dob",
-                                          formattedDate,
-                                        );
-
-                                        const age = calculateAge(date);
-                                        const ageGroup = getAgeGroup(age);
-                                        formik.setFieldValue("age", ageGroup);
-                                      }
-                                      setActiveField(null);
-                                    }}
-                                  />
+                                  <DatePicker selected={startDate} inline maxDate={maxAllowedDate}
+                                    renderCustomHeader={({ date, changeYear, changeMonth }) => (
+                                      <div className="flex gap-5 select_wrap" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                                        <CustomSelect className="bg-white p-sm size-sm" options={months} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} searchable={false} />
+                                        <CustomSelect className="bg-white p-sm size-sm" options={years} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} searchable={false} />
+                                      </div>
+                                    )} onChange={(date: Date | null) => { if (date) { const formattedDate = date.toISOString(); formik.setFieldValue("dob", formattedDate); const age = calculateAge(date); const ageGroup = getAgeGroup(age); formik.setFieldValue("age", ageGroup); } setActiveField(null); }} />
                                 </div>
                               )}
                             </div>
-                            {formik.touched.dob && formik.errors.dob && (
-                              <span className="error-message">
-                                {formik.errors.dob as string}
-                              </span>
-                            )}
+                            {formik.touched.dob && formik.errors.dob && (<span className="error-message">{formik.errors.dob as string}</span>)}
                           </div>
                           <div>
                             <CustomSelect
