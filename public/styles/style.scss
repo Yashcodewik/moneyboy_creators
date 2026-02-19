@@ -945,6 +945,11 @@ body {
     will-change: transform;
     &.btn-prev,
     &.btn-next {
+      &:disabled, &.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
       padding: 0px;
       svg {
         width: 100%;
@@ -968,6 +973,53 @@ body {
     justify-content: center;
   }
 }
+
+.toolbar_controller {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 100%;
+  padding: 0px 10px;
+  border-radius: 12px;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  user-select: none;
+  button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.05);
+    }
+    &:active {
+      transform: scale(0.95);
+    }
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+  .counter {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.9;
+    color: #fff;
+    padding: 0 4px;
+  }
+}
+
 // Calendar Start
 .calendar-dropdown {
   position: relative;
@@ -3754,7 +3806,7 @@ body {
         margin: 0 auto;
         position: relative;
         border-radius: inherit;
-        .reactEasyCrop_Container {
+        .reactEasyCrop_Container, .reactEasyCrop_CropArea {
           border-radius: inherit;
         }
         img {
@@ -4210,6 +4262,22 @@ body {
         .actions {
           button {
             padding: 12px 8px;
+          }
+        }
+      }
+      &.imgcrop-modal {
+        padding: 20px;
+        max-width: 90%;
+        .img_wrap {
+          max-width: 100%;
+        }
+        .controlers_wrap {
+          button {
+            width: 26px;
+            height: 26px;
+            svg {
+              max-width: 22px;
+            }
           }
         }
       }
