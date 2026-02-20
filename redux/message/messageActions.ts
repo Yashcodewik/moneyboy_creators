@@ -5,6 +5,7 @@ import {
   getApi,
   apiPost,
   apiPostWithMultiForm,
+  getApiByParams,
 } from "@/utils/endpoints/common";
 import {
   API_MESSAGE_SIDEBAR,
@@ -122,5 +123,64 @@ export const searchMessages = createAsyncThunk(
     });
 
     return res?.data || [];
+  }
+);
+
+export const toggleBlockThread = createAsyncThunk(
+  "message/toggleBlockThread",
+  async (threadPublicId: string, { rejectWithValue }) => {
+    try {
+      const res = await apiPost({
+        url: `/messages/thread/toggle-block/${threadPublicId}`,
+        values: {},
+      });
+
+      return {
+        threadPublicId,
+        ...res,
+      };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || "Block failed");
+    }
+  }
+);
+
+export const reportThread = createAsyncThunk(
+  "message/reportThread",
+  async (
+    {
+      threadPublicId,
+      message,
+    }: { threadPublicId: string; message: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await apiPost({
+        url: `/messages/thread/report/${threadPublicId}`,
+        values: { message },
+      });
+
+      return res;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || "Report failed");
+    }
+  }
+);
+
+export const fetchThreadDetails = createAsyncThunk(
+  "message/fetchThreadDetails",
+  async (threadPublicId: string, { rejectWithValue }) => {
+    try {
+      const res = await getApiByParams({
+        url: "/messages/thread",
+        params: threadPublicId,
+      });
+
+      return res;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch thread details"
+      );
+    }
   }
 );

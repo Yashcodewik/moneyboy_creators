@@ -8,9 +8,11 @@ import { useAppDispatch } from "@/redux/store";
 import {
   muteThread,
   hideThread,
-  deleteThread,
   searchMessages,
+  toggleBlockThread,
+  fetchThreadDetails,
 } from "@/redux/message/messageActions";
+import { useSelector } from 'react-redux';
 
 
 const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
@@ -28,19 +30,10 @@ const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const router = useRouter();
   const dispatch = useAppDispatch();
-
-const handleDelete = async () => {
-  await dispatch(deleteThread(threadPublicId));
-  toast.success("Conversation deleted");
-  router.push("/message");
-};
-
-
 const handleMute = async () => {
   await dispatch(muteThread(threadPublicId));
   toast.success("Conversation muted");
 };
-
 
 const handleHide = async () => {
   await dispatch(hideThread(threadPublicId));
@@ -48,14 +41,16 @@ const handleHide = async () => {
   router.replace("/message");
   };
 
-  const handleBlock = async () => {
-    const res = await apiPost({
-      url: `/messages/thread/block/${threadPublicId}`,
-      values: {},
-    });
+ const handleBlock = async () => {
+  const res: any = await dispatch(toggleBlockThread(threadPublicId));
 
-    toast.success(res?.message);
-  };
+  if (res.meta.requestStatus === "fulfilled") {
+    toast.success(res.payload.message);
+     dispatch(fetchThreadDetails(threadPublicId));
+  } else {
+    toast.error("Failed to toggle block");
+  }
+};
 
 const handleSearch = async () => {
   await dispatch(
@@ -67,7 +62,6 @@ const handleSearch = async () => {
 
   onSearch(searchText); 
 };
-
 
   return (
     <div className="rel-users-more-opts-popup-container">
@@ -132,7 +126,7 @@ const handleSearch = async () => {
           </div>
           <span>Block Messages</span>
         </li>
-        <li>
+        <li onClick={onReport}>
           <div className="icon report-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M5.14844 2V22" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>

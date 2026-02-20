@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { deleteThread, fetchMessages, fetchSidebar, hideThread, muteThread, searchMessages, sendMessageAction } from "./messageActions";
+import { deleteThread, fetchMessages, fetchSidebar, fetchThreadDetails, hideThread, muteThread, searchMessages, sendMessageAction, toggleBlockThread } from "./messageActions";
 
 
 interface MessageState {
@@ -10,6 +10,8 @@ interface MessageState {
   searchedMessages: any[];
   loading: boolean;
   error: string | null;
+  activeThreadDetails: any | null;
+  isBlocked: boolean;
 }
 
 const initialState: MessageState = {
@@ -20,6 +22,8 @@ const initialState: MessageState = {
   searchedMessages: [],
   loading: false,
   error: null,
+  activeThreadDetails: null,
+  isBlocked: false,
 };
 
 const messageSlice = createSlice({
@@ -35,6 +39,7 @@ const messageSlice = createSlice({
     },
 
     addSocketMessage: (state, action: PayloadAction<any>) => {
+      if (action.payload.threadId !== state.activeThreadId) return;
       const exists = state.messages.some(
         (msg) => msg._id === action.payload._id
       );
@@ -54,15 +59,15 @@ markMessagesReadFromSocket: (state, action) => {
   const readerId = action.payload;
 
   state.messages = state.messages.map((msg: any) => {
-    const senderId =
-      typeof msg.senderId === "object"
-        ? msg.senderId._id
-        : msg.senderId;
+    const receiverId =
+      typeof msg.receiverId === "object"
+        ? msg.receiverId._id
+        : msg.receiverId;
 
-    if (senderId === readerId) {
+    // Mark read if this person (readerId) was the receiver
+    if (receiverId === readerId) {
       return { ...msg, isRead: true };
     }
-
     return msg;
   });
 },
@@ -85,7 +90,14 @@ updateUserOnlineStatus: (
   );
 },
 
+setThreadDetails: (state, action) => {
+  state.activeThreadDetails = action.payload;
 
+  const perms = action.payload?.permissions;
+
+  state.isBlocked =
+    perms?.isBlockedByYou || perms?.isBlockedByOther || false;
+},
 
     clearMessages: (state) => {
       state.messages = [];
@@ -128,14 +140,42 @@ updateUserOnlineStatus: (
         );
       })
 
+.addCase(fetchThreadDetails.fulfilled, (state, action) => {
+  state.activeThreadDetails = action.payload;
 
+  const perms = action.payload?.permissions;
+
+  state.isBlocked =
+    perms?.isBlockedByYou || perms?.isBlockedByOther || false;
+})
       // Delete
       .addCase(deleteThread.fulfilled, (state, action) => {
         state.chatList = state.chatList.filter(
           (chat) => chat.publicId !== action.meta.arg
         );
         state.messages = [];
-      });
+      })
+     .addCase(toggleBlockThread.fulfilled, (state, action) => {
+      const { threadPublicId, isBlocked } = action.payload;
+
+      // Update sidebar
+      const thread = state.chatList.find(
+        (t) => t.publicId === threadPublicId
+      );
+
+      if (thread) {
+        thread.isBlocked = isBlocked;
+      }
+
+      // ✅ Update active thread state
+      if (state.activeThreadId === threadPublicId) {
+        state.isBlocked = isBlocked;
+
+        if (state.activeThreadDetails?.permissions) {
+          state.activeThreadDetails.permissions.isBlockedByYou = isBlocked;
+        }
+      }
+    });
   },
 });
 
@@ -146,7 +186,8 @@ export const {
   markMessagesRead,
   markMessagesReadFromSocket,
   clearMessages,
-  updateUserOnlineStatus
+  updateUserOnlineStatus,
+  setThreadDetails
 } = messageSlice.actions;
 
 export default messageSlice.reducer;
