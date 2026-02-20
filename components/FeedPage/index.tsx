@@ -13,8 +13,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost,} from "@/redux/other/feedPostsSlice";
+import toast from "react-hot-toast";
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
+
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  showInfo,
+  showQuestion,
+} from "@/utils/alert";
 
 const FeedPage = () => {
   const router = useRouter();
@@ -32,6 +41,29 @@ const FeedPage = () => {
   const followingPosts = allPosts.filter((p: any) => p.source === "following");
   const popularPosts = allPosts.filter((p: any) => p.source === "popular");
 
+  const askQuestion = async () => {
+    const ok = await showQuestion("Do you want to continue?");
+
+    if (ok) {
+      showSuccess("You clicked YES");
+    } else {
+      showError("You clicked NO");
+    }
+  };
+
+  const baseConfig = {
+    confirmButtonText: "OK",
+    showClass: {
+      popup: "swal2-show",
+    },
+    hideClass: {
+      popup: "swal2-hide",
+    },
+  };
+
+  // useEffect(() => {
+  //   toast.success("sagar")
+  // }, [activeTab]);
   /* ================= INITIAL LOAD / TAB CHANGE ================= */
 
   useEffect(() => {
@@ -194,6 +226,13 @@ const FeedPage = () => {
         <div className="moneyboy-2x-1x-a-layout">
           <div className="moneyboy-feed-page-container">
             {/* TABS */}
+            <div className="moneyboy-feed-page-cate-buttons card">
+              <button className="page-content-type-button" onClick={() => showSuccess("Success Message")}>Success</button>
+              <button className="page-content-type-button" onClick={() => showError("Error Message")}>Error</button>
+              <button className="page-content-type-button" onClick={() => showWarning("Warning Message")}>Warning</button>
+              <button className="page-content-type-button" onClick={() => showInfo("Info Message")}>Info</button>
+              <button className="page-content-type-button" onClick={askQuestion}>Question</button>
+            </div>
             <div className="moneyboy-feed-page-cate-buttons card">
               <button
                 className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
