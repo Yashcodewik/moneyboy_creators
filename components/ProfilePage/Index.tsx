@@ -747,7 +747,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
             {isFreecomment && (
               <>
                 <div className="creator-content-stat-box">
-                  <button className="like-button" data-like-button="">
+                  <button className="like-button liked" data-like-button="">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="21"
@@ -766,7 +766,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
                   </button>
                   <span>{post?.likeCount}</span>
                 </div>
-                <div className="creator-content-stat-box post-comment-btn">
+                <div className="creator-content-stat-box post-comment-btn massage-btn">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -806,7 +806,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
             {!isFreecomment && (
               <>
               {/* views-btn */}
-                <div className="creator-content-stat-box ">
+                <div className="creator-content-stat-box views-btn">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -833,7 +833,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
                   <span>{post?.commentCount}</span>
                 </div>
                 {/* thumup-btn  */}
-                <div className="creator-content-stat-box ">
+                <div className="creator-content-stat-box thumup-btn">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
