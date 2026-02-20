@@ -747,8 +747,14 @@ const handleSavePost = async (e: React.MouseEvent) => {
             {isFreecomment && (
               <>
                 <div className="creator-content-stat-box">
-                  <button className="like-button active" data-like-button="">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                  <button className="like-button" data-like-button="">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="21"
+                      height="20"
+                      viewBox="0 0 21 20"
+                      fill="none"
+                    >
                       <path
                         d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
                         stroke="none"
@@ -760,7 +766,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
                   </button>
                   <span>{post?.likeCount}</span>
                 </div>
-                <div className="creator-content-stat-box post-comment-btn massage-btn active">
+                <div className="creator-content-stat-box post-comment-btn">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -800,7 +806,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
             {!isFreecomment && (
               <>
               {/* views-btn */}
-                <div className="creator-content-stat-box views-btn active">
+                <div className="creator-content-stat-box ">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -827,7 +833,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
                   <span>{post?.commentCount}</span>
                 </div>
                 {/* thumup-btn  */}
-                <div className="creator-content-stat-box thumup-btn active">
+                <div className="creator-content-stat-box ">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -1306,31 +1312,96 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                 </div> */}
                 {session?.isAuthenticated && profile && (
                   <div className="profile-card__geo-details">
+                    {session?.isAuthenticated &&
+                      profile &&
+                      (profile?.creator?.city || profile?.creator?.country) && (
+                        <div className="profile-card__geo-details">
+                          <div className="profile-card__geo-detail">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M3.61971 8.49C5.58971 -0.169998 18.4197 -0.159997 20.3797 8.5C21.5297 13.58 18.3697 17.88 15.5997 20.54C13.5897 22.48 10.4097 22.48 8.38971 20.54C5.62971 17.88 2.46971 13.57 3.61971 8.49Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                              />
+                              <path
+                                d="M11.9999 13.43C13.723 13.43 15.1199 12.0331 15.1199 10.31C15.1199 8.58687 13.723 7.19 11.9999 7.19C10.2768 7.19 8.87988 8.58687 8.87988 10.31C8.87988 12.0331 10.2768 13.43 11.9999 13.43Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                              />
+                            </svg>
 
-                    {/* Location */}
-                    {(profile?.creator?.city || profile?.creator?.country) && (
-                      <div className="profile-card__geo-detail">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <path d="M3.61971 8.49C5.58971 -0.169998 18.4197 -0.159997 20.3797 8.5C21.5297 13.58 18.3697 17.88 15.5997 20.54C13.5897 22.48 10.4097 22.48 8.38971 20.54C5.62971 17.88 2.46971 13.57 3.61971 8.49Z" stroke="none" stroke-width="1.5"></path>
-                          <path d="M11.9999 13.43C13.723 13.43 15.1199 12.0331 15.1199 10.31C15.1199 8.58687 13.723 7.19 11.9999 7.19C10.2768 7.19 8.87988 8.58687 8.87988 10.31C8.87988 12.0331 10.2768 13.43 11.9999 13.43Z" stroke="none" stroke-width="1.5"></path>
-                        </svg>
-                        <span>{[profile?.creator?.city, profile?.creator?.country] .filter(Boolean) .join(", ")}</span>
-                      </div>
-                    )}
+                            <span>
+                              {profile?.creator?.city} {profile?.creator?.city && profile?.creator?.country &&", "} {profile?.creator?.country}
+                            </span>
+                          </div>
+                        </div>
+                      )}
 
-                    {/* Joined Date */}
                     <div className="profile-card__geo-detail">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M8 2V5" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M16 2V5" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M8 11H16" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M8 16H12" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M8 2V5"
+                          stroke="none"
+                          strokeWidth="1.5"
+                          strokeMiterlimit="10"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M16 2V5"
+                          stroke="none"
+                          strokeWidth="1.5"
+                          strokeMiterlimit="10"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z"
+                          stroke="none"
+                          strokeWidth="1.5"
+                          strokeMiterlimit="10"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M8 11H16"
+                          stroke="none"
+                          strokeWidth="1.5"
+                          strokeMiterlimit="10"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M8 16H12"
+                          stroke="none"
+                          strokeWidth="1.5"
+                          strokeMiterlimit="10"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
-                      <span> Joined{" "} {profile?.user?.createdAt ? new Date(profile.user.createdAt).toLocaleString("default", {month: "long", year: "numeric",}): "—"}
+                      <span>
+                        Joined{" "}
+                        {new Date(
+                          profile?.user?.createdAt || "",
+                        ).toLocaleString("default", {
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </span>
                     </div>
-
                   </div>
                 )}
                 {session?.isAuthenticated && (
