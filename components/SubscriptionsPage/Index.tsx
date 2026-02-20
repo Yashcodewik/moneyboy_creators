@@ -36,6 +36,8 @@ const SubscriptionsPage = () => {
   const [searchText, setSearchText] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
   const rowsPerPage = 10;
 
 
@@ -413,16 +415,24 @@ useEffect(() => {
                             </div>
                           </div>
                             <div className="rel-user-action-btn">
-                              {state === "ACTIVE" && (
-                              <button
-                                className="btn-danger"
-                                onClick={() => cancelSubscription(item._id)}
-                                disabled={isCancelling}
-                              >
-                                <span>{isCancelling ? "Cancelling..." : "Cancel"}</span>
-                              </button>
-                            )}
-
+                             {state === "ACTIVE" && (
+                                <button
+                                  className="btn-danger"
+                                  onClick={() => {
+                                    setCancellingId(item._id);
+                                    cancelSubscription(item._id, {
+                                      onSettled: () => {
+                                        setCancellingId(null);
+                                      },
+                                    });
+                                  }}
+                                  disabled={cancellingId === item._id}
+                                >
+                                  <span>
+                                    {cancellingId === item._id ? "Cancelling..." : "Cancel"}
+                                  </span>
+                                </button>
+                              )}
 
                               {state === "QUEUED" && (
                                 <button className="btn-danger" disabled>
