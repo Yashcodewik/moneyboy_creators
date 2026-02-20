@@ -12,10 +12,12 @@ import {
   API_DELETE_POST,
   API_FOLLOWER_COUNT,
   API_GET_POSTS_BY_CREATOR,
+  API_SAVE_CREATOR,
   API_SAVE_POST,
   API_SEND_TIP,
   API_SUBSCRIBE_CREATOR,
   API_UNLOCK_POST,
+  API_UNSAVE_CREATOR,
   API_UNSAVE_POST,
   API_UPGRADE_SUBSCRIPTION,
 } from "@/utils/api/APIConstant";
@@ -37,6 +39,7 @@ import { Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
+import ShowToast from "../common/ShowToast";
 
 interface User {
   _id: string;
@@ -161,38 +164,30 @@ const ProfilePage = () => {
     setActiveTab(tabName);
   };
   const isOwnProfile = sessionPublicId === profilePublicId;
-  useEffect(() => {
-    if (!profilePublicId) return;
+const { data: profileData, refetch } = useQuery({
+  queryKey: ["creator-profile", profilePublicId],
+  queryFn: async () => {
+    const isOwnProfile = sessionPublicId === profilePublicId;
 
-    const fetchProfile = async () => {
-      setLoading(true);
-      setError(null);
+    const response = isOwnProfile
+      ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
+      : await getApiByParams({
+          url: API_CREATOR_PROFILE_BY_ID,
+          params: profilePublicId,
+        });
 
-      try {
-        const isOwnProfile = sessionPublicId === profilePublicId;
+    return response;
+  },
+  enabled: !!profilePublicId,
+});
 
-        const response = isOwnProfile
-          ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
-          : await getApiByParams({
-              url: API_CREATOR_PROFILE_BY_ID,
-              params: profilePublicId,
-            });
-
-        if (response?.user && response?.creator) {
-          setProfile(response);
-          setIsFollowing(Boolean(response.isFollowing));
-          setIsSaved(Boolean(response.isSaved));
-        }
-      } catch (err: any) {
-        console.error("Error fetching profile:", err);
-        setError(err?.message || "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [profilePublicId, sessionPublicId]);
+useEffect(() => {
+  if (profileData) {
+    setProfile(profileData);
+    setIsSaved(Boolean(profileData.isSaved));
+    setIsFollowing(Boolean(profileData.isFollowing));
+  }
+}, [profileData]);
 
   const subStatus = profile?.subscriptionStatus;
 
@@ -310,31 +305,7 @@ const ProfilePage = () => {
     post?.media?.some((m: any) => m.type === "video"),
   );
 
-  const saveCreatorMutation = useMutation({
-    mutationFn: () =>
-      apiPost({
-        url: API_SAVE_POST,
-        values: {
-          creatorId: profile?.creator?._id,
-        },
-      }),
-    onSuccess: () => {
-      setIsSaved(true);
-    },
-  });
 
-  const unSaveCreatorMutation = useMutation({
-    mutationFn: () =>
-      apiPost({
-        url: API_UNSAVE_POST,
-        values: {
-          creatorId: profile?.creator?._id,
-        },
-      }),
-    onSuccess: () => {
-      setIsSaved(false);
-    },
-  });
 
   const openTipModal = () => {
     setShowTipModal(true);
@@ -562,32 +533,54 @@ const ProfilePage = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     const isPostSaved = post.isSaved;
-    const handleSavePost = (e: React.MouseEvent) => {
-      e.stopPropagation();
+const handleSavePost = async (e: React.MouseEvent) => {
+  e.stopPropagation();
 
-      if (!session?.isAuthenticated) {
-        router.push("/login");
-        return;
-      }
+  if (!session?.isAuthenticated) {
+    router.push("/login");
+    return;
+  }
 
-      // if (saveLoading) return;
+  const postId = post._id;
+  const creatorUserId = profile?.user?._id;
 
-      if (isPostSaved) {
-        dispatch(
-          unsavePost({
-            postId: post._id,
-            creatorUserId: profile?.user?._id,
-          }),
-        );
-      } else {
-        dispatch(
-          savePost({
-            postId: post._id,
-            creatorUserId: profile?.user?._id,
-          }),
-        );
-      }
-    };
+  if (!postId) return;
+
+  const newState = !post.isSaved;
+
+  // ✅ Optimistic UI update
+  queryClient.setQueryData(
+    ["creator-posts", profilePublicId, search, timeFilter],
+    (oldData: any) => {
+      if (!oldData) return oldData;
+
+      return {
+        ...oldData,
+        posts: oldData.posts.map((p: any) =>
+          p._id === postId ? { ...p, isSaved: newState } : p
+        ),
+      };
+    }
+  );
+
+  try {
+    if (post.isSaved) {
+      await dispatch(
+        unsavePost({ postId, creatorUserId })
+      ).unwrap();
+    } else {
+      await dispatch(
+        savePost({ postId, creatorUserId })
+      ).unwrap();
+    }
+  } catch (err) {
+    // ❌ rollback on error
+    queryClient.invalidateQueries({
+      queryKey: ["creator-posts"],
+    });
+  }
+};
+
     return (
       <div
         className="creator-content-card-container profile_card flex_card"
@@ -932,6 +925,33 @@ const ProfilePage = () => {
     return Math.round(savingsPercent);
   };
 
+
+const handleSaveCreator = async (e: React.MouseEvent) => {
+  e.preventDefault();
+
+  if (!session?.isAuthenticated) {
+    router.push("/login");
+    return;
+  }
+
+  const creatorUserId = profile?.user?._id;
+  if (!creatorUserId) return;
+
+  const apiUrl = isSaved ? API_UNSAVE_CREATOR : API_SAVE_CREATOR;
+
+  const res = await apiPost({
+    url: apiUrl,
+    values: { creatorUserId },
+  });
+
+  if (res?.success) {
+    ShowToast(isSaved ? "Creator removed" : "Creator saved", "success");
+
+    refetch();   // ⭐ refresh state from server
+  }
+};
+
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="creator-profile-page-container">
@@ -1044,6 +1064,7 @@ const ProfilePage = () => {
                         <li>
                           <a
                             href="#"
+                            onClick={handleSaveCreator}
                             className={`save-btn ${isSaved ? "active" : ""}`}
                             data-tooltip="Save profile"
                           >
@@ -1841,8 +1862,10 @@ const ProfilePage = () => {
                             router.push("/login");
                             return;
                           }
+                           if (!profile?.user?.publicId) return; 
 
-                          router.push("/store?tab=marketplace");
+                          router.push(`/store?tab=marketplace&creator=${profile?.user?.publicId}`);
+
                         }}
                       >
                         <img

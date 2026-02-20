@@ -22,7 +22,7 @@ const initialState: SavedPostState = {
 export const savePost = createAsyncThunk(
   "savedPosts/savePost",
   async (
-    body: { postId?: string; creatorUserId?: string },
+    body: { postId?: string | null; creatorUserId?: string },
     { rejectWithValue },
   ) => {
     try {
@@ -47,7 +47,7 @@ export const savePost = createAsyncThunk(
 export const unsavePost = createAsyncThunk(
   "savedPosts/unsavePost",
   async (
-    body: { postId?: string; creatorUserId?: string },
+    body: { postId?: string | null; creatorUserId?: string },
     { rejectWithValue },
   ) => {
     try {

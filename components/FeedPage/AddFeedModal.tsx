@@ -269,7 +269,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
         console.log("Create Post Response:", res);
 
         if (!res?.success) {
-          ShowToast(res?.message || "Failed to create post", "error");
+          // ShowToast(res?.message || "Failed to create post", "error");
           return;
         }
 

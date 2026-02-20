@@ -61,16 +61,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [showReportModal, setShowReportModal] = useState(false);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
-  const firstMedia =
-    post?.media?.[0]?.mediaFiles?.[0] ||
-    "/images/profile-avatars/profile-avatar-6.jpg";
+  const firstMedia = post?.media?.[0]?.mediaFiles?.[0] || "/images/profile-avatars/profile-avatar-6.jpg";
   const router = useRouter();
-  const [avatarErrorMap, setAvatarErrorMap] = useState<Record<string, boolean>>(
-    {},
-  );
-
+  const [avatarErrorMap, setAvatarErrorMap] = useState<Record<string, boolean>>({},);
   const { session } = useDecryptedSession();
-
   const desktopStyle: React.CSSProperties = {
     transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
     height: open ? "auto" : "0px",
@@ -99,7 +93,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
-
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const emojiRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonRef = useRef<HTMLDivElement | null>(null);
@@ -109,7 +102,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
-
       if (
         emojiRef.current &&
         !emojiRef.current.contains(target) &&
@@ -340,49 +332,19 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     <>
       <div className="moneyboy-post__container card">
         <div className="moneyboy-post__header">
-          <div
-            className="profile-card"
-            onClick={() => handleProfileClick(post.creatorInfo?.publicId)}
-            style={{ cursor: "pointer" }}
-          >
+          <div className="profile-card" onClick={() => handleProfileClick(post.creatorInfo?.publicId)} style={{ cursor: "pointer" }}>
             <div className="profile-card__main">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar">
                   {post.creatorInfo?.profile &&
-                  !avatarErrorMap[post.creatorInfo.publicId] ? (
-                    <img
-                      src={post.creatorInfo.profile}
-                      alt="MoneyBoy Social Profile Avatar"
-                      onError={() =>
-                        setAvatarErrorMap((prev) => ({
-                          ...prev,
-                          [post.creatorInfo.publicId]: true,
-                        }))
-                      }
-                    />
+                    !avatarErrorMap[post.creatorInfo.publicId] ? (
+                    <img src={post.creatorInfo.profile} alt="MoneyBoy Social Profile Avatar" onError={() => setAvatarErrorMap((prev) => ({ ...prev, [post.creatorInfo.publicId]: true, }))} />
                   ) : (
                     <div className="noprofile">
-                      <svg
-                        width="40"
-                        height="40"
-                        viewBox="0 0 66 54"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          className="animate-m"
-                          d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                          fill="url(#paint0_linear_4470_53804)"
-                        />
+                      <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
                         <defs>
-                          <linearGradient
-                            id="paint0_linear_4470_53804"
-                            x1="0"
-                            y1="27"
-                            x2="66"
-                            y2="27"
-                            gradientUnits="userSpaceOnUse"
-                          >
+                          <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
                             <stop stop-color="#FDAB0A" />
                             <stop offset="0.4" stop-color="#FECE26" />
                             <stop offset="1" stop-color="#FE990B" />
@@ -393,22 +355,14 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   )}
                 </div>
               </div>
-
               <div className="profile-card__info">
                 <div className="profile-card__name-badge">
-                  <div className="profile-card__name">
-                    {post.creatorInfo?.userName}
-                  </div>
+                  <div className="profile-card__name">{post.creatorInfo?.userName}</div>
                   <div className="profile-card__badge">
-                    <img
-                      src="/images/logo/profile-badge.png"
-                      alt="MoneyBoy Social Profile Badge"
-                    />
+                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                   </div>
                 </div>
-                <div className="profile-card__username">
-                  @{post.creatorInfo?.displayName}
-                </div>
+                <div className="profile-card__username">@{post.creatorInfo?.displayName}</div>
               </div>
             </div>
           </div>
@@ -417,60 +371,20 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               {formatRelativeTime(post.createdAt)}
             </div>
             <div className="rel-user-more-opts-wrapper">
-              <button
-                ref={buttonRef}
-                className="rel-user-more-opts-trigger-icon"
-                onClick={() => setOpen((prev) => !prev)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="25"
-                  viewBox="0 0 24 25"
-                  fill="none"
-                >
-                  <path
-                    d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                    stroke="none"
-                    stroke-width="1.5"
-                  ></path>
-                  <path
-                    d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                    stroke="none"
-                    stroke-width="1.5"
-                  ></path>
-                  <path
-                    d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                    stroke="none"
-                    stroke-width="1.5"
-                  ></path>
+              <button ref={buttonRef} className="rel-user-more-opts-trigger-icon" onClick={() => setOpen((prev) => !prev)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                  <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" stroke="none" stroke-width="1.5"></path>
+                  <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" stroke="none" stroke-width="1.5"></path>
+                  <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" stroke="none" stroke-width="1.5"></path>
                 </svg>
               </button>
-              <div
-                ref={menuRef}
-                className="rel-users-more-opts-popup-wrapper"
-                style={isMobile ? mobileStyle : desktopStyle}
-              >
+              <div ref={menuRef} className="rel-users-more-opts-popup-wrapper" style={isMobile ? mobileStyle : desktopStyle}>
                 <div className="rel-users-more-opts-popup-container">
                   <ul>
-                    <li
-                      onClick={handleCopy}
-                      className="copy-post-link"
-                      data-copy-post-link="inset-post-link-here"
-                    >
+                    <li onClick={handleCopy} className="copy-post-link" data-copy-post-link="inset-post-link-here">
                       <div className="icon copy-link-icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke-width="1.5"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                          ></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"></path>
                         </svg>
                       </div>
                       <span>{copied ? "Copied!" : "Copy Link"}</span>
@@ -481,28 +395,14 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             </div>
           </div>
         </div>
-        <div
-          className="moneyboy-post__desc"
-          onClick={handlePostRedirect}
-          style={{ cursor: "pointer" }}
-        >
+        <div className="moneyboy-post__desc" onClick={handlePostRedirect} style={{ cursor: "pointer" }}>
           {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>{post.text} {!expanded && (<span className="active-down-effect-2x post-more" onClick={() => setExpanded(true)}>more</span>)}</p> */}
           <p className="post-text">
             {post?.text ? (
               <>
-                {expanded || post.text.length <= 150
-                  ? post.text
-                  : `${post.text.substring(0, 150)}...`}
+                {expanded || post.text.length <= 150 ? post.text : `${post.text.substring(0, 150)}...`}
                 {post.text.length > 150 && (
-                  <span
-                    className="active-down-effect-2x post-more"
-                    onClick={(e) => {
-                      e.stopPropagation(); // ⛔ stop redirect
-                      setExpanded(!expanded);
-                    }}
-                  >
-                    {expanded ? " less" : " more"}
-                  </span>
+                  <span className="active-down-effect-2x post-more" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>{expanded ? " less" : " more"}</span>
                 )}
               </>
             ) : (
@@ -512,170 +412,38 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         </div>
         <div className="moneyboy-post__media">
           <div className="moneyboy-post__img">
-            <Swiper
-              slidesPerView={1}
-              spaceBetween={15}
-              navigation
-              modules={[Navigation]}
-              className="post_swiper"
-            >
+            <Swiper slidesPerView={1} spaceBetween={15} navigation modules={[Navigation]} className="post_swiper">
               {post.media?.[0]?.mediaFiles?.length > 0 ? (
                 post.media[0].mediaFiles.map((file: string, i: number) => {
                   const isVideo = post.media?.[0]?.type === "video";
                   return (
                     <SwiperSlide key={i}>
                       {isVideo ? (
-                        <Plyr
-                          ref={(ref: any) => {
-                            if (!ref) return;
-
-                            // Support both ref shapes
-                            const player = ref.plyr || ref;
-
-                            if (!player || typeof player.on !== "function")
-                              return;
-
-                            // prevent duplicate binding
-                            if (player.__eventsBound) return;
-                            player.__eventsBound = true;
-
-                            player.on("enterfullscreen", () => {
-                              player.muted = true; // required for mobile autoplay
-                              player.play();
-                            });
-
-                            player.on("exitfullscreen", () => {
-                              player.pause();
-                            });
-                          }}
-                          source={{
-                            type: "video",
-                            sources: [{ src: file, type: "video/mp4" }],
-                          }}
-                          options={{
-                            controls: [
-                              "play",
-                              "progress",
-                              "current-time",
-                              "mute",
-                              "volume",
-                              "fullscreen",
-                            ],
-                          }}
-                        />
+                        <Plyr ref={(ref: any) => { if (!ref) return; const player = ref.plyr || ref; if (!player || typeof player.on !== "function") return; if (player.__eventsBound) return; player.__eventsBound = true; player.on("enterfullscreen", () => { player.muted = true; player.play(); }); player.on("exitfullscreen", () => { player.pause(); }); }} source={{ type: "video", sources: [{ src: file, type: "video/mp4" }], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
                       ) : (
                         <PhotoProvider
-                          toolbarRender={({
-                            images,
-                            index,
-                            onIndexChange,
-                            onClose,
-                            rotate,
-                            onRotate,
-                            scale,
-                            onScale,
-                            visible,
-                          }) => {
+                          toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible, }) => {
                             if (!visible) return null;
-
-                            const btnStyle = {
-                              background: "transparent",
-                              border: "none",
-                              color: "#fff",
-                              cursor: "pointer",
-                              padding: "6px",
-                              display: "flex",
-                              alignItems: "center",
-                            };
-
                             return (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: 20,
-                                  right: 20,
-                                  display: "flex",
-                                  gap: "12px",
-                                  background: "rgba(0,0,0,0.6)",
-                                  padding: "10px 14px",
-                                  borderRadius: "12px",
-                                  alignItems: "center",
-                                  zIndex: 9999,
-                                }}
-                              >
+                              <div className="toolbar_controller">
                                 {/* Previous */}
-                                <button
-                                  style={btnStyle}
-                                  onClick={() =>
-                                    index > 0 && onIndexChange(index - 1)
-                                  }
-                                >
-                                  <ChevronLeft size={20} />
-                                </button>
-
+                                <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
                                 {/* Counter */}
-                                <span
-                                  style={{ color: "#fff", fontSize: "14px" }}
-                                >
-                                  {index + 1} / {images.length}
-                                </span>
-
+                                <span>{index + 1} / {images.length}</span>
                                 {/* Next */}
-                                <button
-                                  style={btnStyle}
-                                  onClick={() =>
-                                    index < images.length - 1 &&
-                                    onIndexChange(index + 1)
-                                  }
-                                >
-                                  <ChevronRight size={20} />
-                                </button>
-
+                                <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
                                 {/* Zoom In */}
-                                <button
-                                  style={btnStyle}
-                                  onClick={() => onScale(scale + 0.2)}
-                                >
-                                  <ZoomIn size={20} />
-                                </button>
-
+                                <button className="btn_icons" onClick={() => onScale(scale + 0.2)}><ZoomIn size={20} /></button>
                                 {/* Zoom Out */}
-                                <button
-                                  style={btnStyle}
-                                  onClick={() =>
-                                    onScale(Math.max(0.5, scale - 0.2))
-                                  }
-                                >
-                                  <ZoomOut size={20} />
-                                </button>
-
+                                <button className="btn_icons" onClick={() => onScale(Math.max(0.5, scale - 0.2))}><ZoomOut size={20} /></button>
                                 {/* Rotate */}
-                                <button
-                                  style={btnStyle}
-                                  onClick={() => onRotate(rotate + 90)}
-                                >
-                                  <RotateCw size={20} />
-                                </button>
-
+                                <button className="btn_icons" onClick={() => onRotate(rotate + 90)}><RotateCw size={20} /></button>
                                 {/* Close */}
-                                <button style={btnStyle} onClick={onClose}>
-                                  <X size={20} />
-                                </button>
+                                <button className="btn_icons" onClick={onClose}><X size={20} /></button>
                               </div>
                             );
-                          }}
-                        >
-                          <PhotoView src={file}>
-                            <img
-                              src={file}
-                              alt="MoneyBoy Post Image"
-                              style={{
-                                cursor: "pointer",
-                                maxWidth: "100%",
-                                borderRadius: "8px",
-                              }}
-                            />
-                          </PhotoView>
+                          }}>
+                          <PhotoView src={file}><img src={file} alt="MoneyBoy Post Image" /></PhotoView>
                         </PhotoProvider>
                       )}
                     </SwiperSlide>
@@ -694,88 +462,22 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               <li>
                 <Link
                   href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-
-                    if (!session?.user?.id) {
-                      router.push("/login");
-                      return;
-                    }
-
-                    setShowTipModal(true);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                      stroke="white"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
-                    <path
-                      d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                      stroke="white"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
-                    <path
-                      d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                      stroke="white"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
-                    <path
-                      d="M10 12.85V13.59"
-                      stroke="white"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
-                    <path
-                      className="dollar-sign"
-                      d="M10 6.40997V7.18997"
-                      stroke="white"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
+                  onClick={(e) => { e.preventDefault(); if (!session?.user?.id) { router.push("/login"); return; } setShowTipModal(true); }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M10 12.85V13.59" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path className="dollar-sign" d="M10 6.40997V7.18997" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
                   <span>Send Tip</span>
                 </Link>
               </li>
               {/* Like */}
               <li>
-                <Link
-                  href="#"
-                  className={`post-like-btn ${post.isLiked ? "active" : ""}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onLike(post._id);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                      stroke="white"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                <Link href="#" className={`post-like-btn ${post.isLiked ? "active" : ""}`} onClick={(e) => { e.preventDefault(); onLike(post._id); }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <span>{post.likeCount || 0}</span>
                 </Link>
@@ -1017,7 +719,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                     <div className="profile-card__avatar-settings">
                       <div className="profile-card__avatar">
                         {topComment.userId?.profile &&
-                        !avatarErrorMap[topComment.userId._id] ? (
+                          !avatarErrorMap[topComment.userId._id] ? (
                           <img
                             src={topComment.userId.profile}
                             alt={topComment.userId?.userName || "User profile"}

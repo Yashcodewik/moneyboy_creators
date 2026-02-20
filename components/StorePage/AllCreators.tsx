@@ -358,7 +358,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                           <p>By {post.creatorInfo?.displayName}</p>
                         </div>
 
-                        <div className="creator-media-card__btn">
+                        <div className="creator-media-card__btn mt-auto">
                           {post.accessType === "pay_per_view" &&
                             post.isUnlocked !== true && (
                               <h5>

@@ -12,14 +12,7 @@ import CustomSelect from "../CustomSelect";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-import {
-  fetchFeedPosts,
-  fetchFollowingPosts,
-  fetchPopularPosts,
-  incrementFeedPostCommentCount,
-  updateFeedPost,
-} from "@/redux/other/feedPostsSlice";
-
+import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost,} from "@/redux/other/feedPostsSlice";
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
 
@@ -33,19 +26,8 @@ const FeedPage = () => {
   const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
-  const {
-    posts,
-    feedPage,
-    followingPage,
-    popularPage,
-    hasMoreFeed,
-    hasMoreFollowing,
-    hasMorePopular,
-    loading,
-  } = useSelector((state: any) => state.feedPosts);
-
+  const {posts, feedPage, followingPage, popularPage, hasMoreFeed, hasMoreFollowing, hasMorePopular, loading,} = useSelector((state: any) => state.feedPosts);
   const allPosts = Object.values(posts);
-
   const feedPosts = allPosts.filter((p: any) => p.source === "feed");
   const followingPosts = allPosts.filter((p: any) => p.source === "following");
   const popularPosts = allPosts.filter((p: any) => p.source === "popular");
@@ -193,19 +175,8 @@ const FeedPage = () => {
 
   /* ================= UI HELPERS ================= */
 
-  const activeList =
-    activeTab === "feed"
-      ? feedPosts
-      : activeTab === "following"
-        ? followingPosts
-        : popularPosts;
-
-  const activeHasMore =
-    activeTab === "feed"
-      ? hasMoreFeed
-      : activeTab === "following"
-        ? hasMoreFollowing
-        : hasMorePopular;
+  const activeList = activeTab === "feed" ? feedPosts : activeTab === "following" ? followingPosts : popularPosts;
+  const activeHasMore = activeTab === "feed" ? hasMoreFeed : activeTab === "following" ? hasMoreFollowing : hasMorePopular;
 
   const handleTabClick = (tab: TabType) => {
     if (!isLoggedIn && tab === "following") {

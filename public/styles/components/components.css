@@ -3462,7 +3462,7 @@
                     font-weight: 500;
                   }
                   .msg-contact-box {
-                    filter: grayscale(100%);
+                    /* filter: grayscale(100%); */
                   }
                 }
             }
