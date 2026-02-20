@@ -66,7 +66,7 @@ export default function ImageCropModal({ show, image, aspect = 1, onClose, onSav
           <button type="button" className="active-down-effect" data-tooltip="Rotate" onClick={() => setRotation((r) => (r + 90) % 360)}> <RotateCw size={20} /></button>
           <button type="button" className="active-down-effect" data-tooltip="Flip Horizontal" onClick={() =>   setFlip((f) => ({ ...f, horizontal: !f.horizontal })) }> <FlipHorizontal size={20} /></button>
           <button type="button" className="active-down-effect" data-tooltip="Flip Vertical" onClick={() =>   setFlip((f) => ({ ...f, vertical: !f.vertical })) }> <FlipVertical size={20} /></button>
-          <button type="button" className="active-down-effect" data-tooltip="Change Ratio" onClick={changeRatio}> {React.createElement(RATIOS[ratioIndex].icon, { size: 20 })}</button>
+          {/* <button type="button" className="active-down-effect" data-tooltip="Change Ratio" onClick={changeRatio}> {React.createElement(RATIOS[ratioIndex].icon, { size: 20 })}</button> */}
           <button type="button" className="active-down-effect" data-tooltip="Reset" onClick={resetCrop}><RefreshCcw size={20} /></button>
         </div>
         <div className="actions mt-3">

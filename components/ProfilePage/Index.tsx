@@ -35,11 +35,12 @@ import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
 import PPVRequestModal from "./PPVRequestModal";
 import UnlockContentModal from "./UnlockContentModal";
-import { Trash2 } from "lucide-react";
+import { AtSign, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import ShowToast from "../common/ShowToast";
+import { showQuestion, showSuccess, showError } from "../../utils/alert";
 
 interface User {
   _id: string;
@@ -164,30 +165,30 @@ const ProfilePage = () => {
     setActiveTab(tabName);
   };
   const isOwnProfile = sessionPublicId === profilePublicId;
-const { data: profileData, refetch } = useQuery({
-  queryKey: ["creator-profile", profilePublicId],
-  queryFn: async () => {
-    const isOwnProfile = sessionPublicId === profilePublicId;
+  const { data: profileData, refetch } = useQuery({
+    queryKey: ["creator-profile", profilePublicId],
+    queryFn: async () => {
+      const isOwnProfile = sessionPublicId === profilePublicId;
 
-    const response = isOwnProfile
-      ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
-      : await getApiByParams({
+      const response = isOwnProfile
+        ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
+        : await getApiByParams({
           url: API_CREATOR_PROFILE_BY_ID,
           params: profilePublicId,
         });
 
-    return response;
-  },
-  enabled: !!profilePublicId,
-});
+      return response;
+    },
+    enabled: !!profilePublicId,
+  });
 
-useEffect(() => {
-  if (profileData) {
-    setProfile(profileData);
-    setIsSaved(Boolean(profileData.isSaved));
-    setIsFollowing(Boolean(profileData.isFollowing));
-  }
-}, [profileData]);
+  useEffect(() => {
+    if (profileData) {
+      setProfile(profileData);
+      setIsSaved(Boolean(profileData.isSaved));
+      setIsFollowing(Boolean(profileData.isFollowing));
+    }
+  }, [profileData]);
 
   const subStatus = profile?.subscriptionStatus;
 
@@ -497,20 +498,12 @@ useEffect(() => {
     const queryClient = useQueryClient();
     const handleDeletePost = async (postId: string) => {
       if (!postId) return;
-
-      if (!window.confirm("Are you sure you want to delete this post?")) {
-        return;
-      }
-
+      const confirm = await showQuestion("This action cannot be undone. Delete this post?");
+      if (!confirm) return;
       try {
-        const res = await apiPost({
-          url: API_DELETE_POST,
-          values: { postId },
-        });
-
+        const res = await apiPost({url: API_DELETE_POST, values: { postId },});
         if (res?.success) {
-          toast.success("Post deleted successfully");
-          const updatedPosts = posts.filter((p: any) => p._id !== postId);
+          showSuccess("Post deleted successfully");
           queryClient.setQueryData(
             ["creator-posts", profilePublicId],
             (oldData: any) => {
@@ -519,67 +512,65 @@ useEffect(() => {
                 ...oldData,
                 posts: oldData.posts.filter((p: any) => p._id !== postId),
               };
-            },
+            }
           );
         } else {
-          toast.error(res?.message || "Failed to delete post");
+          showError(res?.message || "Failed to delete post");
         }
       } catch (err) {
         console.error("Delete post error:", err);
-        toast.error("Something went wrong");
+        showError("Something went wrong");
       }
     };
 
     const dispatch = useDispatch<AppDispatch>();
 
     const isPostSaved = post.isSaved;
-const handleSavePost = async (e: React.MouseEvent) => {
-  e.stopPropagation();
+    const handleSavePost = async (e: React.MouseEvent) => {
+      e.stopPropagation();
 
-  if (!session?.isAuthenticated) {
-    router.push("/login");
-    return;
-  }
+      if (!session?.isAuthenticated) {
+        router.push("/login");
+        return;
+      }
 
-  const postId = post._id;
-  const creatorUserId = profile?.user?._id;
+      const postId = post._id;
+      const creatorUserId = profile?.user?._id;
 
-  if (!postId) return;
+      if (!postId) return;
 
-  const newState = !post.isSaved;
+      const newState = !post.isSaved;
 
-  // ✅ Optimistic UI update
-  queryClient.setQueryData(
-    ["creator-posts", profilePublicId, search, timeFilter],
-    (oldData: any) => {
-      if (!oldData) return oldData;
+      queryClient.setQueryData(
+        ["creator-posts", profilePublicId, search, timeFilter],
+        (oldData: any) => {
+          if (!oldData) return oldData;
 
-      return {
-        ...oldData,
-        posts: oldData.posts.map((p: any) =>
-          p._id === postId ? { ...p, isSaved: newState } : p
-        ),
-      };
-    }
-  );
+          return {
+            ...oldData,
+            posts: oldData.posts.map((p: any) =>
+              p._id === postId ? { ...p, isSaved: newState } : p
+            ),
+          };
+        }
+      );
 
-  try {
-    if (post.isSaved) {
-      await dispatch(
-        unsavePost({ postId, creatorUserId })
-      ).unwrap();
-    } else {
-      await dispatch(
-        savePost({ postId, creatorUserId })
-      ).unwrap();
-    }
-  } catch (err) {
-    // ❌ rollback on error
-    queryClient.invalidateQueries({
-      queryKey: ["creator-posts"],
-    });
-  }
-};
+      try {
+        if (post.isSaved) {
+          await dispatch(
+            unsavePost({ postId, creatorUserId })
+          ).unwrap();
+        } else {
+          await dispatch(
+            savePost({ postId, creatorUserId })
+          ).unwrap();
+        }
+      } catch (err) {
+        queryClient.invalidateQueries({
+          queryKey: ["creator-posts"],
+        });
+      }
+    };
 
     return (
       <div
@@ -587,10 +578,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
         key={post?.publicId}
       >
         <div className="creator-content-card">
-          <div
-            className="creator-content-card__media"
-            onClick={() => handlePostClick(post)}
-          >
+          <div className="creator-content-card__media" onClick={() => handlePostClick(post)}>
             <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
@@ -696,43 +684,19 @@ const handleSavePost = async (e: React.MouseEvent) => {
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
                 {!isOwnProfile && !hideSaveBtn && (
-                  <div
-                    className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`}
-                    onClick={handleSavePost}
-                    // disabled={saveLoading}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="25"
-                      viewBox="0 0 24 25"
-                      fill="none"
-                    >
-                      <path
-                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                        stroke="none"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      ></path>
-                      <path
-                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                        stroke="none"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      ></path>
-                      <path
-                        d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                        stroke="none"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      ></path>
+                  <div className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`} onClick={handleSavePost}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
                     {/* <span> 13 </span> */}
                   </div>
                 )}
+                {/* <div className="creator-media-card__stats-btn tag-icon">
+                 <AtSign size={22} fill="none"/>
+                  <span> 13 </span>
+                </div> */}
               </div>
             </div>
           </div>
@@ -766,37 +730,12 @@ const handleSavePost = async (e: React.MouseEvent) => {
                   </button>
                   <span>{post?.likeCount}</span>
                 </div>
-                <div className="creator-content-stat-box post-comment-btn massage-btn">
+                <div className="creator-content-stat-box post-comment-btn massage-btn active">
                   <button>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <path
-                        d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                        stroke="white"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      ></path>
-                      <path
-                        d="M7 8H17"
-                        stroke="white"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      ></path>
-                      <path
-                        d="M7 13H13"
-                        stroke="white"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      ></path>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z" stroke="white" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
+                      <path d="M7 8H17" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                      <path d="M7 13H13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                     </svg>
                   </button>
                   <span>{post?.commentCount}</span>
@@ -805,8 +744,8 @@ const handleSavePost = async (e: React.MouseEvent) => {
             )}
             {!isFreecomment && (
               <>
-              {/* views-btn */}
-                <div className="creator-content-stat-box views-btn">
+                {/* views-btn */}
+                <div className="creator-content-stat-box views-btn active">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -833,7 +772,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
                   <span>{post?.commentCount}</span>
                 </div>
                 {/* thumup-btn  */}
-                <div className="creator-content-stat-box thumup-btn">
+                <div className="creator-content-stat-box thumup-btn active">
                   <button>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -855,12 +794,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
               </>
             )}
             {isOwner && (
-              <button
-                className="btn-danger icons"
-                onClick={() => handleDeletePost(post._id)}
-              >
-                <Trash2 size={28} color="#FFF" />
-              </button>
+              <button className="btn-danger icons" onClick={() => handleDeletePost(post._id)}><Trash2 size={28} color="#FFF" /></button>
             )}
           </div>
         </div>
@@ -926,30 +860,30 @@ const handleSavePost = async (e: React.MouseEvent) => {
   };
 
 
-const handleSaveCreator = async (e: React.MouseEvent) => {
-  e.preventDefault();
+  const handleSaveCreator = async (e: React.MouseEvent) => {
+    e.preventDefault();
 
-  if (!session?.isAuthenticated) {
-    router.push("/login");
-    return;
-  }
+    if (!session?.isAuthenticated) {
+      router.push("/login");
+      return;
+    }
 
-  const creatorUserId = profile?.user?._id;
-  if (!creatorUserId) return;
+    const creatorUserId = profile?.user?._id;
+    if (!creatorUserId) return;
 
-  const apiUrl = isSaved ? API_UNSAVE_CREATOR : API_SAVE_CREATOR;
+    const apiUrl = isSaved ? API_UNSAVE_CREATOR : API_SAVE_CREATOR;
 
-  const res = await apiPost({
-    url: apiUrl,
-    values: { creatorUserId },
-  });
+    const res = await apiPost({
+      url: apiUrl,
+      values: { creatorUserId },
+    });
 
-  if (res?.success) {
-    ShowToast(isSaved ? "Creator removed" : "Creator saved", "success");
+    if (res?.success) {
+      ShowToast(isSaved ? "Creator removed" : "Creator saved", "success");
 
-    refetch();   // ⭐ refresh state from server
-  }
-};
+      refetch();   // ⭐ refresh state from server
+    }
+  };
 
 
   return (
@@ -1311,7 +1245,7 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                   </div>
                 </div> */}
                 {session?.isAuthenticated && profile && (
-                     <div className="profile-card__geo-details">
+                  <div className="profile-card__geo-details">
                     {(profile?.creator?.city || profile?.creator?.country) && (
                       <div className="profile-card__geo-detail">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1340,7 +1274,7 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                   <div className="creator-profile-stats-link">
                     <div className="profile-card__stats">
                       <div className="profile-card__stats-item posts-stats"
-                       onClick={() => setActiveTab("posts")}>
+                        onClick={() => setActiveTab("posts")}>
                         <div className="profile-card__stats-num">
                           {postCount.toLocaleString()}
                         </div>
@@ -1795,7 +1729,7 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                             router.push("/login");
                             return;
                           }
-                           if (!profile?.user?.publicId) return; 
+                          if (!profile?.user?.publicId) return;
 
                           router.push(`/store?tab=marketplace&creator=${profile?.user?.publicId}`);
 

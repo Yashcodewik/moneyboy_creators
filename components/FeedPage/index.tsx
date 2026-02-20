@@ -16,14 +16,7 @@ import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPo
 import toast from "react-hot-toast";
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
-
-import {
-  showSuccess,
-  showError,
-  showWarning,
-  showInfo,
-  showQuestion,
-} from "@/utils/alert";
+import { showSuccess, showError, showWarning, showInfo, showQuestion,} from "@/utils/alert";
 
 const FeedPage = () => {
   const router = useRouter();
@@ -40,30 +33,6 @@ const FeedPage = () => {
   const feedPosts = allPosts.filter((p: any) => p.source === "feed");
   const followingPosts = allPosts.filter((p: any) => p.source === "following");
   const popularPosts = allPosts.filter((p: any) => p.source === "popular");
-
-  const askQuestion = async () => {
-    const ok = await showQuestion("Do you want to continue?");
-
-    if (ok) {
-      showSuccess("You clicked YES");
-    } else {
-      showError("You clicked NO");
-    }
-  };
-
-  const baseConfig = {
-    confirmButtonText: "OK",
-    showClass: {
-      popup: "swal2-show",
-    },
-    hideClass: {
-      popup: "swal2-hide",
-    },
-  };
-
-  // useEffect(() => {
-  //   toast.success("sagar")
-  // }, [activeTab]);
   /* ================= INITIAL LOAD / TAB CHANGE ================= */
 
   useEffect(() => {
@@ -231,27 +200,12 @@ const FeedPage = () => {
               <button className="page-content-type-button" onClick={() => showError("Error Message")}>Error</button>
               <button className="page-content-type-button" onClick={() => showWarning("Warning Message")}>Warning</button>
               <button className="page-content-type-button" onClick={() => showInfo("Info Message")}>Info</button>
-              <button className="page-content-type-button" onClick={askQuestion}>Question</button>
+              <button className="page-content-type-button" onClick={async () => {const ok = await showQuestion("Continue?"); ok ? showSuccess("Yes clicked") : showError("No clicked");}}>Question</button>
             </div>
             <div className="moneyboy-feed-page-cate-buttons card">
-              <button
-                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
-                onClick={() => handleTabClick("feed")}
-              >
-                Feed
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
-                onClick={() => handleTabClick("following")}
-              >
-                {isLoggedIn ? "Following" : "Discover"}
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
-                onClick={() => handleTabClick("popular")}
-              >
-                Popular
-              </button>
+              <button className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
+              <button className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>{isLoggedIn ? "Following" : "Discover"}</button>
+              <button className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`} onClick={() => handleTabClick("popular")}>Popular</button>
             </div>
             <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
               <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={ activeList?.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
@@ -277,12 +231,7 @@ const FeedPage = () => {
       </div>
 
       {/* ================= MODALS ================= */}
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap tip-modal">
           <button className="close-btn">
             <CgClose size={22} />
