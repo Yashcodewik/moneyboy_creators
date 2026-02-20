@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react'
 import toast from 'react-hot-toast';
 import CustomSelect from '../CustomSelect';
 import { CgClose } from 'react-icons/cg';
-import { useAppDispatch } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   muteThread,
   hideThread,
@@ -13,6 +13,7 @@ import {
   fetchThreadDetails,
 } from "@/redux/message/messageActions";
 import { useSelector } from 'react-redux';
+import { setThreadDetails } from '@/redux/message/messageSlice';
 
 
 const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
@@ -29,16 +30,33 @@ const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const router = useRouter();
+    const { isBlocked , isHidden} = useAppSelector(
+    (state) => state.message
+  );
+
   const dispatch = useAppDispatch();
 const handleMute = async () => {
   await dispatch(muteThread(threadPublicId));
   toast.success("Conversation muted");
 };
 
-const handleHide = async () => {
-  await dispatch(hideThread(threadPublicId));
-  toast.success("Conversation hidden");
-  router.replace("/message");
+  const handleHide = async () => {
+    const res: any = await dispatch(hideThread(threadPublicId));
+    if (res.meta.requestStatus === "fulfilled") {
+      const { isHidden, message } = res.payload;
+      toast.success(
+        message || 
+        (isHidden
+          ? "Conversation hidden successfully"
+          : "Conversation unhidden successfully")
+      );
+      if (isHidden) {
+        router.replace("/message");
+      }
+
+    } else {
+      toast.error("Failed to update conversation");
+    }
   };
 
  const handleBlock = async () => {
@@ -112,7 +130,7 @@ const handleSearch = async () => {
               </g>
             </svg>
           </div>
-          <span>Hide Conversation</span>
+          <span>{isHidden ? "Unhide Conversation" : "Hide Conversation"}</span>
         </li>
         <li onClick={handleBlock}>
           <div className="icon block-icon">
@@ -124,7 +142,7 @@ const handleSearch = async () => {
               </path>
             </svg>
           </div>
-          <span>Block Messages</span>
+          <span>{isBlocked ? "Unblock Messages" : "Block Messages"}</span>
         </li>
         <li onClick={onReport}>
           <div className="icon report-icon">
