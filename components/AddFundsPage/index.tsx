@@ -4,9 +4,15 @@ import Featuredboys from "../Featuredboys";
 import Link from "next/link";
 import CustomSelect from "../CustomSelect";
 import { BsBank2 } from "react-icons/bs";
+import { useSearchParams } from "next/navigation";
 
 const AddFundsPage = () => {
-  const [tab, setTab] = useState(1);
+  const searchParams = useSearchParams();
+const tabParam = searchParams.get("tab");
+
+const [tab, setTab] = useState(
+  tabParam === "addfunds" ? 2 : 1
+);
 
   return (
     <div className="moneyboy-2x-1x-layout-container">

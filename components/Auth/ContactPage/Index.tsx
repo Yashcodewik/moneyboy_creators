@@ -160,7 +160,7 @@ const ContactPage = () => {
                     </span>
                   )} */}
                 </div>
-                <div className="label-input one file-upload-wrapper">
+                {/* <div className="label-input one file-upload-wrapper">
                   <div className="input-placeholder-icon">
                     <i className="icons idshape size-45"></i>
                     <div className="imgicons">
@@ -179,7 +179,7 @@ const ContactPage = () => {
                       }
                     }}
                   />
-                </div>
+                </div> */}
                 <div className="one">
                   <div className="label-input textarea one">
                     <div className="input-placeholder-icon">
