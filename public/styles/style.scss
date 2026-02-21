@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
-
+@import "sweetalert2/dist/sweetalert2.min.css";
 body {
   background: #f4f4f4;
 }
@@ -2738,8 +2738,7 @@ body {
         font-style: normal;
         letter-spacing: 0px;
       }
-      .form-input,
-      textarea {
+      .form-input, textarea {
         padding: 12px;
         background-color: #ffffff;
       }
@@ -2968,6 +2967,45 @@ body {
               background-color: transparent;
               svg {
                 filter: unset;
+              }
+            }
+          }
+        }
+      }
+      .moneyboy-post__header {
+        .profile-card {
+          .profile-card__info {
+            .profile-card__name {
+              color: var(--color-text-active);
+              font-size: 14px;
+              font-style: normal;
+              font-weight: 500;
+              line-height: 100%;
+              font-family: var(--font-family-heading);
+            }
+            .profile-card__username {
+              color: #505050;
+              transition: var(--transition-fast);
+              font-size: 12px;
+              font-weight: 600;
+              line-height: 100%;
+              font-family: var(--font-family-base);
+            }
+          }
+          .rigth_info {
+            margin-left: auto;
+          }
+          &.upl_card {
+            padding: 0px;
+            margin-bottom: 12px;
+            &:last-child {
+            margin-bottom: 0px;
+            }
+            .right_box {
+              margin-left: auto;
+              .form-input {
+                padding: 8px;
+                max-width: 120px;
               }
             }
           }
@@ -7451,4 +7489,15 @@ body {
 .resend-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+
+// Bank Card Start
+.bankcard_wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }

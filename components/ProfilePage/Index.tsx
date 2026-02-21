@@ -1,35 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  apiPost,
-  getApiByParams,
-  getApiWithOutQuery,
-} from "@/utils/endpoints/common";
-import {
-  API_CREATOR_PROFILE,
-  API_CREATOR_PROFILE_BY_ID,
-  API_DELETE_POST,
-  API_FOLLOWER_COUNT,
-  API_GET_POSTS_BY_CREATOR,
-  API_SAVE_CREATOR,
-  API_SAVE_POST,
-  API_SEND_TIP,
-  API_SUBSCRIBE_CREATOR,
-  API_UNLOCK_POST,
-  API_UNSAVE_CREATOR,
-  API_UNSAVE_POST,
-  API_UPGRADE_SUBSCRIPTION,
-} from "@/utils/api/APIConstant";
+import { apiPost, getApiByParams, getApiWithOutQuery,} from "@/utils/endpoints/common";
+import { API_CREATOR_PROFILE, API_CREATOR_PROFILE_BY_ID, API_DELETE_POST, API_FOLLOWER_COUNT, API_GET_POSTS_BY_CREATOR, API_SAVE_CREATOR, API_SAVE_POST, API_SEND_TIP, API_SUBSCRIBE_CREATOR, API_UNLOCK_POST, API_UNSAVE_CREATOR, API_UNSAVE_POST, API_UPGRADE_SUBSCRIPTION,} from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useParams, useRouter } from "next/navigation";
 import { AppDispatch, RootState } from "../../redux/store";
-import {
-  fetchFollowerCounts,
-  followUserAction,
-  unfollowUserAction,
-} from "../../redux/other/followActions";
+import { fetchFollowerCounts, followUserAction, unfollowUserAction,} from "../../redux/other/followActions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
@@ -42,43 +20,8 @@ import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import ShowToast from "../common/ShowToast";
 import { showQuestion, showSuccess, showError } from "../../utils/alert";
 
-interface User {
-  _id: string;
-  userId: string;
-  publicId: string;
-  firstName: string;
-  lastName: string;
-  displayName: string;
-  userName: string;
-  email: string;
-  role: number;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-  profile: string;
-  coverImage: string;
-}
-
-interface CreatorDetails {
-  _id: string;
-  userId: string;
-  city: string;
-  country: string;
-  bio: string;
-  bodyType: string;
-  sexualOrientation: string;
-  age: string;
-  eyeColor: string;
-  hairColor: string;
-  ethnicity: string;
-  height: string;
-  style: string;
-  size: string;
-  popularity: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
+interface User { _id: string; userId: string; publicId: string; firstName: string; lastName: string; displayName: string; userName: string; email: string; role: number; createdAt: string; updatedAt: string; __v: number; profile: string; coverImage: string;}
+interface CreatorDetails { _id: string; userId: string; city: string; country: string; bio: string; bodyType: string; sexualOrientation: string; age: string; eyeColor: string; hairColor: string; ethnicity: string; height: string; style: string; size: string; popularity: string; createdAt: string; updatedAt: string; __v: number;}
 
 interface SubscriptionStatus {
   isSubscribed: boolean;
