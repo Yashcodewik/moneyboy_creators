@@ -3990,6 +3990,7 @@
                 width: 28px;
                 height: 28px;
                 border-radius: 7px;
+                transition: all 0.2s ease;
                 &.viewbtn {
                   svg {
                     path {
@@ -4014,6 +4015,28 @@
                     path {
                       stroke: #008141;
                       fill: none;
+                    }
+                  }
+                  &:hover {
+                    background-color: #008141;
+                  
+                    svg path {
+                      stroke: #fff;
+                    }
+                  }
+                }
+                &.declinebtn {
+                  svg {
+                    path {
+                      stroke: #cd3f3f;
+                      fill: none;
+                    }
+                  }
+                  &:hover {
+                    background-color: #cd3f3f;
+                  
+                    svg path {
+                      stroke: #fff;
                     }
                   }
                 }

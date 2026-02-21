@@ -195,13 +195,13 @@ const FeedPage = () => {
         <div className="moneyboy-2x-1x-a-layout">
           <div className="moneyboy-feed-page-container">
             {/* TABS */}
-            <div className="moneyboy-feed-page-cate-buttons card">
+            {/* <div className="moneyboy-feed-page-cate-buttons card">
               <button className="page-content-type-button" onClick={() => showSuccess("Success Message")}>Success</button>
               <button className="page-content-type-button" onClick={() => showError("Error Message")}>Error</button>
               <button className="page-content-type-button" onClick={() => showWarning("Warning Message")}>Warning</button>
               <button className="page-content-type-button" onClick={() => showInfo("Info Message")}>Info</button>
               <button className="page-content-type-button" onClick={async () => {const ok = await showQuestion("Continue?"); ok ? showSuccess("Yes clicked") : showError("No clicked");}}>Question</button>
-            </div>
+            </div> */}
             <div className="moneyboy-feed-page-cate-buttons card">
               <button className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
               <button className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>{isLoggedIn ? "Following" : "Discover"}</button>
