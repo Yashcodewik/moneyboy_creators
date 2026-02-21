@@ -14,6 +14,7 @@ import savedLockedPostsReducer from "@/redux/wishlist/savedLockedPostsSlice";
 import creatorsReducer from "@/redux/store/Slice";
 import subscriptionReducer from "@/redux/Subscription/Slice";
 import subscriptionListReducer from "@/redux/SubscriptionList/Slice";
+import messageReducer from "@/redux/message/messageSlice";
 
 
 
@@ -32,6 +33,7 @@ const rootReducer = combineReducers({
    creators: creatorsReducer,
    subscription: subscriptionReducer,
    SubscriptionList: subscriptionListReducer,
+   message: messageReducer,
 
 });
 

@@ -161,6 +161,13 @@ const Header = () => {
     }
   };
 
+  const handleWalletClick = (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsOpen(false);
+  router.push("/wallet-transactions?tab=wallet");
+};
+
   return (
     <>
       <header className="header-main">
@@ -518,10 +525,7 @@ const Header = () => {
                           <div className="stats-label"> Wallet </div>
                           <div className="stats-value">
                             <span> {userProfile?.walletBalance} </span>
-                            <Link
-                              href="/add-funds?q=2"
-                              className="load-wallet-btn"
-                            >
+                            <Link  href="/add-funds?tab=addfunds" className="load-wallet-btn">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -994,7 +998,7 @@ const Header = () => {
                           <span>Banking (to earn)</span>
                         </a>
                       )}
-                      {session?.user?.role === 1 && (
+                      
                         <a
                           href="/add-funds"
                           className="menu-link add-payment-method-link"
@@ -1054,7 +1058,7 @@ const Header = () => {
                           </svg>
                           <span>Add Payment Method</span>
                         </a>
-                      )}
+                      
                     </div>
                   </div>
                   <div className="links-block">

@@ -16,16 +16,17 @@ import CustomSelect from "../CustomSelect";
 import toast from "react-hot-toast";
 import ChatFeatures from "./ChatFeatures";
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { CgClose } from "react-icons/cg";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { deleteThread, fetchMessages, fetchSidebar, reportThread, sendMessageAction } from "@/redux/message/messageActions";
+import { addSocketMessage, markMessagesReadFromSocket, setActiveThread, setThreadDetails } from "@/redux/message/messageSlice";
+import { useSelector } from "react-redux";
 
 const MessagePage = () => {
-  const [activeChat, setActiveChat] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { session } = useDecryptedSession();
-  const [messages, setMessages] = useState<any[]>([]);
   const searchParams = useSearchParams();
   const threadPublicIdFromUrl = searchParams.get("threadId");
   const [activeUser, setActiveUser] = useState<any>(null);
@@ -48,9 +49,20 @@ const MessagePage = () => {
   const router = useRouter();
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [reportMessage, setReportMessage] = useState("");
   const isMobile = useDeviceType();
+  const { isBlocked } = useAppSelector(
+  (state) => state.message
+);
+      const dispatch = useAppDispatch();
+const { messages, chatList, activeThreadId } = useAppSelector(
+  (state) => state.message
+);
+useEffect(() => {
+  dispatch(fetchSidebar());
+}, [dispatch]);
 
-  useEffect(() => { console.log("ACTIVE CHAT:", activeChat); console.log("ACTIVE USER:", activeUser); }, [activeChat, activeUser]);
+
   // ✅ LOG: Socket connection
   useEffect(() => {
     console.log("🔌 Socket connected:", socket.connected);
@@ -85,140 +97,89 @@ const MessagePage = () => {
 
     return () => clearInterval(interval);
   }, [session?.user?.id]);
-  useEffect(() => {
-    const handler = (message: any) => {
-      console.log("📨 NEW MESSAGE RECEIVED:", message);
 
-      setMessages((prev) => {
-        // ✅ Remove any temp message from the same sender with similar timestamp
-        const withoutTemp = prev.filter(
-          (m) =>
-            !m._id.toString().startsWith("temp-") ||
-            m.senderId._id !== message.senderId._id,
-        );
+useEffect(() => {
+  const handler = (msg: any) => {
+    dispatch(addSocketMessage(msg));
+  };
 
-        // ✅ Check if real message already exists
-        const exists = withoutTemp.some((m) => m._id === message._id);
+  socket.on("newMessage", handler);
 
-        if (exists) {
-          console.log("⚠️ Message already exists, skipping");
-          return prev;
-        }
+  return () => {
+    socket.off("newMessage", handler);
+  };
+}, [dispatch]);
 
-        console.log("✅ Adding new message to state");
-        return [...withoutTemp, message];
-      });
-    };
+useEffect(() => {
+  if (!chatBodyRef.current) return;
+  chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+}, [messages]);
+useEffect(() => {
+  if (activeThreadId) {
+    dispatch(fetchMessages(activeThreadId));
+  }
+}, [activeThreadId, dispatch]);
 
-    socket.on("newMessage", handler);
-
-    return () => {
-      socket.off("newMessage", handler);
-    };
-  }, []);
 
   useEffect(() => {
-    const handler = ({ readerId }: any) => {
-      if (readerId === session?.user?.id) return;
+  const handler = ({ readerId }: any) => {
+    if (readerId === session?.user?.id) return;
 
-      setMessages((prev) =>
-        prev.map((msg) => {
-          const senderId =
-            typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
+    dispatch(markMessagesReadFromSocket(readerId));
+  };
 
-          if (senderId === session?.user?.id) {
-            return { ...msg, isRead: true };
-          }
-          return msg;
-        }),
-      );
-    };
+  socket.on("messagesRead", handler);
 
-    socket.on("messagesRead", handler);
+  return () => {
+    socket.off("messagesRead", handler);
+  };
+}, [dispatch, session?.user?.id]);
 
-    return () => {
-      socket.off("messagesRead", handler);
-    };
-  }, [session?.user?.id]);
+
+useEffect(() => {
+  if (!threadPublicIdFromUrl) return;
+
+  dispatch(setActiveThread(threadPublicIdFromUrl));
+}, [threadPublicIdFromUrl, dispatch]);
+
 
   useEffect(() => {
-    if (!threadPublicIdFromUrl) return;
-
-    setActiveChat((prev: any) => {
-      if (prev?.publicId === threadPublicIdFromUrl) return prev;
-      return { publicId: threadPublicIdFromUrl };
-    });
-  }, [threadPublicIdFromUrl]);
-
-  useEffect(() => {
-    if (!activeChat?.publicId || !session?.user?.id) return;
+    if (!activeThreadId || !session?.user?.id) return;
 
     socket.emit("markRead", {
-      threadId: activeChat.publicId,
+      threadId: activeThreadId,
       userId: session.user.id,
     });
-  }, [activeChat?.publicId, session?.user?.id]);
-
-  const queryClient = useQueryClient();
-  // ✅ Fetch messages when chat changes
-
-  const {
-    data: chatData,
-    refetch,
-    isLoading,
-  } = useQuery({
-    queryKey: ["chatMessages", activeChat?.publicId],
-    queryFn: async () => {
-      if (!activeChat?.publicId) return [];
-
-      const res = await getApi({
-        url: API_MESSAGE_CHAT,
-        page: 1,
-        rowsPerPage: 50,
-        searchText: activeChat.publicId,
-      });
-
-      return res?.data || [];
-    },
-    enabled: !!activeChat?.publicId,
-  });
-  useEffect(() => {
-    if (chatData) {
-      setMessages(chatData);
-    }
-  }, [chatData]);
-
-  // ✅ Fetch thread details (OTHER USER info)
-  useEffect(() => {
-    if (!chatBodyRef.current) return;
-    chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
-  }, [messages]);
+  }, [activeThreadId, session?.user?.id]);
 
   useEffect(() => {
-    if (!activeChat?.publicId) return;
+    if (!activeThreadId) return;
     (async () => {
       try {
         const res = await getApiByParams({
           url: "/messages/thread",
-          params: activeChat.publicId,
+          params: activeThreadId,
         });
 
         console.log("THREAD DETAILS:", res);
+
+        dispatch(setThreadDetails(res));
         setActiveUser(res?.user || null);
+
       } catch (err) {
         console.error("THREAD DETAILS ERROR:", err);
       }
     })();
-  }, [activeChat?.publicId]);
+  }, [activeThreadId]);
 
   useEffect(() => {
     const handleTyping = ({ threadId, userId }: any) => {
-      if (threadId === activeChat?.publicId && userId !== session?.user?.id) {
+      if (threadId === activeThreadId && userId !== session?.user?.id) {
         setIsOtherUserTyping(true);
       }
     };
     const handleStopTyping = ({ threadId, userId }: any) => {
-      if (threadId === activeChat?.publicId && userId !== session?.user?.id) {
+      if (threadId === activeThreadId && userId !== session?.user?.id) {
         setIsOtherUserTyping(false);
       }
     };
@@ -228,79 +189,58 @@ const MessagePage = () => {
       socket.off("userTyping", handleTyping);
       socket.off("userStopTyping", handleStopTyping);
     };
-  }, [activeChat?.publicId, session?.user?.id]);
+  }, [activeThreadId, session?.user?.id]);
 
   useEffect(() => {
-    if (!activeChat?.publicId) {
+    if (!activeThreadId) {
       console.log("⚠️ No active chat to join");
       return;
     }
-    console.log("🚪 Joining thread room:", activeChat.publicId);
-    socket.emit("joinThread", activeChat.publicId);
-  }, [activeChat?.publicId]);
+    console.log("🚪 Joining thread room:", activeThreadId);
+    socket.emit("joinThread", activeThreadId);
+  }, [activeThreadId]);
 
-  useEffect(() => {
-    if (!session?.user?.id) {
-      console.error("❌ No userId in session");
-      return;
-    }
-    const userId = session.user.id;
-    console.log("🔗 Connecting user to socket:", userId);
-    socket.emit("connectUser", userId);
-    socket.on("connectListener", (data) => {
-      console.log("✅ User connected. Socket ID:", data.socketId);
-    });
-    return () => { socket.off("connectListener"); };
-  }, [session]);
+useEffect(() => {
+  if (!session?.user?.id) return;
 
-  const sendMessage = () => {
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("📤 ATTEMPTING TO SEND MESSAGE");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("📝 Message text:", newComment);
-    console.log("🔗 Thread ID:", activeChat?.threadId);
-    console.log("👤 Sender ID:", session?.user?.id);
-    console.log("👥 Receiver ID:", activeUser?._id);
-    if (!newComment.trim()) { console.error("❌ Message is empty"); return; }
-    if (!activeChat?.publicId || !session?.user?.id || !activeUser?._id) { console.error("❌ Missing required data"); return; }
-    if (!socket.connected) {
-      console.error("❌ Socket not connected");
-      return;
-    }
-    socket.emit("stopTyping", {
-      threadId: activeChat.publicId,
-      userId: session.user.id,
-    });
-    isTypingRef.current = false;
-
-    const payload = {
-      threadId: activeChat.publicId,
-      senderId: session.user.id,
-      receiverId: activeUser._id,
-      text: newComment,
-    };
-    console.log("📤 Sending payload:", payload);
-    const tempMessage = {
-      _id: `temp-${Date.now()}`, // Temporary ID
-      senderId: {
-        _id: session.user.id,
-        userName: session.user.userName,
-        displayName: session.user.displayName,
-        profile: session.user.profile,
-      },
-      receiverId: activeUser._id,
-      message: newComment,
-      createdAt: new Date().toISOString(),
-      isRead: false,
-      type: 1,
-      isPending: true, // ✅ Mark as pending
-    };
-    setMessages((prev) => [...prev, tempMessage]);
-    socket.emit("sendMessage", payload);
-    console.log("✅ Message emitted to socket");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    setNewComment("");
+  const handleConnect = () => {
+    socket.emit("connectUser", session.user.id);
+    console.log("🔗 User connected to socket");
   };
+
+  if (socket.connected) {
+    handleConnect();
+  }
+
+  socket.on("connect", handleConnect);
+
+  return () => {
+    socket.off("connect", handleConnect);
+  };
+}, [session?.user?.id]);
+
+const sendMessage = () => {
+  if (!newComment.trim()) return;
+  if (!activeThreadId || !session?.user?.id || !activeUser?.id) return;
+// if (thread.permissions?.isBlockedByYou) {
+//   toast.error("You blocked this user");
+//   return;
+// }
+
+// if (thread.permissions?.isBlockedByOther) {
+//   toast.error("You cannot send message");
+//   return;
+// }
+  socket.emit("sendMessage", {
+    threadId: activeThreadId,
+    senderId: session.user.id,
+    receiverId: activeUser.id,
+    text: newComment,
+  });
+
+  setNewComment("");
+};
+
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -328,6 +268,7 @@ const MessagePage = () => {
 
     setShowEmojiPicker(false);
   };
+
   useEffect(() => {
     if (searchedMessages.length === 0) return;
 
@@ -441,7 +382,7 @@ const MessagePage = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    if (!activeThreadId || !activeUser?.id) return;
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
 
@@ -460,8 +401,8 @@ const MessagePage = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("threadId", activeChat.publicId);
-      formData.append("receiverId", activeUser._id);
+      formData.append("threadId", activeThreadId);
+      formData.append("receiverId", activeUser.id);
 
       const res = await apiPostWithMultiForm({
         url: API_MESSAGE_CHAT_UPLOAD_MEDIA,
@@ -473,9 +414,12 @@ const MessagePage = () => {
       }
 
       socket.emit("mediaMessageUploaded", {
-        threadId: activeChat.publicId,
+        threadId: activeThreadId,
         messageId: res._id,
       });
+      if (res && !res.error) {
+        dispatch(addSocketMessage(res)); // add returned message to state
+      }
     } catch (error) {
       toast.error("Upload failed");
     } finally {
@@ -495,7 +439,7 @@ const MessagePage = () => {
     setIsSearching(true);
 
     const res = await getApi({
-      url: `/messages/thread/search/${activeChat.publicId}`,
+      url: `/messages/thread/search/${activeThreadId}`,
       page: 1,
       rowsPerPage: 50,
       searchText: value,
@@ -539,7 +483,7 @@ const MessagePage = () => {
       values: {},
     });
 
-    refetch();
+    // refetch();
   };
 
   const handleUploadPPVMedia = async (
@@ -563,7 +507,7 @@ const MessagePage = () => {
       toast.success("Media uploaded");
 
       // Refresh chat
-      refetch();
+      // refetch();
     } catch (err) {
       toast.error("Upload failed");
     }
@@ -578,25 +522,63 @@ const MessagePage = () => {
 
       toast.success("PPV Rejected");
 
-      refetch();
+      // refetch();
     } catch (err) {
       toast.error("Failed");
     }
   };
 
-  const handlePayPPV = async (ppvId: string) => {
-    try {
-      await apiPost({
-        url: `subscription/pay/${ppvId}`,
-        values: {},
-      });
+  // const handlePayPPV = async (ppvId: string) => {
+  //   try {
+  //     await apiPost({
+  //       url: `subscription/pay/${ppvId}`,
+  //       values: {},
+  //     });
 
-      toast.success("Payment successful");
-      refetch();
-    } catch (err) {
-      toast.error("Payment failed");
-    }
-  };
+  //     toast.success("Payment successful");
+  //     // refetch();
+  //   } catch (err) {
+  //     toast.error("Payment failed");
+  //   }
+  // };
+
+const handleSubmitReport = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!activeThreadId) {
+    toast.error("No active conversation");
+    return;
+  }
+
+  if (!reportMessage.trim()) {
+    toast.error("Please enter a reason");
+    return;
+  }
+
+  const res: any = await dispatch(
+    reportThread({
+      threadPublicId: activeThreadId, // now guaranteed string
+      message: reportMessage,
+    })
+  );
+
+  if (res.meta.requestStatus === "fulfilled") {
+    toast.success(res.payload?.message || "Report submitted");
+    setShowReportModal(false);
+    setReportMessage("");
+  } else {
+    toast.error("Failed to submit report");
+  }
+};
+const handleDelete = async () => {
+  if (!activeThreadId) {
+    toast.error("No active conversation");
+    return;
+  }
+  await dispatch(deleteThread(activeThreadId));
+
+  toast.success("Conversation deleted");
+};
 
   return (
     <>
@@ -604,11 +586,11 @@ const MessagePage = () => {
         <div className="moneyboy-2x-1x-a-layout">
           <div className="msg-page-wrapper card">
             <div className="msg-page-container" msg-page-wrapper={true}>
-              <SideBar activeThreadId={activeChat?.publicId} onSelectChat={(thread: any) => {setActiveChat(thread); router.replace(`/message?threadId=${thread.publicId}`);}} />
+              <SideBar activeThreadId={activeThreadId} onSelectChat={(thread: any) => {dispatch(setActiveThread(thread.publicId)); router.replace(`/message?threadId=${thread.publicId}`);}} />
               <div className="msg-chats-layout">
                 <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
                   <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
-                    {!activeChat?.publicId ? (
+                    {!activeThreadId ? (
                       <div className="messages-empty">
                         <div className="messages-empty-card">
                           <div className="glow-ring"></div>
@@ -640,7 +622,15 @@ const MessagePage = () => {
                             {/* Profile */}
                             <div className="chat-room-header-profile">
                               <div className="profile-card">
-                                <div className="profile-card__main">
+                                <div className="profile-card__main" onClick={() => {
+                                  if (!activeUser?.publicId && !activeUser?.id)
+                                    return;
+
+                                  // Prefer publicId if available
+                                  const profileId =
+                                    activeUser?.publicId || activeUser?.id;
+                                  router.push(`/profile/${profileId}`);
+                                }}>
                                   <div className="profile-card__avatar-settings">
                                     <div className="profile-card__avatar">
                                       {activeUser?.profile ? (
@@ -657,7 +647,7 @@ const MessagePage = () => {
                                     <div className="profile-card__name-badge">
                                       <div className="profile-card__name">
                                         {activeUser?.displayName ||
-                                          activeUser?.userName ||
+                                          activeUser?.username ||
                                           ""}
                                       </div>
                                       <div className="profile-card__badge">
@@ -668,7 +658,7 @@ const MessagePage = () => {
                                       </div>
                                     </div>
                                     <div className="profile-card__username">
-                                      @{activeUser?.userName || ""}
+                                      @{activeUser?.username || ""}
                                     </div>
                                   </div>
                                 </div>
@@ -679,13 +669,12 @@ const MessagePage = () => {
                               <div
                                 className="btn-txt-gradient"
                                 onClick={() => {
-                                  if (!activeUser?.publicId && !activeUser?._id)
+                                  if (!activeUser?.publicId && !activeUser?.id)
                                     return;
 
                                   // Prefer publicId if available
                                   const profileId =
-                                    activeUser?.publicId || activeUser?._id;
-
+                                    activeUser?.publicId || activeUser?.id;
                                   router.push(`/profile/${profileId}`);
                                 }}
                               >
@@ -712,7 +701,7 @@ const MessagePage = () => {
                                 {/* Popup */}
                                 {isOpen && !showReportModal && !showDeleteModal && (
                                   <div ref={dropdownRef} className="rel-users-more-opts-popup-wrapper" style={isMobile ? mobileStyle : desktopStyle}>
-                                    <ChatFeatures threadPublicId={activeChat.publicId} onSearch={handleSearchChange} onReport={() => setShowReportModal(true)} onDelete={() => setShowDeleteModal(true)} />
+                                    <ChatFeatures threadPublicId={activeThreadId} onSearch={handleSearchChange} onReport={() => setShowReportModal(true)} onDelete={() => setShowDeleteModal(true)} />
                                   </div>
                                 )}
                               </div>
@@ -721,6 +710,7 @@ const MessagePage = () => {
                         </div>
 
                         <div className="chat-room-body-layout">
+                          {isBlocked && (
                           <div className="block_wrap">
                             <div className="icon block-icon">
                               <svg
@@ -762,8 +752,9 @@ const MessagePage = () => {
                                 ></path>
                               </svg>
                             </div>
-                            <span>Block Messages</span>
+                            <span>{isBlocked ? "This User blocked" : "Block User"}</span>
                           </div>
+                          )}
                           <div
                             ref={chatBodyRef}
                             className="chat-room-body-container"
@@ -1020,38 +1011,44 @@ const MessagePage = () => {
                                                     </div>
                                                   ),
                                                 )}
-
-                                              {/* BEFORE PAID → SHOW REFERENCE FILE */}
-                                              {msg.ppvRequestId.status !==
-                                                "PAID" && (
+                                                {msg.ppvRequestId.status !== "PAID" && (
                                                   <>
-                                                    {msg.ppvRequestId.type ===
-                                                      "PHOTO" && (
-                                                        <div className="img_wrap">
-                                                          <img
-                                                            src={
-                                                              msg.ppvRequestId
-                                                                .referenceFile
-                                                            }
-                                                            className="img-fluid upldimg"
-                                                            alt="preview"
-                                                          />
-                                                        </div>
-                                                      )}
+                                                    {msg.ppvRequestId.referenceFile ? (
+                                                      <>
+                                                        {msg.ppvRequestId.type === "PHOTO" && (
+                                                          <div className="img_wrap">
+                                                            <img
+                                                              src={msg.ppvRequestId.referenceFile}
+                                                              className="img-fluid upldimg"
+                                                              alt="preview"
+                                                            />
+                                                          </div>
+                                                        )}
 
-                                                    {msg.ppvRequestId.type ===
-                                                      "VIDEO" && (
-                                                        <div className="img_wrap">
-                                                          <video
-                                                            src={
-                                                              msg.ppvRequestId
-                                                                .referenceFile
-                                                            }
-                                                            className="img-fluid upldimg"
-                                                            controls
-                                                          />
-                                                        </div>
-                                                      )}
+                                                        {msg.ppvRequestId.type === "VIDEO" && (
+                                                          <div className="img_wrap">
+                                                            <video
+                                                              src={msg.ppvRequestId.referenceFile}
+                                                              className="img-fluid upldimg"
+                                                              controls
+                                                            />
+                                                          </div>
+                                                        )}
+                                                      </>
+                                                    ) : (
+                                                      <div className="noprofile">
+                                                      <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                       <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)"/>
+                                                         <defs>
+                                                           <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                                             <stop stop-color="#FDAB0A"/>
+                                                             <stop offset="0.4" stop-color="#FECE26"/>
+                                                             <stop offset="1" stop-color="#FE990B"/>
+                                                           </linearGradient>
+                                                         </defs>
+                                                       </svg>
+                                                      </div>
+                                                    )}
                                                   </>
                                                 )}
                                             </div>
@@ -1125,7 +1122,7 @@ const MessagePage = () => {
                             )}
                           </div>
                         </div>
-
+                            {!isBlocked && (
                         <div className="chat-room-footer-layout">
                           <div className="chat-room-footer-container">
                             <div className="chat-file-upload-btn">
@@ -1138,8 +1135,8 @@ const MessagePage = () => {
                                   onChange={handleFileSelect}
                                   disabled={
                                     uploading ||
-                                    !activeChat?.threadId ||
-                                    !activeUser?._id
+                                    !activeThreadId ||
+                                    !activeUser?.id
                                   }
                                 />
                                 <span>
@@ -1178,13 +1175,13 @@ const MessagePage = () => {
                                 onChange={(e) => {
                                   setNewComment(e.target.value);
 
-                                  if (!activeChat?.publicId || !session?.user?.id)
+                                  if (!activeThreadId || !session?.user?.id)
                                     return;
 
                                   // 🔥 Emit typing once
                                   if (!isTypingRef.current) {
                                     socket.emit("typing", {
-                                      threadId: activeChat.publicId,
+                                      threadId: activeThreadId,
                                       userId: session.user.id,
                                     });
                                     isTypingRef.current = true;
@@ -1197,7 +1194,7 @@ const MessagePage = () => {
 
                                   typingTimeoutRef.current = setTimeout(() => {
                                     socket.emit("stopTyping", {
-                                      threadId: activeChat.publicId,
+                                      threadId: activeThreadId,
                                       userId: session.user.id,
                                     });
                                     isTypingRef.current = false;
@@ -1361,6 +1358,7 @@ const MessagePage = () => {
                             </div>
                           </div>
                         </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1373,43 +1371,41 @@ const MessagePage = () => {
       {/* Modal Start */}
       {showReportModal && (
         <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <form className="modal-wrap rdcnvrstn-modal">
-            <button className="close-btn" onClick={() => setShowDeleteModal(false)}><CgClose size={22} /></button>
+          <form className="modal-wrap rdcnvrstn-modal" onSubmit={handleSubmitReport}>
+            <button    
+              type="button"
+              className="close-btn"
+              onClick={() => setShowReportModal(false)}
+             ><CgClose size={22} />
+            </button>
             <h3 className="title">Report Conversation</h3>
             <p className="modal-subtitle">Help us understand the issue. Your report will remain confidential.</p>
-            <div>
-              <label>Reason <span>*</span></label>
-              <CustomSelect searchable={false} label="Select reason"
-                options={[
-                  { label: "Harassment or bullying", value: "harassment" },
-                  { label: "Hateful or abusive content", value: "abusive" },
-                  { label: "Spam or misleading", value: "spam" },
-                  { label: "Violent content", value: "violent" },
-                  { label: "Other", value: "other" },
-                ]}
-              />
-            </div>
             <div className="input-wrap">
-              <label>Description</label>
-              <textarea rows={4} placeholder="Tell us what happened..." name="description" maxLength={300} />
-              <label className="right">0/300</label>
+              <label>Reason <span>*</span></label>
+              <textarea   rows={4}
+                placeholder="Tell us what happened..."
+                name="message"
+                maxLength={300}
+                value={reportMessage}
+                onChange={(e) => setReportMessage(e.target.value)}/>
+              <label className="right">{reportMessage.length}/300</label>
             </div>
             <div className="actions">
-              <button className="btn-danger active-down-effect" onClick={() => setShowReportModal(false)}><span>Cancel</span></button>
-              <button className="premium-btn active-down-effect" onClick={() => { toast.success("Report submitted"); setShowReportModal(false); }}><span>Submit</span></button>
+              <button className="btn-danger active-down-effect" type="button" onClick={() => setShowReportModal(false)}><span>Cancel</span></button>
+              <button className="premium-btn active-down-effect" type="submit"><span>Submit</span></button>
             </div>
           </form>
         </div>
       )}
       {showDeleteModal && (
         <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <form className="modal-wrap rdcnvrstn-modal">
+          <form className="modal-wrap rdcnvrstn-modal" onSubmit={handleDelete}>
             <button className="close-btn" onClick={() => setShowDeleteModal(false)}><CgClose size={22} /></button>
             <h3 className="title">Delete Conversation</h3>
             <p className="modal-subtitle">This will permanently delete the conversation and cannot be undone.</p>
             <div className="actions">
-              <button className="btn-danger active-down-effect" onClick={() => setShowDeleteModal(false)}><span>Cancel</span></button>
-              <button className="premium-btn active-down-effect" type="submit" onClick={async () => { await apiPost({ url: `/messages/thread/${activeChat.publicId}`, values: {}, }); toast.success("Conversation deleted"); setShowDeleteModal(false); router.push("/message"); }}><span>Submit</span></button>
+              <button className="btn-danger active-down-effect" type="button" onClick={() => setShowDeleteModal(false)}><span>Cancel</span></button>
+              <button className="premium-btn active-down-effect" type="submit"><span>Submit</span></button>
             </div>
           </form>
         </div>

@@ -13,8 +13,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost,} from "@/redux/other/feedPostsSlice";
+import toast from "react-hot-toast";
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
+import { showSuccess, showError, showWarning, showInfo, showQuestion,} from "@/utils/alert";
 
 const FeedPage = () => {
   const router = useRouter();
@@ -31,7 +33,6 @@ const FeedPage = () => {
   const feedPosts = allPosts.filter((p: any) => p.source === "feed");
   const followingPosts = allPosts.filter((p: any) => p.source === "following");
   const popularPosts = allPosts.filter((p: any) => p.source === "popular");
-
   /* ================= INITIAL LOAD / TAB CHANGE ================= */
 
   useEffect(() => {
@@ -195,24 +196,16 @@ const FeedPage = () => {
           <div className="moneyboy-feed-page-container">
             {/* TABS */}
             <div className="moneyboy-feed-page-cate-buttons card">
-              <button
-                className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`}
-                onClick={() => handleTabClick("feed")}
-              >
-                Feed
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`}
-                onClick={() => handleTabClick("following")}
-              >
-                {isLoggedIn ? "Following" : "Discover"}
-              </button>
-              <button
-                className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`}
-                onClick={() => handleTabClick("popular")}
-              >
-                Popular
-              </button>
+              <button className="page-content-type-button" onClick={() => showSuccess("Success Message")}>Success</button>
+              <button className="page-content-type-button" onClick={() => showError("Error Message")}>Error</button>
+              <button className="page-content-type-button" onClick={() => showWarning("Warning Message")}>Warning</button>
+              <button className="page-content-type-button" onClick={() => showInfo("Info Message")}>Info</button>
+              <button className="page-content-type-button" onClick={async () => {const ok = await showQuestion("Continue?"); ok ? showSuccess("Yes clicked") : showError("No clicked");}}>Question</button>
+            </div>
+            <div className="moneyboy-feed-page-cate-buttons card">
+              <button className={`page-content-type-button ${activeTab === "feed" ? "active" : ""}`} onClick={() => handleTabClick("feed")}>Feed</button>
+              <button className={`page-content-type-button ${activeTab === "following" ? "active" : ""}`} onClick={() => handleTabClick("following")}>{isLoggedIn ? "Following" : "Discover"}</button>
+              <button className={`page-content-type-button ${activeTab === "popular" ? "active" : ""}`} onClick={() => handleTabClick("popular")}>Popular</button>
             </div>
             <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
               <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={ activeList?.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
@@ -238,12 +231,7 @@ const FeedPage = () => {
       </div>
 
       {/* ================= MODALS ================= */}
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap tip-modal">
           <button className="close-btn">
             <CgClose size={22} />

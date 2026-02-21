@@ -169,7 +169,9 @@ const Sidebar: React.FC = () => {
                         className="profile-card__avatar"
                         onClick={() => {
                           if (session?.user?.role === 1) {
-                            router.push("/userprofile");
+                            router.push(
+                              `/userprofile/${session?.user?.publicId}`,
+                            );
                           } else if (session?.user?.role === 2) {
                             router.push(`/profile/${session?.user?.publicId}`);
                           } else {
@@ -225,7 +227,20 @@ const Sidebar: React.FC = () => {
                         </svg>
                       </div>
                     </div>
-                    <div className="profile-card__info">
+                    <div
+                      className="profile-card__info"
+                      onClick={() => {
+                        if (session?.user?.role === 1) {
+                          router.push(
+                            `/userprofile/${session?.user?.publicId}`,
+                          );
+                        } else if (session?.user?.role === 2) {
+                          router.push(`/profile/${session?.user?.publicId}`);
+                        } else {
+                          router.push("/profile");
+                        }
+                      }}
+                    >
                       <div className="profile-card__name-badge">
                         <div className="profile-card__name">
                           {profileLoading
@@ -258,7 +273,20 @@ const Sidebar: React.FC = () => {
 
                   <div className="profile-card__stats">
                     {session?.user?.role === 2 && (
-                      <div className="profile-card__stats-item posts-stats">
+                      <div
+                        className="profile-card__stats-item posts-stats"
+                        onClick={() => {
+                          if (session?.user?.role === 1) {
+                            router.push(
+                              `/userprofile/${session?.user?.publicId}?tab=posts`,
+                            );
+                          } else if (session?.user?.role === 2) {
+                            router.push(
+                              `/profile/${session?.user?.publicId}?tab=posts`,
+                            );
+                          }
+                        }}
+                      >
                         <div className="profile-card__stats-num">
                           {postCount}
                         </div>

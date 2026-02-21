@@ -4,6 +4,17 @@ import React, { useRef, useState } from 'react'
 import toast from 'react-hot-toast';
 import CustomSelect from '../CustomSelect';
 import { CgClose } from 'react-icons/cg';
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import {
+  muteThread,
+  hideThread,
+  searchMessages,
+  toggleBlockThread,
+  fetchThreadDetails,
+} from "@/redux/message/messageActions";
+import { useSelector } from 'react-redux';
+import { setThreadDetails } from '@/redux/message/messageSlice';
+
 
 const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
 }: {
@@ -19,41 +30,56 @@ const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const router = useRouter();
-  const handleDelete = async () => {
-    const res = await apiPost({ url: `/messages/thread/${threadPublicId}`, values: {}, });
-    if (res?.message) { toast.success(res.message); router.push("/message"); }
-  };
+    const { isBlocked , isHidden} = useAppSelector(
+    (state) => state.message
+  );
 
-  const handleMute = async () => {
-    const res = await apiPost({ url: `/messages/thread/mute/${threadPublicId}`, values: {}, });
-    toast.success(res?.message);
-  };
+  const dispatch = useAppDispatch();
+const handleMute = async () => {
+  await dispatch(muteThread(threadPublicId));
+  toast.success("Conversation muted");
+};
 
   const handleHide = async () => {
-    const res = await apiPost({ url: `/messages/thread/hide/${threadPublicId}`, values: {}, });
-    toast.success(res?.message);
-    router.replace("/message");
+    const res: any = await dispatch(hideThread(threadPublicId));
+    if (res.meta.requestStatus === "fulfilled") {
+      const { isHidden, message } = res.payload;
+      toast.success(
+        message || 
+        (isHidden
+          ? "Conversation hidden successfully"
+          : "Conversation unhidden successfully")
+      );
+      if (isHidden) {
+        router.replace("/message");
+      }
+
+    } else {
+      toast.error("Failed to update conversation");
+    }
   };
 
-  const handleBlock = async () => {
-    const res = await apiPost({
-      url: `/messages/thread/block/${threadPublicId}`,
-      values: {},
-    });
+ const handleBlock = async () => {
+  const res: any = await dispatch(toggleBlockThread(threadPublicId));
 
-    toast.success(res?.message);
-  };
+  if (res.meta.requestStatus === "fulfilled") {
+    toast.success(res.payload.message);
+     dispatch(fetchThreadDetails(threadPublicId));
+  } else {
+    toast.error("Failed to toggle block");
+  }
+};
 
-  const handleSearch = async () => {
-    const res = await getApi({
-      url: `/messages/thread/search/${threadPublicId}`,
-      page: 1,
-      rowsPerPage: 20,
+const handleSearch = async () => {
+  await dispatch(
+    searchMessages({
+      threadId: threadPublicId,
       searchText,
-    });
+    })
+  );
 
-    console.log(res.data);
-  };
+  onSearch(searchText); 
+};
 
   return (
     <div className="rel-users-more-opts-popup-container">
@@ -104,7 +130,7 @@ const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
               </g>
             </svg>
           </div>
-          <span>Hide Conversation</span>
+          <span>{isHidden ? "Unhide Conversation" : "Hide Conversation"}</span>
         </li>
         <li onClick={handleBlock}>
           <div className="icon block-icon">
@@ -116,9 +142,9 @@ const ChatFeatures = ({ threadPublicId, onSearch, onReport, onDelete,
               </path>
             </svg>
           </div>
-          <span>Block Messages</span>
+          <span>{isBlocked ? "Unblock Messages" : "Block Messages"}</span>
         </li>
-        <li>
+        <li onClick={onReport}>
           <div className="icon report-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M5.14844 2V22" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>

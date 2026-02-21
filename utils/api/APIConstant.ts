@@ -117,7 +117,7 @@ export const API_FORGOT_PASSWORD_RESEND_OTP ="/auth/forgot-password/resend-otp";
 export const API_VERIFY_RESET_OTP = "/auth/verify-reset-otp";
 export const API_REMOVE_FOLLOWER = "/social/remove-follower";
 export const API_REPORT_USER = "/auth/report-user";
-
+export const API_PROMOTE_PROFILE = "/subscription/promote-profile";
 
 
 

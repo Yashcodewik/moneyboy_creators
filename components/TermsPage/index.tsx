@@ -194,16 +194,12 @@ const TermsPage = () => {
                   subject to:
                 </p>
 
-                 <ul className="points">
+                <ul className="points">
                   <li>
                     A minimum payout threshold determined by the platform;
                   </li>
-                  <li>
-                   Compliance with identity verification requirements;
-                  </li>
-                  <li>
-                    Compliance with these Terms and applicable laws
-                  </li>
+                  <li>Compliance with identity verification requirements;</li>
+                  <li>Compliance with these Terms and applicable laws</li>
                 </ul>
                 <p className="mb-5">
                   The platform reserves the right to limit payout frequency and

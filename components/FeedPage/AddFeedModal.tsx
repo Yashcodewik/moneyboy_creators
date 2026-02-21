@@ -827,9 +827,9 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               >
                 <span>Tag user</span>
               </button>
-              <button type="button" className="cate-back-btn active-down-effect">
+              {/* <button type="button" className="cate-back-btn active-down-effect">
                 Release from
-              </button>
+              </button> */}
             </div>
 
             {tagUsers.map((user) => {
@@ -901,7 +901,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
             <div className="creators-footer">
               <Link href="#" className="invite">
-                + Invite New User
+                {/* + Invite New User */}
               </Link>
               <button
                 className="cate-back-btn active-down-effect close"
@@ -909,7 +909,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               >
                 Close
               </button>
-            </div>
+            </div>  
           </div>
         </div>
       )}
