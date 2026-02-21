@@ -194,11 +194,10 @@ const AccountSecurity = ({ profile }: any) => {
               <button
                 type="button"
                 className="active-down-effect xbtn"
-                onClick={() =>
-                  signIn("twitter", {
-                    state: session?.user?.id,
-                  })
-                }
+                onClick={async () => {
+                  document.cookie = "userType=Activities; path=/";
+                  signIn("twitter");
+                }}
               >
                 <div className="icons">
                   <FaXTwitter size={18} />

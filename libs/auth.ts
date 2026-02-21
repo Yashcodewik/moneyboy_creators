@@ -6,12 +6,15 @@ import {
   API_VERIFY_OTP,
   API_LOGIN,
   API_SOCIAL_LOGIN,
+  API_SOCIAL_ACTIVATE,
+  API_SOCIAL_REGISTER,
 } from "@/utils/api/APIConstant";
 import GoogleProvider from "next-auth/providers/google";
 import TwitterProvider from "next-auth/providers/twitter";
 import { getToken } from "next-auth/jwt";
 import { serverApiPost } from "@/utils/api/serverApi";
 import { NextRequest } from "next/server";
+import ShowToast from "@/components/common/ShowToast";
 
 export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
   providers: [
@@ -114,35 +117,77 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
         const existingToken = req
           ? await getToken({ req, secret: process.env.NEXTAUTH_SECRET! })
           : null;
+        const userType = req?.cookies?.get("userType")?.value;
+
+        console.log(
+          userType,
+          "userType=============userType===userType=res=======",
+          account,
+          user,
+        );
 
         const accessToken = existingToken?.accessToken as string | undefined;
-
-        console.log("Existing access token:", accessToken);
-
         try {
-          const res = await serverApiPost({
-            url: API_SOCIAL_LOGIN,
-            values: {
-              provider: account.provider,
-              providerAccountId: account.providerAccountId,
-              email: user.email, // ← use this to find/match user on backend
-            },
-            token: accessToken,
-          });
-          console.log("SOCIAL LOGIN RESPONSE:", res);
-          if (!res) {
-            console.log("API returned undefined");
-            return false;
+          let res;
+
+          if (accessToken && userType === "Activities") {
+            res = await serverApiPost({
+              url: API_SOCIAL_ACTIVATE,
+              values: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                email: user.email,
+              },
+              token: accessToken,
+            });
           }
 
-          if (!res.success) {
+          if (userType === "Login") {
+            res = await serverApiPost({
+              url: API_SOCIAL_LOGIN,
+              values: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                email: user.email,
+              },
+            });
+            if (!res?.success) {
+              return "/login?error=not_registered";
+            }
+            user.id = res.user._id;
+            user.accessToken = res.token;
+            user.publicId = res.user.publicId;
+            return true;
+          }
+
+          if (userType === "Creator" || userType === "User") {
+            res = await serverApiPost({
+              url: API_SOCIAL_REGISTER,
+              values: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                email: user.email,
+                name: user.name,
+                role: userType,
+              },
+            });
+            if (!res?.success && userType === "User") {
+              return "/signup?error=not_registered";
+            }
+            if (res?.success && userType === "Creator") {
+              return "/creator?q=" + res?.token;
+            }
+          }
+
+          if (!res?.success) {
             console.log("API success false:", res);
-            return false;
           }
 
-          user.id = res.user._id;
-          user.accessToken = res.token;
-          user.publicId = res.user.publicId;
+          if (userType !== "Activities") {
+            user.id = res.user._id;
+            user.accessToken = res.token;
+            user.publicId = res.user.publicId;
+          }
 
           return true;
         } catch (err) {

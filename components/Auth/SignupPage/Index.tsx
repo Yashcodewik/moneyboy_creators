@@ -16,7 +16,6 @@ import { FaXTwitter } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { IoArrowBackOutline } from "react-icons/io5";
 import * as yup from "yup";
-import SumsubWebSdk from "@sumsub/websdk-react";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import { countryOptions } from "@/components/helper/creatorOptions";
@@ -77,7 +76,7 @@ const SignupPage = () => {
           userName: values.userName,
           email: values.email,
           password: values.password,
-          country: values.country, 
+          country: values.country,
         };
 
         const res = await apiPost({
@@ -130,6 +129,22 @@ const SignupPage = () => {
     ? countries.getAlpha2Code(selectedCountry, "en")
     : null;
 
+  const handleSocialLogin = async (provider: "google" | "twitter") => {
+    document.cookie = "userType=User; path=/";
+
+    const res = await signIn(provider, {
+      callbackUrl: "/",
+    });
+
+    if (res?.error) {
+      console.log("Login failed");
+    }
+
+    if (res?.ok) {
+      router.push("/feed");
+    }
+  };
+
   return (
     <div className="container login_wrap lg_wrap">
       <div className="img_wrap">
@@ -152,13 +167,13 @@ const SignupPage = () => {
             <div className="loginbtn_wrap">
               <button
                 className="google-button active-down-effect "
-                onClick={() => signIn("google")}
+                onClick={() => handleSocialLogin("google")}
               >
                 <FcGoogle size={18} /> Sign up with Google
               </button>
               <button
                 className="x-button active-down-effect"
-                onClick={() => signIn("twitter")}
+                onClick={() => handleSocialLogin("twitter")}
               >
                 <FaXTwitter size={18} /> Sign up with X
               </button>
