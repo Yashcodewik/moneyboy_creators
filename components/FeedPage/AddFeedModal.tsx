@@ -23,7 +23,7 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
-import { CalendarDays, CirclePlus, CircleX, Smile } from "lucide-react";
+import { BadgeCheck, CalendarDays, CirclePlus, CircleX, Smile } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -41,7 +41,7 @@ type TagUser = {
 };
 
 const PostSchema = Yup.object({
-text: Yup.string().max(300, "Maximum 300 characters allowed"),
+  text: Yup.string().max(300, "Maximum 300 characters allowed"),
 
   accessType: Yup.string().required("Access type is required"),
 
@@ -387,7 +387,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               </div>
             )}
           </span>
-          
+
         </div>
         {/* {formik.touched.text && formik.errors.text && (
             <span className="error-message">{formik.errors.text}</span>
@@ -531,18 +531,18 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                         minDate={new Date()}
                         onChange={(date: Date | null) => {
                           if (!date) return;
-                         formik.setFieldValue("scheduledAt", date.toISOString());
+                          formik.setFieldValue("scheduledAt", date.toISOString());
                           setActiveField(null);
                         }}
                       />
-                    </div>                    
+                    </div>
                   )}
                 </div>
-                 {formik.touched.scheduledAt && formik.errors.scheduledAt && (
-                        <div className="error-message">
-                          {formik.errors.scheduledAt}
-                        </div>
-                      )}
+                {formik.touched.scheduledAt && formik.errors.scheduledAt && (
+                  <div className="error-message">
+                    {formik.errors.scheduledAt}
+                  </div>
+                )}
               </div>
             )}
 
@@ -598,6 +598,46 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             {formik.errors.hasMedia}
           </div>
         )}
+        <div className="moneyboy-post__header">
+          <div className="profile-card upl_card">
+            <div className="profile-card__main">
+              {/* Avatar */}
+              <div className="profile-card__avatar-settings uplview_user">
+                <div className="profile-card__avatar">
+                  <img src="/images/post-images/post-img-1.png" alt="User" className="img-fluid"/>
+                </div>
+              </div>
+              {/* User Info */}
+              <div className="profile-card__info">
+                <div className="profile-card__name">John Doe</div>
+                <div className="profile-card__username">@johndoe</div>
+              </div>
+              {/* Right Box */}
+              <div className="right_box">
+                <input type="number" placeholder="Add User Percentage" className="form-input"/>
+              </div>
+            </div>
+          </div>
+          <div className="profile-card upl_card">
+            <div className="profile-card__main">
+              {/* Avatar */}
+              <div className="profile-card__avatar-settings uplview_user">
+                <div className="profile-card__avatar">
+                  <img src="/images/post-images/post-img-2.png" alt="User" className="img-fluid"/>
+                </div>
+              </div>
+              {/* User Info */}
+              <div className="profile-card__info">
+                <div className="profile-card__name">Yash Doe</div>
+                <div className="profile-card__username">@yashdoe</div>
+              </div>
+              {/* Right Box */}
+              <div className="right_box">
+                <input type="number" placeholder="Add User Percentage" className="form-input"/>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* <div className="upload-wrapper" onClick={() => thumbnailInputRef.current?.click()}>
           <div className="img_wrap">
@@ -625,7 +665,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </button>
 
             <button
-            type="button"
+              type="button"
               className="btn-grey btnicons gap-10"
               onClick={() => videoInputRef.current?.click()}
             >
@@ -707,7 +747,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           <ul>
             <li>
               <button
-              type="button"
+                type="button"
                 className="cate-back-btn active-down-effect btn_icons"
                 onClick={() => {
                   setActiveTool("image");
@@ -720,7 +760,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </li>
             <li>
               <button
-              type="button"
+                type="button"
                 className="cate-back-btn active-down-effect btn_icons"
                 onClick={() => setActiveTool("video")}
                 data-tooltip="Add video"
@@ -733,7 +773,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </li>
             <li className="icontext_wrap">
               <button
-              type="button"
+                type="button"
                 className="cate-back-btn active-down-effect btn_icons"
                 data-tooltip="Tag someone"
                 disabled={!hasMedia}
@@ -776,7 +816,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               type="submit"
               data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
               className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
-              
+
               disabled={isSubmitting}
             >
               <span>{isSubmitting ? "Posting..." : "Post"}</span>
@@ -797,7 +837,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             onClick={(e) => e.stopPropagation()}
           >
             <button
-            type="button"
+              type="button"
               className="close-btn"
               onClick={() => setShowTagModal(false)}
             >
@@ -821,7 +861,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
             <div className="actions">
               <button
-              type="button"
+                type="button"
                 className="premium-btn"
                 onClick={() => setShowTagModal(false)}
               >
@@ -836,11 +876,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               const selected = selectedTagUsers.some((u) => u._id === user._id);
 
               return (
-                <div
-                  key={user._id}
-                  className="moneyboy-post__header"
-                  onClick={() => toggleTagUser(user)}
-                >
+                <div key={user._id} className="moneyboy-post__header" onClick={() => toggleTagUser(user)}>
                   <div className="profile-card">
                     <div className="profile-card__main">
                       <div className="profile-card__avatar-settings">
@@ -892,7 +928,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                           @{user.userName}
                         </div>
                       </div>
-                      {selected && <span>✓</span>}
+                      {selected && <div className="rigth_info"><BadgeCheck size={22} /></div>}
                     </div>
                   </div>
                 </div>
@@ -909,7 +945,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               >
                 Close
               </button>
-            </div>  
+            </div>
           </div>
         </div>
       )}
