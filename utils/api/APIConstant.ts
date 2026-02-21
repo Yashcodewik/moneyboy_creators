@@ -122,6 +122,8 @@ export const API_BANK = "/subscription/bank";
 export const API_BANK_DETAIL = "/subscription/bank-detail";
 export const API_PAYPAL = "/subscription/paypal";
 export const API_PAYPAL_DETAIL = "/subscription/paypal";
+export const API_ADD_CARD = "/subscription/add-card";
+export const API_GET_CARDS = "/subscription/get-cards";
 
 
 
