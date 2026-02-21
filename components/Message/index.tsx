@@ -110,7 +110,10 @@ useEffect(() => {
   };
 }, [dispatch]);
 
-
+useEffect(() => {
+  if (!chatBodyRef.current) return;
+  chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+}, [messages]);
 useEffect(() => {
   if (activeThreadId) {
     dispatch(fetchMessages(activeThreadId));
@@ -572,11 +575,9 @@ const handleDelete = async () => {
     toast.error("No active conversation");
     return;
   }
-
   await dispatch(deleteThread(activeThreadId));
 
   toast.success("Conversation deleted");
-  router.push("/message");
 };
 
   return (
@@ -751,7 +752,7 @@ const handleDelete = async () => {
                                 ></path>
                               </svg>
                             </div>
-                            <span>{isBlocked ? "Unblock User" : "Block User"}</span>
+                            <span>{isBlocked ? "This User blocked" : "Block User"}</span>
                           </div>
                           )}
                           <div
@@ -1371,16 +1372,22 @@ const handleDelete = async () => {
       {showReportModal && (
         <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
           <form className="modal-wrap rdcnvrstn-modal" onSubmit={handleSubmitReport}>
-            <button className="close-btn"  
-             value={reportMessage}
-             onChange={(e) => setReportMessage(e.target.value)} 
-             onClick={() => setShowReportModal(false)}><CgClose size={22} />
+            <button    
+              type="button"
+              className="close-btn"
+              onClick={() => setShowReportModal(false)}
+             ><CgClose size={22} />
             </button>
             <h3 className="title">Report Conversation</h3>
             <p className="modal-subtitle">Help us understand the issue. Your report will remain confidential.</p>
             <div className="input-wrap">
               <label>Reason <span>*</span></label>
-              <textarea rows={4} placeholder="Tell us what happened..." name="message" maxLength={300} />
+              <textarea   rows={4}
+                placeholder="Tell us what happened..."
+                name="message"
+                maxLength={300}
+                value={reportMessage}
+                onChange={(e) => setReportMessage(e.target.value)}/>
               <label className="right">{reportMessage.length}/300</label>
             </div>
             <div className="actions">

@@ -82,16 +82,24 @@ export const muteThread = createAsyncThunk(
 // Hide
 export const hideThread = createAsyncThunk(
   "message/hideThread",
-  async (threadId: string) => {
-    await apiPost({
-      url: `/messages/thread/hide/${threadId}`,
-      values: {},
-    });
+  async (threadPublicId: string, { rejectWithValue }) => {
+    try {
+      const res = await apiPost({
+        url: `/messages/thread/hide/${threadPublicId}`,
+        values: {},
+      });
 
-    return threadId;
+      return {
+        threadPublicId,
+        ...res, // includes isHidden
+      };
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data || "Hide failed"
+      );
+    }
   }
 );
-
 // Delete
 export const deleteThread = createAsyncThunk(
   "message/deleteThread",

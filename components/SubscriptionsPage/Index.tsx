@@ -4,9 +4,10 @@ import Featuredboys from '../Featuredboys';
 import CustomSelect from '../CustomSelect';
 import Link from "next/link";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCancelSubscription, useMySubscribers, useMySubscriptions } from "@/redux/SubscriptionList/Action";
 import { useSelector } from "react-redux";
+import { apiPost } from "@/utils/endpoints/common";
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", {
     month: "short",
@@ -37,7 +38,7 @@ const SubscriptionsPage = () => {
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-
+const router =  useRouter();
   const rowsPerPage = 10;
 
 
@@ -342,7 +343,24 @@ useEffect(() => {
                             </div>
                           </div>
                           <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"><span>Message</span></button>
+                            <button className="btn-txt-gradient"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                if (!item?.subscriber?._id) return;
+                                const res = await apiPost({
+                                  url: "messages/thread",
+                                  values: {
+                                    receiverId: item.subscriber._id,
+                                  },
+                                });
+                                if (res?.threadId) {
+                                  router.push(
+                                    `/message?threadId=${res.threadId}`,
+                                  );
+                                }
+                              }}
+                              ><span>Message</span>
+                            </button>
                           </div>
                         </div>
                          );

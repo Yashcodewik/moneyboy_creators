@@ -12,6 +12,8 @@ interface MessageState {
   error: string | null;
   activeThreadDetails: any | null;
   isBlocked: boolean;
+  hiddenChatList: any[];
+  isHidden: boolean;
 }
 
 const initialState: MessageState = {
@@ -24,6 +26,8 @@ const initialState: MessageState = {
   error: null,
   activeThreadDetails: null,
   isBlocked: false,
+  hiddenChatList: [],
+  isHidden: false,
 };
 
 const messageSlice = createSlice({
@@ -97,6 +101,7 @@ setThreadDetails: (state, action) => {
 
   state.isBlocked =
     perms?.isBlockedByYou || perms?.isBlockedByOther || false;
+    state.isHidden = perms?.isHidden || false;
 },
 
     clearMessages: (state) => {
@@ -109,7 +114,8 @@ setThreadDetails: (state, action) => {
 
       // Sidebar
       .addCase(fetchSidebar.fulfilled, (state, action) => {
-        state.chatList = action.payload;
+       state.chatList = action.payload.visible;
+      state.hiddenChatList = action.payload.hidden;
       })
 
       // Messages
@@ -135,10 +141,37 @@ setThreadDetails: (state, action) => {
       })
 
       .addCase(hideThread.fulfilled, (state, action) => {
-        state.chatList = state.chatList.filter(
-          (chat) => chat.publicId !== action.payload
+      const { threadPublicId, isHidden } = action.payload;
+
+      if (isHidden) {
+        // Move from visible → hidden
+        const thread = state.chatList.find(
+          (chat) => chat.publicId === threadPublicId
         );
-      })
+
+        if (thread) {
+          state.hiddenChatList.unshift(thread);
+          state.chatList = state.chatList.filter(
+            (chat) => chat.publicId !== threadPublicId
+          );
+        }
+      } else {
+        // Move from hidden → visible
+        const thread = state.hiddenChatList.find(
+          (chat) => chat.publicId === threadPublicId
+        );
+
+        if (thread) {
+          state.chatList.unshift(thread);
+          state.hiddenChatList = state.hiddenChatList.filter(
+            (chat) => chat.publicId !== threadPublicId
+          );
+        }
+      }
+        if (state.activeThreadId === threadPublicId) {
+        state.isHidden = isHidden;
+      }
+    })
 
 .addCase(fetchThreadDetails.fulfilled, (state, action) => {
   state.activeThreadDetails = action.payload;
