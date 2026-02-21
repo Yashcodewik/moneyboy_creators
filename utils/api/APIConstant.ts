@@ -118,6 +118,12 @@ export const API_VERIFY_RESET_OTP = "/auth/verify-reset-otp";
 export const API_REMOVE_FOLLOWER = "/social/remove-follower";
 export const API_REPORT_USER = "/auth/report-user";
 export const API_PROMOTE_PROFILE = "/subscription/promote-profile";
+export const API_BANK = "/subscription/bank";
+export const API_BANK_DETAIL = "/subscription/bank-detail";
+export const API_PAYPAL = "/subscription/paypal";
+export const API_PAYPAL_DETAIL = "/subscription/paypal";
+export const API_ADD_CARD = "/subscription/add-card";
+export const API_GET_CARDS = "/subscription/get-cards";
 
 
 

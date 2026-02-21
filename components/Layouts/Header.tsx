@@ -98,7 +98,7 @@ const Header = () => {
                 email: response.user.email,
                 profile: response.user.profile,
 
-                walletBalance: response.summary?.walletBalance ?? 0,
+                walletBalance: response.user?.walletBalance ?? 0,
                 totalSubscribers: response.totalSubscribers ?? 0,
                 totalSubscriptions: response.totalSubscriptions ?? 0,
                 totalSpent: response.summary?.totalSpent ?? 0,
@@ -115,7 +115,7 @@ const Header = () => {
                 email: response.data.email,
                 profile: response.data.profile,
 
-                walletBalance: response.summary?.walletBalance ?? 0,
+                walletBalance: response.user?.walletBalance ?? 0,
                 totalSubscribers: response.totalSubscribers ?? 0,
                 totalSubscriptions: response.totalSubscriptions ?? 0,
                 totalSpent: response.summary?.totalSpent ?? 0,
