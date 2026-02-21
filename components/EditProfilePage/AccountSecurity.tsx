@@ -8,9 +8,9 @@ import {
   API_UNBLOCK_COUNTRIES,
 } from "@/utils/api/APIConstant";
 import { FaXTwitter } from "react-icons/fa6";
-import { FcGoogle } from "react-icons/fc";
 import { countryOptions } from "../helper/creatorOptions";
 import CustomSelect from "../CustomSelect";
+import { signIn } from "next-auth/react";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -189,20 +189,11 @@ const AccountSecurity = ({ profile }: any) => {
             <p>Connect Your Social accounts to Your MoneYBoy Profile</p>
             <div className="btn_wrap">
               <label>Sign in With x</label>
-              <button type="button" className="active-down-effect xbtn">
+              <button type="button" className="active-down-effect xbtn" onClick={() => signIn("twitter")}>
                 <div className="icons">
                   <FaXTwitter size={18} />
                 </div>{" "}
                 SIGN IN WITH X
-              </button>
-            </div>
-            <div className="btn_wrap">
-              <label>Sign In With Google</label>
-              <button type="button" className="active-down-effect googlebtn">
-                <div className="icons">
-                  <FcGoogle size={16} />
-                </div>{" "}
-                SIGN IN WITH GOOGLE
               </button>
             </div>
           </div>

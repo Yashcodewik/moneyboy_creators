@@ -4404,6 +4404,16 @@ body {
         font-family: var(--font-family-base);
       }
     }
+    h4 {
+      color: var(--color-text-active);
+      font-style: normal;
+      font-size: 18px;
+      line-height: 100%;
+      font-weight: 600;
+      letter-spacing: 0px;
+      text-transform: capitalize;
+      font-family: var(--font-family-base);
+    }
     h5 {
       color: #505050eb;
       font-style: normal;

@@ -32,7 +32,6 @@ import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import AccountSecurity from "./AccountSecurity";
 import PricingSetting from "./PricingSetting";
-import { CgClose } from "react-icons/cg";
 import ImageCropModal from "./ImageCropModal";
 
 
