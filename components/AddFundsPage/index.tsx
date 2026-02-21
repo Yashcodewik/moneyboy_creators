@@ -1,12 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Featuredboys from "../Featuredboys";
 import Link from "next/link";
 import CustomSelect from "../CustomSelect";
 import { BsBank2 } from "react-icons/bs";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const AddFundsPage = () => {
   const [tab, setTab] = useState(1);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tabQuery = searchParams.get("q");
+    if (tabQuery) {
+      setTab(Number(tabQuery));
+    }
+  }, [searchParams]);
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -122,12 +131,12 @@ const AddFundsPage = () => {
                             <input type="number" placeholder="Enter Amount" />
                           </div>
                         </div>
-                          <label className="font-light mb-0">
-                            Minimum top up amount $10{" "}
-                            <span className="block">
-                              Maximum top up wallet amount $1000
-                            </span>
-                          </label>
+                        <label className="font-light mb-0">
+                          Minimum top up amount $10{" "}
+                          <span className="block">
+                            Maximum top up wallet amount $1000
+                          </span>
+                        </label>
                         <div>
                           <label>Choose Payment Method*</label>
                           <CustomSelect

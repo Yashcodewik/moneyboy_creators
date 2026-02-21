@@ -164,30 +164,30 @@ const ProfilePage = () => {
     setActiveTab(tabName);
   };
   const isOwnProfile = sessionPublicId === profilePublicId;
-const { data: profileData, refetch } = useQuery({
-  queryKey: ["creator-profile", profilePublicId],
-  queryFn: async () => {
-    const isOwnProfile = sessionPublicId === profilePublicId;
+  const { data: profileData, refetch } = useQuery({
+    queryKey: ["creator-profile", profilePublicId],
+    queryFn: async () => {
+      const isOwnProfile = sessionPublicId === profilePublicId;
 
-    const response = isOwnProfile
-      ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
-      : await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: profilePublicId,
-        });
+      const response = isOwnProfile
+        ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
+        : await getApiByParams({
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: profilePublicId,
+          });
 
-    return response;
-  },
-  enabled: !!profilePublicId,
-});
+      return response;
+    },
+    enabled: !!profilePublicId,
+  });
 
-useEffect(() => {
-  if (profileData) {
-    setProfile(profileData);
-    setIsSaved(Boolean(profileData.isSaved));
-    setIsFollowing(Boolean(profileData.isFollowing));
-  }
-}, [profileData]);
+  useEffect(() => {
+    if (profileData) {
+      setProfile(profileData);
+      setIsSaved(Boolean(profileData.isSaved));
+      setIsFollowing(Boolean(profileData.isFollowing));
+    }
+  }, [profileData]);
 
   const subStatus = profile?.subscriptionStatus;
 
@@ -295,7 +295,7 @@ useEffect(() => {
         )}&time=${timeFilter}`,
       }),
     enabled: !!profilePublicId,
-  });
+  });  
 
   const posts = postsData?.posts || [];
   const photoPosts = posts?.filter((post: any) =>
@@ -304,8 +304,6 @@ useEffect(() => {
   const videoPosts = posts?.filter((post: any) =>
     post?.media?.some((m: any) => m.type === "video"),
   );
-
-
 
   const openTipModal = () => {
     setShowTipModal(true);
@@ -533,53 +531,49 @@ useEffect(() => {
     const dispatch = useDispatch<AppDispatch>();
 
     const isPostSaved = post.isSaved;
-const handleSavePost = async (e: React.MouseEvent) => {
-  e.stopPropagation();
+    const handleSavePost = async (e: React.MouseEvent) => {
+      e.stopPropagation();
 
-  if (!session?.isAuthenticated) {
-    router.push("/login");
-    return;
-  }
+      if (!session?.isAuthenticated) {
+        router.push("/login");
+        return;
+      }
 
-  const postId = post._id;
-  const creatorUserId = profile?.user?._id;
+      const postId = post._id;
+      const creatorUserId = profile?.user?._id;
 
-  if (!postId) return;
+      if (!postId) return;
 
-  const newState = !post.isSaved;
+      const newState = !post.isSaved;
 
-  // ✅ Optimistic UI update
-  queryClient.setQueryData(
-    ["creator-posts", profilePublicId, search, timeFilter],
-    (oldData: any) => {
-      if (!oldData) return oldData;
+      // ✅ Optimistic UI update
+      queryClient.setQueryData(
+        ["creator-posts", profilePublicId, search, timeFilter],
+        (oldData: any) => {
+          if (!oldData) return oldData;
 
-      return {
-        ...oldData,
-        posts: oldData.posts.map((p: any) =>
-          p._id === postId ? { ...p, isSaved: newState } : p
-        ),
-      };
-    }
-  );
+          return {
+            ...oldData,
+            posts: oldData.posts.map((p: any) =>
+              p._id === postId ? { ...p, isSaved: newState } : p,
+            ),
+          };
+        },
+      );
 
-  try {
-    if (post.isSaved) {
-      await dispatch(
-        unsavePost({ postId, creatorUserId })
-      ).unwrap();
-    } else {
-      await dispatch(
-        savePost({ postId, creatorUserId })
-      ).unwrap();
-    }
-  } catch (err) {
-    // ❌ rollback on error
-    queryClient.invalidateQueries({
-      queryKey: ["creator-posts"],
-    });
-  }
-};
+      try {
+        if (post.isSaved) {
+          await dispatch(unsavePost({ postId, creatorUserId })).unwrap();
+        } else {
+          await dispatch(savePost({ postId, creatorUserId })).unwrap();
+        }
+      } catch (err) {
+        // ❌ rollback on error
+        queryClient.invalidateQueries({
+          queryKey: ["creator-posts"],
+        });
+      }
+    };
 
     return (
       <div
@@ -747,7 +741,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
             {isFreecomment && (
               <>
                 <div className="creator-content-stat-box">
-                  <button className="like-button" data-like-button="">
+                  <button className="like-button active" data-like-button="">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="21"
@@ -805,7 +799,7 @@ const handleSavePost = async (e: React.MouseEvent) => {
             )}
             {!isFreecomment && (
               <>
-              {/* views-btn */}
+                {/* views-btn */}
                 <div className="creator-content-stat-box ">
                   <button>
                     <svg
@@ -925,32 +919,30 @@ const handleSavePost = async (e: React.MouseEvent) => {
     return Math.round(savingsPercent);
   };
 
+  const handleSaveCreator = async (e: React.MouseEvent) => {
+    e.preventDefault();
 
-const handleSaveCreator = async (e: React.MouseEvent) => {
-  e.preventDefault();
+    if (!session?.isAuthenticated) {
+      router.push("/login");
+      return;
+    }
 
-  if (!session?.isAuthenticated) {
-    router.push("/login");
-    return;
-  }
+    const creatorUserId = profile?.user?._id;
+    if (!creatorUserId) return;
 
-  const creatorUserId = profile?.user?._id;
-  if (!creatorUserId) return;
+    const apiUrl = isSaved ? API_UNSAVE_CREATOR : API_SAVE_CREATOR;
 
-  const apiUrl = isSaved ? API_UNSAVE_CREATOR : API_SAVE_CREATOR;
+    const res = await apiPost({
+      url: apiUrl,
+      values: { creatorUserId },
+    });
 
-  const res = await apiPost({
-    url: apiUrl,
-    values: { creatorUserId },
-  });
+    if (res?.success) {
+      ShowToast(isSaved ? "Creator removed" : "Creator saved", "success");
 
-  if (res?.success) {
-    ShowToast(isSaved ? "Creator removed" : "Creator saved", "success");
-
-    refetch();   // ⭐ refresh state from server
-  }
-};
-
+      refetch(); // ⭐ refresh state from server
+    }
+  };
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -1337,7 +1329,11 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                             </svg>
 
                             <span>
-                              {profile?.creator?.city} {profile?.creator?.city && profile?.creator?.country &&", "} {profile?.creator?.country}
+                              {profile?.creator?.city}{" "}
+                              {profile?.creator?.city &&
+                                profile?.creator?.country &&
+                                ", "}{" "}
+                              {profile?.creator?.country}
                             </span>
                           </div>
                         </div>
@@ -1452,54 +1448,9 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                         </div>
                       </div>
                       {/* Followers */}
-                      {isOwnProfile ? (
-                        <Link href="/follower?tab=followers">
-                          <div className="profile-card__stats-item followers-stats">
-                            <div className="profile-card__stats-num">
-                              {profileStats.followerCount.toLocaleString()}
-                            </div>
-                            <div className="profile-card__stats-label">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="25"
-                                viewBox="0 0 24 25"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                              </svg>
-                              <span>Followers</span>
-                            </div>
-                          </div>
-                        </Link>
-                      ) : (
+                      <Link
+                        href={`/follower?tab=followers&q=${profile && profile.user._id}`}
+                      >
                         <div className="profile-card__stats-item followers-stats">
                           <div className="profile-card__stats-num">
                             {profileStats.followerCount.toLocaleString()}
@@ -1544,43 +1495,11 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                             <span>Followers</span>
                           </div>
                         </div>
-                      )}
+                      </Link>
 
-                      {/* Following */}
-                      {isOwnProfile ? (
-                        <Link href="/follower?tab=following">
-                          <div className="profile-card__stats-item following-stats">
-                            <div className="profile-card__stats-num">
-                              {profileStats.followingCount.toLocaleString()}
-                            </div>
-                            <div className="profile-card__stats-label">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="25"
-                                viewBox="0 0 24 25"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                              </svg>
-                              <span>Following</span>
-                            </div>
-                          </div>
-                        </Link>
-                      ) : (
+                      <Link
+                        href={`/follower?tab=following&q=${profile && profile.user._id}`}
+                      >
                         <div className="profile-card__stats-item following-stats">
                           <div className="profile-card__stats-num">
                             {profileStats.followingCount.toLocaleString()}
@@ -1611,7 +1530,7 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                             <span>Following</span>
                           </div>
                         </div>
-                      )}
+                      </Link>
                     </div>
                     <div className="creator-profile-link">
                       <a
@@ -1862,10 +1781,11 @@ const handleSaveCreator = async (e: React.MouseEvent) => {
                             router.push("/login");
                             return;
                           }
-                           if (!profile?.user?.publicId) return; 
+                          if (!profile?.user?.publicId) return;
 
-                          router.push(`/store?tab=marketplace&creator=${profile?.user?.publicId}`);
-
+                          router.push(
+                            `/store?tab=marketplace&creator=${profile?.user?.publicId}`,
+                          );
                         }}
                       >
                         <img

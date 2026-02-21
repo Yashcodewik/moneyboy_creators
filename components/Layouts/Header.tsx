@@ -474,46 +474,54 @@ const Header = () => {
                     <div className="menu-profile-stats">
                       <div className="menu-profile-stats-item">
                         <div className="icon">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 25"
-                            fill="none"
+                          <Link
+                            href="/wallet-transactions?tab=wallet"
+                            className="load-wallet-btn"
                           >
-                            <path
-                              d="M18.04 14.05C17.62 14.46 17.38 15.05 17.44 15.68C17.53 16.76 18.52 17.55 19.6 17.55H21.5V18.74C21.5 20.81 19.81 22.5 17.74 22.5H6.26C4.19 22.5 2.5 20.81 2.5 18.74V12.01C2.5 9.94001 4.19 8.25 6.26 8.25H17.74C19.81 8.25 21.5 9.94001 21.5 12.01V13.45H19.48C18.92 13.45 18.41 13.67 18.04 14.05Z"
-                              stroke="none"
-                              strokeWidth="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M2.5 12.91V8.34004C2.5 7.15004 3.23 6.09 4.34 5.67L12.28 2.67C13.52 2.2 14.85 3.12003 14.85 4.45003V8.25002"
-                              stroke="none"
-                              strokeWidth="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M22.5588 14.4702V16.5302C22.5588 17.0802 22.1188 17.5302 21.5588 17.5502H19.5988C18.5188 17.5502 17.5288 16.7602 17.4388 15.6802C17.3788 15.0502 17.6188 14.4602 18.0388 14.0502C18.4088 13.6702 18.9188 13.4502 19.4788 13.4502H21.5588C22.1188 13.4702 22.5588 13.9202 22.5588 14.4702Z"
-                              stroke="none"
-                              strokeWidth="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M7 12.5H14"
-                              stroke="none"
-                              strokeWidth="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 25"
+                              fill="none"
+                            >
+                              <path
+                                d="M18.04 14.05C17.62 14.46 17.38 15.05 17.44 15.68C17.53 16.76 18.52 17.55 19.6 17.55H21.5V18.74C21.5 20.81 19.81 22.5 17.74 22.5H6.26C4.19 22.5 2.5 20.81 2.5 18.74V12.01C2.5 9.94001 4.19 8.25 6.26 8.25H17.74C19.81 8.25 21.5 9.94001 21.5 12.01V13.45H19.48C18.92 13.45 18.41 13.67 18.04 14.05Z"
+                                stroke="none"
+                                strokeWidth="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M2.5 12.91V8.34004C2.5 7.15004 3.23 6.09 4.34 5.67L12.28 2.67C13.52 2.2 14.85 3.12003 14.85 4.45003V8.25002"
+                                stroke="none"
+                                strokeWidth="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M22.5588 14.4702V16.5302C22.5588 17.0802 22.1188 17.5302 21.5588 17.5502H19.5988C18.5188 17.5502 17.5288 16.7602 17.4388 15.6802C17.3788 15.0502 17.6188 14.4602 18.0388 14.0502C18.4088 13.6702 18.9188 13.4502 19.4788 13.4502H21.5588C22.1188 13.4702 22.5588 13.9202 22.5588 14.4702Z"
+                                stroke="none"
+                                strokeWidth="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M7 12.5H14"
+                                stroke="none"
+                                strokeWidth="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </Link>
                         </div>
                         <div className="menu-profile-stats-txt">
                           <div className="stats-label"> Wallet </div>
                           <div className="stats-value">
                             <span> {userProfile?.walletBalance} </span>
-                            <a href="#" className="load-wallet-btn">
+                            <Link
+                              href="/add-funds?q=2"
+                              className="load-wallet-btn"
+                            >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -575,7 +583,7 @@ const Header = () => {
                                   </linearGradient>
                                 </defs>
                               </svg>
-                            </a>
+                            </Link>
                           </div>
                         </div>
                       </div>
@@ -684,7 +692,9 @@ const Header = () => {
 
                           if (session?.user?.role === 1) {
                             console.log("role 1");
-                            router.push(`/userprofile/${session?.user?.publicId}`);
+                            router.push(
+                              `/userprofile/${session?.user?.publicId}`,
+                            );
                           } else if (session?.user?.role === 2) {
                             console.log(" role 2");
                             router.push(`/profile/${session?.user?.publicId}`);

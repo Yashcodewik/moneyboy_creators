@@ -5,7 +5,7 @@ import { timeOptions } from "../helper/creatorOptions";
 type ProfileTabProps = {
   onChangeLayouts?: (layout: "grid" | "list") => void;
   // onChangeTab?: (tab: string) => void;
-    onSearchChange?: (value: string) => void;
+  onSearchChange?: (value: string) => void;
   onTimeChange?: (value: string) => void;
 };
 
@@ -19,16 +19,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   const [layout, setLayout] = useState("grid");
   const [time, setTime] = useState<string>("all_time");
 
-
   const handleLayoutChange = (value: "grid" | "list") => {
     setLayout(value);
     onChangeLayouts?.(value);
-  };
-
-  const handleTabChange = (value: string) => {
-    setSelectedOption(value);
-    // onChangeTab?.(value);
-    setTab(false);
   };
 
   return (
@@ -71,24 +64,27 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             </svg>
           </div>
 
-          <input type="text" 
-           placeholder="Search here"
-          onChange={(e) => onSearchChange?.(e.target.value)} />
+          <input
+            type="text"
+            placeholder="Search here"
+            onChange={(e) => onSearchChange?.(e.target.value)}
+          />
         </div>
       </div>
 
       <div className="creater-content-filters-layouts">
         <div className="creator-content-select-filter">
-          <CustomSelect className="bg-white p-sm size-sm"
+          <CustomSelect
+            className="bg-white p-sm size-sm"
             label="All Time"
             options={timeOptions}
             value={time}
             searchable={false}
-          onChange={(val: string | string[]) => {
-            const finalValue = Array.isArray(val) ? val[0] : val;
-            setTime(finalValue);
-            onTimeChange?.(finalValue);
-          }}
+            onChange={(val: string | string[]) => {
+              const finalValue = Array.isArray(val) ? val[0] : val;
+              setTime(finalValue);
+              onTimeChange?.(finalValue);
+            }}
           />
         </div>
         <div

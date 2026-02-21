@@ -16,10 +16,11 @@ import {
   API_UPDATE_USER_PROFILE,
   API_USER_PROFILE,
 } from "@/utils/api/APIConstant";
-import { countryOptions, genderOptions } from "../helper/creatorOptions";
+import { countryOptions } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
 import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
+import NoProfileSvg from "../common/NoProfileSvg";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -29,14 +30,21 @@ export enum UserStatus {
   DELETED = 4,
   VERIFIED = 5,
 }
+export const genderOptions = [
+  { label: "Male", value: "Male" },
+  { label: "Female", value: "Female" },
+  { label: "Non-binary", value: "Non-binary" },
+  { label: "Prefer not to say", value: "Prefer not to say" },
+];
+
 const UserEditProfilePage = () => {
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [tab, setTab] = useState(0);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
   const [profileFile, setProfileFile] = useState<File | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [passwordData, setPasswordData] = useState({
     password: "",
@@ -44,8 +52,10 @@ const UserEditProfilePage = () => {
   });
 
   useEffect(() => {
+    setLoading(true);
     const fetchProfile = async () => {
       const res = await getApiWithOutQuery({ url: API_USER_PROFILE });
+      setLoading(false);
       if (res.success) {
         setUserProfile(res.data);
         setFormData({
@@ -67,39 +77,36 @@ const UserEditProfilePage = () => {
 
   const handleUpdateProfile = async () => {
     const payload = new FormData();
+    try {
+      setLoading(true);
+      Object.keys(formData).forEach((key) => {
+        if (formData[key] !== undefined && formData[key] !== "") {
+          payload.append(key, formData[key]);
+        }
+      });
 
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== undefined && formData[key] !== "") {
-        payload.append(key, formData[key]);
+      if (profileFile) {
+        payload.append("profile", profileFile);
       }
-    });
 
-    if (profileFile) {
-      payload.append("profile", profileFile);
-    }
+      if (coverFile) {
+        payload.append("coverImage", coverFile);
+      }
 
-    if (coverFile) {
-      payload.append("coverImage", coverFile);
-    }
+      const res = await apiPostWithMultiForm({
+        url: API_UPDATE_USER_PROFILE,
+        values: payload,
+      });
 
-    const res = await apiPostWithMultiForm({
-      url: API_UPDATE_USER_PROFILE,
-      values: payload,
-    });
-
-    if (res?.success) {
-      ShowToast("Profile updated successfully", "success");
+      if (res?.success) {
+        ShowToast("Profile updated successfully", "success");
+      }
+    } catch (error: any) {
+      ShowToast(error?.error, "error");
+    } finally {
+      setLoading(false);
     }
   };
-
-  const today = new Date();
-  const minAdultDate = new Date(
-    today.getFullYear() - 18,
-    today.getMonth(),
-    today.getDate()
-  )
-    .toISOString()
-    .split("T")[0];
 
   const handleChangePassword = async () => {
     if (!passwordData.password || !passwordData.confirmPassword) {
@@ -171,20 +178,31 @@ const UserEditProfilePage = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   /* month + year dropdown */
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ].map((m, i) => ({ label: m, value: i.toString() }));
 
   const years = Array.from({ length: 100 }, (_, i) => {
     const year = new Date().getFullYear() - i;
     return { label: year.toString(), value: year.toString() };
   });
+
+  console.log(loading, "loading------------------------------");
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -198,15 +216,17 @@ const UserEditProfilePage = () => {
               <span className="icons arrowLeft hwhite"></span>
             </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${tab === 0 ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                tab === 0 ? "active" : ""
+              }`}
               onClick={() => setTab(0)}
             >
               basic information
             </button>
             <button
-              className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                tab === 1 ? "active" : ""
+              }`}
               onClick={() => setTab(1)}
             >
               Account and security
@@ -215,20 +235,21 @@ const UserEditProfilePage = () => {
           <div className="creator-profile-page-container">
             <div className="creator-profile-front-content-container">
               {/* ========== basic information ========== */}
-              {tab === 0 && userProfile && (
+              {tab === 0 && (
                 <>
                   <div className="creator-profile-card-container card">
                     <div className="creator-profile-banner">
-                      <img
-                        src={
-                          coverFile
-                            ? URL.createObjectURL(coverFile)
-                            : userProfile.coverImage ||
-                            "/images/profile-banners/profile-banner-10.png"
-                        }
-                        alt="Creator Profile Banner Image"
-                      />
-
+                      {userProfile?.coverImage ? (
+                        <img
+                          src={userProfile.coverImage}
+                          alt="MoneyBoy Social Profile Avatar"
+                          onError={(e) => {
+                            <NoProfileSvg />;
+                          }}
+                        />
+                      ) : (
+                        <NoProfileSvg />
+                      )}
                       <input
                         type="file"
                         hidden
@@ -241,8 +262,11 @@ const UserEditProfilePage = () => {
                         }}
                       />
 
-                      <label htmlFor="coverUpload" className="imgicons"
-                        style={{ cursor: "pointer" }}>
+                      <label
+                        htmlFor="coverUpload"
+                        className="imgicons"
+                        style={{ cursor: "pointer" }}
+                      >
                         <TbCamera size="16" />
                       </label>
                     </div>
@@ -253,16 +277,17 @@ const UserEditProfilePage = () => {
                           <div className="profile-card__main">
                             <div className="profile-card__avatar-settings">
                               <div className="profile-card__avatar">
-                                <img
-                                  src={
-                                    profileFile
-                                      ? URL.createObjectURL(profileFile)
-                                      : userProfile.profile ||
-                                      "/images/profile-avatars/profile-avatar-13.jpg"
-                                  }
-                                  alt="MoneyBoy Social Profile Avatar"
-                                />
-
+                                {userProfile?.profile ? (
+                                  <img
+                                    src={userProfile.profile}
+                                    alt="MoneyBoy Social Profile Avatar"
+                                    onError={(e) => {
+                                      <NoProfileSvg />;
+                                    }}
+                                  />
+                                ) : (
+                                  <NoProfileSvg />
+                                )}
                                 <input
                                   type="file"
                                   hidden
@@ -358,19 +383,80 @@ const UserEditProfilePage = () => {
                             />
                           </div>
 
-                          <CustomSelect label="Select Your Gender" icon={<svg className="icons groupUser svg-icon" />} options={genderOptions} value={formData.gender || ""} onChange={(val) => setFormData({ ...formData, gender: val })} />
+                          <CustomSelect
+                            label="Select Your Gender"
+                            icon={<svg className="icons groupUser svg-icon" />}
+                            options={genderOptions}
+                            value={formData.gender || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, gender: val })
+                            }
+                          />
 
-                          <div className="label-input calendar-dropdown" ref={wrapperRef}>
-                            <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
-                            <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={selectedDate ? selectedDate.toLocaleDateString("en-GB") : ""} onClick={(e) => { e.stopPropagation(); setOpen(true); }} />
+                          <div
+                            className="label-input calendar-dropdown"
+                            ref={wrapperRef}
+                          >
+                            <div className="input-placeholder-icon">
+                              <CalendarDays className="icons svg-icon" />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="(DD/MM/YYYY)"
+                              className="form-input"
+                              readOnly
+                              value={
+                                selectedDate
+                                  ? selectedDate.toLocaleDateString("en-GB")
+                                  : ""
+                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpen(true);
+                              }}
+                            />
                             {open && (
-                              <div className="calendar_show shadow" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                                <DatePicker selected={selectedDate} inline renderCustomHeader={({ date, changeYear, changeMonth, }) => (
-                                  <div className="flex gap-5 select_wrap p-2" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                                    <CustomSelect options={months} searchable={false} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} />
-                                    <CustomSelect options={years} searchable={false} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} />
-                                  </div>
-                                )} onChange={(date: Date | null) => { setSelectedDate(date); setOpen(false); }} />
+                              <div
+                                className="calendar_show shadow"
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <DatePicker
+                                  selected={selectedDate}
+                                  inline
+                                  renderCustomHeader={({
+                                    date,
+                                    changeYear,
+                                    changeMonth,
+                                  }) => (
+                                    <div
+                                      className="flex gap-5 select_wrap p-2"
+                                      onMouseDown={(e) => e.stopPropagation()}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <CustomSelect
+                                        options={months}
+                                        searchable={false}
+                                        value={date.getMonth().toString()}
+                                        onChange={(val) =>
+                                          changeMonth(Number(val))
+                                        }
+                                      />
+                                      <CustomSelect
+                                        options={years}
+                                        searchable={false}
+                                        value={date.getFullYear().toString()}
+                                        onChange={(val) =>
+                                          changeYear(Number(val))
+                                        }
+                                      />
+                                    </div>
+                                  )}
+                                  onChange={(date: Date | null) => {
+                                    setSelectedDate(date);
+                                    setOpen(false);
+                                  }}
+                                />
                               </div>
                             )}
                           </div>
@@ -380,16 +466,53 @@ const UserEditProfilePage = () => {
                             <input type="date" placeholder="Date of Birth (DD/MM/YYYY) *" value={formData.dob || ""} max={minAdultDate} onChange={(e) => {const selectedDate = e.target.value; if (selectedDate > minAdultDate) {alert("You must be at least 18 years old"); return;} setFormData({...formData, dob: selectedDate,});}}/>
                           </div> */}
 
-                          <CustomSelect label="United States of America *" icon={<img src="/images/united_flag.png" className="svg-icon"/>} options={countryOptions} value={formData.country || ""} onChange={(val) =>setFormData({ ...formData, country: val })}/>
+                          <CustomSelect
+                            label="United States of America *"
+                            icon={
+                              <img
+                                src="/images/united_flag.png"
+                                className="svg-icon"
+                              />
+                            }
+                            options={countryOptions}
+                            value={formData.country || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, country: val })
+                            }
+                          />
 
                           <div className="label-input">
-                            <div className="input-placeholder-icon"><svg className="icons locationIcon svg-icon"></svg></div>
-                            <input type="text" placeholder="City *" value={formData.city || ""} onChange={(e) => setFormData({...formData, city: e.target.value,})}/>
+                            <div className="input-placeholder-icon">
+                              <svg className="icons locationIcon svg-icon"></svg>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="City *"
+                              value={formData.city || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  city: e.target.value,
+                                })
+                              }
+                            />
                           </div>
 
                           <div className="label-input textarea one">
-                            <div className="input-placeholder-icon"><svg className="icons messageUser svg-icon"></svg></div>
-                            <textarea rows={4} placeholder="Bio" value={formData.bio || ""} onChange={(e) => setFormData({...formData, bio: e.target.value,})}/>
+                            <div className="input-placeholder-icon">
+                              <svg className="icons messageUser svg-icon"></svg>
+                            </div>
+                            <textarea
+                              rows={4}
+                              placeholder="Bio"
+                              value={formData.bio || ""}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  bio: e.target.value,
+                                })
+                              }
+                            />
                           </div>
                         </div>
                       </div>
@@ -397,7 +520,17 @@ const UserEditProfilePage = () => {
                   </div>
 
                   <div className="btm_btn one">
-                    <button className="premium-btn active-down-effect" onClick={handleUpdateProfile}><span>Save changes</span></button>
+                    <button
+                      className="premium-btn active-down-effect"
+                      onClick={handleUpdateProfile}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <span className="loader"></span>
+                      ) : (
+                        <span>Save Changes</span>
+                      )}
+                    </button>
                   </div>
                 </>
               )}
@@ -412,13 +545,36 @@ const UserEditProfilePage = () => {
                           <div className="input-placeholder-icon">
                             <i className="icons message svg-icon"></i>
                           </div>
-                          <input type="text" value={userProfile?.email || ""} readOnly/>
-                          <span className="righttext">{userProfile?.status === 5 ? "Verified" : "Unverified"}</span>
+                          <input
+                            type="text"
+                            value={userProfile?.email || ""}
+                            readOnly
+                          />
+                          <span className="righttext">
+                            {userProfile?.status === 5
+                              ? "Verified"
+                              : "Unverified"}
+                          </span>
                         </div>
                         <div className="label-input password">
-                          <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-                          <input type={showPass ? "text" : "password"} placeholder="Password *" value={passwordData.password} onChange={(e) => setPasswordData({...passwordData,password: e.target.value,})}/>
-                          <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon">
+                          <div className="input-placeholder-icon">
+                            <i className="icons lock svg-icon"></i>
+                          </div>
+                          <input
+                            type={showPass ? "text" : "password"}
+                            placeholder="Password *"
+                            value={passwordData.password}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                password: e.target.value,
+                              })
+                            }
+                          />
+                          <span
+                            onClick={() => setShowPass(!showPass)}
+                            className="input-placeholder-icon eye-icon"
+                          >
                             {showPass ? (
                               <i className="icons eye-slash svg-icon"></i>
                             ) : (
@@ -458,8 +614,13 @@ const UserEditProfilePage = () => {
                         <button
                           className="premium-btn active-down-effect"
                           onClick={handleChangePassword}
+                          disabled={loading}
                         >
-                          <span>Save Changes</span>
+                          {loading ? (
+                            <span className="loader"></span>
+                          ) : (
+                            <span>Save Changes</span>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -472,10 +633,11 @@ const UserEditProfilePage = () => {
                           </p>
                         </div>
                         <button
-                          className={`btn-danger ${userProfile?.status === UserStatus.SELF_DEACTIVATED
-                            ? "reactivate-btn"
-                            : ""
-                            }`}
+                          className={`btn-danger ${
+                            userProfile?.status === UserStatus.SELF_DEACTIVATED
+                              ? "reactivate-btn"
+                              : ""
+                          }`}
                           onClick={handleToggleAccount}
                         >
                           {userProfile?.status === UserStatus.SELF_DEACTIVATED
