@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Featuredboys from "../Featuredboys";
 import Link from "next/link";
 import CustomSelect from "../CustomSelect";
@@ -128,12 +128,12 @@ const [tab, setTab] = useState(
                             <input type="number" placeholder="Enter Amount" />
                           </div>
                         </div>
-                          <label className="font-light mb-0">
-                            Minimum top up amount $10{" "}
-                            <span className="block">
-                              Maximum top up wallet amount $1000
-                            </span>
-                          </label>
+                        <label className="font-light mb-0">
+                          Minimum top up amount $10{" "}
+                          <span className="block">
+                            Maximum top up wallet amount $1000
+                          </span>
+                        </label>
                         <div>
                           <label>Choose Payment Method*</label>
                           <CustomSelect
