@@ -9,6 +9,8 @@ export const API_USER_PROFILE = "/auth/get-profile";
 export const API_CREATOR_PROFILE = "/creator/get-profile";
 export const API_CREATOR_PROFILE_INFO = "/creator/get-profile-info";
 export const API_LOGOUT: string = "/auth/logout";
+export const API_SOCIAL_LOGIN: string = "/creator/social-login";
+
 export const API_GET_CREATORS = "/social/creators";
 export const API_FOLLOW_USER = "/social/follow";
 export const API_UNFOLLOW_USER = "/social/unfollow";

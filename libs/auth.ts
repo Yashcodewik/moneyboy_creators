@@ -2,11 +2,18 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { apiPost } from "@/utils/endpoints/common";
 import { encrypt } from "./encryption.service";
-import { API_VERIFY_OTP, API_LOGIN } from "@/utils/api/APIConstant";
+import {
+  API_VERIFY_OTP,
+  API_LOGIN,
+  API_SOCIAL_LOGIN,
+} from "@/utils/api/APIConstant";
 import GoogleProvider from "next-auth/providers/google";
 import TwitterProvider from "next-auth/providers/twitter";
+import { getToken } from "next-auth/jwt";
+import { serverApiPost } from "@/utils/api/serverApi";
+import { NextRequest } from "next/server";
 
-export const authOptions: NextAuthOptions = {
+export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -84,6 +91,11 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
       version: "2.0",
+      authorization: {
+        params: {
+          scope: "users.read tweet.read",
+        },
+      },
     }),
   ],
 
@@ -99,22 +111,39 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" || account?.provider === "twitter") {
+        const existingToken = req
+          ? await getToken({ req, secret: process.env.NEXTAUTH_SECRET! })
+          : null;
+
+        const accessToken = existingToken?.accessToken as string | undefined;
+
+        console.log("Existing access token:", accessToken);
+
         try {
-          const res = await apiPost({
-            url: "/creator/social-login",
+          const res = await serverApiPost({
+            url: API_SOCIAL_LOGIN,
             values: {
               provider: account.provider,
               providerAccountId: account.providerAccountId,
-              email: user.email,
-              name: user.name,
-              avatar: user.image,
+              email: user.email, // ← use this to find/match user on backend
             },
+            token: accessToken,
           });
           console.log("SOCIAL LOGIN RESPONSE:", res);
-          if (!res?.success) return false;
+          if (!res) {
+            console.log("API returned undefined");
+            return false;
+          }
+
+          if (!res.success) {
+            console.log("API success false:", res);
+            return false;
+          }
+
           user.id = res.user._id;
           user.accessToken = res.token;
           user.publicId = res.user.publicId;
+
           return true;
         } catch (err) {
           console.error("Social login failed:", err);
@@ -165,4 +194,4 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+});

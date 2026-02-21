@@ -34,13 +34,11 @@ import AccountSecurity from "./AccountSecurity";
 import PricingSetting from "./PricingSetting";
 import ImageCropModal from "./ImageCropModal";
 
-
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
-  const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -55,7 +53,6 @@ const EditProfilePage = () => {
   const handleCropSave = async (croppedBase64: string) => {
     const blob = await (await fetch(croppedBase64)).blob();
     const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
-
     if (cropType === "avatar") {
       setProfileFile(file);
     } else {
@@ -110,7 +107,6 @@ const EditProfilePage = () => {
       style: formData.style || "",
       size: formData.size || "",
       popularity: formData.popularity || "",
-
     },
     validationSchema: validationSchemaCreatorUpdate,
     enableReinitialize: true,
@@ -125,7 +121,6 @@ const EditProfilePage = () => {
           if (value !== "" && value !== null && value !== undefined) {
             payload.append(key, value as any);
           }
-
         });
 
         if (profileFile) payload.append("profile", profileFile);
@@ -152,9 +147,9 @@ const EditProfilePage = () => {
         } else {
           ShowToast(
             backendMessage ||
-            err?.response?.data?.error ||
-            err?.message ||
-            "Something went wrong",
+              err?.response?.data?.error ||
+              err?.message ||
+              "Something went wrong",
             "error",
           );
         }
@@ -225,25 +220,25 @@ const EditProfilePage = () => {
     ? countries.getAlpha2Code(selectedCountry, "en")
     : null;
 
-    const months = [
-      { label: "January", value: "0" },
-      { label: "February", value: "1" },
-      { label: "March", value: "2" },
-      { label: "April", value: "3" },
-      { label: "May", value: "4" },
-      { label: "June", value: "5" },
-      { label: "July", value: "6" },
-      { label: "August", value: "7" },
-      { label: "September", value: "8" },
-      { label: "October", value: "9" },
-      { label: "November", value: "10" },
-      { label: "December", value: "11" },
-    ];
-    
-    const years = Array.from({ length: 100 }, (_, i) => {
-      const year = new Date().getFullYear() - i;
-      return { label: year.toString(), value: year.toString() };
-    });
+  const months = [
+    { label: "January", value: "0" },
+    { label: "February", value: "1" },
+    { label: "March", value: "2" },
+    { label: "April", value: "3" },
+    { label: "May", value: "4" },
+    { label: "June", value: "5" },
+    { label: "July", value: "6" },
+    { label: "August", value: "7" },
+    { label: "September", value: "8" },
+    { label: "October", value: "9" },
+    { label: "November", value: "10" },
+    { label: "December", value: "11" },
+  ];
+
+  const years = Array.from({ length: 100 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { label: year.toString(), value: year.toString() };
+  });
 
   return (
     <>
@@ -274,22 +269,25 @@ const EditProfilePage = () => {
                 <span className="icons arrowLeft"></span>
               </button> */}
               <button
-                className={`page-content-type-button active-down-effect ${tab === 0 ? "active" : ""
-                  }`}
+                className={`page-content-type-button active-down-effect ${
+                  tab === 0 ? "active" : ""
+                }`}
                 onClick={() => setTab(0)}
               >
                 Basic information
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""
-                  }`}
+                className={`page-content-type-button active-down-effect ${
+                  tab === 1 ? "active" : ""
+                }`}
                 onClick={() => setTab(1)}
               >
                 Pricing settings
               </button>
               <button
-                className={`page-content-type-button active-down-effect ${tab === 2 ? "active" : ""
-                  }`}
+                className={`page-content-type-button active-down-effect ${
+                  tab === 2 ? "active" : ""
+                }`}
                 onClick={() => setTab(2)}
               >
                 Account and security
@@ -303,9 +301,16 @@ const EditProfilePage = () => {
                   <div className="creator-profile-card-container card">
                     <div className="creator-profile-banner">
                       {coverFile ? (
-                        <img src={URL.createObjectURL(coverFile)} alt="Creator Profile Banner" />
+                        <img
+                          src={URL.createObjectURL(coverFile)}
+                          alt="Creator Profile Banner"
+                        />
                       ) : formData?.coverImage && !coverError ? (
-                        <img src={formData.coverImage} alt="Creator Profile Banner" onError={() => setCoverError(true)} />
+                        <img
+                          src={formData.coverImage}
+                          alt="Creator Profile Banner"
+                          onError={() => setCoverError(true)}
+                        />
                       ) : (
                         <div className="noprofile">
                           <svg
@@ -549,7 +554,6 @@ const EditProfilePage = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 name="gender"
-
                               />
                             </div>
                             {/* <CustomSelect
@@ -568,22 +572,82 @@ const EditProfilePage = () => {
                             )}
                           </div>
                           <div>
-                            <div className="label-input calendar-dropdown" ref={wrapperRef}>
-                              <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
-                              <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={startDate?.toLocaleDateString("en-GB") || ""} onClick={() => setActiveField("schedule")} />
+                            <div
+                              className="label-input calendar-dropdown"
+                              ref={wrapperRef}
+                            >
+                              <div className="input-placeholder-icon">
+                                <CalendarDays className="icons svg-icon" />
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="(DD/MM/YYYY)"
+                                className="form-input"
+                                readOnly
+                                value={
+                                  startDate?.toLocaleDateString("en-GB") || ""
+                                }
+                                onClick={() => setActiveField("schedule")}
+                              />
                               {activeField === "schedule" && (
                                 <div className="calendar_show">
-                                  <DatePicker selected={startDate} inline maxDate={maxAllowedDate}
-                                    renderCustomHeader={({ date, changeYear, changeMonth }) => (
-                                      <div className="flex gap-5 select_wrap" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                                        <CustomSelect className="bg-white p-sm size-sm" options={months} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} searchable={false} />
-                                        <CustomSelect className="bg-white p-sm size-sm" options={years} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} searchable={false} />
+                                  <DatePicker
+                                    selected={startDate}
+                                    inline
+                                    maxDate={maxAllowedDate}
+                                    renderCustomHeader={({
+                                      date,
+                                      changeYear,
+                                      changeMonth,
+                                    }) => (
+                                      <div
+                                        className="flex gap-5 select_wrap"
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <CustomSelect
+                                          className="bg-white p-sm size-sm"
+                                          options={months}
+                                          value={date.getMonth().toString()}
+                                          onChange={(val) =>
+                                            changeMonth(Number(val))
+                                          }
+                                          searchable={false}
+                                        />
+                                        <CustomSelect
+                                          className="bg-white p-sm size-sm"
+                                          options={years}
+                                          value={date.getFullYear().toString()}
+                                          onChange={(val) =>
+                                            changeYear(Number(val))
+                                          }
+                                          searchable={false}
+                                        />
                                       </div>
-                                    )} onChange={(date: Date | null) => { if (date) { const formattedDate = date.toISOString(); formik.setFieldValue("dob", formattedDate); const age = calculateAge(date); const ageGroup = getAgeGroup(age); formik.setFieldValue("age", ageGroup); } setActiveField(null); }} />
+                                    )}
+                                    onChange={(date: Date | null) => {
+                                      if (date) {
+                                        const formattedDate =
+                                          date.toISOString();
+                                        formik.setFieldValue(
+                                          "dob",
+                                          formattedDate,
+                                        );
+                                        const age = calculateAge(date);
+                                        const ageGroup = getAgeGroup(age);
+                                        formik.setFieldValue("age", ageGroup);
+                                      }
+                                      setActiveField(null);
+                                    }}
+                                  />
                                 </div>
                               )}
                             </div>
-                            {formik.touched.dob && formik.errors.dob && (<span className="error-message">{formik.errors.dob as string}</span>)}
+                            {formik.touched.dob && formik.errors.dob && (
+                              <span className="error-message">
+                                {formik.errors.dob as string}
+                              </span>
+                            )}
                           </div>
                           <div>
                             <CustomSelect
@@ -822,7 +886,12 @@ const EditProfilePage = () => {
                           </div>
                         </div>
                         <div className="btm_btn ">
-                          <button type="submit" className="premium-btn active-down-effect" onClick={() => formik.handleSubmit()} disabled={loading}>
+                          <button
+                            type="submit"
+                            className="premium-btn active-down-effect"
+                            onClick={() => formik.handleSubmit()}
+                            disabled={loading}
+                          >
                             <span>Save Changes</span>
                           </button>
                         </div>
@@ -841,7 +910,13 @@ const EditProfilePage = () => {
       </div>
 
       {/* Modal Start */}
-      <ImageCropModal show={cropOpen} image={cropImage} aspect={cropType === "cover" ? 16 / 6 : 1} onClose={() => setCropOpen(false)} onSave={handleCropSave} />
+      <ImageCropModal
+        show={cropOpen}
+        image={cropImage}
+        aspect={cropType === "cover" ? 16 / 6 : 1}
+        onClose={() => setCropOpen(false)}
+        onSave={handleCropSave}
+      />
 
       {/* <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <form className="modal-wrap imgcrop-modal">

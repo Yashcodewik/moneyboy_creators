@@ -11,6 +11,7 @@ import { FaXTwitter } from "react-icons/fa6";
 import { countryOptions } from "../helper/creatorOptions";
 import CustomSelect from "../CustomSelect";
 import { signIn } from "next-auth/react";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -22,6 +23,7 @@ export enum UserStatus {
 }
 
 const AccountSecurity = ({ profile }: any) => {
+  const { session } = useDecryptedSession();
   const [passwordData, setPasswordData] = useState({
     password: "",
     confirmPassword: "",
@@ -189,7 +191,15 @@ const AccountSecurity = ({ profile }: any) => {
             <p>Connect Your Social accounts to Your MoneYBoy Profile</p>
             <div className="btn_wrap">
               <label>Sign in With x</label>
-              <button type="button" className="active-down-effect xbtn" onClick={() => signIn("twitter")}>
+              <button
+                type="button"
+                className="active-down-effect xbtn"
+                onClick={() =>
+                  signIn("twitter", {
+                    state: session?.user?.id,
+                  })
+                }
+              >
                 <div className="icons">
                   <FaXTwitter size={18} />
                 </div>{" "}
