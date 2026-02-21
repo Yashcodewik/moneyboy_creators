@@ -1,19 +1,93 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Featuredboys from "../Featuredboys";
 import Link from "next/link";
 import CustomSelect from "../CustomSelect";
 import { BsBank2 } from "react-icons/bs";
 import { useSearchParams } from "next/navigation";
+// import {CreditCard, useCreditCard,} from "credit-card-ui-react";
+import "credit-card-ui-react/styles.css";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { API_ADD_CARD, API_GET_CARDS } from "@/utils/api/APIConstant";
+import ShowToast from "../common/ShowToast";
+
+const CreditCard = dynamic(
+  () => import("credit-card-ui-react").then((m) => m.CreditCard),
+  { ssr: false },
+);
 
 const AddFundsPage = () => {
   const searchParams = useSearchParams();
-const tabParam = searchParams.get("tab");
+  const tabParam = searchParams.get("tab");
+const [cards, setCards] = useState<any[]>([]);
+const [loadingCards, setLoadingCards] = useState(false);
+  const [tab, setTab] = useState(tabParam === "addfunds" ? 2 : 1);
 
-const [tab, setTab] = useState(
-  tabParam === "addfunds" ? 2 : 1
-);
+  const [flipped, setFlipped] = useState(false);
 
+const [cardData, setCardData] = useState({
+  name: "",
+  number: "",
+  expiry: "",
+  cvc: "",
+});
+
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    setCardData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  useEffect(() => {
+  fetchCards();
+}, []);
+
+const fetchCards = async () => {
+  setLoadingCards(true);
+
+  const res = await getApiWithOutQuery({
+    url: API_GET_CARDS,
+  });
+
+  if (res?.success) {
+    setCards(res.data);
+  }
+
+  setLoadingCards(false);
+};
+
+const handleAddCard = async () => {
+  if (!cardData.number || !cardData.expiry) {
+    ShowToast("Enter card details", "error");
+    return;
+  }
+
+  const [month, year] = cardData.expiry.split("/");
+
+  const res = await apiPost({
+    url: API_ADD_CARD,
+    values: {
+      cardNumber: cardData.number.replace(/\s/g, ""),
+      expMonth: Number(month),
+      expYear: Number("20" + year),
+    },
+  });
+
+  if (res?.success) {
+    ShowToast(res.message, "success");
+
+    setCardData({
+      name: "",
+      number: "",
+      expiry: "",
+      cvc: "",
+    });
+
+    fetchCards(); // refresh cards
+  } else {
+    ShowToast(res?.message || "Failed to add card", "error");
+  }
+};
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
@@ -31,17 +105,13 @@ const [tab, setTab] = useState(
               <span className="icons arrowLeft"></span>
             </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${
-                tab === 1 ? "active" : ""
-              }`}
+              className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""}`}
               onClick={() => setTab(1)}
             >
               Add Payment Method
             </button>
             <button
-              className={`page-content-type-button active-down-effect ${
-                tab === 2 ? "active" : ""
-              }`}
+              className={`page-content-type-button active-down-effect ${tab === 2 ? "active" : ""}`}
               onClick={() => setTab(2)}
             >
               Add funds
@@ -58,28 +128,61 @@ const [tab, setTab] = useState(
                         src="/images/cards_img.png"
                         className="img-fluid cardicon"
                       />
+                      {/* +============= */}
+                      <div>
+                        <label>Cardholder Name</label>
+                        <div className="label-input">
+                          <input
+                            type="text"
+                            name="name"
+                            placeholder="Cardholder Name"
+                            value={cardData.name}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
                       <div>
                         <label>Card Number</label>
                         <div className="label-input">
-                          <input type="number" placeholder="Card Number" />
+                          <input
+                            type="tel"
+                            name="number"
+                            placeholder="Card Number"
+                            value={cardData.number}
+                            onChange={handleChange}
+                          />
                         </div>
                       </div>
                       <div className="grid grid-2">
                         <div>
-                          <label>Exp Date</label>
+                          <label>Expiry Date</label>
                           <div className="label-input">
-                            <input type="date" placeholder="Exp Date" />
+                            <input
+                              type="text"
+                              name="expiry"
+                              placeholder="MM/YY"
+                              value={cardData.expiry}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div>
                           <label>CVC</label>
                           <div className="label-input">
-                            <input type="number" placeholder="Exp Date" />
+                            <input
+                              type="tel"
+                              name="cvc"
+                              placeholder="CVC"
+                              value={cardData.cvc}
+                              onChange={handleChange}
+                              onFocus={() => setFlipped(true)}
+                              onBlur={() => setFlipped(false)}
+                            />
                           </div>
                         </div>
                       </div>
                       <div className="btm_btn">
-                        <button className="btn-txt-gradient">
+                        <button className="btn-txt-gradient" onClick={handleAddCard}>
                           <span>Add card</span>
                         </button>
                       </div>
@@ -88,10 +191,70 @@ const [tab, setTab] = useState(
                   <div className="card filters-card-wrapper">
                     <div className="creator-content-cards-wrapper rqstpayout_containt addfunds">
                       <h3>You can add up to 10 cards</h3>
-                      <img
-                        src="/images/cardimg.png"
-                        className="img-fluid w-max"
-                      />
+                      {/* <img src="/images/cardimg.png" className="img-fluid w-max"/> */}
+                    <div className="bankcard_wrapper">
+
+  {/* Live Preview Card (New Card Being Added) */}
+  {cardData.number && (
+    <CreditCard
+      brand="visa"
+      size="sm"
+      isFlipped={flipped}
+      gradient={{
+        type: "grain",
+        colors: [
+          "#22c55e55",
+          "#7300ff44",
+          "#eba8ff33",
+          "#00bfff44",
+        ],
+        colorBack: "#000000",
+        softness: 0.55,
+        intensity: 0.35,
+        noise: 0.12,
+      }}
+      cardNumber={cardData.number}
+      cardholderName={cardData.name}
+      expiryDate={cardData.expiry}
+      cvv={cardData.cvc}
+      level="gold"
+    />
+  )}
+
+  {/* Saved Cards From API */}
+  {loadingCards ? (
+    <p>Loading cards...</p>
+  ) : cards.length > 0 ? (
+    cards.map((card, index) => (
+      <CreditCard
+        key={index}
+        brand="visa"
+        size="sm"
+        gradient={{
+          type: "grain",
+          colors: [
+            "#1e293b",
+            "#334155",
+            "#475569",
+            "#64748b",
+          ],
+          colorBack: "#000000",
+          softness: 0.55,
+          intensity: 0.35,
+          noise: 0.12,
+        }}
+        cardNumber={`**** **** **** ${card.cardNumber}`}
+        cardholderName="Saved Card"
+        expiryDate={`${card.expMonth}/${String(card.expYear).slice(-2)}`}
+        cvv=""
+        level="classic"
+      />
+    ))
+  ) : (
+    <p>No saved cards yet</p>
+  )}
+
+</div>
                     </div>
                   </div>
                 </div>

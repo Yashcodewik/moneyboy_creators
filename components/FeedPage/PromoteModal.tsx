@@ -7,21 +7,29 @@ import ShowToast from "@/components/common/ShowToast";
 import { useState } from "react";
 import { apiPost } from "@/utils/endpoints/common";
 
+const pricingPlans: Record<number, number> = {
+  3: 9.99,
+  7: 7.99,
+  14: 5.99,
+  30: 3.99,
+};
+
 const PromoteModal = ({ onClose }: { onClose: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [duration, setDuration] = useState(3);
 const [paymentType, setPaymentType] = useState("wallet");
-
+const pricePerDay = pricingPlans[duration];
+const totalPrice = (duration * pricePerDay).toFixed(2);
 const handlePromote = async () => {
   setLoading(true);
 
   const response = await apiPost({
     url: API_PROMOTE_PROFILE,
-    values: {
-      duration,
-      price: 55.99, // keep static for now
-      paymentType,
-    },
+ values: {
+  duration,
+  price: Number(totalPrice),
+  paymentType,
+},
   });
 
   setLoading(false);
@@ -101,15 +109,17 @@ const handlePromote = async () => {
 </label>
         </div>
 
-        <div className="total_wrap">
-          <div>
-            <h3>Total Price</h3>
-            <p>7 Days at $7.99 /day</p>
-          </div>
-          <div>
-            <h2>$55.99</h2>
-          </div>
-        </div>
+     <div className="total_wrap">
+  <div>
+    <h3>Total Price</h3>
+    <p>
+      {duration} Days at ${pricePerDay} /day
+    </p>
+  </div>
+  <div>
+    <h2>${totalPrice}</h2>
+  </div>
+</div>
 
         <h4>Payment Method</h4>
 

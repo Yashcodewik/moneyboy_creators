@@ -18,6 +18,8 @@ import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import SumsubWebSdk from "@sumsub/websdk-react";
 import { validationSchemaCreator } from "@/libs/validation";
+import { FcGoogle } from "react-icons/fc";
+import { FaXTwitter } from "react-icons/fa6";
 
 countries.registerLocale(enLocale);
 
@@ -241,6 +243,13 @@ const CreatorSignupPage = () => {
                       <p className="mb-10">Sign up to make money and interact with your fans!</p>
                     </div>
                   </div>
+                  <div className="loginbtn_wrap">
+                <button type="button" className="google-button active-down-effect "><FcGoogle size={18} /> Sign up with Google</button>
+                <button type="button" className="x-button active-down-effect"><FaXTwitter size={18} /> Sign up with X</button>
+              </div>
+              <div className="or-divider">
+                <span>Or</span>
+              </div>
                   <form onSubmit={formik.handleSubmit}>
                     <div className="creator_maingrid">
                       <div className="form_grid">
