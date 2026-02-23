@@ -21,6 +21,7 @@ import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 import ShowToast from "../common/ShowToast";
+import { useSession } from "next-auth/react";
 
 interface Creator {
   _id: string;
@@ -46,7 +47,7 @@ interface Follower {
   userName: string;
   bio?: string;
   isFollowing: boolean;
-  isFollowingYou: boolean;
+  followsYou: boolean;
   profileImage?: string;
   role: number;
   isReported?: boolean;
@@ -87,6 +88,10 @@ const FollowersPage = () => {
   const [reportedUserName, setReportedUserName] = useState("");
   const [reportedUserId, setReportedUserId] = useState("");
   const [reportMessage, setReportMessage] = useState("");
+
+  const session = useSession();
+const currentUserRole = Number(session?.data?.user?.role);
+const currentUserId = session?.data?.user?.id;
 
   const openReportModal = (user: Follower) => {
     setReportedUserName(user.userName);
@@ -176,8 +181,8 @@ const FollowersPage = () => {
     };
   }, []);
 
-  const userIdParam = searchParams.get("q");
-
+  // const userIdParam = searchParams.get("q");
+const userIdParam = searchParams.get("id");
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -287,13 +292,7 @@ const FollowersPage = () => {
       });
 
       if (res?.success) {
-        const followingWithStatus = res.data.map((follow: any) => ({
-          ...follow,
-          isFollowing: true,
-          isFollowingYou: false,
-        }));
-
-        setFollowing(followingWithStatus);
+   setFollowing(res.data);
         setFollowingPage(pageNo);
         const total = res.meta?.total || 0;
         const limit = res.meta?.limit || 10;
@@ -332,31 +331,6 @@ const FollowersPage = () => {
     followingSearchTimeout.current = setTimeout(() => {
       fetchFollowing(1, value);
     }, 500);
-  };
-
-  const syncRelationships = () => {
-    const followingIds = new Set(following.map((u) => u._id));
-    const followerIds = new Set(followers.map((u) => u._id));
-
-    setFollowers((prev) =>
-      prev.map((u) => ({
-        ...u,
-        isFollowing: followingIds.has(u._id),
-      })),
-    );
-
-    setFollowing((prev) =>
-      prev.map((u) => ({
-        ...u,
-        isFollowingYou: followerIds.has(u._id),
-      })),
-    );
-    setCreators((prev) =>
-      prev.map((creator) => ({
-        ...creator,
-        isFollowing: followingIds.has(creator._id),
-      })),
-    );
   };
 
   const handleFollowToggle = async (
@@ -433,7 +407,7 @@ const FollowersPage = () => {
               ? {
                   ...user,
                   isFollowing: false,
-                  isFollowingYou: user.isFollowingYou,
+                  followsYou: user.followsYou,
                 }
               : user,
           ),
@@ -464,7 +438,7 @@ const FollowersPage = () => {
               {
                 ...creatorToAdd,
                 isFollowing: true,
-                isFollowingYou: false,
+                followsYou: false,
               } as Follower,
             ];
           });
@@ -493,7 +467,7 @@ const FollowersPage = () => {
                 ? {
                     ...user,
                     isFollowing: true,
-                    isFollowingYou: true,
+                    followsYou: true,
                   }
                 : user,
             ),
@@ -505,7 +479,7 @@ const FollowersPage = () => {
                 ? {
                     ...user,
                     isFollowing: false,
-                    isFollowingYou: true,
+                    followsYou: true,
                   }
                 : user,
             ),
@@ -525,11 +499,11 @@ const FollowersPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (followers.length > 0 && following.length > 0) {
-      syncRelationships();
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (followers.length > 0 && following.length > 0) {
+  //     syncRelationships();
+  //   }
+  // }, []);
 
   const handleRemoveFollower = async (userId: string) => {
     try {
@@ -555,7 +529,7 @@ const FollowersPage = () => {
         className: "btn-txt-gradient btn-grey",
       };
     }
-    if ("isFollowingYou" in user && user.isFollowingYou && !user.isFollowing) {
+    if ("followsYou" in user && user.followsYou && !user.isFollowing) {
       return {
         text: "Follow Back",
         className: "btn-txt-gradient",
@@ -777,6 +751,8 @@ const FollowersPage = () => {
             </div>
             <div className="rel-user-actions">
               <div className="rel-user-action-btn">
+               {follower._id !== currentUserId &&
+                !(currentUserRole === 1 && follower.role === 1) && (
                 <button
                   className={buttonProps.className}
                   onClick={() =>
@@ -801,7 +777,9 @@ const FollowersPage = () => {
                 >
                   <span>{buttonProps.text}</span>
                 </button>
+                )}
               </div>
+              {follower._id == currentUserId && (
               <div
                 className="rel-user-more-opts-wrapper"
                 data-more-actions-toggle-element
@@ -1061,6 +1039,7 @@ const FollowersPage = () => {
                   </div>
                 )}
               </div>
+      )}
             </div>
           </div>
           {/* {follower.bio && (
@@ -1175,6 +1154,8 @@ const FollowersPage = () => {
               </div>
             </div>
             <div className="rel-user-action-btn">
+            {follow._id !== currentUserId &&
+             !(currentUserRole === 1 && follow.role === 1) && (
               <button
                 className={buttonProps.className}
                 onClick={() =>
@@ -1199,6 +1180,7 @@ const FollowersPage = () => {
               >
                 <span>{buttonProps.text}</span>
               </button>
+              )}
             </div>
           </div>
           {/* {follow.bio && (
@@ -1633,6 +1615,8 @@ const FollowersPage = () => {
 
                       <div className="rel-user-actions">
                         <div className="rel-user-action-btn">
+                       {creator._id !== currentUserId &&
+                      !(currentUserRole === 1 && creator.role === 1) && (
                           <button
                             className={`btn-txt-gradient ${
                               creator.isFollowing ? "btn-grey" : ""
@@ -1663,6 +1647,7 @@ const FollowersPage = () => {
                               {creator.isFollowing ? "Following" : "Follow"}
                             </span>
                           </button>
+                        )}
                         </div>
                       </div>
                     </div>
