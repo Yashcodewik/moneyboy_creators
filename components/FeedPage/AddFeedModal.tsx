@@ -23,10 +23,17 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
-import { BadgeCheck, CalendarDays, CirclePlus, CircleX, Smile } from "lucide-react";
+import {
+  BadgeCheck,
+  CalendarDays,
+  CirclePlus,
+  CircleX,
+  Smile,
+} from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
 
 type feedParams = {
   show: boolean;
@@ -50,7 +57,8 @@ const PostSchema = Yup.object({
     .when("accessType", {
       is: "pay_per_view",
       then: (s) =>
-        s.required("Price is required")
+        s
+          .required("Price is required")
           .positive("Price must be greater than 0"),
       otherwise: (s) => s.notRequired(),
     }),
@@ -68,8 +76,8 @@ const PostSchema = Yup.object({
   hasMedia: Yup.boolean().oneOf([true], "At least one media file is required"),
 });
 
-
 const AddFeedModal = ({ show, onClose }: feedParams) => {
+  const { session } = useDecryptedSession();
   const [accessType, setAccessType] = useState("free");
   const [activeTool, setActiveTool] = useState<
     "image" | "video" | "poll" | null
@@ -84,7 +92,12 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   >([]);
   const [tagSearch, setTagSearch] = useState("");
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
-  const [selectedTagUsers, setSelectedTagUsers] = useState<TagUser[]>([]);
+  type TaggedUserWithShare = TagUser & { percentage: number };
+
+  const [selectedTagUsers, setSelectedTagUsers] = useState<
+    TaggedUserWithShare[]
+  >([]);
+  const [creatorPercentage, setCreatorPercentage] = useState<number>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const MEDIA_TYPE_MAP: Record<string, string> = {
@@ -109,7 +122,11 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
     formik.setFieldValue("hasMedia", mediaFiles.length > 0, false);
   }, [mediaFiles]);
 
-
+  const creator = {
+    name: session?.user?.displayName,
+    username: session?.user?.userName,
+    profile: session?.user?.profile,
+  };
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -188,11 +205,29 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const toggleTagUser = (user: TagUser) => {
     setSelectedTagUsers((prev) => {
       const exists = prev.find((u) => u._id === user._id);
-      if (exists) return prev.filter((u) => u._id !== user._id);
-      return [...prev, user];
+
+      if (exists) {
+        return prev.filter((u) => u._id !== user._id);
+      }
+
+      return [...prev, { ...user, percentage: 0  }];
     });
   };
 
+  const updateUserPercentage = (id: string, value: number) => {
+    setSelectedTagUsers((prev) =>
+      prev.map((u) => (u._id === id ? { ...u, percentage: value } : u)),
+    );
+  };
+
+  useEffect(() => {
+    const totalTagged = selectedTagUsers.reduce(
+      (sum, u) => sum + (Number(u.percentage) || 0),
+      0,
+    );
+
+    // setCreatorPercentage(100 - totalTagged);
+  }, [selectedTagUsers]);
   const formik = useFormik({
     initialValues: {
       text: "",
@@ -289,26 +324,24 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
         console.log("Create Post Response:", res);
 
         // ✅ Tag Users (if any selected)
-        if (selectedTagUsers.length > 0) {
-          const tagRes = await apiPost({
-            url: API_TAG_USERS_TO_POST,
-            values: {
-              postId,
-              taggedUserIds: selectedTagUsers.map((u) => u._id),
-            },
-          });
+    if (selectedTagUsers.length > 0) {
+  const tagRes = await apiPost({
+    url: API_TAG_USERS_TO_POST,
+    values: {
+      postId,
+      creatorPercentage: Number(creatorPercentage || 0),
+      taggedUsers: selectedTagUsers.map((u) => ({
+        userId: u._id,
+        percentage: Number(u.percentage),
+      })),
+    },
+  });
 
-          console.log("Tag API Response:", tagRes);
-
-          if (!tagRes?.success) {
-            ShowToast(
-              tagRes?.message || "Post created but tagging failed",
-              "error",
-            );
-            onClose();
-            return;
-          }
-        }
+  if (!tagRes?.success) {
+    ShowToast(tagRes?.message || "Tagging failed", "error");
+    return;
+  }
+}
 
         // ✅ Final Success
         ShowToast("Post created successfully", "success");
@@ -327,6 +360,24 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
       mediaPreviews.forEach((m) => URL.revokeObjectURL(m.url));
     };
   }, [mediaPreviews]);
+
+  const collaborators =
+    selectedTagUsers.length > 0
+      ? [
+          {
+            _id: "creator",
+            displayName: creator.name,
+            userName: creator.username,
+            profile: creator.profile,
+            percentage: creatorPercentage,
+            isCreator: true,
+          },
+          ...selectedTagUsers.map((u) => ({
+            ...u,
+            isCreator: false,
+          })),
+        ]
+      : [];
 
   return (
     <div
@@ -387,7 +438,6 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               </div>
             )}
           </span>
-
         </div>
         {/* {formik.touched.text && formik.errors.text && (
             <span className="error-message">{formik.errors.text}</span>
@@ -511,7 +561,9 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                     className="form-input"
                     value={
                       formik.values.scheduledAt
-                        ? new Date(formik.values.scheduledAt).toLocaleDateString("en-GB")
+                        ? new Date(
+                            formik.values.scheduledAt,
+                          ).toLocaleDateString("en-GB")
                         : ""
                     }
                     readOnly
@@ -527,11 +579,13 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                             ? new Date(formik.values.scheduledAt)
                             : null
                         }
-
                         minDate={new Date()}
                         onChange={(date: Date | null) => {
                           if (!date) return;
-                          formik.setFieldValue("scheduledAt", date.toISOString());
+                          formik.setFieldValue(
+                            "scheduledAt",
+                            date.toISOString(),
+                          );
                           setActiveField(null);
                         }}
                       />
@@ -594,51 +648,58 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           ))}
         </div>
         {formik.touched.hasMedia && formik.errors.hasMedia && (
-          <div className="error-message">
-            {formik.errors.hasMedia}
+          <div className="error-message">{formik.errors.hasMedia}</div>
+        )}
+        {collaborators.length > 0 && (
+          <div className="moneyboy-post__header">
+            {collaborators.map((user) => (
+              <div className="profile-card upl_card" key={user._id}>
+                <div className="profile-card__main">
+                  <div className="profile-card__avatar-settings uplview_user">
+                    <div className="profile-card__avatar">
+                      <img
+                        src={user.profile || "/images/default.png"}
+                        alt={user.displayName}
+                        className="img-fluid"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="profile-card__info">
+                    <div className="profile-card__name">{user.displayName}</div>
+                    <div className="profile-card__username">
+                      @{user.userName}
+                    </div>
+                  </div>
+
+                  <div className="right_box">
+                    {accessType === "free" && <span>Free</span>}
+
+                    {accessType === "subscriber" && <span>Subscriber</span>}
+
+                    {accessType === "pay_per_view" && (
+                      <input
+                        type="number"
+                        placeholder="Add User Percentage"
+                        className="form-input"
+                        value={user.percentage || ""}
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+
+                          if (user.isCreator) {
+                            setCreatorPercentage(value);
+                          } else {
+                            updateUserPercentage(user._id, value);
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-        <div className="moneyboy-post__header">
-          <div className="profile-card upl_card">
-            <div className="profile-card__main">
-              {/* Avatar */}
-              <div className="profile-card__avatar-settings uplview_user">
-                <div className="profile-card__avatar">
-                  <img src="/images/post-images/post-img-1.png" alt="User" className="img-fluid"/>
-                </div>
-              </div>
-              {/* User Info */}
-              <div className="profile-card__info">
-                <div className="profile-card__name">John Doe</div>
-                <div className="profile-card__username">@johndoe</div>
-              </div>
-              {/* Right Box */}
-              <div className="right_box">
-                <input type="number" placeholder="Add User Percentage" className="form-input"/>
-              </div>
-            </div>
-          </div>
-          <div className="profile-card upl_card">
-            <div className="profile-card__main">
-              {/* Avatar */}
-              <div className="profile-card__avatar-settings uplview_user">
-                <div className="profile-card__avatar">
-                  <img src="/images/post-images/post-img-2.png" alt="User" className="img-fluid"/>
-                </div>
-              </div>
-              {/* User Info */}
-              <div className="profile-card__info">
-                <div className="profile-card__name">Yash Doe</div>
-                <div className="profile-card__username">@yashdoe</div>
-              </div>
-              {/* Right Box */}
-              <div className="right_box">
-                <input type="number" placeholder="Add User Percentage" className="form-input"/>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* <div className="upload-wrapper" onClick={() => thumbnailInputRef.current?.click()}>
           <div className="img_wrap">
             <svg className="icons idshape size-45"></svg>
@@ -816,7 +877,6 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               type="submit"
               data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
               className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
-
               disabled={isSubmitting}
             >
               <span>{isSubmitting ? "Posting..." : "Post"}</span>
@@ -876,7 +936,11 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
               const selected = selectedTagUsers.some((u) => u._id === user._id);
 
               return (
-                <div key={user._id} className="moneyboy-post__header" onClick={() => toggleTagUser(user)}>
+                <div
+                  key={user._id}
+                  className="moneyboy-post__header"
+                  onClick={() => toggleTagUser(user)}
+                >
                   <div className="profile-card">
                     <div className="profile-card__main">
                       <div className="profile-card__avatar-settings">
@@ -928,7 +992,11 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                           @{user.userName}
                         </div>
                       </div>
-                      {selected && <div className="rigth_info"><BadgeCheck size={22} /></div>}
+                      {selected && (
+                        <div className="rigth_info">
+                          <BadgeCheck size={22} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
