@@ -210,7 +210,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
         return prev.filter((u) => u._id !== user._id);
       }
 
-      return [...prev, { ...user, percentage: 0  }];
+      return [...prev, { ...user, percentage: 0 }];
     });
   };
 
@@ -324,24 +324,24 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
         console.log("Create Post Response:", res);
 
         // ✅ Tag Users (if any selected)
-    if (selectedTagUsers.length > 0) {
-  const tagRes = await apiPost({
-    url: API_TAG_USERS_TO_POST,
-    values: {
-      postId,
-      creatorPercentage: Number(creatorPercentage || 0),
-      taggedUsers: selectedTagUsers.map((u) => ({
-        userId: u._id,
-        percentage: Number(u.percentage),
-      })),
-    },
-  });
+        if (selectedTagUsers.length > 0) {
+          const tagRes = await apiPost({
+            url: API_TAG_USERS_TO_POST,
+            values: {
+              postId,
+              creatorPercentage: Number(creatorPercentage || 0),
+              taggedUsers: selectedTagUsers.map((u) => ({
+                userId: u._id,
+                percentage: Number(u.percentage),
+              })),
+            },
+          });
 
-  if (!tagRes?.success) {
-    ShowToast(tagRes?.message || "Tagging failed", "error");
-    return;
-  }
-}
+          if (!tagRes?.success) {
+            ShowToast(tagRes?.message || "Tagging failed", "error");
+            return;
+          }
+        }
 
         // ✅ Final Success
         ShowToast("Post created successfully", "success");
@@ -364,77 +364,41 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
   const collaborators =
     selectedTagUsers.length > 0
       ? [
-          {
-            _id: "creator",
-            displayName: creator.name,
-            userName: creator.username,
-            profile: creator.profile,
-            percentage: creatorPercentage,
-            isCreator: true,
-          },
-          ...selectedTagUsers.map((u) => ({
-            ...u,
-            isCreator: false,
-          })),
-        ]
+        {
+          _id: "creator",
+          displayName: creator.name,
+          userName: creator.username,
+          profile: creator.profile,
+          percentage: creatorPercentage,
+          isCreator: true,
+        },
+        ...selectedTagUsers.map((u) => ({
+          ...u,
+          isCreator: false,
+        })),
+      ]
       : [];
 
   return (
-    <div
-      className={`modal ${show ? "show" : ""} `}
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
-    >
-      <form
-        className="modal-wrap post-modal"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={formik.handleSubmit}
-      >
+    <div className={`modal ${show ? "show" : ""} `} role="dialog" aria-modal="true" onClick={onClose}>
+      <form className="modal-wrap post-modal" onClick={(e) => e.stopPropagation()} onSubmit={formik.handleSubmit}>
         <div className="modal_head">
           <h3>New Post</h3>
-          <button className="close-btn" onClick={onClose}>
-            <CgClose size={22} />
-          </button>
+          <button className="close-btn" onClick={onClose}><CgClose size={22} /></button>
         </div>
 
         <div className="input-wrap">
           <div className="label-input textarea one">
-            <textarea
-              ref={textareaRef}
-              rows={4}
-              placeholder="Compose new post..."
-              name="text"
-              value={formik.values.text}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
+            <textarea ref={textareaRef} rows={4} placeholder="Compose new post..." name="text" value={formik.values.text} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
           </div>
           <span className="right">
-            <button
-              type="button"
-              ref={emojiBtnRef}
-              className="emoji-btn"
-              onClick={() => setShowEmoji((prev) => !prev)}
-            >
-              <Smile
-                size={20}
-                stroke="black"
-                strokeWidth={1}
-                fill="#fece26"
-              />{" "}
+            <button type="button" ref={emojiBtnRef} className="emoji-btn" onClick={() => setShowEmoji((prev) => !prev)}>
+              <Smile size={20} stroke="black" strokeWidth={1} fill="#fece26"/>{" "}
             </button>
             {formik.values.text.length}/300
             {showEmoji && (
               <div ref={emojiRef} className="emoji-picker-wrapper">
-                <EmojiPicker
-                  onEmojiClick={handleEmojiClick}
-                  autoFocusSearch={false}
-                  skinTonesDisabled
-                  previewConfig={{ showPreview: false }}
-                  height={320}
-                  width={320}
-                />
+                <EmojiPicker onEmojiClick={handleEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={320} width={320}/>
               </div>
             )}
           </span>
@@ -445,18 +409,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
         <div className="select_wrap">
           <label className="radio_wrap">
-            <input
-              type="radio"
-              name="access"
-              checked={accessType === "subscriber"}
-              onChange={() => {
-                setAccessType("subscriber");
-                setIsScheduled(false); // Reset to false when switching
-                formik.setFieldValue("accessType", "subscriber");
-                formik.setFieldValue("isScheduled", false);
-                formik.setFieldValue("scheduledAt", "");
-              }}
-            />
+            <input type="radio" name="access" checked={accessType === "subscriber"} onChange={() => {setAccessType("subscriber"); setIsScheduled(false); formik.setFieldValue("accessType", "subscriber"); formik.setFieldValue("isScheduled", false); formik.setFieldValue("scheduledAt", "");}}/>
             Only for Subscribers
           </label>
 
@@ -562,8 +515,8 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
                     value={
                       formik.values.scheduledAt
                         ? new Date(
-                            formik.values.scheduledAt,
-                          ).toLocaleDateString("en-GB")
+                          formik.values.scheduledAt,
+                        ).toLocaleDateString("en-GB")
                         : ""
                     }
                     readOnly
@@ -846,20 +799,9 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
             </li>
           </ul>
 
-          {/* <button className="cate-back-btn active-down-effect btn_icons">
-            <PiTextAaBold size={20} />
-          </button>
-
-          <button className="cate-back-btn active-down-effect btn_icons">
-            <FiMic size={20} />
-          </button>
-
-          <button
-            className="cate-back-btn active-down-effect btn_icons"
-            onClick={() => setActiveTool("poll")}
-          >
-            <HiMenuAlt2 size={20} />
-          </button> */}
+          {/* <button className="cate-back-btn active-down-effect btn_icons"><PiTextAaBold size={20} /></button>
+          <button className="cate-back-btn active-down-effect btn_icons"><FiMic size={20} /></button>
+          <button className="cate-back-btn active-down-effect btn_icons" onClick={() => setActiveTool("poll")}><HiMenuAlt2 size={20} /></button> */}
 
           <div className="right">
             <ul>
