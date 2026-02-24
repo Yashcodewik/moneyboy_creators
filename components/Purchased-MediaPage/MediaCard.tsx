@@ -202,7 +202,7 @@ const MediaCard = memo(function MediaCard({
       <div className="pm-page-card-footer">
         <div className="profile-card">
           <Link
-            href={`/@${item.creator.userName}`}
+            href={""}
             className="profile-card__main"
           >
             <div className="profile-card__avatar-settings">
