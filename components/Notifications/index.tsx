@@ -5,23 +5,31 @@ import Featuredboys from "../Featuredboys";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { Check, Eye, X } from "lucide-react";
 import { CgClose } from "react-icons/cg";
-import { getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_GET_NOTIFICATIONS } from "@/utils/api/APIConstant";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { API_APPROVE_POST, API_GET_NOTIFICATIONS, API_REJECT_POST } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
-import FlipClockCountdown from '@leenguyen/react-flip-clock-countdown';
-import '@leenguyen/react-flip-clock-countdown/dist/index.css';
+import FlipClockCountdown from "@leenguyen/react-flip-clock-countdown";
+import "@leenguyen/react-flip-clock-countdown/dist/index.css";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { showAcceptPostConsent, showSuccess, showError, showDeclineReason} from "@/utils/alert";
+import {
+  showAcceptPostConsent,
+  showSuccess,
+  showError,
+  showDeclineReason,
+} from "@/utils/alert";
 
 const NotificationPage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [countdownTo, setCountdownTo] = useState<number>(Date.now());
   const isMobile = useDeviceType();
   const desktopStyle: React.CSSProperties = {
     transform: "translate(0px, 0px)",
@@ -60,10 +68,7 @@ const NotificationPage = () => {
   };
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenMenuId(null);
       }
     };
@@ -75,11 +80,11 @@ const NotificationPage = () => {
       setLoading(true);
 
       const res = await getApiWithOutQuery({
-        url: API_GET_NOTIFICATIONS,
+        url: `${API_GET_NOTIFICATIONS}?page=1&limit=20`,
       });
 
       if (res?.success) {
-        setNotifications(res.notifications);
+        setNotifications(res.notifications || []);
       } else {
         ShowToast("Failed to load notifications", "error");
       }
@@ -105,7 +110,7 @@ const NotificationPage = () => {
       minute: "2-digit",
       hour12: false,
     });
-  }
+  };
 
   const handlePublish = async () => {
     const accepted = await showAcceptPostConsent();
@@ -113,8 +118,93 @@ const NotificationPage = () => {
     showSuccess("Post published successfully!");
   };
 
-  const endTime = new Date().getTime() + 24 * 60 * 60 * 1000;
+  // const endTime = new Date().getTime() + 24 * 60 * 60 * 1000;
 
+  const getCountdownEndTime = () => { 
+    if (!selectedPost?.createdAt) return Date.now();
+
+    const createdTime = new Date(selectedPost.createdAt).getTime();
+
+    // 24 hours validity window
+    const expiryTime = createdTime + 24 * 60 * 60 * 1000;
+
+    return expiryTime;
+  };
+
+  useEffect(() => {
+    if (!selectedPost?.createdAt) return;
+
+    const created = new Date(selectedPost.createdAt).getTime();
+
+    // expiry after 24 hours
+    const expiry = created + 24 * 60 * 60 * 1000;
+
+    const now = Date.now();
+
+    // if expired → show finished
+    if (expiry <= now) {
+      setCountdownTo(now + 1000); // triggers "Finished"
+    } else {
+      setCountdownTo(expiry);
+    }
+  }, [selectedPost]);
+
+
+  const handleAcceptPost = async (noti: any) => {
+  const ok = await showAcceptPostConsent();
+  if (!ok) return;
+
+  const res = await apiPost({
+    url: API_APPROVE_POST,
+    values: { postId: noti.referenceId },
+  });
+
+  if (res?.success) {
+    ShowToast(res.message, "success");
+
+    // update UI instantly
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n._id === noti._id
+          ? { ...n, postTag: { ...n.postTag, myStatus: "approved" } }
+          : n
+      )
+    );
+
+    setShowModal(false);
+  } else {
+    ShowToast(res?.message || "Failed", "error");
+  }
+};
+
+const handleRejectPost = async (noti: any) => {
+  const reason = await showDeclineReason();
+  if (!reason) return;
+
+  const res = await apiPost({
+    url: API_REJECT_POST,
+    values: {
+      postId: noti.referenceId,
+      reason,
+    },
+  });
+
+  if (res?.success) {
+    ShowToast(res.message, "success");
+
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n._id === noti._id
+          ? { ...n, postTag: { ...n.postTag, myStatus: "rejected" } }
+          : n
+      )
+    );
+
+    setShowModal(false);
+  } else {
+    ShowToast(res?.message || "Failed", "error");
+  }
+};
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -124,39 +214,87 @@ const NotificationPage = () => {
               <div className="noti-page-header">
                 <div className="noti-page-title">
                   <h2>Notifications</h2>
+                  {notifications.length > 0 && (
                   <div className="noti-num-circle">
                     <span>{notifications.length}</span>
                   </div>
+                  )}
                 </div>
               </div>
               <div className="noti-list-wrapper">
-                {loading && <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
+                {loading && (
+                  <div className="loadingtext">
+                    {"Loading".split("").map((char, i) => (
+                      <span
+                        key={i}
+                        style={{ animationDelay: `${(i + 1) * 0.1}s` }}
+                      >
+                        {char}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {!loading && notifications.length === 0 && (
-                  <div className="nofound small"><h3 className="first">No Notifications Found</h3><h3 className="second">No Notifications Found</h3></div>
+                  <div className="nofound small">
+                    <h3 className="first">No Notifications Found</h3>
+                    <h3 className="second">No Notifications Found</h3>
+                  </div>
                 )}
 
                 {notifications.map((noti) => (
                   <div className="noti-item" key={noti._id}>
                     <div className="noti-item--icon">
-                      <img src={noti.senderId?.profile || "/images/logo/black-logo-square.png"} alt="#"/>
+                      <img
+                        src={
+                          noti.senderId?.profile ||
+                          "/images/logo/black-logo-square.png"
+                        }
+                        alt="#"
+                      />
                     </div>
                     <div className="noti-details-container">
                       <div className="noti-title-time-wrapper">
                         <div className="noti-title">
-                          <h4>@{noti.senderId?.userName} {noti.title}</h4>
+                          <h4>
+                            @{noti.senderId?.userName} {noti.title}
+                          </h4>
                         </div>
-                        <div className="noti-time"><span>{formatTime(noti.createdAt)}</span></div>
-                        {noti.type === 3 && (
+                        <div className="noti-time">
+                          <span>{formatTime(noti.createdAt)}</span>
+                        </div>
+                        {noti.type === 3 && noti.postTag?.myStatus === "pending" && (
                           <div className="noti-more-actions iconbtn">
-                            <button className="btn-gray viewbtn"><Eye size={16} /></button>
-                            <button className="btn-gray acceptbtn" onClick={handlePublish}><Check size={16} /></button>
-                            <button className="btn-gray declinebtn" onClick={showDeclineReason}><X size={16} /></button>
+                            <button
+                              className="btn-gray viewbtn"
+                              onClick={() => {
+                                setSelectedPost(noti);
+                                setShowModal(true);
+                              }}
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              className="btn-gray acceptbtn"
+                              onClick={() => handleAcceptPost(noti)}
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button
+                              className="btn-gray declinebtn"
+                             onClick={() => handleRejectPost(noti)}
+                            >
+                              <X size={16} />
+                            </button>
                           </div>
                         )}
                       </div>
                       <div className="noti-desc">
-                        <p>{noti.type === 3 ? "Collaboration request awaiting approval." : ""}</p>
+                        <p>
+                          {noti.type === 3
+                            ? "Collaboration request awaiting approval."
+                            : ""}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -167,39 +305,106 @@ const NotificationPage = () => {
         </div>
         <Featuredboys />
       </div>
-      <div className="modal" role="dialog">
-        <form className="modal-wrap notipost-modal">
-          <button type="button" className="close-btn"><CgClose size={22} /></button>
-          <h3 className="title">Post Details</h3>
-          <div className="post_wrap">
-            <div className="img_wrap">
-            <Swiper modules={[Navigation, Pagination, Autoplay]} spaceBetween={20} slidesPerView={1} navigation pagination={{ clickable: true }} autoplay={{ delay: 3000 }} loop={true}>
-              <SwiperSlide>
-                <img src="/images/post-images/post-img-1.png" alt="Profile Avatar" />
-              </SwiperSlide>
-              <SwiperSlide>
-                <img src="/images/post-images/post-img-1.png" alt="Profile Avatar" />
-              </SwiperSlide>
-            </Swiper>
-            </div>
-            <div className="details_wrap">
-              <div className="charge_wrap">
-                <p>you earning</p>
-                <div className="right_box"><span>35%</span></div>
+      {showModal && (
+        <div className="modal show" role="dialog">
+          <form className="modal-wrap notipost-modal">
+            <button
+              type="button"
+              className="close-btn"
+              onClick={() => setShowModal(false)}
+            >
+              <CgClose size={22} />
+            </button>
+
+            <h3 className="title">Post Details</h3>
+
+            <div className="post_wrap">
+              {/* POST IMAGES */}
+              <div className="img_wrap">
+                <Swiper
+                  modules={[Navigation, Pagination, Autoplay]}
+                  spaceBetween={20}
+                  slidesPerView={1}
+                  navigation
+                  pagination={{ clickable: true }}
+                  autoplay={{ delay: 3000 }}
+                  loop={true}
+                >
+                  {selectedPost?.postPreview?.media?.map(
+                    (img: string, i: number) => (
+                      <SwiperSlide key={i}>
+                        <img src={img} alt="post media" />
+                      </SwiperSlide>
+                    ),
+                  )}
+                </Swiper>
               </div>
-              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. </p>
-              <ul>
-                <li><img src="/images/post-images/post-img-2.png" alt="Profile Avatar" className="user_icons" /> <span>@Yashravel</span></li>
-                <li><img src="/images/post-images/post-img-3.png" alt="Profile Avatar" className="user_icons" /> <span>@Hemilsolanki</span></li>
-              </ul>
+
+              {/* DETAILS */}
+              <div className="details_wrap">
+                {/* earning */}
+                <div className="charge_wrap">
+                  <p>you earning</p>
+                  <div className="right_box">
+                    <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
+                  </div>
+                </div>
+
+                {/* post text */}
+                <p>{selectedPost?.postPreview?.text}</p>
+
+                {/* tagged collaborators */}
+                <ul>
+                  {/* TAGGER FIRST */}
+                  {selectedPost?.postTag?.taggedBy && (
+                    <li key={selectedPost.postTag.taggedBy._id}>
+                      <img
+                        src={
+                          selectedPost.postTag.taggedBy.profile ||
+                          "/images/logo/black-logo-square.png"
+                        }
+                        alt="Profile Avatar"
+                        className="user_icons"
+                      />
+                      <span>@{selectedPost.postTag.taggedBy.userName}</span>
+                    </li>
+                  )}
+
+                  {/* COLLABORATORS */}
+                  {selectedPost?.postTag?.taggedUsers?.map((u: any) => (
+                    <li key={u.user._id}>
+                      <img
+                        src={
+                          u.user.profile || "/images/logo/black-logo-square.png"
+                        }
+                        alt="Profile Avatar"
+                        className="user_icons"
+                      />
+                      <span>@{u.user.userName}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-          <div className="timer_wrap mt-3">
-            <p>You Have TO Viwe THis Post Times</p>
-            <FlipClockCountdown to={endTime} labels={['', '', '', '']}  renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{display: 'none',}} digitBlockStyle={{ width: 26, height: 34, fontSize: 18, }}>Finished</FlipClockCountdown>
-          </div>
-        </form>
-      </div>
+
+            {/* TIMER */}
+            <div className="timer_wrap mt-3">
+              <p>You Have To View This Post Times</p>
+              <FlipClockCountdown
+                key={countdownTo}
+                to={countdownTo}
+                labels={["", "", "", ""]}
+                renderMap={[false, true, true, true]}
+                showSeparators={true}
+                labelStyle={{ display: "none" }}
+                digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}
+              >
+                Finished
+              </FlipClockCountdown>
+            </div>
+          </form>
+        </div>
+      )}
     </>
   );
 };
