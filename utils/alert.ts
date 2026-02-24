@@ -1,5 +1,6 @@
 import Swal, { SweetAlertIcon } from "sweetalert2";
-
+import "@/public/styles/style.scss";
+/* ================= BASE CONFIG ================= */
 const baseConfig = {
   buttonsStyling: false,
   allowOutsideClick: false,
@@ -11,37 +12,74 @@ const baseConfig = {
   },
 };
 
-const autoAlert = (icon: SweetAlertIcon, message: string, timer = 2200) => {
-  Swal.fire({...baseConfig, icon, title: message, showConfirmButton: false, timer, timerProgressBar: true,
-    didOpen: (toast) => {toast.addEventListener("mouseenter", Swal.stopTimer); toast.addEventListener("mouseleave", Swal.resumeTimer);},
+/* ================= AUTO ALERT ================= */
+const autoAlert = ( icon: SweetAlertIcon, message: string, timer = 2200
+) => {
+  Swal.fire({
+    ...baseConfig,
+    icon,
+    title: message,
+    showConfirmButton: false,
+    timer,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
+    },
   });
 };
 
-export const showSuccess = (message: string) =>
-  autoAlert("success", message);
+/* ================= SIMPLE ALERTS ================= */
+export const showSuccess = (message: string) => autoAlert("success", message);
+export const showError = (message: string) => autoAlert("error", message, 2600);
+export const showWarning = (message: string) => autoAlert("warning", message, 2600);
+export const showInfo = (message: string) => autoAlert("info", message, 2400);
 
-export const showError = (message: string) =>
-  autoAlert("error", message, 2600);
-
-export const showWarning = (message: string) =>
-  autoAlert("warning", message, 2600);
-
-export const showInfo = (message: string) =>
-  autoAlert("info", message, 2400);
-
+/* ================= YES / NO QUESTION ================= */
 export const showQuestion = async (message: string): Promise<boolean> => {
-  const result = await Swal.fire({
-    ...baseConfig,
-    icon: "question",
-    title: message,
-    showCancelButton: true,
-    confirmButtonText: "<span>Yes</span>",
-    cancelButtonText: "<span>No</span>",
-    focusCancel: true,
-  });
-
+  const result = await Swal.fire({...baseConfig, icon: "question", title: message, showCancelButton: true, confirmButtonText: "<span>Yes</span>", cancelButtonText: "<span>No</span>", focusCancel: true,});
   return result.isConfirmed;
 };
+
+/* ========== ACCEPT POST CONSENT MODAL ========== */
+export const showAcceptPostConsent = async (): Promise<{
+  accepted: boolean;
+  allowTag: boolean;
+} | null> => {
+  const { value, isDismissed } = await Swal.fire({
+    ...baseConfig,
+    title: "Accept Post",
+    html: `
+      <div class="selectcont_wrap">
+        <p>Please confirm before publishing this post.</p>
+        <div class="select_wrap">
+          <label class="radio_wrap">
+            <input type="checkbox" id="acceptTC" checked disabled /> I accept the Terms & Conditions
+          </label>
+          <label class="radio_wrap">
+            <input type="checkbox" id="allowTag" checked disabled /> I Allow Myself To Be Tagged In This Post
+          </label>
+        </div>
+      </div>
+    `,
+    confirmButtonText: "<span>Accept & Continue</span>",
+    cancelButtonText: "<span>Cancel</span>",
+    showCancelButton: true,
+
+    preConfirm: () => {
+      return {
+        accepted: true,
+        allowTag: true,
+      };
+    },
+  });
+
+  if (isDismissed) return null;
+  return value;
+};
+
+
+
 // Just Show Timer Modal Start
 // import Swal from "sweetalert2";
 

@@ -219,11 +219,6 @@
         return prev.filter((u) => u._id !== user._id);
       }
 
-      if (prev.length >= 5) {
-        ShowToast("Maximum 5 creators allowed", "error");
-        return prev;
-      }
-
       return [...prev, { ...user, percentage: 0 }];
     });
   };
@@ -357,125 +352,143 @@
     }
 
 
-    if (selectedTagUsers.length > 0) {
-      const tagRes = await apiPost({
-        url: API_TAG_USERS_TO_POST,
-        values: {
-          postId,
-          creatorPercentage: Number(creatorPercentage || 0),
-          taggedUsers: selectedTagUsers.map((u) => ({
-            userId: u._id,
-            percentage: Number(u.percentage),
-          })),
-        },
-      });
-
-      if (!tagRes?.success) {
-        ShowToast(tagRes?.message || "Tagging failed", "error");
-        return;
-      }
-    }
-
-
-
-    ShowToast("Post created successfully", "success");
-    onClose();
-
-  } catch (error) {
-    console.error(error);
-    ShowToast("An error occurred while creating post", "error");
-  } finally {
-    setIsSubmitting(false);
-  }
-}
-    });
-
-    useEffect(() => {
-      return () => {
-        mediaPreviews.forEach((m) => URL.revokeObjectURL(m.url));
-      };
-    }, [mediaPreviews]);
-
-    const collaborators =
-      selectedTagUsers.length > 0
-        ? [
-            {
-              _id: "creator",
-              displayName: creator.name,
-              userName: creator.username,
-              profile: creator.profile,
-              percentage: creatorPercentage,
-              isCreator: true,
+        // ✅ Tag Users (if any selected)
+        if (selectedTagUsers.length > 0) {
+          const tagRes = await apiPost({
+            url: API_TAG_USERS_TO_POST,
+            values: {
+              postId,
+              creatorPercentage: Number(creatorPercentage || 0),
+              taggedUsers: selectedTagUsers.map((u) => ({
+                userId: u._id,
+                percentage: Number(u.percentage),
+              })),
             },
-            ...selectedTagUsers.map((u) => ({
-              ...u,
-              isCreator: false,
-            })),
-          ]
-        : [];
+          });
 
-    return (
-      <div
-        className={`modal ${show ? "show" : ""} `}
-        role="dialog"
-        aria-modal="true"
-        onClick={onClose}
-      >
-        <form
-          className="modal-wrap post-modal"
-          onClick={(e) => e.stopPropagation()}
-          onSubmit={formik.handleSubmit}
-        >
-          <div className="modal_head">
-            <h3>New Post</h3>
-            <button className="close-btn" onClick={onClose}>
-              <CgClose size={22} />
+          if (!tagRes?.success) {
+            ShowToast(tagRes?.message || "Tagging failed", "error");
+            return;
+          }
+        }
+
+        // ✅ Final Success
+        ShowToast("Post created successfully", "success");
+        onClose();
+      } catch (error) {
+        console.error("Post creation error:", error);
+        ShowToast("An error occurred while creating post", "error");
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+  });
+
+  useEffect(() => {
+    return () => {
+      mediaPreviews.forEach((m) => URL.revokeObjectURL(m.url));
+    };
+  }, [mediaPreviews]);
+
+  const collaborators =
+    selectedTagUsers.length > 0
+      ? [
+        {
+          _id: "creator",
+          displayName: creator.name,
+          userName: creator.username,
+          profile: creator.profile,
+          percentage: creatorPercentage,
+          isCreator: true,
+        },
+        ...selectedTagUsers.map((u) => ({
+          ...u,
+          isCreator: false,
+        })),
+      ]
+      : [];
+
+  return (
+    <div className={`modal ${show ? "show" : ""} `} role="dialog" aria-modal="true" onClick={onClose}>
+      <form className="modal-wrap post-modal" onClick={(e) => e.stopPropagation()} onSubmit={formik.handleSubmit}>
+        <div className="modal_head">
+          <h3>New Post</h3>
+          <button className="close-btn" onClick={onClose}><CgClose size={22} /></button>
+        </div>
+
+        <div className="input-wrap">
+          <div className="label-input textarea one">
+            <textarea ref={textareaRef} rows={4} placeholder="Compose new post..." name="text" value={formik.values.text} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
+          </div>
+          <span className="right">
+            <button type="button" ref={emojiBtnRef} className="emoji-btn" onClick={() => setShowEmoji((prev) => !prev)}>
+              <Smile size={20} stroke="black" strokeWidth={1} fill="#fece26"/>{" "}
             </button>
-          </div>
+            {formik.values.text.length}/300
+            {showEmoji && (
+              <div ref={emojiRef} className="emoji-picker-wrapper">
+                <EmojiPicker onEmojiClick={handleEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={320} width={320}/>
+              </div>
+            )}
+          </span>
+        </div>
+        {/* {formik.touched.text && formik.errors.text && (
+            <span className="error-message">{formik.errors.text}</span>
+          )} */}
 
-          <div className="input-wrap">
-            <div className="label-input textarea one">
-              <textarea
-                ref={textareaRef}
-                rows={4}
-                placeholder="Compose new post..."
-                name="text"
-                value={formik.values.text}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-            </div>
-            <span className="right">
-              <button
-                type="button"
-                ref={emojiBtnRef}
-                className="emoji-btn"
-                onClick={() => setShowEmoji((prev) => !prev)}
-              >
-                <Smile
-                  size={20}
-                  stroke="black"
-                  strokeWidth={1}
-                  fill="#fece26"
-                />{" "}
-              </button>
-              {formik.values.text.length}/300
-              {showEmoji && (
-                <div ref={emojiRef} className="emoji-picker-wrapper">
-                  <EmojiPicker
-                    onEmojiClick={handleEmojiClick}
-                    autoFocusSearch={false}
-                    skinTonesDisabled
-                    previewConfig={{ showPreview: false }}
-                    height={320}
-                    width={320}
-                  />
-                </div>
-              )}
-            </span>
-          </div>
-          {formik.touched.text && formik.errors.text && (
-              <span className="error-message">{formik.errors.text}</span>
+        <div className="select_wrap">
+          <label className="radio_wrap">
+            <input type="radio" name="access" checked={accessType === "subscriber"} onChange={() => {setAccessType("subscriber"); setIsScheduled(false); formik.setFieldValue("accessType", "subscriber"); formik.setFieldValue("isScheduled", false); formik.setFieldValue("scheduledAt", "");}}/>
+            Only for Subscribers
+          </label>
+
+          <label className="radio_wrap">
+            <input
+              type="radio"
+              name="access"
+              checked={accessType === "pay_per_view"}
+              onChange={() => {
+                setAccessType("pay_per_view");
+                setIsScheduled(false); // Reset to false when switching
+                formik.setFieldValue("accessType", "pay_per_view");
+                formik.setFieldValue("isScheduled", false);
+                formik.setFieldValue("scheduledAt", "");
+              }}
+            />
+            Pay per View
+          </label>
+
+          <label className="radio_wrap">
+            <input
+              type="radio"
+              name="access"
+              checked={accessType === "free"}
+              onChange={() => {
+                setAccessType("free");
+                setIsScheduled(false); // Ensure it's false for free
+                formik.setFieldValue("accessType", "free");
+                formik.setFieldValue("isScheduled", false);
+                formik.setFieldValue("scheduledAt", "");
+              }}
+            />
+            Free for Everyone
+          </label>
+        </div>
+
+        {accessType === "pay_per_view" && (
+          <div>
+            <label>Price</label>
+            <input
+              className="form-input"
+              type="text"
+              name="price"
+              placeholder="10.99 *"
+              value={formik.values.price}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.price && formik.errors.price && (
+              <div className="error-message">{formik.errors.price}</div>
             )}
 
           <div className="select_wrap">
@@ -627,18 +640,21 @@
                       </div>
                     )}
                   </div>
-                  {formik.touched.scheduledAt && formik.errors.scheduledAt && (
-                    <div className="error-message">
-                      {formik.errors.scheduledAt}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* {isScheduled && (
-                <div className="mw-fit w-full">
-                  <label>Schedule at</label>
-                  <input className="form-input" type="date" value={formik.values.scheduledAt} onChange={(e) => formik.setFieldValue("scheduledAt", e.target.value)} onBlur={formik.handleBlur}
+                  <input
+                    type="text"
+                    name="scheduledAt"
+                    placeholder="Schedule Date (DD/MM/YYYY) *"
+                    className="form-input"
+                    value={
+                      formik.values.scheduledAt
+                        ? new Date(
+                          formik.values.scheduledAt,
+                        ).toLocaleDateString("en-GB")
+                        : ""
+                    }
+                    readOnly
+                    onFocus={() => setActiveField("schedule")}
+                    onBlur={formik.handleBlur}
                   />
                   {formik.touched.scheduledAt && formik.errors.scheduledAt && (
                     <div className="error-message">
@@ -769,66 +785,9 @@
                 <span>Upload video</span>
               </button>
 
-              <input
-                type="file"
-                ref={videoInputRef}
-                hidden
-                accept="video/*"
-                multiple
-                onChange={(e) => {
-                  const files = Array.from(e.target.files || []);
-
-                  const remainingSlots = 3 - videoCount;
-                  if (remainingSlots <= 0) {
-                    ShowToast("You can upload maximum 3 videos", "error");
-                    return;
-                  }
-
-                  const selected = files.slice(0, remainingSlots);
-
-                  setMediaFiles((prev) => [...prev, ...selected]);
-
-                  const previews = selected.map((file) => ({
-                    url: URL.createObjectURL(file),
-                    type: "video" as const,
-                  }));
-
-                  setMediaPreviews((prev) => [...prev, ...previews]);
-                }}
-              />
-            </div>
-          )}
-
-          {activeTool === "poll" && (
-            <div className="duration_wraping">
-              <label className="orange">Poll Duration - 7 days</label>
-              <input className="form-input" type="text" placeholder="Question" />
-              <label className="pollanw selected">Option 1</label>
-              <label className="pollanw">Option 2</label>
-              <Link href="#" className="clear">
-                Clear Polls
-              </Link>
-            </div>
-          )}
-
-          <input
-            type="file"
-            hidden
-            ref={imageInputRef}
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-
-              const remainingSlots = 10 - imageCount;
-              if (remainingSlots <= 0) {
-                ShowToast("You can upload maximum 10 photos", "error");
-                return;
-              }
-
-              const selected = files.slice(0, remainingSlots);
-
-              setMediaFiles((prev) => [...prev, ...selected]);
+          {/* <button className="cate-back-btn active-down-effect btn_icons"><PiTextAaBold size={20} /></button>
+          <button className="cate-back-btn active-down-effect btn_icons"><FiMic size={20} /></button>
+          <button className="cate-back-btn active-down-effect btn_icons" onClick={() => setActiveTool("poll")}><HiMenuAlt2 size={20} /></button> */}
 
               const previews = selected.map((file) => ({
                 url: URL.createObjectURL(file),
