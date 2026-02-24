@@ -6,23 +6,11 @@ import { Navigation } from "swiper/modules";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import {
-    ChevronLeft,
-    ChevronRight,
-    ZoomIn,
-    ZoomOut,
-    RotateCw,
-    X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, X, } from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
-import {
-    addComment,
-    dislikeComment,
-    fetchComments,
-    likeComment,
-} from "../../redux/other/commentSlice";
+import { addComment, dislikeComment, fetchComments, likeComment, } from "../../redux/other/commentSlice";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 
@@ -102,11 +90,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as Node;
-            if (
-                emojiRef.current &&
-                !emojiRef.current.contains(target) &&
-                !textareaRef.current?.contains(target) &&
-                !emojiButtonRef.current?.contains(target)
+            if (emojiRef.current && !emojiRef.current.contains(target) && !textareaRef.current?.contains(target) && !emojiButtonRef.current?.contains(target)
             ) {
                 setShowEmojiPicker(false);
             }
@@ -315,7 +299,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         try {
             await dispatch(
                 sendTip({
-                    creatorId: post.userId, // 👈 important
+                    creatorId: post.userId,
                     amount,
                 }),
             ).unwrap();
@@ -328,6 +312,26 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         }
     };
 
+
+    useEffect(() => {
+  const handleOutsideClick = (e: MouseEvent) => {
+    const target = e.target as Node;
+
+    // if click is outside menu AND button → close menu
+    if (
+      open &&
+      menuRef.current &&
+      !menuRef.current.contains(target) &&
+      buttonRef.current &&
+      !buttonRef.current.contains(target)
+    ) {
+      setOpen(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+  return () => document.removeEventListener("mousedown", handleOutsideClick);
+}, [open]);
     return (
         <>
             <div className="moneyboy-post__container card">
