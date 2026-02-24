@@ -328,6 +328,26 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         }
     };
 
+
+    useEffect(() => {
+  const handleOutsideClick = (e: MouseEvent) => {
+    const target = e.target as Node;
+
+    // if click is outside menu AND button → close menu
+    if (
+      open &&
+      menuRef.current &&
+      !menuRef.current.contains(target) &&
+      buttonRef.current &&
+      !buttonRef.current.contains(target)
+    ) {
+      setOpen(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+  return () => document.removeEventListener("mousedown", handleOutsideClick);
+}, [open]);
     return (
         <>
             <div className="moneyboy-post__container card">
