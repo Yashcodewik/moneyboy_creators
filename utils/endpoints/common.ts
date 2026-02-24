@@ -9,6 +9,7 @@ interface ApiParams {
   page?: number;
   searchText?: string;
   rowsPerPage?: number;
+  id?: any;
 }
 
 interface ApiParamsQuery {
@@ -39,11 +40,20 @@ export const getApi = async ({
   page,
   searchText,
   rowsPerPage,
+  id = "",
 }: ApiParams): Promise<any> => {
   try {
     let q = searchText ? searchText : "";
     const res = await defaultAxios.get(
-      url + "?page=" + page + "&rowsPerPage=" + rowsPerPage + "&q=" + q,
+      url +
+        "?page=" +
+        page +
+        "&rowsPerPage=" +
+        rowsPerPage +
+        "&q=" +
+        q +
+        "&id=" +
+        id,
       {
         headers: {
           Accept: "application/json",
@@ -74,11 +84,13 @@ export const getApiByParams = async ({
 
 export const apiPost = async ({ url, values }: postParams): Promise<any> => {
   try {
+    console.log(url, "url============================", values);
     const res = await defaultAxios.post(url, values, {
       headers: {
         Accept: "application/json",
       },
     });
+
     // ShowToast(res.data?.message, "success");
     return res.data;
   } catch (err: any) {

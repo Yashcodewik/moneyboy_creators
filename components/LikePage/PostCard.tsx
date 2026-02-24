@@ -26,6 +26,17 @@ import {
 import ReportModal from "../ReportModal";
 import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
+import { PhotoProvider, PhotoView } from "react-photo-view";
+import "react-photo-view/dist/react-photo-view.css";
+
+import {
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  X,
+} from "lucide-react";
 
 export interface PostUser {
   name: string;
@@ -248,6 +259,13 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     }
   };
 
+    const handleLikeComment = (commentId: string) => {
+    dispatch(likeComment({ commentId }));
+  };
+  
+  const handleDislikeComment = (commentId: string) => {
+    dispatch(dislikeComment({ commentId }));
+  };
   const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
     const aLikes = a.likeCount ?? a.likes?.length ?? 0;
     const bLikes = b.likeCount ?? b.likes?.length ?? 0;
@@ -480,9 +498,31 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                     <SwiperSlide key={i}>
                       {isVideo ? (
                         <Plyr
+                          ref={(ref: any) => {
+                            if (!ref) return;
+
+                            // support both ref shapes (Next.js safe)
+                            const player = ref.plyr || ref;
+
+                            if (!player || typeof player.on !== "function")
+                              return;
+
+                            // prevent duplicate binding
+                            if (player.__eventsBound) return;
+                            player.__eventsBound = true;
+
+                            player.on("enterfullscreen", () => {
+                              player.muted = true; // required for mobile autoplay
+                              player.play();
+                            });
+
+                            player.on("exitfullscreen", () => {
+                              player.pause();
+                            });
+                          }}
                           source={{
                             type: "video",
-                            sources: [{ src: firstMedia, type: "video/mp4" }],
+                            sources: [{ src: file, type: "video/mp4" }],
                           }}
                           options={{
                             controls: [
@@ -496,7 +536,112 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                           }}
                         />
                       ) : (
-                        <img src={file} alt="MoneyBoy Post Image" />
+                        <PhotoProvider
+                          toolbarRender={({
+                            images,
+                            index,
+                            onIndexChange,
+                            onClose,
+                            rotate,
+                            onRotate,
+                            scale,
+                            onScale,
+                            visible,
+                          }) => {
+                            if (!visible) return null;
+
+                            const btnStyle = {
+                              background: "transparent",
+                              border: "none",
+                              color: "#fff",
+                              cursor: "pointer",
+                              padding: "6px",
+                              display: "flex",
+                              alignItems: "center",
+                            };
+
+                            return (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: 20,
+                                  right: 20,
+                                  display: "flex",
+                                  gap: "12px",
+                                  background: "rgba(0,0,0,0.6)",
+                                  padding: "10px 14px",
+                                  borderRadius: "12px",
+                                  alignItems: "center",
+                                  zIndex: 9999,
+                                }}
+                              >
+                                <button
+                                  style={btnStyle}
+                                  onClick={() =>
+                                    index > 0 && onIndexChange(index - 1)
+                                  }
+                                >
+                                  <ChevronLeft size={20} />
+                                </button>
+
+                                <span
+                                  style={{ color: "#fff", fontSize: "14px" }}
+                                >
+                                  {index + 1} / {images.length}
+                                </span>
+
+                                <button
+                                  style={btnStyle}
+                                  onClick={() =>
+                                    index < images.length - 1 &&
+                                    onIndexChange(index + 1)
+                                  }
+                                >
+                                  <ChevronRight size={20} />
+                                </button>
+
+                                <button
+                                  style={btnStyle}
+                                  onClick={() => onScale(scale + 0.2)}
+                                >
+                                  <ZoomIn size={20} />
+                                </button>
+
+                                <button
+                                  style={btnStyle}
+                                  onClick={() =>
+                                    onScale(Math.max(0.5, scale - 0.2))
+                                  }
+                                >
+                                  <ZoomOut size={20} />
+                                </button>
+
+                                <button
+                                  style={btnStyle}
+                                  onClick={() => onRotate(rotate + 90)}
+                                >
+                                  <RotateCw size={20} />
+                                </button>
+
+                                <button style={btnStyle} onClick={onClose}>
+                                  <X size={20} />
+                                </button>
+                              </div>
+                            );
+                          }}
+                        >
+                          <PhotoView src={file}>
+                            <img
+                              src={file}
+                              alt="Post media"
+                              style={{
+                                cursor: "pointer",
+                                maxWidth: "100%",
+                                borderRadius: "8px",
+                              }}
+                            />
+                          </PhotoView>
+                        </PhotoProvider>
                       )}
                     </SwiperSlide>
                   );
@@ -845,25 +990,25 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </div>
               <div className="like-deslike-wrap">
                 <ul>
-                  <li>
+                  <li className={topComment.isLiked ? "active" : ""}>
                     <Link
                       href="#"
                       className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        dispatch(likeComment({ commentId: topComment._id }));
+                        handleLikeComment(topComment._id);
                       }}
                     >
                       <ThumbsUp color="black" strokeWidth={2} />
                     </Link>
                   </li>
-                  <li>
+                  <li className={topComment.isDisliked ? "active" : ""}>
                     <Link
                       href="#"
                       className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        dispatch(dislikeComment({ commentId: topComment._id }));
+                        handleDislikeComment(topComment._id);
                       }}
                     >
                       <ThumbsDown color="black" strokeWidth={2} />

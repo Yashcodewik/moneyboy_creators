@@ -32,13 +32,13 @@ import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import AccountSecurity from "./AccountSecurity";
 import PricingSetting from "./PricingSetting";
+import ImageCropModal from "./ImageCropModal";
 
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
-  const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -46,6 +46,19 @@ const EditProfilePage = () => {
   const [activeField, setActiveField] = useState<string | null>(null);
   const [coverError, setCoverError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropType, setCropType] = useState<"avatar" | "cover" | null>(null);
+
+  const handleCropSave = async (croppedBase64: string) => {
+    const blob = await (await fetch(croppedBase64)).blob();
+    const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
+    if (cropType === "avatar") {
+      setProfileFile(file);
+    } else {
+      setCoverFile(file);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -94,7 +107,6 @@ const EditProfilePage = () => {
       style: formData.style || "",
       size: formData.size || "",
       popularity: formData.popularity || "",
-
     },
     validationSchema: validationSchemaCreatorUpdate,
     enableReinitialize: true,
@@ -106,8 +118,8 @@ const EditProfilePage = () => {
         (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
           const value = values[key];
 
-          if (value !== null && value !== undefined) {
-            payload.append(key, String(value));
+          if (value !== "" && value !== null && value !== undefined) {
+            payload.append(key, value as any);
           }
         });
 
@@ -125,6 +137,7 @@ const EditProfilePage = () => {
         }
         if (res?.success) {
           ShowToast("Profile updated successfully", "success");
+          await fetchProfile();
         }
       } catch (err: any) {
         const backendMessage = err?.response?.data?.message;
@@ -206,6 +219,26 @@ const EditProfilePage = () => {
   const countryCode = selectedCountry
     ? countries.getAlpha2Code(selectedCountry, "en")
     : null;
+
+  const months = [
+    { label: "January", value: "0" },
+    { label: "February", value: "1" },
+    { label: "March", value: "2" },
+    { label: "April", value: "3" },
+    { label: "May", value: "4" },
+    { label: "June", value: "5" },
+    { label: "July", value: "6" },
+    { label: "August", value: "7" },
+    { label: "September", value: "8" },
+    { label: "October", value: "9" },
+    { label: "November", value: "10" },
+    { label: "December", value: "11" },
+  ];
+
+  const years = Array.from({ length: 100 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { label: year.toString(), value: year.toString() };
+  });
 
   return (
     <>
@@ -316,10 +349,16 @@ const EditProfilePage = () => {
                         accept="image/*"
                         id="coverUpload"
                         onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            setCoverFile(e.target.files[0]);
-                            setCoverError(false);
-                          }
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setCropImage(reader.result as string);
+                            setCropType("cover");
+                            setCropOpen(true);
+                          };
+                          reader.readAsDataURL(file);
                         }}
                       />
                       <label
@@ -391,10 +430,16 @@ const EditProfilePage = () => {
                                   accept="image/*"
                                   id="profileUpload"
                                   onChange={(e) => {
-                                    if (e.target.files?.[0]) {
-                                      setProfileFile(e.target.files[0]);
-                                      setAvatarError(false);
-                                    }
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                      setCropImage(reader.result as string);
+                                      setCropType("avatar");
+                                      setCropOpen(true);
+                                    };
+                                    reader.readAsDataURL(file);
                                   }}
                                 />
 
@@ -509,7 +554,6 @@ const EditProfilePage = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 name="gender"
-                                
                               />
                             </div>
                             {/* <CustomSelect
@@ -551,16 +595,44 @@ const EditProfilePage = () => {
                                     selected={startDate}
                                     inline
                                     maxDate={maxAllowedDate}
+                                    renderCustomHeader={({
+                                      date,
+                                      changeYear,
+                                      changeMonth,
+                                    }) => (
+                                      <div
+                                        className="flex gap-5 select_wrap"
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <CustomSelect
+                                          className="bg-white p-sm size-sm"
+                                          options={months}
+                                          value={date.getMonth().toString()}
+                                          onChange={(val) =>
+                                            changeMonth(Number(val))
+                                          }
+                                          searchable={false}
+                                        />
+                                        <CustomSelect
+                                          className="bg-white p-sm size-sm"
+                                          options={years}
+                                          value={date.getFullYear().toString()}
+                                          onChange={(val) =>
+                                            changeYear(Number(val))
+                                          }
+                                          searchable={false}
+                                        />
+                                      </div>
+                                    )}
                                     onChange={(date: Date | null) => {
                                       if (date) {
-                                        const formattedDate = date
-                                          .toISOString()
-                                          .split("T")[0];
+                                        const formattedDate =
+                                          date.toISOString();
                                         formik.setFieldValue(
                                           "dob",
                                           formattedDate,
                                         );
-
                                         const age = calculateAge(date);
                                         const ageGroup = getAgeGroup(age);
                                         formik.setFieldValue("age", ageGroup);
@@ -836,6 +908,28 @@ const EditProfilePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Start */}
+      <ImageCropModal
+        show={cropOpen}
+        image={cropImage}
+        aspect={cropType === "cover" ? 16 / 6 : 1}
+        onClose={() => setCropOpen(false)}
+        onSave={handleCropSave}
+      />
+
+      {/* <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+        <form className="modal-wrap imgcrop-modal">
+          <button className="close-btn"><CgClose size={22} /></button>
+          <h3 className="title">Edit Profile Photo</h3>
+          <div className="img_wrap">
+            <img alt="Post Image" src="https://res.cloudinary.com/drhj03nvv/image/upload/v1771397982/posts/6995635dd577ca04fd5c7755/1771397981555-post-img-4.jpg.jpg"/>
+          </div>
+          <div className="actions">
+            <button className="premium-btn active-down-effect" type="submit"><span>Save</span></button>
+          </div>
+        </form>
+      </div> */}
     </>
   );
 };

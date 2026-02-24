@@ -148,11 +148,11 @@ export const categoryOptions = [
 
 // Feature/Status options
 export const featureOptions = [
-  { label: "Featured", value: "featured" },
+  // { label: "Featured", value: "featured" },
   { label: "Trending", value: "trending" },
   { label: "New Creators", value: "new_creators" },
   { label: "Most Followed", value: "most_followed" },
-  { label: "Most Liked", value: "most_liked" },
+  // { label: "Most Liked", value: "most_liked" },
 ];
 
 

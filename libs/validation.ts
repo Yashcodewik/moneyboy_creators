@@ -18,10 +18,11 @@ export const validationSchemaCreator = yup.object({
     .oneOf([yup.ref("password")], "Passwords must match")
     .required("Confirm password is required"),
   gender: yup.string().required("Gender is required"),
-  // dob: yup.string().required("Date of birth is required"),
+  dob: yup.string().required("Date of birth is required"),
   // bio: yup.string().required("Bio is required"),
   country: yup.string().required("Country is required"),
   city: yup.string().required("City is required"),
+  age: yup.string(),
   // bodyType: yup.string().required("Body type is required"),
   // sexualOrientation: yup.string().required("Sexual orientation is required"),
   // age: yup.string().required("Age is required"),
@@ -32,7 +33,6 @@ export const validationSchemaCreator = yup.object({
   // style: yup.string().required("Style is required"),
   // size: yup.string().required("Size is required"),
   // popularity: yup.string().required("Popularity is required"),
-  age: yup.string(),
 });
 
 export const validationSchemaCreatorUpdate = yup.object({

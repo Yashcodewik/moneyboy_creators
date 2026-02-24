@@ -1,14 +1,13 @@
 "use client";
 import {
-  API_FOLLOW_USER,
-  API_GET_CREATORS,
+  API_BLOCK_USER,
   API_GET_FOLLOWERS,
   API_GET_FOLLOWING,
+  API_REMOVE_FOLLOWER,
+  API_REPORT_USER,
   API_TRENDING_CREATORS,
-  API_UNFOLLOW_USER,
 } from "@/utils/api/APIConstant";
 import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "../../redux/store";
@@ -21,9 +20,12 @@ import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
+import ShowToast from "../common/ShowToast";
+import { useSession } from "next-auth/react";
 
 interface Creator {
   _id: string;
+  publicId: string;
   firstName: string;
   creatorUserId: string;
   lastName: string;
@@ -38,15 +40,17 @@ interface Creator {
 
 interface Follower {
   _id: string;
+  publicId: string;
   firstName: string;
   lastName: string;
   displayName?: string;
   userName: string;
   bio?: string;
   isFollowing: boolean;
-  isFollowingYou: boolean;
+  followsYou: boolean;
   profileImage?: string;
   role: number;
+  isReported?: boolean;
 }
 
 const FollowersPage = () => {
@@ -55,25 +59,24 @@ const FollowersPage = () => {
   const moreRef = useRef<HTMLDivElement | null>(null);
   const [selectedOption, setSelectedOption] = useState("All Time");
   const [time, setTime] = useState<string>("all_time");
-  const [tab, setTab] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Follower[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
+  const [followersLoading, setFollowersLoading] = useState(false);
+  const [followingLoading, setFollowingLoading] = useState(false);
+  const [creatorsLoading, setCreatorsLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const dispatch = useAppDispatch();
-  const [searchQuery, setSearchQuery] = useState("");
   const [followersPage, setFollowersPage] = useState(1);
   const [followingPage, setFollowingPage] = useState(1);
   const [followersTotalPages, setFollowersTotalPages] = useState(1);
   const [followingTotalPages, setFollowingTotalPages] = useState(1);
-  const [followersTotal, setFollowersTotal] = useState(0);
-  const [followingTotal, setFollowingTotal] = useState(0);
   const [followersSearchQuery, setFollowersSearchQuery] = useState("");
   const [followingSearchQuery, setFollowingSearchQuery] = useState("");
   const followersSearchTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -81,13 +84,66 @@ const FollowersPage = () => {
   const [avatarErrorMap, setAvatarErrorMap] = useState<Record<string, boolean>>(
     {},
   );
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportedUserName, setReportedUserName] = useState("");
+  const [reportedUserId, setReportedUserId] = useState("");
+  const [reportMessage, setReportMessage] = useState("");
+
+  const session = useSession();
+const currentUserRole = Number(session?.data?.user?.role);
+const currentUserId = session?.data?.user?.id;
+
+  const openReportModal = (user: Follower) => {
+    setReportedUserName(user.userName);
+    setReportedUserId(user._id);
+    setIsReportModalOpen(true);
+  };
+
+  const handleReportUser = async () => {
+    if (!reportMessage.trim()) {
+      ShowToast("Please enter reason", "error");
+      return;
+    }
+
+    try {
+      const res = await apiPost({
+        url: API_REPORT_USER,
+        values: {
+          reportedUserId,
+          message: reportMessage,
+        },
+      });
+
+      if (res?.success) {
+        ShowToast("Report submitted", "success");
+        setReportMessage("");
+        setIsReportModalOpen(false);
+      } else {
+        ShowToast(res?.message || "Failed to submit report", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      ShowToast("Something went wrong", "error");
+    }
+  };
 
   const toggleMore = (id: string) => {
     setOpenMoreId((prev) => (prev === id ? null : id));
   };
 
+  const handleShareProfile = (publicId: string, role: number) => {
+    const basePath = role === 2 ? "profile" : "userprofile";
+
+    const url = `${window.location.origin}/${basePath}/${publicId}`;
+
+    navigator.clipboard.writeText(url);
+
+    ShowToast("Profile link copied", "success");
+  };
+
   useEffect(() => {
     const tabParam = searchParams.get("tab");
+
     if (tabParam === "followers") {
       setFollow("Followers");
     } else if (tabParam === "following") {
@@ -105,11 +161,6 @@ const FollowersPage = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleTabChange = (value: string) => {
-    setSelectedOption(value);
-    setTab(false);
-  };
 
   useEffect(() => {
     const likeButtons = document.querySelectorAll("[data-like-button]");
@@ -130,6 +181,8 @@ const FollowersPage = () => {
     };
   }, []);
 
+  // const userIdParam = searchParams.get("q");
+const userIdParam = searchParams.get("id");
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -147,21 +200,19 @@ const FollowersPage = () => {
     };
 
     fetchAllData();
-  }, []);
+  }, [userIdParam]);
 
   const fetchCreators = async (pageNo = 1) => {
-    setLoading(true);
-
+    setCreatorsLoading(true);
     const res = await getApiWithOutQuery({
-      url: `${API_TRENDING_CREATORS}?page=${pageNo}`,
+      url: `${API_TRENDING_CREATORS}?page=${pageNo}&userId=${userIdParam}`,
     });
 
     if (res?.success) {
-      // 👇 map API response to match UI expectations
       const creatorsWithStatus = res.data.map((creator: any) => ({
         ...creator,
-        _id: creator.creatorUserId, // 👈 normalize id
-        isFollowing: creator.isFollowing, // default (sync will update later)
+        _id: creator.creatorUserId,
+        isFollowing: creator.isFollowing,
       }));
 
       setCreators(creatorsWithStatus);
@@ -169,17 +220,47 @@ const FollowersPage = () => {
       setTotalPages(res.meta?.totalPages || 1);
     }
 
-    setLoading(false);
+    setCreatorsLoading(false);
+  };
+
+  const handleBlockUser = async (userId: string) => {
+    try {
+      const res = await apiPost({
+        url: API_BLOCK_USER,
+        values: {
+          blockedId: userId,
+          // reason: "", // optional
+        },
+      });
+
+      if (res?.success) {
+        setFollowers((prev) => prev.filter((u) => u._id !== userId));
+        setFollowing((prev) => prev.filter((u) => u._id !== userId));
+        setCreators((prev) => prev.filter((u) => u._id !== userId));
+        dispatch(fetchFollowerCounts());
+
+        ShowToast("User blocked successfully", "success");
+
+        // close popup
+        setOpenMoreId(null);
+      } else {
+        ShowToast(res?.message || "Failed to block user", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      ShowToast("Something went wrong", "error");
+    }
   };
 
   const fetchFollowers = async (pageNo = 1, search = "") => {
-    setLoading(true);
+    setFollowersLoading(true);
     try {
       const res = await getApi({
         url: API_GET_FOLLOWERS,
         page: pageNo,
         rowsPerPage: 10,
         searchText: search,
+        id: userIdParam || "",
       });
 
       if (res?.success) {
@@ -190,48 +271,40 @@ const FollowersPage = () => {
 
         setFollowersTotalPages(Math.ceil(total / limit));
         setFollowersPage(pageNo);
-        setFollowersTotal(res.meta?.total || 0);
       }
     } catch (error) {
       console.error("Error fetching followers:", error);
       // ShowToast("Failed to load followers", "error");
     } finally {
-      setLoading(false);
+      setFollowersLoading(false);
     }
   };
 
   const fetchFollowing = async (pageNo = 1, search = "") => {
-    setLoading(true);
+    setFollowingLoading(true);
     try {
       const res = await getApi({
         url: API_GET_FOLLOWING,
         page: pageNo,
         rowsPerPage: 10,
         searchText: search,
+        id: userIdParam,
       });
 
       if (res?.success) {
-        const followingWithStatus = res.data.map((follow: any) => ({
-          ...follow,
-          isFollowing: true,
-          isFollowingYou: false, // 👈 default
-        }));
-
-        setFollowing(followingWithStatus);
+   setFollowing(res.data);
         setFollowingPage(pageNo);
         const total = res.meta?.total || 0;
         const limit = res.meta?.limit || 10;
 
         setFollowingTotalPages(Math.ceil(total / limit));
         setFollowingPage(pageNo);
-
-        setFollowingTotal(res.meta?.total || 0);
       }
     } catch (error) {
       console.error("Error fetching following:", error);
       // ShowToast("Failed to load following", "error");
     } finally {
-      setLoading(false);
+      setFollowingLoading(false);
     }
   };
 
@@ -260,31 +333,6 @@ const FollowersPage = () => {
     }, 500);
   };
 
-  const syncRelationships = () => {
-    const followingIds = new Set(following.map((u) => u._id));
-    const followerIds = new Set(followers.map((u) => u._id));
-
-    setFollowers((prev) =>
-      prev.map((u) => ({
-        ...u,
-        isFollowing: followingIds.has(u._id),
-      })),
-    );
-
-    setFollowing((prev) =>
-      prev.map((u) => ({
-        ...u,
-        isFollowingYou: followerIds.has(u._id),
-      })),
-    );
-    setCreators((prev) =>
-      prev.map((creator) => ({
-        ...creator,
-        isFollowing: followingIds.has(creator._id),
-      })),
-    );
-  };
-
   const handleFollowToggle = async (
     userId: string,
     isFollowing: boolean,
@@ -302,10 +350,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: false,
-                isFollowingYou: true,
-              }
+                  ...user,
+                  isFollowing: false,
+                  isFollowingYou: true,
+                }
               : user,
           ),
         );
@@ -316,10 +364,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: true,
-                isFollowingYou: true,
-              }
+                  ...user,
+                  isFollowing: true,
+                  isFollowingYou: true,
+                }
               : user,
           ),
         );
@@ -357,10 +405,10 @@ const FollowersPage = () => {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                isFollowing: false,
-                isFollowingYou: user.isFollowingYou,
-              }
+                  ...user,
+                  isFollowing: false,
+                  followsYou: user.followsYou,
+                }
               : user,
           ),
         );
@@ -390,7 +438,7 @@ const FollowersPage = () => {
               {
                 ...creatorToAdd,
                 isFollowing: true,
-                isFollowingYou: false,
+                followsYou: false,
               } as Follower,
             ];
           });
@@ -417,10 +465,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                  ...user,
-                  isFollowing: true,
-                  isFollowingYou: true,
-                }
+                    ...user,
+                    isFollowing: true,
+                    followsYou: true,
+                  }
                 : user,
             ),
           );
@@ -429,10 +477,10 @@ const FollowersPage = () => {
             prev.map((user) =>
               user._id === userId
                 ? {
-                  ...user,
-                  isFollowing: false,
-                  isFollowingYou: true,
-                }
+                    ...user,
+                    isFollowing: false,
+                    followsYou: true,
+                  }
                 : user,
             ),
           );
@@ -448,16 +496,31 @@ const FollowersPage = () => {
           ),
         );
       }
-
-      // ShowToast(err?.response?.data?.error || "Something went wrong", "error");
     }
   };
 
-  useEffect(() => {
-    if (followers.length > 0 && following.length > 0) {
-      syncRelationships();
+  // useEffect(() => {
+  //   if (followers.length > 0 && following.length > 0) {
+  //     syncRelationships();
+  //   }
+  // }, []);
+
+  const handleRemoveFollower = async (userId: string) => {
+    try {
+      await apiPost({
+        url: API_REMOVE_FOLLOWER,
+        values: { userId },
+      });
+
+      setFollowers((prev) => prev.filter((f) => f._id !== userId));
+      dispatch(fetchFollowerCounts());
+      ShowToast("Follower removed", "success");
+      setOpenMoreId(null);
+    } catch (error) {
+      console.error(error);
+      ShowToast("Failed to remove follower", "error");
     }
-  }, []);
+  };
 
   const getFollowButtonProps = (user: Follower | Creator) => {
     if (user.isFollowing) {
@@ -466,7 +529,7 @@ const FollowersPage = () => {
         className: "btn-txt-gradient btn-grey",
       };
     }
-    if ("isFollowingYou" in user && user.isFollowingYou && !user.isFollowing) {
+    if ("followsYou" in user && user.followsYou && !user.isFollowing) {
       return {
         text: "Follow Back",
         className: "btn-txt-gradient",
@@ -497,15 +560,35 @@ const FollowersPage = () => {
 
     return (
       <div className="pagination_wrap">
-        <button className="btn-prev" disabled={page === 1} onClick={() => fetchFollowers(page - 1, followersSearchQuery)}><CircleArrowLeft color="#000" /></button>
+        <button
+          className="btn-prev"
+          disabled={page === 1}
+          onClick={() => fetchFollowers(page - 1, followersSearchQuery)}
+        >
+          <CircleArrowLeft color="#000" />
+        </button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <button key={i} className="premium-btn" disabled><span>…</span></button>
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
           ) : (
-            <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => fetchFollowers(p as number, followersSearchQuery)}><span>{p}</span></button>
+            <button
+              key={i}
+              className={page === p ? "premium-btn" : "btn-primary"}
+              onClick={() => fetchFollowers(p as number, followersSearchQuery)}
+            >
+              <span>{p}</span>
+            </button>
           ),
         )}
-        <button className="btn-next" disabled={page === totalPages} onClick={() => fetchFollowers(page + 1, followersSearchQuery)}><CircleArrowRight color="#000" /></button>
+        <button
+          className="btn-next"
+          disabled={page === totalPages}
+          onClick={() => fetchFollowers(page + 1, followersSearchQuery)}
+        >
+          <CircleArrowRight color="#000" />
+        </button>
       </div>
     );
   };
@@ -556,7 +639,7 @@ const FollowersPage = () => {
         <button
           className="btn-next"
           disabled={page === totalPages}
-          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          onClick={() => fetchFollowing(page + 1, followingSearchQuery)}
         >
           <CircleArrowRight color="#000" />
         </button>
@@ -565,7 +648,7 @@ const FollowersPage = () => {
   };
 
   const renderFollowersList = () => {
-    if (loading && followers.length === 0) {
+    if (followersLoading && followers.length === 0) {
       return (
         <div className="loadingtext">
           {"Loading".split("").map((char, i) => (
@@ -591,9 +674,16 @@ const FollowersPage = () => {
               <div className="profile-card">
                 <a href={"#"} className="profile-card__main">
                   <div className="profile-card__avatar-settings">
-                    <div className="profile-card__avatar">
+                    <div
+                      className="profile-card__avatar"
+                      onClick={() => {
+                        const basePath =
+                          follower.role === 2 ? "profile" : "userprofile";
+                        router.push(`/${basePath}/${follower.publicId}`);
+                      }}
+                    >
                       {follower.profileImage &&
-                        !avatarErrorMap[follower._id] ? (
+                      !avatarErrorMap[follower._id] ? (
                         <img
                           src={follower.profileImage}
                           alt={`${follower.firstName}'s profile`}
@@ -661,6 +751,8 @@ const FollowersPage = () => {
             </div>
             <div className="rel-user-actions">
               <div className="rel-user-action-btn">
+               {follower._id !== currentUserId &&
+                !(currentUserRole === 1 && follower.role === 1) && (
                 <button
                   className={buttonProps.className}
                   onClick={() =>
@@ -685,7 +777,9 @@ const FollowersPage = () => {
                 >
                   <span>{buttonProps.text}</span>
                 </button>
+                )}
               </div>
+              {follower._id == currentUserId && (
               <div
                 className="rel-user-more-opts-wrapper"
                 data-more-actions-toggle-element
@@ -724,11 +818,7 @@ const FollowersPage = () => {
                       <ul>
                         <li
                           onClick={() =>
-                            handleFollowToggle(
-                              follower._id,
-                              follower.isFollowing,
-                              "followers",
-                            )
+                            handleShareProfile(follower.publicId, follower.role)
                           }
                         >
                           <div className="icon share-icon">
@@ -764,55 +854,55 @@ const FollowersPage = () => {
                           </div>
                           <span>Share @{follower.userName}</span>
                         </li>
-                        <li>
-                          <div className="icon mute-icon">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M22 2L2 22"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <span>Mute</span>
-                        </li>
-                        <li>
+                        {/* <li>
+                            <div className="icon mute-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M15 8.36997V7.40997C15 4.42997 12.93 3.28997 10.41 4.86997L7.49 6.69997C7.17 6.88997 6.8 6.99997 6.43 6.99997H5C3 6.99997 2 7.99997 2 9.99997V14C2 16 3 17 5 17H7"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M10.4102 19.13C12.9302 20.71 15.0002 19.56 15.0002 16.59V12.95"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M18.81 9.41998C19.71 11.57 19.44 14.08 18 16"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M21.1481 7.79999C22.6181 11.29 22.1781 15.37 19.8281 18.5"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M22 2L2 22"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Mute</span>
+                          </li> */}
+                        <li onClick={() => handleRemoveFollower(follower._id)}>
                           <div className="icon remove-icon">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -863,7 +953,7 @@ const FollowersPage = () => {
                           </div>
                           <span>Remove this follower</span>
                         </li>
-                        <li>
+                        <li onClick={() => handleBlockUser(follower._id)}>
                           <div className="icon block-icon">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -906,7 +996,12 @@ const FollowersPage = () => {
                           </div>
                           <span>Block @{follower.userName}</span>
                         </li>
-                        <li>
+                        <li
+                          onClick={() => {
+                            if (follower.isReported) return;
+                            openReportModal(follower);
+                          }}
+                        >
                           <div className="icon report-icon">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -933,37 +1028,41 @@ const FollowersPage = () => {
                               />
                             </svg>
                           </div>
-                          <span>Report @{follower.userName}</span>
+                          <span>
+                            {follower.isReported
+                              ? `Reported @${follower.userName}`
+                              : `Report @${follower.userName}`}
+                          </span>
                         </li>
                       </ul>
                     </div>
                   </div>
                 )}
               </div>
+      )}
             </div>
           </div>
           {/* {follower.bio && (
-              <div className="rel-user-desc">
-                <p>{follower.bio}</p>
-              </div>
-            )} */}
+                <div className="rel-user-desc">
+                  <p>{follower.bio}</p>
+                </div>
+              )} */}
         </div>
       );
     });
   };
 
   const renderFollowingList = () => {
-    if (loading && following.length < 0) {
-      return <div className="loadingtext">
-        {"Loading".split("").map((char, i) => (
-          <span
-            key={i}
-            style={{ animationDelay: `${(i + 1) * 0.1}s` }}
-          >
-            {char}
-          </span>
-        ))}
-      </div>;
+    if (followingLoading && following.length === 0) {
+      return (
+        <div className="loadingtext">
+          {"Loading".split("").map((char, i) => (
+            <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+              {char}
+            </span>
+          ))}
+        </div>
+      );
     }
     if (following.length === 0) {
       return <div className="nodeta">Not following anyone yet</div>;
@@ -979,7 +1078,15 @@ const FollowersPage = () => {
               <div className="profile-card">
                 <a href={"#"} className="profile-card__main">
                   <div className="profile-card__avatar-settings">
-                    <div className="profile-card__avatar">
+                    <div
+                      className="profile-card__avatar"
+                      onClick={() => {
+                        const basePath =
+                          follow.role === 2 ? "profile" : "userprofile";
+                        router.push(`/${basePath}/${follow.publicId}`);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
                       {follow.profileImage && !avatarErrorMap[follow._id] ? (
                         <img
                           src={follow.profileImage}
@@ -1047,6 +1154,8 @@ const FollowersPage = () => {
               </div>
             </div>
             <div className="rel-user-action-btn">
+            {follow._id !== currentUserId &&
+             !(currentUserRole === 1 && follow.role === 1) && (
               <button
                 className={buttonProps.className}
                 onClick={() =>
@@ -1071,13 +1180,14 @@ const FollowersPage = () => {
               >
                 <span>{buttonProps.text}</span>
               </button>
+              )}
             </div>
           </div>
           {/* {follow.bio && (
-              <div className="rel-user-desc">
-                <p>{follow.bio}</p>
-              </div>
-            )} */}
+                <div className="rel-user-desc">
+                  <p>{follow.bio}</p>
+                </div>
+              )} */}
         </div>
       );
     });
@@ -1097,37 +1207,38 @@ const FollowersPage = () => {
             id="posts-tabs-btn-card"
           >
             {/* <button
-              className="cate-back-btn active-down-effect"
-              onClick={() => router.push("/feed")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
+                className="cate-back-btn active-down-effect"
+                onClick={() => router.push("/feed")}
               >
-                <path
-                  d="M9.57 5.92999L3.5 12L9.57 18.07"
-                  stroke="none"
-                  strokeWidth="2.5"
-                  strokeMiterlimit="10"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M20.4999 12H3.66992"
-                  stroke="none"
-                  strokeWidth="2.5"
-                  strokeMiterlimit="10"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button> */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M9.57 5.92999L3.5 12L9.57 18.07"
+                    stroke="none"
+                    strokeWidth="2.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M20.4999 12H3.66992"
+                    stroke="none"
+                    strokeWidth="2.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${follow === "Followers" ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                follow === "Followers" ? "active" : ""
+              }`}
               data-multi-tabs-switch-btndata__active
               data-identifier="1"
               onClick={() => setFollow("Followers")}
@@ -1135,8 +1246,9 @@ const FollowersPage = () => {
               Followers
             </button>
             <button
-              className={`page-content-type-button active-down-effect ${follow === "Following" ? "active" : ""
-                }`}
+              className={`page-content-type-button active-down-effect ${
+                follow === "Following" ? "active" : ""
+              }`}
               data-multi-tabs-switch-btn
               data-identifier="1"
               onClick={() => setFollow("Following")}
@@ -1290,10 +1402,10 @@ const FollowersPage = () => {
                               options={timeOptions}
                               value={time}
                               searchable={false}
-                            // onChange={(val) => {
-                            //   setTime(val);
-                            //   fetchLikedPosts(1);
-                            // }}
+                              // onChange={(val) => {
+                              //   setTime(val);
+                              //   fetchLikedPosts(1);
+                              // }}
                             />
                           </div>
                         </div>
@@ -1321,7 +1433,10 @@ const FollowersPage = () => {
                 <h3 className="card-heading">Trending Moneyboys</h3>
               </div>
               <div className="featured-card-opts">
-                <button className="icon-btn hover-scale-icon">
+                <button
+                  className="icon-btn hover-scale-icon"
+                  onClick={() => fetchCreators(page)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -1402,121 +1517,142 @@ const FollowersPage = () => {
             </div>
 
             <div className="featured-profiles-wrapper rel-users-wrapper">
-              {creators.map((creator) => (
-                <div className="rel-user-box" key={creator._id}>
-                  <div className="rel-user-profile-action">
-                    <div className="rel-user-profile">
-                      <div className="profile-card">
-                        <a href="#" className="profile-card__main">
-                          <div className="profile-card__avatar-settings">
-                            <div className="profile-card__avatar">
-                              {creator.profileImage &&
+              {creatorsLoading && (
+                <div className="loadingtext">
+                  {"Loading".split("").map((char, i) => (
+                    <span
+                      key={i}
+                      style={{ animationDelay: `${(i + 1) * 0.1}s` }}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {!creatorsLoading &&
+                creators.map((creator) => (
+                  <div className="rel-user-box" key={creator._id}>
+                    <div className="rel-user-profile-action">
+                      <div className="rel-user-profile">
+                        <div className="profile-card">
+                          <a href="#" className="profile-card__main">
+                            <div className="profile-card__avatar-settings">
+                              <div className="profile-card__avatar">
+                                {creator.profileImage &&
                                 !avatarErrorMap[creator._id] ? (
-                                <img
-                                  src={creator.profileImage}
-                                  alt={`${creator.displayName} profile avatar`}
-                                  onError={() =>
-                                    setAvatarErrorMap((prev) => ({
-                                      ...prev,
-                                      [creator._id]: true,
-                                    }))
-                                  }
-                                />
-                              ) : (
-                                <div className="noprofile">
-                                  <svg
-                                    width="40"
-                                    height="40"
-                                    viewBox="0 0 66 54"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      className="animate-m"
-                                      d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                                      fill="url(#paint0_linear_4470_53804)"
-                                    />
-                                    <defs>
-                                      <linearGradient
-                                        id="paint0_linear_4470_53804"
-                                        x1="0"
-                                        y1="27"
-                                        x2="66"
-                                        y2="27"
-                                        gradientUnits="userSpaceOnUse"
-                                      >
-                                        <stop stop-color="#FDAB0A" />
-                                        <stop
-                                          offset="0.4"
-                                          stop-color="#FECE26"
-                                        />
-                                        <stop offset="1" stop-color="#FE990B" />
-                                      </linearGradient>
-                                    </defs>
-                                  </svg>
+                                  <img
+                                    src={creator.profileImage}
+                                    alt={`${creator.displayName} profile avatar`}
+                                    onError={() =>
+                                      setAvatarErrorMap((prev) => ({
+                                        ...prev,
+                                        [creator._id]: true,
+                                      }))
+                                    }
+                                  />
+                                ) : (
+                                  <div className="noprofile">
+                                    <svg
+                                      width="40"
+                                      height="40"
+                                      viewBox="0 0 66 54"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        className="animate-m"
+                                        d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                        fill="url(#paint0_linear_4470_53804)"
+                                      />
+                                      <defs>
+                                        <linearGradient
+                                          id="paint0_linear_4470_53804"
+                                          x1="0"
+                                          y1="27"
+                                          x2="66"
+                                          y2="27"
+                                          gradientUnits="userSpaceOnUse"
+                                        >
+                                          <stop stop-color="#FDAB0A" />
+                                          <stop
+                                            offset="0.4"
+                                            stop-color="#FECE26"
+                                          />
+                                          <stop
+                                            offset="1"
+                                            stop-color="#FE990B"
+                                          />
+                                        </linearGradient>
+                                      </defs>
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="profile-card__info">
+                              <div className="profile-card__name-badge">
+                                <div className="profile-card__name">
+                                  {creator.displayName ||
+                                    `${creator.firstName} ${creator.lastName}`}
                                 </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="profile-card__info">
-                            <div className="profile-card__name-badge">
-                              <div className="profile-card__name">
-                                {creator.displayName ||
-                                  `${creator.firstName} ${creator.lastName}`}
+                                <div className="profile-card__badge">
+                                  <img
+                                    src="/images/logo/profile-badge.png"
+                                    alt="MoneyBoy Social Profile Badge"
+                                  />
+                                </div>
                               </div>
-                              <div className="profile-card__badge">
-                                <img
-                                  src="/images/logo/profile-badge.png"
-                                  alt="MoneyBoy Social Profile Badge"
-                                />
+
+                              <div className="profile-card__username">
+                                @{creator.userName}
                               </div>
                             </div>
-
-                            <div className="profile-card__username">
-                              @{creator.userName}
-                            </div>
-                          </div>
-                        </a>
+                          </a>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="rel-user-actions">
-                      <div className="rel-user-action-btn">
-                        <button
-                          className={`btn-txt-gradient ${creator.isFollowing ? "btn-grey" : ""
+                      <div className="rel-user-actions">
+                        <div className="rel-user-action-btn">
+                       {creator._id !== currentUserId &&
+                      !(currentUserRole === 1 && creator.role === 1) && (
+                          <button
+                            className={`btn-txt-gradient ${
+                              creator.isFollowing ? "btn-grey" : ""
                             }`}
-                          onClick={() =>
-                            handleFollowToggle(
-                              creator._id,
-                              creator.isFollowing,
-                              "creators",
-                            )
-                          }
-                          onMouseEnter={(e) => {
-                            if (creator.isFollowing) {
-                              e.currentTarget.querySelector(
-                                "span",
-                              )!.textContent = "Unfollow";
+                            onClick={() =>
+                              handleFollowToggle(
+                                creator._id,
+                                creator.isFollowing,
+                                "creators",
+                              )
                             }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (creator.isFollowing) {
-                              e.currentTarget.querySelector(
-                                "span",
-                              )!.textContent = "Following";
-                            }
-                          }}
-                        >
-                          <span>
-                            {creator.isFollowing ? "Following" : "Follow"}
-                          </span>
-                        </button>
+                            onMouseEnter={(e) => {
+                              if (creator.isFollowing) {
+                                e.currentTarget.querySelector(
+                                  "span",
+                                )!.textContent = "Unfollow";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (creator.isFollowing) {
+                                e.currentTarget.querySelector(
+                                  "span",
+                                )!.textContent = "Following";
+                              }
+                            }}
+                          >
+                            <span>
+                              {creator.isFollowing ? "Following" : "Follow"}
+                            </span>
+                          </button>
+                        )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
               {!loading && creators.length === 0 && (
                 <p className="text-center">No creators found</p>
@@ -1527,6 +1663,55 @@ const FollowersPage = () => {
           <Featuredboys />
         </div>
       </aside>
+      {isReportModalOpen && (
+        <div className="modal show" role="dialog" aria-modal="true">
+          <div className="modal-wrap blacklist">
+            <button
+              className="close-btn"
+              onClick={() => setIsReportModalOpen(false)}
+            >
+              ✕
+            </button>
+
+            <h3>Report User</h3>
+
+            <div className="containt_wrap">
+              <div>
+                <label>User</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={`@${reportedUserName}`}
+                  disabled
+                />
+              </div>
+
+              <div>
+                <label>Reason</label>
+                <textarea
+                  rows={3}
+                  placeholder="Describe the issue..."
+                  value={reportMessage}
+                  onChange={(e) => setReportMessage(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="actions">
+              <button className="premium-btn" onClick={handleReportUser}>
+                <span>Submit</span>
+              </button>
+
+              <button
+                className="cate-back-btn active-down-effect"
+                onClick={() => setIsReportModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

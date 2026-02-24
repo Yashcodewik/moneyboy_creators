@@ -3462,7 +3462,7 @@
                     font-weight: 500;
                   }
                   .msg-contact-box {
-                    filter: grayscale(100%);
+                    /* filter: grayscale(100%); */
                   }
                 }
             }
@@ -3982,6 +3982,66 @@
  
            .noti-more-actions {
              display: flex;
+
+             &.iconbtn {
+              gap: 5px;
+              button {
+                padding: 5px;
+                width: 28px;
+                height: 28px;
+                border-radius: 7px;
+                transition: all 0.2s ease;
+                &.viewbtn {
+                  svg {
+                    path {
+                      stroke: rgb(167, 123, 255);
+                      fill: none;
+                    }
+                    circle {
+                      stroke: rgb(167, 123, 255);
+                      fill: none;
+                    }
+                  }
+                  &:hover {
+                    background-color: rgb(167, 123, 255);
+                    svg path,
+                    svg circle {
+                      stroke: #fff;
+                    }
+                  }
+                }
+                &.acceptbtn {
+                  svg {
+                    path {
+                      stroke: #008141;
+                      fill: none;
+                    }
+                  }
+                  &:hover {
+                    background-color: #008141;
+                  
+                    svg path {
+                      stroke: #fff;
+                    }
+                  }
+                }
+                &.declinebtn {
+                  svg {
+                    path {
+                      stroke: #cd3f3f;
+                      fill: none;
+                    }
+                  }
+                  &:hover {
+                    background-color: #cd3f3f;
+                  
+                    svg path {
+                      stroke: #fff;
+                    }
+                  }
+                }
+              }
+             }
  
              .rel-user-more-opts-wrapper {
                &[data-more-actions-toggle-element] {

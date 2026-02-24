@@ -14,7 +14,7 @@ import "../public/styles/icons.css";
 import "../public/styles/style.scss";
 import AuthProviders from "@/libs/authProviders";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/libs/auth";
+import { buildAuthOptions } from "@/libs/auth";
 import ReduxProvider from "@/redux/ReduxProvider";
 import ScrollToTop from "./ScrollToTop";
 import AgeGate from "./AgeGate";
@@ -66,13 +66,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(buildAuthOptions());
 
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${jakarta.variable} ${calSans.variable} antialiased`}>
         <ScrollToTop />
         <ReduxProvider>
           <AuthProviders session={session}>
