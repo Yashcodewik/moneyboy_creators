@@ -14,9 +14,13 @@ import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost,} from "@/redux/other/feedPostsSlice";
 import toast from "react-hot-toast";
+import { PhotoProvider } from "react-photo-view";
+import "react-photo-view/dist/react-photo-view.css";
+
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
 import { showSuccess, showError, showWarning, showInfo, showQuestion,} from "@/utils/alert";
+import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
 
 const FeedPage = () => {
   const router = useRouter();
@@ -189,7 +193,30 @@ const FeedPage = () => {
 
   /* ================= RENDER ================= */
 
+    const allFeedImages = activeList
+    ?.flatMap((post: any) =>
+      (post.media?.[0]?.mediaFiles || []).filter(
+        () => post.media?.[0]?.type !== "video"
+      )
+    ) ?? [];
+
   return (
+      <PhotoProvider
+    toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible }) => {
+      if (!visible) return null;
+      return (
+        <div className="toolbar_controller">
+          <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
+          <span>{index + 1} / {images.length}</span>
+          <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
+          <button className="btn_icons" onClick={() => onScale(scale + 0.2)}><ZoomIn size={20} /></button>
+          <button className="btn_icons" onClick={() => onScale(Math.max(0.5, scale - 0.2))}><ZoomOut size={20} /></button>
+          <button className="btn_icons" onClick={() => onRotate(rotate + 90)}><RotateCw size={20} /></button>
+          <button className="btn_icons" onClick={onClose}><X size={20} /></button>
+        </div>
+      );
+    }}
+  >
     <>
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout">
@@ -616,6 +643,7 @@ const FeedPage = () => {
         </div>
       </div>
     </>
+    </PhotoProvider>
   );
 };
 
