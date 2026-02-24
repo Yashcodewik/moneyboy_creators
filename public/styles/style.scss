@@ -605,6 +605,18 @@ body {
       line-height: 100%;
       font-family: var(--font-family-heading);
     }
+    p {
+      color: #505050;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 100%;
+      font-family: var(--font-family-base);
+      transition: var(--transition-fast);
+    }
+    .selectcont_wrap {
+      
+      
+    }
     .actionsbtn-wrapper {
       align-items: center;
       gap: 10px;
@@ -7638,7 +7650,6 @@ body {
   opacity: 0.6;
   cursor: not-allowed;
 }
-
 
 // Bank Card Start
 .bankcard_wrapper {
