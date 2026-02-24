@@ -335,6 +335,35 @@ body {
   }
 }
 
+// Group Button Start
+.btnGroup {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  .slider {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    background: #010405;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    z-index: 0;
+  }
+  button {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    flex: 1;
+    text-align: center;
+    &:hover, &.active {
+      color: #fece26 !important;
+      background-color: unset !important;
+    }
+  }
+}
+
+// ===================
+
 .link-gradint {
   span {
     position: relative;
