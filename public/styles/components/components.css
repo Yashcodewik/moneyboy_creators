@@ -3991,7 +3991,11 @@
                 width: 28px;
                 height: 28px;
                 border-radius: 7px;
+                background: var(--color-text-active);
                 transition: all 0.2s ease;
+                svg {
+                  filter: brightness(0) invert(1);
+                }
                 &.viewbtn {
                   svg {
                     path {
