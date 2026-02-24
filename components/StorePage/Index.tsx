@@ -1781,23 +1781,29 @@ const StorePage = () => {
         />
       )}
 
-      {unlockModalPost && (
-        <UnlockContentModal
-          onClose={() => setUnlockModalPost(null)}
-          creator={{
-            displayName: activeStoreOwner?.displayName,
-            userName: activeStoreOwner?.userName,
-            profile: activeStoreOwner?.profile,
-          }}
-          post={{
-            publicId: unlockModalPost.publicId,
-            text: unlockModalPost.text,
-            price: unlockModalPost.price,
-          }}
-          onConfirm={handleConfirmUnlock}
-          loading={unlocking}
-        />
-      )}
+ {unlockModalPost && (
+  <UnlockContentModal
+    onClose={() => setUnlockModalPost(null)}
+    creator={{
+      displayName:
+        unlockModalPost.creatorInfo?.displayName ||
+        unlockModalPost.user?.displayName,
+      userName:
+        unlockModalPost.creatorInfo?.userName ||
+        unlockModalPost.user?.userName,
+      profile:
+        unlockModalPost.creatorInfo?.profile ||
+        unlockModalPost.user?.profile,
+    }}
+    post={{
+      publicId: unlockModalPost.publicId,
+      text: unlockModalPost.text,
+      price: unlockModalPost.price,
+    }}
+    onConfirm={handleConfirmUnlock}
+    loading={unlocking}
+  />
+)}
 
       {showPPVModal && activeStoreOwner && (
         <PPVRequestModal
