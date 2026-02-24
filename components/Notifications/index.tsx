@@ -8,12 +8,20 @@ import { CgClose } from "react-icons/cg";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_GET_NOTIFICATIONS } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
+import FlipClockCountdown from '@leenguyen/react-flip-clock-countdown';
+import '@leenguyen/react-flip-clock-countdown/dist/index.css';
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { showAcceptPostConsent, showSuccess, showError, showDeclineReason} from "@/utils/alert";
 
 const NotificationPage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
-const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const isMobile = useDeviceType();
   const desktopStyle: React.CSSProperties = {
     transform: "translate(0px, 0px)",
@@ -62,43 +70,50 @@ const [loading, setLoading] = useState(true);
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   const fetchNotifications = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await getApiWithOutQuery({
-      url: API_GET_NOTIFICATIONS,
-    });
+      const res = await getApiWithOutQuery({
+        url: API_GET_NOTIFICATIONS,
+      });
 
-    if (res?.success) {
-      setNotifications(res.notifications);
-    } else {
-      ShowToast("Failed to load notifications", "error");
+      if (res?.success) {
+        setNotifications(res.notifications);
+      } else {
+        ShowToast("Failed to load notifications", "error");
+      }
+    } catch (err) {
+      ShowToast("Something went wrong", "error");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    ShowToast("Something went wrong", "error");
-  } finally {
-    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
   }
-};
 
-useEffect(() => {
-  fetchNotifications();
-}, []);
+  const handlePublish = async () => {
+    const accepted = await showAcceptPostConsent();
+    if (!accepted) return;
+    showSuccess("Post published successfully!");
+  };
 
-useEffect(() => {
-  fetchNotifications();
-}, []);
-
-const formatTime = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
+  const endTime = new Date().getTime() + 24 * 60 * 60 * 1000;
 
   return (
     <>
@@ -115,93 +130,76 @@ const formatTime = (dateString: string) => {
                 </div>
               </div>
               <div className="noti-list-wrapper">
-  {loading && <p>Loading...</p>}
+                {loading && <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
 
-  {!loading && notifications.length === 0 && (
-    <p>No notifications</p>
-  )}
+                {!loading && notifications.length === 0 && (
+                  <div className="nofound small"><h3 className="first">No Notifications Found</h3><h3 className="second">No Notifications Found</h3></div>
+                )}
 
-  {notifications.map((noti) => (
-    <div className="noti-item" key={noti._id}>
-      <div className="noti-item--icon">
-        <img
-          src={
-            noti.senderId?.profile ||
-            "/images/logo/black-logo-square.png"
-          }
-          alt="#"
-        />
-      </div>
-
-      <div className="noti-details-container">
-        <div className="noti-title-time-wrapper">
-          <div className="noti-title">
-            <h4>
-              @{noti.senderId?.userName} {noti.title}
-            </h4>
-          </div>
-
-          <div className="noti-time">
-            <span>{formatTime(noti.createdAt)}</span>
-          </div>
-
-          {noti.type === 3 && (
-            <div className="noti-more-actions iconbtn">
-              <button className="btn-gray viewbtn">
-                <Eye size={16} />
-              </button>
-              <button className="btn-gray acceptbtn">
-                <Check size={16} />
-              </button>
-              <button className="btn-gray declinebtn">
-                <X size={16} />
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="noti-desc">
-          <p>
-            {noti.type === 3
-              ? "Collaboration request awaiting approval."
-              : ""}
-          </p>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
+                {notifications.map((noti) => (
+                  <div className="noti-item" key={noti._id}>
+                    <div className="noti-item--icon">
+                      <img src={noti.senderId?.profile || "/images/logo/black-logo-square.png"} alt="#"/>
+                    </div>
+                    <div className="noti-details-container">
+                      <div className="noti-title-time-wrapper">
+                        <div className="noti-title">
+                          <h4>@{noti.senderId?.userName} {noti.title}</h4>
+                        </div>
+                        <div className="noti-time"><span>{formatTime(noti.createdAt)}</span></div>
+                        {noti.type === 3 && (
+                          <div className="noti-more-actions iconbtn">
+                            <button className="btn-gray viewbtn"><Eye size={16} /></button>
+                            <button className="btn-gray acceptbtn" onClick={handlePublish}><Check size={16} /></button>
+                            <button className="btn-gray declinebtn" onClick={showDeclineReason}><X size={16} /></button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="noti-desc">
+                        <p>{noti.type === 3 ? "Collaboration request awaiting approval." : ""}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
         <Featuredboys />
       </div>
       <div className="modal" role="dialog">
-      <form className="modal-wrap notipost-modal">
-        <button type="button" className="close-btn"><CgClose size={22} /></button>
-        <h3 className="title">Post Details</h3>
-        <div className="post_wrap">
-          <div className="img_wrap">
-            <img src="/images/post-images/post-img-1.png" alt="Profile Avatar"/>
-          </div>
-          <div className="details_wrap">
-            <div className="charge_wrap">
-              <p>you earning</p>
-              <div className="right_box"><span>35%</span></div>
+        <form className="modal-wrap notipost-modal">
+          <button type="button" className="close-btn"><CgClose size={22} /></button>
+          <h3 className="title">Post Details</h3>
+          <div className="post_wrap">
+            <div className="img_wrap">
+            <Swiper modules={[Navigation, Pagination, Autoplay]} spaceBetween={20} slidesPerView={1} navigation pagination={{ clickable: true }} autoplay={{ delay: 3000 }} loop={true}>
+              <SwiperSlide>
+                <img src="/images/post-images/post-img-1.png" alt="Profile Avatar" />
+              </SwiperSlide>
+              <SwiperSlide>
+                <img src="/images/post-images/post-img-1.png" alt="Profile Avatar" />
+              </SwiperSlide>
+            </Swiper>
             </div>
-            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. </p>
-            <ul>
-              <li><img src="/images/post-images/post-img-2.png" alt="Profile Avatar" className="user_icons"/> <span>@Yashravel</span></li>
-              <li><img src="/images/post-images/post-img-3.png" alt="Profile Avatar" className="user_icons"/> <span>@Hemilsolanki</span></li>
-            </ul>
+            <div className="details_wrap">
+              <div className="charge_wrap">
+                <p>you earning</p>
+                <div className="right_box"><span>35%</span></div>
+              </div>
+              <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. </p>
+              <ul>
+                <li><img src="/images/post-images/post-img-2.png" alt="Profile Avatar" className="user_icons" /> <span>@Yashravel</span></li>
+                <li><img src="/images/post-images/post-img-3.png" alt="Profile Avatar" className="user_icons" /> <span>@Hemilsolanki</span></li>
+              </ul>
+            </div>
           </div>
-        </div>
-        <div className="actions mt-3">
-          <button className="btn-danger active-down-effect" type="button"><span>Rejected</span></button>
-          <button className="premium-btn active-down-effect" type="button"><span>Accepted</span></button>
-        </div>
-      </form>
-    </div>
+          <div className="timer_wrap mt-3">
+            <p>You Have TO Viwe THis Post Times</p>
+            <FlipClockCountdown to={endTime} labels={['', '', '', '']}  renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{display: 'none',}} digitBlockStyle={{ width: 26, height: 34, fontSize: 18, }}>Finished</FlipClockCountdown>
+          </div>
+        </form>
+      </div>
     </>
   );
 };

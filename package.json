@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@leenguyen/react-flip-clock-countdown": "^1.7.2",
     "@reduxjs/toolkit": "^2.11.2",
     "@sumsub/websdk-react": "^2.6.1",
     "@tanstack/react-query": "^5.90.20",

@@ -78,7 +78,7 @@ interface MediaItem {
 }
 
 const PurchasedMediaPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("all-media");
+  const [activeTab, setActiveTab] = useState<string>("collection");
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<string>("all");
   const [type, setType] = useState<string>("all");
@@ -135,7 +135,7 @@ const PurchasedMediaPage: React.FC = () => {
       fetchPurchasedMedia({
         page: 1,
         limit: 12,
-        tab: activeTab,
+        tab: activeTab === "collection" ? "all-media" : activeTab,
         creatorId: selectedCreator !== "all" ? selectedCreator : undefined,
         type: mediaType !== "all" ? mediaType : undefined,
         time: timeFilter !== "all_time" ? timeFilter : undefined,
@@ -149,7 +149,7 @@ const PurchasedMediaPage: React.FC = () => {
       fetchPurchasedMedia({
         page: 1,
         limit: 12,
-        tab: activeTab,
+        tab: activeTab === "collection" ? "all-media" : activeTab,
         creatorId: selectedCreator !== "all" ? selectedCreator : undefined,
         type: mediaType !== "all" ? mediaType : undefined,
         time: timeFilter !== "all_time" ? timeFilter : undefined,
@@ -689,14 +689,14 @@ const PurchasedMediaPage: React.FC = () => {
                         >
                           <span>Watch Later</span>
                         </button>
-                        <button
+                        {/* <button
                           className={`multi-tab-switch-btn ${
                             activeTab === "all-media" ? "active" : ""
                           }`}
                           onClick={() => handleTabClick("all-media")}
                         >
                           <span>All Media</span>
-                        </button>
+                        </button> */}
                         <button
                           className={`multi-tab-switch-btn ${
                             activeTab === "recently-purchased" ? "active" : ""
@@ -715,9 +715,12 @@ const PurchasedMediaPage: React.FC = () => {
                         </button>
                       </div>
 
-                      <a href="#" className="btn-txt-gradient">
+                      <button
+                        className="btn-txt-gradient"
+                        onClick={() => handleTabClick("collection")}
+                      >
                         <span>View All Collection</span>
-                      </a>
+                      </button>
                     </div>
 
                     <div className="multi-tabs-content-container content-creator-profile-tabs-layout-wrapper">

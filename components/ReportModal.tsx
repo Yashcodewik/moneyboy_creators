@@ -10,7 +10,7 @@ import { useFormik } from "formik";
 interface ReportModalProps {
   onClose: (reported?: boolean) => void;
   postId: string;
-  imageUrl?: string; 
+  imageUrl?: string;
 }
 
 export const reportSchema = yup.object().shape({
@@ -19,7 +19,7 @@ export const reportSchema = yup.object().shape({
     .required("Please select a report reason")
     .notOneOf(["Select Report Option"], "Please select a valid reason"),
 });
-const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId ,imageUrl}) => {
+const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) => {
   const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
@@ -36,7 +36,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId ,imageUrl}) =
           url: API_REPOET_POST,
           values: {
             title: values.title,
-            description: values.description, 
+            description: values.description,
             postId,
           },
         });
@@ -67,11 +67,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId ,imageUrl}) =
         </button>
         <h3 className="title">Report Pop-Up</h3>
         <div className="img_wrap">
-  <img
-    src={imageUrl || "/images/profile-avatars/profile-avatar-1.png"}
-    alt="Post Image"
-  />
-</div>
+          <img
+            src={imageUrl || "/images/profile-avatars/profile-avatar-1.png"}
+            alt="Post Image"
+          />
+        </div>
         <div>
           <label>
             Title <span>*</span>
@@ -106,7 +106,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId ,imageUrl}) =
               },
               { label: "Child abuse", value: "child_abuse" },
               { label: "Promotes terrorism", value: "promotes_terrorism" },
-              { label: "Spam or misleading", value: "spam_or_misleading" }, 
+              { label: "Spam or misleading", value: "spam_or_misleading" },
               { label: "Infringes my rights", value: "infringes_my_rights" },
               { label: "Others", value: "others" },
             ]}

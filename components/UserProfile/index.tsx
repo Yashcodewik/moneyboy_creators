@@ -33,6 +33,8 @@ import {
   unfollowUserAction,
 } from "@/redux/other/followActions";
 import Link from "next/link";
+import { PhotoProvider } from "react-photo-view";
+import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
 
 interface UserProfile {
   _id: string;
@@ -723,6 +725,22 @@ const UserProfilepage = () => {
               Popular
             </button>
           </div>
+                <PhotoProvider
+              toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible }) => {
+                if (!visible) return null;
+                return (
+                  <div className="toolbar_controller">
+                    <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
+                    <span>{index + 1} / {images.length}</span>
+                    <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
+                    <button className="btn_icons" onClick={() => onScale(scale + 0.2)}><ZoomIn size={20} /></button>
+                    <button className="btn_icons" onClick={() => onScale(Math.max(0.5, scale - 0.2))}><ZoomOut size={20} /></button>
+                    <button className="btn_icons" onClick={() => onRotate(rotate + 90)}><RotateCw size={20} /></button>
+                    <button className="btn_icons" onClick={onClose}><X size={20} /></button>
+                  </div>
+                );
+              }}
+            >
           <div
             id="feed-scroll-container"
             className="moneyboy-posts-scroll-container"
@@ -754,6 +772,7 @@ const UserProfilepage = () => {
                   ))}
               </InfiniteScrollWrapper> */}
           </div>
+          </PhotoProvider>
         </div>
       </div>
 
