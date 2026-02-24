@@ -134,3 +134,5 @@ export const API_GET_CARDS = "/subscription/get-cards";
 export const API_ADD_WALLET = "/subscription/wallet/add";
 export const API_GET_WALLET = "/subscription/wallet/balance";
 export const API_GET_NOTIFICATIONS = "/post/get-notifications";
+export const API_APPROVE_POST = "/post/approve";
+export const API_REJECT_POST = "/post/reject";
