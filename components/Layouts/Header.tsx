@@ -162,11 +162,11 @@ const Header = () => {
   };
 
   const handleWalletClick = (e: React.MouseEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-  setIsOpen(false);
-  router.push("/wallet-transactions?tab=wallet");
-};
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(false);
+    router.push("/wallet-transactions?tab=wallet");
+  };
 
   return (
     <>
@@ -175,15 +175,7 @@ const Header = () => {
           <div className="header-container">
             <div className="header-logo">
               <Link href="/">
-                {/* <Image
-                  src="/images/logo/moneyboy-logo.png"
-                  alt="MoneyBoy Logo"
-                  fill priority
-                /> */}
-                <img
-                  src="/images/logo/moneyboy-logo.png"
-                  alt="MoneyBoy Social Logo"
-                />
+                <img src="/images/logo/moneyboy-logo.png" alt="MoneyBoy Social Logo" />
               </Link>
             </div>
 
@@ -191,38 +183,11 @@ const Header = () => {
               <div className="header-search-input">
                 <div className="label-input">
                   <div className="input-placeholder-icon">
-                    <svg
-                      className="svg-icon"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <path
-                        d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14 5H20"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14 8H17"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                    <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                   <input type="text" placeholder="Search here" />
@@ -235,117 +200,35 @@ const Header = () => {
                     <nav>
                       <ul>
                         <li className="message-btn">
-                          <a
-                            href="#"
-                            className={`icon-link ${
-                              isMessagePage ? "active" : ""
-                            }`} // Add active class conditionally
-                            onClick={handleMessage}
-                          >
-                            <svg
-                              className="svg-icon"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H12"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M15.2 4.62C14.87 3.63 15.26 2.41 16.34 2.07C16.9 1.9 17.6 2.04 18 2.57C18.38 2.02 19.1 1.9 19.66 2.07C20.74 2.4 21.13 3.63 20.8 4.62C20.29 6.19 18.5 7 18 7C17.5 7 15.73 6.2 15.2 4.62Z"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M15.9965 11H16.0054"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M11.9955 11H12.0045"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7.99451 11H8.00349"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
+                          <Link href="#" className={`icon-link ${isMessagePage ? "active" : ""}`} onClick={handleMessage}>
+                            <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                              <path d="M22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H12" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M15.2 4.62C14.87 3.63 15.26 2.41 16.34 2.07C16.9 1.9 17.6 2.04 18 2.57C18.38 2.02 19.1 1.9 19.66 2.07C20.74 2.4 21.13 3.63 20.8 4.62C20.29 6.19 18.5 7 18 7C17.5 7 15.73 6.2 15.2 4.62Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M15.9965 11H16.0054" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M11.9955 11H12.0045" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M7.99451 11H8.00349" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
-                          </a>
+                          </Link>
                         </li>
                         <li>
-                          <a
-                            href="#"
-                            className={`icon-link ${
-                              isNotificationsPage ? "active" : ""
-                            }`} // Add active class conditionally
-                            onClick={handleNotificationClick}
-                          >
-                            {/* SVG for another icon */}
-                            <svg
-                              className="svg-icon"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7 13H12"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7 17H16"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M14 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V10"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
+                          <Link href="#" className={`icon-link ${isNotificationsPage ? "active" : ""}`} onClick={handleNotificationClick}>
+                            <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                              <path d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M7 13H12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M7 17H16" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M14 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V10" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
-                          </a>
+                          </Link>
                         </li>
                       </ul>
                     </nav>
                   </div>
 
                   <div className="header-profile-avatar">
-                    <button
-                      data-floating-menu-triger
-                      ref={buttonRef}
-                      onClick={() => setIsOpen((prev) => !prev)}
-                    >
+                    <button data-floating-menu-triger ref={buttonRef} onClick={() => setIsOpen((prev) => !prev)}>
                       <div className="profile-avatar">
                         {userProfile?.profile ? (
-                          <Image
-                            src={userProfile.profile}
-                            alt="User Image"
-                            width={40}
-                            height={40}
-                          />
+                          <Image src={userProfile.profile} alt="User Image" width={40} height={40} />
                         ) : (
                           <NoProfileSvg />
                         )}
@@ -355,14 +238,8 @@ const Header = () => {
                 </>
               ) : (
                 <div className="header-auth-buttons flex items-center gap-10">
-                  <Link href="/login" className="btn-txt-gradient btn-grey">
-                    {" "}
-                    <span>Sign In</span>
-                  </Link>
-                  <Link href="/benefits" className="btn-txt-gradient">
-                    {" "}
-                    <span>Sign Up</span>
-                  </Link>
+                  <Link href="/login" className="btn-txt-gradient btn-grey">{" "} <span>Sign In</span></Link>
+                  <Link href="/benefits" className="btn-txt-gradient"> {" "}<span>Sign Up</span></Link>
                 </div>
               )}
             </div>
@@ -371,34 +248,12 @@ const Header = () => {
       </header>
 
       {isOpen && (
-        <div
-          className="floating-menu-container"
-          data-floating-menu-main
-          ref={menuRef}
-          onClick={() => setIsOpen(false)}
-        >
-          <div
-            className="menu-content-wrapper"
-            ref={menuRef}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="floating-menu-container" data-floating-menu-main ref={menuRef} onClick={() => setIsOpen(false)}>
+          <div className="menu-content-wrapper" ref={menuRef} onClick={(e) => e.stopPropagation()}>
             <div className="menu-content-container">
-              <div
-                className="menu-close-btn"
-                data-floating-menu-close-btn
-                onClick={() => setIsOpen(false)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="31"
-                  height="31"
-                  viewBox="0 0 31 31"
-                  fill="none"
-                >
-                  <path
-                    d="M15.4998 0.916668C7.46442 0.916668 0.916504 7.46458 0.916504 15.5C0.916504 23.5354 7.46442 30.0833 15.4998 30.0833C23.5353 30.0833 30.0832 23.5354 30.0832 15.5C30.0832 7.46458 23.5353 0.916668 15.4998 0.916668ZM20.3998 18.8542C20.8228 19.2771 20.8228 19.9771 20.3998 20.4C20.1811 20.6188 19.904 20.7208 19.6269 20.7208C19.3498 20.7208 19.0728 20.6188 18.854 20.4L15.4998 17.0458L12.1457 20.4C11.9269 20.6188 11.6498 20.7208 11.3728 20.7208C11.0957 20.7208 10.8186 20.6188 10.5998 20.4C10.1769 19.9771 10.1769 19.2771 10.5998 18.8542L13.954 15.5L10.5998 12.1458C10.1769 11.7229 10.1769 11.0229 10.5998 10.6C11.0228 10.1771 11.7228 10.1771 12.1457 10.6L15.4998 13.9542L18.854 10.6C19.2769 10.1771 19.9769 10.1771 20.3998 10.6C20.8228 11.0229 20.8228 11.7229 20.3998 12.1458L17.0457 15.5L20.3998 18.8542Z"
-                    fill="none"
-                  />
+              <div className="menu-close-btn" data-floating-menu-close-btn onClick={() => setIsOpen(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="31" height="31" viewBox="0 0 31 31" fill="none">
+                  <path d="M15.4998 0.916668C7.46442 0.916668 0.916504 7.46458 0.916504 15.5C0.916504 23.5354 7.46442 30.0833 15.4998 30.0833C23.5353 30.0833 30.0832 23.5354 30.0832 15.5C30.0832 7.46458 23.5353 0.916668 15.4998 0.916668ZM20.3998 18.8542C20.8228 19.2771 20.8228 19.9771 20.3998 20.4C20.1811 20.6188 19.904 20.7208 19.6269 20.7208C19.3498 20.7208 19.0728 20.6188 18.854 20.4L15.4998 17.0458L12.1457 20.4C11.9269 20.6188 11.6498 20.7208 11.3728 20.7208C11.0957 20.7208 10.8186 20.6188 10.5998 20.4C10.1769 19.9771 10.1769 19.2771 10.5998 18.8542L13.954 15.5L10.5998 12.1458C10.1769 11.7229 10.1769 11.0229 10.5998 10.6C11.0228 10.1771 11.7228 10.1771 12.1457 10.6L15.4998 13.9542L18.854 10.6C19.2769 10.1771 19.9769 10.1771 20.3998 10.6C20.8228 11.0229 20.8228 11.7229 20.3998 12.1458L17.0457 15.5L20.3998 18.8542Z" fill="none"/>
                 </svg>
               </div>
               <div className="menu-content">
@@ -408,35 +263,13 @@ const Header = () => {
                       <div className="profile-card__avatar-settings">
                         <div className="profile-card__avatar">
                           {userProfile?.profile ? (
-                            <Image
-                              src={userProfile.profile}
-                              alt="User Image"
-                              width={40}
-                              height={40}
-                            />
+                            <Image src={userProfile.profile} alt="User Image" width={40} height={40}/>
                           ) : (
                             <div className="noprofile">
-                              <svg
-                                width="40"
-                                height="40"
-                                viewBox="0 0 66 54"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  className="animate-m"
-                                  d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                                  fill="url(#paint0_linear_4470_53804)"
-                                />
+                              <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
                                 <defs>
-                                  <linearGradient
-                                    id="paint0_linear_4470_53804"
-                                    x1="0"
-                                    y1="27"
-                                    x2="66"
-                                    y2="27"
-                                    gradientUnits="userSpaceOnUse"
-                                  >
+                                  <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
                                     <stop stop-color="#FDAB0A" />
                                     <stop offset="0.4" stop-color="#FECE26" />
                                     <stop offset="1" stop-color="#FE990B" />
@@ -453,9 +286,9 @@ const Header = () => {
                             {profileLoading
                               ? "Loading..."
                               : userProfile?.displayName ||
-                                userProfile?.name ||
-                                session?.user?.name ||
-                                "Corey Bergson"}
+                              userProfile?.name ||
+                              session?.user?.name ||
+                              "Corey Bergson"}
                           </div>
                           {session?.user?.role === 2 && (
                             <div className="profile-card__badge">
@@ -469,11 +302,10 @@ const Header = () => {
                         <div className="profile-card__username">
                           {profileLoading
                             ? "@loading"
-                            : `@${
-                                userProfile?.username ||
-                                session?.user?.username ||
-                                "coreybergson"
-                              }`}
+                            : `@${userProfile?.username ||
+                            session?.user?.username ||
+                            "coreybergson"
+                            }`}
                         </div>
                       </div>
                     </div>
@@ -481,43 +313,12 @@ const Header = () => {
                     <div className="menu-profile-stats">
                       <div className="menu-profile-stats-item">
                         <div className="icon">
-                          <Link
-                            href="/wallet-transactions?tab=wallet"
-                            className="load-wallet-btn"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M18.04 14.05C17.62 14.46 17.38 15.05 17.44 15.68C17.53 16.76 18.52 17.55 19.6 17.55H21.5V18.74C21.5 20.81 19.81 22.5 17.74 22.5H6.26C4.19 22.5 2.5 20.81 2.5 18.74V12.01C2.5 9.94001 4.19 8.25 6.26 8.25H17.74C19.81 8.25 21.5 9.94001 21.5 12.01V13.45H19.48C18.92 13.45 18.41 13.67 18.04 14.05Z"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M2.5 12.91V8.34004C2.5 7.15004 3.23 6.09 4.34 5.67L12.28 2.67C13.52 2.2 14.85 3.12003 14.85 4.45003V8.25002"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M22.5588 14.4702V16.5302C22.5588 17.0802 22.1188 17.5302 21.5588 17.5502H19.5988C18.5188 17.5502 17.5288 16.7602 17.4388 15.6802C17.3788 15.0502 17.6188 14.4602 18.0388 14.0502C18.4088 13.6702 18.9188 13.4502 19.4788 13.4502H21.5588C22.1188 13.4702 22.5588 13.9202 22.5588 14.4702Z"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7 12.5H14"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
+                          <Link href="/wallet-transactions?tab=wallet" className="load-wallet-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 25" fill="none">
+                              <path d="M18.04 14.05C17.62 14.46 17.38 15.05 17.44 15.68C17.53 16.76 18.52 17.55 19.6 17.55H21.5V18.74C21.5 20.81 19.81 22.5 17.74 22.5H6.26C4.19 22.5 2.5 20.81 2.5 18.74V12.01C2.5 9.94001 4.19 8.25 6.26 8.25H17.74C19.81 8.25 21.5 9.94001 21.5 12.01V13.45H19.48C18.92 13.45 18.41 13.67 18.04 14.05Z" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M2.5 12.91V8.34004C2.5 7.15004 3.23 6.09 4.34 5.67L12.28 2.67C13.52 2.2 14.85 3.12003 14.85 4.45003V8.25002" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M22.5588 14.4702V16.5302C22.5588 17.0802 22.1188 17.5302 21.5588 17.5502H19.5988C18.5188 17.5502 17.5288 16.7602 17.4388 15.6802C17.3788 15.0502 17.6188 14.4602 18.0388 14.0502C18.4088 13.6702 18.9188 13.4502 19.4788 13.4502H21.5588C22.1188 13.4702 22.5588 13.9202 22.5588 14.4702Z" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M7 12.5H14" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </Link>
                         </div>
@@ -525,14 +326,8 @@ const Header = () => {
                           <div className="stats-label"> Wallet </div>
                           <div className="stats-value">
                             <span> {userProfile?.walletBalance} </span>
-                            <Link  href="/add-funds?tab=addfunds" className="load-wallet-btn">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                              >
+                            <Link href="/add-funds?tab=addfunds" className="load-wallet-btn">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path
                                   d="M5.3335 8H10.6668"
                                   stroke="url(#paint0_linear_1510_49)"
@@ -998,67 +793,67 @@ const Header = () => {
                           <span>Banking (to earn)</span>
                         </a>
                       )}
-                      
-                        <a
-                          href="/add-funds"
-                          className="menu-link add-payment-method-link"
+
+                      <a
+                        href="/add-funds"
+                        className="menu-link add-payment-method-link"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M17.7514 7.04997C17.5114 7.00997 17.2614 6.99998 17.0014 6.99998H7.00141C6.72141 6.99998 6.45141 7.01998 6.19141 7.05998C6.33141 6.77998 6.53141 6.52001 6.77141 6.28001L10.0214 3.02C11.3914 1.66 13.6114 1.66 14.9814 3.02L16.7314 4.78996C17.3714 5.41996 17.7114 6.21997 17.7514 7.04997Z"
-                              stroke="none"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M9 19C9 19.75 8.79 20.46 8.42 21.06C7.73 22.22 6.46 23 5 23C3.54 23 2.27 22.22 1.58 21.06C1.21 20.46 1 19.75 1 19C1 16.79 2.79 15 5 15C7.21 15 9 16.79 9 19Z"
-                              stroke="none"
-                              stroke-width="1.5"
-                              stroke-miterlimit="10"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M6.49172 18.9795H3.51172"
-                              stroke="none"
-                              stroke-width="1.5"
-                              stroke-miterlimit="10"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M5 17.5195V20.5095"
-                              stroke="none"
-                              stroke-width="1.5"
-                              stroke-miterlimit="10"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M22 12V17C22 20 20 22 17 22H7.63C7.94 21.74 8.21 21.42 8.42 21.06C8.79 20.46 9 19.75 9 19C9 16.79 7.21 15 5 15C3.8 15 2.73 15.53 2 16.36V12C2 9.28 3.64 7.38 6.19 7.06C6.45 7.02 6.72 7 7 7H17C17.26 7 17.51 7.00999 17.75 7.04999C20.33 7.34999 22 9.26 22 12Z"
-                              stroke="none"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M22 12.5H19C17.9 12.5 17 13.4 17 14.5C17 15.6 17.9 16.5 19 16.5H22"
-                              stroke="none"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                          <span>Add Payment Method</span>
-                        </a>
-                      
+                          <path
+                            d="M17.7514 7.04997C17.5114 7.00997 17.2614 6.99998 17.0014 6.99998H7.00141C6.72141 6.99998 6.45141 7.01998 6.19141 7.05998C6.33141 6.77998 6.53141 6.52001 6.77141 6.28001L10.0214 3.02C11.3914 1.66 13.6114 1.66 14.9814 3.02L16.7314 4.78996C17.3714 5.41996 17.7114 6.21997 17.7514 7.04997Z"
+                            stroke="none"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                          <path
+                            d="M9 19C9 19.75 8.79 20.46 8.42 21.06C7.73 22.22 6.46 23 5 23C3.54 23 2.27 22.22 1.58 21.06C1.21 20.46 1 19.75 1 19C1 16.79 2.79 15 5 15C7.21 15 9 16.79 9 19Z"
+                            stroke="none"
+                            stroke-width="1.5"
+                            stroke-miterlimit="10"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                          <path
+                            d="M6.49172 18.9795H3.51172"
+                            stroke="none"
+                            stroke-width="1.5"
+                            stroke-miterlimit="10"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                          <path
+                            d="M5 17.5195V20.5095"
+                            stroke="none"
+                            stroke-width="1.5"
+                            stroke-miterlimit="10"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                          <path
+                            d="M22 12V17C22 20 20 22 17 22H7.63C7.94 21.74 8.21 21.42 8.42 21.06C8.79 20.46 9 19.75 9 19C9 16.79 7.21 15 5 15C3.8 15 2.73 15.53 2 16.36V12C2 9.28 3.64 7.38 6.19 7.06C6.45 7.02 6.72 7 7 7H17C17.26 7 17.51 7.00999 17.75 7.04999C20.33 7.34999 22 9.26 22 12Z"
+                            stroke="none"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                          <path
+                            d="M22 12.5H19C17.9 12.5 17 13.4 17 14.5C17 15.6 17.9 16.5 19 16.5H22"
+                            stroke="none"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                        <span>Add Payment Method</span>
+                      </a>
+
                     </div>
                   </div>
                   <div className="links-block">
@@ -1066,9 +861,8 @@ const Header = () => {
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className={`menu-link posts-link ${
-                            pathname === "/like" ? "active" : ""
-                          }`}
+                          className={`menu-link posts-link ${pathname === "/like" ? "active" : ""
+                            }`}
                           onClick={(e) => handleTabNavigation(e, "posts")}
                         >
                           <svg
@@ -1113,9 +907,8 @@ const Header = () => {
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className={`menu-link videos-link ${
-                            pathname === "/like" ? "active" : ""
-                          }`}
+                          className={`menu-link videos-link ${pathname === "/like" ? "active" : ""
+                            }`}
                           onClick={(e) => handleTabNavigation(e, "videos")}
                         >
                           <svg
