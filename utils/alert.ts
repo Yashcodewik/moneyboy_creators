@@ -1,5 +1,6 @@
 import Swal, { SweetAlertIcon } from "sweetalert2";
 import "@/public/styles/style.scss";
+
 /* ================= BASE CONFIG ================= */
 const baseConfig = {
   buttonsStyling: false,
@@ -13,69 +14,90 @@ const baseConfig = {
 };
 
 /* ================= AUTO ALERT ================= */
-const autoAlert = ( icon: SweetAlertIcon, message: string, timer = 2200
+const autoAlert = (
+  icon: SweetAlertIcon,
+  message: string,
+  timer = 2200
 ) => {
   Swal.fire({
-    ...baseConfig,
-    icon,
-    title: message,
-    showConfirmButton: false,
-    timer,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.addEventListener("mouseenter", Swal.stopTimer);
-      toast.addEventListener("mouseleave", Swal.resumeTimer);
-    },
+    ...baseConfig, icon, title: message, showConfirmButton: false, timer, timerProgressBar: true,
+    didOpen: (toast) => { toast.addEventListener("mouseenter", Swal.stopTimer); toast.addEventListener("mouseleave", Swal.resumeTimer); },
   });
 };
 
 /* ================= SIMPLE ALERTS ================= */
-export const showSuccess = (message: string) => autoAlert("success", message);
-export const showError = (message: string) => autoAlert("error", message, 2600);
-export const showWarning = (message: string) => autoAlert("warning", message, 2600);
-export const showInfo = (message: string) => autoAlert("info", message, 2400);
+export const showSuccess = (msg: string) => autoAlert("success", msg);
+export const showError = (msg: string) => autoAlert("error", msg, 2600);
+export const showWarning = (msg: string) => autoAlert("warning", msg, 2600);
+export const showInfo = (msg: string) => autoAlert("info", msg, 2400);
 
 /* ================= YES / NO QUESTION ================= */
 export const showQuestion = async (message: string): Promise<boolean> => {
-  const result = await Swal.fire({...baseConfig, icon: "question", title: message, showCancelButton: true, confirmButtonText: "<span>Yes</span>", cancelButtonText: "<span>No</span>", focusCancel: true,});
+  const result = await Swal.fire({ ...baseConfig, icon: "question", title: message, showCancelButton: true, confirmButtonText: "<span>Yes</span>", cancelButtonText: "<span>No</span>", focusCancel: true, });
   return result.isConfirmed;
 };
 
 /* ========== ACCEPT POST CONSENT MODAL ========== */
-export const showAcceptPostConsent = async (): Promise<{
-  accepted: boolean;
-  allowTag: boolean;
-} | null> => {
-  const { value, isDismissed } = await Swal.fire({
+export const showAcceptPostConsent = async (): Promise<boolean> => {
+  const result = await Swal.fire({
     ...baseConfig,
+    showCloseButton: true,
+    closeButtonHtml: "&times;",
     title: "Accept Post",
     html: `
       <div class="selectcont_wrap">
         <p>Please confirm before publishing this post.</p>
         <div class="select_wrap">
-          <label class="radio_wrap">
-            <input type="checkbox" id="acceptTC" checked disabled /> I accept the Terms & Conditions
-          </label>
-          <label class="radio_wrap">
-            <input type="checkbox" id="allowTag" checked disabled /> I Allow Myself To Be Tagged In This Post
-          </label>
+          <label class="radio_wrap"><input type="radio" name="consent" value="accept"> I accept the Terms & Conditions</label>
+          <label class="radio_wrap"><input type="radio" name="consent" value="tag"> I Allow Myself To Be Tagged In This Post</label>
         </div>
       </div>
     `,
     confirmButtonText: "<span>Accept & Continue</span>",
-    cancelButtonText: "<span>Cancel</span>",
-    showCancelButton: true,
 
     preConfirm: () => {
-      return {
-        accepted: true,
-        allowTag: true,
-      };
+      const selected = document.querySelector('input[name="consent"]:checked') as HTMLInputElement | null;
+      if (!selected) { Swal.showValidationMessage("Please select an option"); return false; }
+      return true;
     },
   });
 
-  if (isDismissed) return null;
-  return value;
+  return result.isConfirmed;
+};
+
+/* ========== DECLINE REASON MODAL ========== */
+export const showDeclineReason = async (): Promise<string | null> => {
+  const result = await Swal.fire({
+    ...baseConfig,
+    showCloseButton: true,
+    closeButtonHtml: "&times;",
+    title: "Decline Post",
+    html: `
+      <div class="input-wrap">
+        <label>Description</label>
+        <textarea id="declineNote" class="swal2-textarea" maxlength="300" placeholder="Tell us why you decline..."> </textarea>
+        <label class="right">0/300</label>
+      </div>
+    `,
+    confirmButtonText: "<span>Submit</span>",
+    showCancelButton: false,
+    didOpen: () => {
+      const textarea = document.getElementById("declineNote") as HTMLTextAreaElement;
+      const counter = document.getElementById("charCount");
+      textarea.focus();
+      textarea.addEventListener("input", () => { if (counter) counter.textContent = textarea.value.length.toString(); });
+    },
+
+    preConfirm: () => {
+      const note = (document.getElementById("declineNote") as HTMLTextAreaElement).value;
+      if (!note.trim()) { Swal.showValidationMessage("Please enter a reason"); return false; }
+      return note;
+    },
+  });
+
+  if (result.isConfirmed) { showWarning("Post declined"); return result.value; }
+  showInfo("Decline cancelled");
+  return null;
 };
 
 

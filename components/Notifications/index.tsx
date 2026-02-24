@@ -8,7 +8,14 @@ import { CgClose } from "react-icons/cg";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_GET_NOTIFICATIONS } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
-import { showAcceptPostConsent, showSuccess, showError,} from "@/utils/alert";
+import FlipClockCountdown from '@leenguyen/react-flip-clock-countdown';
+import '@leenguyen/react-flip-clock-countdown/dist/index.css';
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { showAcceptPostConsent, showSuccess, showError, showDeclineReason} from "@/utils/alert";
 
 const NotificationPage = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -101,15 +108,12 @@ const NotificationPage = () => {
   }
 
   const handlePublish = async () => {
-    const consent = await showAcceptPostConsent();
-    if (!consent) return;
-    if (consent.accepted) {
-      console.log("Consent Data:", consent);
-      showSuccess("Post published successfully!");
-    } else {
-      showError("Post not accepted");
-    }
+    const accepted = await showAcceptPostConsent();
+    if (!accepted) return;
+    showSuccess("Post published successfully!");
   };
+
+  const endTime = new Date().getTime() + 24 * 60 * 60 * 1000;
 
   return (
     <>
@@ -126,57 +130,33 @@ const NotificationPage = () => {
                 </div>
               </div>
               <div className="noti-list-wrapper">
-                {loading && <p>Loading...</p>}
+                {loading && <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
 
                 {!loading && notifications.length === 0 && (
-                  <p>No notifications</p>
+                  <div className="nofound small"><h3 className="first">No Notifications Found</h3><h3 className="second">No Notifications Found</h3></div>
                 )}
 
                 {notifications.map((noti) => (
                   <div className="noti-item" key={noti._id}>
                     <div className="noti-item--icon">
-                      <img
-                        src={
-                          noti.senderId?.profile ||
-                          "/images/logo/black-logo-square.png"
-                        }
-                        alt="#"
-                      />
+                      <img src={noti.senderId?.profile || "/images/logo/black-logo-square.png"} alt="#"/>
                     </div>
-
                     <div className="noti-details-container">
                       <div className="noti-title-time-wrapper">
                         <div className="noti-title">
-                          <h4>
-                            @{noti.senderId?.userName} {noti.title}
-                          </h4>
+                          <h4>@{noti.senderId?.userName} {noti.title}</h4>
                         </div>
-
-                        <div className="noti-time">
-                          <span>{formatTime(noti.createdAt)}</span>
-                        </div>
-
+                        <div className="noti-time"><span>{formatTime(noti.createdAt)}</span></div>
                         {noti.type === 3 && (
                           <div className="noti-more-actions iconbtn">
-                            <button className="btn-gray viewbtn">
-                              <Eye size={16} />
-                            </button>
-                            <button className="btn-gray acceptbtn" onClick={handlePublish}>
-                              <Check size={16} />
-                            </button>
-                            <button className="btn-gray declinebtn">
-                              <X size={16} />
-                            </button>
+                            <button className="btn-gray viewbtn"><Eye size={16} /></button>
+                            <button className="btn-gray acceptbtn" onClick={handlePublish}><Check size={16} /></button>
+                            <button className="btn-gray declinebtn" onClick={showDeclineReason}><X size={16} /></button>
                           </div>
                         )}
                       </div>
-
                       <div className="noti-desc">
-                        <p>
-                          {noti.type === 3
-                            ? "Collaboration request awaiting approval."
-                            : ""}
-                        </p>
+                        <p>{noti.type === 3 ? "Collaboration request awaiting approval." : ""}</p>
                       </div>
                     </div>
                   </div>
@@ -193,7 +173,14 @@ const NotificationPage = () => {
           <h3 className="title">Post Details</h3>
           <div className="post_wrap">
             <div className="img_wrap">
-              <img src="/images/post-images/post-img-1.png" alt="Profile Avatar" />
+            <Swiper modules={[Navigation, Pagination, Autoplay]} spaceBetween={20} slidesPerView={1} navigation pagination={{ clickable: true }} autoplay={{ delay: 3000 }} loop={true}>
+              <SwiperSlide>
+                <img src="/images/post-images/post-img-1.png" alt="Profile Avatar" />
+              </SwiperSlide>
+              <SwiperSlide>
+                <img src="/images/post-images/post-img-1.png" alt="Profile Avatar" />
+              </SwiperSlide>
+            </Swiper>
             </div>
             <div className="details_wrap">
               <div className="charge_wrap">
@@ -207,9 +194,9 @@ const NotificationPage = () => {
               </ul>
             </div>
           </div>
-          <div className="actions mt-3">
-            <button className="btn-danger active-down-effect" type="button"><span>Rejected</span></button>
-            <button className="premium-btn active-down-effect" type="button"><span>Accepted</span></button>
+          <div className="timer_wrap mt-3">
+            <p>You Have TO Viwe THis Post Times</p>
+            <FlipClockCountdown to={endTime} labels={['', '', '', '']}  renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{display: 'none',}} digitBlockStyle={{ width: 26, height: 34, fontSize: 18, }}>Finished</FlipClockCountdown>
           </div>
         </form>
       </div>
