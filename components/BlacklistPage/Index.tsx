@@ -108,19 +108,9 @@ const BlacklistPage = () => {
             data-multiple-tabs-section
             data-identifier="1"
           >
-            <div
-              className="moneyboy-feed-page-cate-buttons card"
-              id="posts-tabs-btn-card"
-            >
-              <button
-                className="cate-back-btn active-down-effect"
-                onClick={() => router.push("/feed")}
-              >
-                <span className="icons arrowLeft hwhite"></span>
-              </button>
-              <button className="page-content-type-button active-down-effect active max-w-50">
-                Blacklist
-              </button>
+            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+              <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}><span className="icons arrowLeft hwhite"></span></button>
+              <button className="page-content-type-button active-down-effect active max-w-50">Blacklist</button>
             </div>
             <div className="tabs-content-wrapper-layout">
               <div data-multi-dem-cards-layout>

@@ -3994,16 +3994,16 @@
                 background: var(--color-text-active);
                 transition: all 0.2s ease;
                 svg {
-                  filter: brightness(0) invert(1);
+                  /* filter: brightness(0) invert(1); */
                 }
                 &.viewbtn {
                   svg {
                     path {
-                      stroke: rgb(167, 123, 255);
+                      stroke: var(--color-secondary);
                       fill: none;
                     }
                     circle {
-                      stroke: rgb(167, 123, 255);
+                      stroke: var(--color-secondary);
                       fill: none;
                     }
                   }
@@ -4018,7 +4018,7 @@
                 &.acceptbtn {
                   svg {
                     path {
-                      stroke: #008141;
+                      stroke: var(--color-secondary);
                       fill: none;
                     }
                   }
@@ -4033,7 +4033,7 @@
                 &.declinebtn {
                   svg {
                     path {
-                      stroke: #cd3f3f;
+                      stroke: var(--color-secondary);
                       fill: none;
                     }
                   }

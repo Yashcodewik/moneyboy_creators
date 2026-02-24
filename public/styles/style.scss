@@ -2819,6 +2819,32 @@ body {
         font-family: var(--font-family-heading);
       }
     }
+    .scrollbar {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding: 0px;
+      max-height: calc(35dvh - 0px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      background-color: #fff;
+      border-radius: 20px;
+      scrollbar-width: thin;
+      scrollbar-color: #aaaaaa transparent;
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #aaaaaa;
+        border-radius: 10px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &:hover {
+        scrollbar-color: #aaaaaa #0000;
+      }
+    }
     &.ageverify-modal {
       padding: 50px;
       display: flex;
