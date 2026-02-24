@@ -312,6 +312,26 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         }
     };
 
+
+    useEffect(() => {
+  const handleOutsideClick = (e: MouseEvent) => {
+    const target = e.target as Node;
+
+    // if click is outside menu AND button → close menu
+    if (
+      open &&
+      menuRef.current &&
+      !menuRef.current.contains(target) &&
+      buttonRef.current &&
+      !buttonRef.current.contains(target)
+    ) {
+      setOpen(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+  return () => document.removeEventListener("mousedown", handleOutsideClick);
+}, [open]);
     return (
         <>
             <div className="moneyboy-post__container card">
@@ -396,7 +416,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 </div>
                 <div className="moneyboy-post__media">
                     <div className="moneyboy-post__img">
-                        <PhotoProvider
+                        {/* <PhotoProvider
                             toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible }) => {
                                 if (!visible) return null;
                                 return (
@@ -410,7 +430,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                         <button className="btn_icons" onClick={onClose}><X size={20} /></button>
                                     </div>
                                 );
-                            }}>
+                            }}> */}
                             <Swiper slidesPerView={1} spaceBetween={15} navigation modules={[Navigation]} className="post_swiper">
                                 {post.media?.[0]?.mediaFiles?.length > 0 ? (post.media[0].mediaFiles.map((file: string, i: number) => {
                                     const isVideo = post.media?.[0]?.type === "video";
@@ -428,7 +448,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                     <SwiperSlide><div className="nomedia"></div></SwiperSlide>
                                 )}
                             </Swiper>
-                        </PhotoProvider>
+                        {/* </PhotoProvider> */}
                     </div>
                     <div className="moneyboy-post__actions">
                         <ul>
