@@ -32,6 +32,7 @@ import {
   followUserAction,
   unfollowUserAction,
 } from "@/redux/other/followActions";
+import Link from "next/link";
 
 interface UserProfile {
   _id: string;
@@ -612,6 +613,8 @@ const UserProfilepage = () => {
                 </div>
                 <div className="creator-profile-stats-link">
                   <div className="profile-card__stats">
+                    <Link href={`/follower?tab=followers&id=${userProfile?._id}`}>
+                    
                     <div className="profile-card__stats-item followers-stats">
                       <div className="profile-card__stats-num">
                         {userProfile?.followerCount ?? 0}
@@ -657,6 +660,8 @@ const UserProfilepage = () => {
                         <span>Followers</span>
                       </div>
                     </div>
+                    </Link>
+                    <Link href={`/follower?tab=following&id=${userProfile?._id}`}>
                     <div className="profile-card__stats-item following-stats">
                       <div className="profile-card__stats-num">
                         {userProfile?.followingCount ?? 0}
@@ -687,6 +692,7 @@ const UserProfilepage = () => {
                         <span>Following</span>
                       </div>
                     </div>
+                    </Link>
                   </div>
                 </div>
               </div>

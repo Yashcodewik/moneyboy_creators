@@ -131,3 +131,6 @@ export const API_PAYPAL = "/subscription/paypal";
 export const API_PAYPAL_DETAIL = "/subscription/paypal";
 export const API_ADD_CARD = "/subscription/add-card";
 export const API_GET_CARDS = "/subscription/get-cards";
+export const API_ADD_WALLET = "/subscription/wallet/add";
+export const API_GET_WALLET = "/subscription/wallet/balance";
+export const API_GET_NOTIFICATIONS = "/post/get-notifications";

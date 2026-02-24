@@ -1262,8 +1262,7 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       {/* Followers */}
-                      {isOwnProfile ? (
-                        <Link href="/follower?tab=followers">
+                        <Link href={`/follower?tab=followers&id=${profile?.user?._id}`}>
                           <div className="profile-card__stats-item followers-stats">
                             <div className="profile-card__stats-num">
                               {profileStats.followerCount.toLocaleString()}
@@ -1309,65 +1308,17 @@ const ProfilePage = () => {
                             </div>
                           </div>
                         </Link>
-                      ) : (
-                        <div className="profile-card__stats-item followers-stats">
+                      {/* Following */}
+                      <Link href={`/follower?tab=following&id=${profile?.user?._id}`}>
+                        <div className="profile-card__stats-item following-stats">
                           <div className="profile-card__stats-num">
-                            {profileStats.followerCount.toLocaleString()}
+                            {profileStats.followingCount.toLocaleString()}
                           </div>
                           <div className="profile-card__stats-label">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
                               height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              ></path>
-                              <path
-                                d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              ></path>
-                              <path
-                                d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              ></path>
-                              <path
-                                d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              ></path>
-                            </svg>
-                            <span>Followers</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Following */}
-                      {isOwnProfile ? (
-                        <Link href="/follower?tab=following">
-                          <div className="profile-card__stats-item following-stats">
-                            <div className="profile-card__stats-num">
-                              {profileStats.followingCount.toLocaleString()}
-                            </div>
-                            <div className="profile-card__stats-label">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="25"
                                 viewBox="0 0 24 25"
                                 fill="none"
                               >
@@ -1390,38 +1341,7 @@ const ProfilePage = () => {
                             </div>
                           </div>
                         </Link>
-                      ) : (
-                        <div className="profile-card__stats-item following-stats">
-                          <div className="profile-card__stats-num">
-                            {profileStats.followingCount.toLocaleString()}
-                          </div>
-                          <div className="profile-card__stats-label">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="25"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              ></path>
-                              <path
-                                d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              ></path>
-                            </svg>
-                            <span>Following</span>
-                          </div>
-                        </div>
-                      )}
+                     
                     </div>
                     <div className="creator-profile-link">
                       <a
