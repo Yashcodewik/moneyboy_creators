@@ -501,7 +501,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
 
         {accessType === "pay_per_view" && (
           <div>
-            <label>Price</label>
+            <label>Price($)</label>
             <input
               className="form-input"
               type="text"
@@ -841,7 +841,7 @@ const AddFeedModal = ({ show, onClose }: feedParams) => {
           <div className="right">
             <ul>
               <li>
-                <button className="cate-back-btn active-down-effect btn_icons" data-tooltip="Share on X" disabled={!hasMedia}><FaXTwitter size={20} /></button>
+                <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Share on X" disabled={!hasMedia}><FaXTwitter size={20} /></button>
               </li>
             </ul>
             <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} disabled={isSubmitting}><span>{isSubmitting ? "Posting..." : "Post"}</span></button>
