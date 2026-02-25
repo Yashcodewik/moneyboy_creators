@@ -187,8 +187,8 @@ const AccountSecurity = ({ profile }: any) => {
         </div>
         <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap connect_social_wrap">
           <div className="select_countries_wrap">
-            <h5>Connect Your Social accounts</h5>
-            <p>Connect Your Social accounts to Your MoneYBoy Profile</p>
+            <h5>Connect Your Social Accounts</h5>
+            <p>Connect your social accounts to automatically publish your MoneyBoy posts.</p>
             <div className="btn_wrap">
               <label>Sign in With x</label>
               {profile?.socialId ? (

@@ -280,7 +280,7 @@ const NotificationPage = () => {
                       </div>
                       <div className="noti-desc">
                         <p>
-                          {noti.type === 3 && "Collaboration request awaiting approval."}
+                          {noti.type === 3 && "Review this collaboration request and choose to accept or decline."}
                           {noti.type === 4 && "Collaboration response received."}
                         </p>
                       </div>
@@ -313,10 +313,26 @@ const NotificationPage = () => {
               <div className="details_wrap">
                 {/* earning */}
                 <div className="charge_wrap">
-                  <p>you earning</p>
-                  <div className="right_box">
-                   <span className="premium-btn"><span>{selectedPost?.postTag?.myPercentage ?? 0}%</span></span>
-                  </div>
+                  <p>Earnings From This Post</p>
+                 <div className="right_box">
+  {selectedPost?.postPreview?.accessType === "pay_per_view" && (
+    <span className="premium-btn">
+      <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
+    </span>
+  )}
+
+  {selectedPost?.postPreview?.accessType === "subscriber" && (
+    <span className="premium-btn success">
+      <span>Subscription</span>
+    </span>
+  )}
+
+  {selectedPost?.postPreview?.accessType === "free" && (
+    <span className="premium-btn gray">
+      <span>Free</span>
+    </span>
+  )}
+</div>
                 </div>
                 <p>{selectedPost?.postPreview?.text}</p>
                 <ul>
@@ -355,10 +371,12 @@ const NotificationPage = () => {
               )}
             </div>
             {/* TIMER */}
+            {selectedPost?.postTag?.myStatus === "pending" && (
             <div className="timer_wrap mt-3">
-              <p>You Have To View This Post Times</p>
+              <p>Response Deadline</p>
               <FlipClockCountdown key={countdownTo} to={countdownTo} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>Finished</FlipClockCountdown>
             </div>
+            )}
           </form>
         </div>
       )}
