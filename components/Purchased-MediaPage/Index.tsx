@@ -354,13 +354,11 @@ const PurchasedMediaPage: React.FC = () => {
 
             {showVideo && selectedVideoUrl && (
               <div className="video_wrap">
-                <VideoPlayer
-                  src={selectedVideoUrl}
-                  publicId={selectedItem.publicId} // 👁 views
-                  postId={selectedItem._id} // ▶️ progress
-                  watchedSeconds={selectedItem.watchedSeconds}
-                  duration={selectedItem.videoDuration}
-                />
+                {/* <VideoPlayer src={selectedVideoUrl} publicId={selectedItem.publicId} postId={selectedItem._id} watchedSeconds={selectedItem.watchedSeconds} duration={selectedItem.videoDuration}/> */}
+                <img
+                      src="/images/logo/profile-badge.png"
+                      alt="M Icons"
+                      className="max-w-22"/>
 
                 {/* optional close */}
                 {/* <button

@@ -267,31 +267,12 @@ const NotificationPage = () => {
                           <span>{formatTime(noti.createdAt)}</span>
                         </div>
                         {noti.postPreview && (
-                          <div className="noti-more-actions iconbtn">
-                            <button
-                              className="btn-gray viewbtn"
-                              onClick={() => {
-                                setSelectedPost(noti);
-                                setShowModal(true);
-                              }}
-                            >
-                              <Eye size={16} />
-                            </button>
-
+                          <div className="noti-more-actions iconbtn btntooltip_wrapper">
+                            <button className="btn-gray viewbtn" data-tooltip="View Details" onClick={() => {setSelectedPost(noti); setShowModal(true);}}><Eye size={16} /></button>
                             {noti.postTag?.myStatus === "pending" && (
                               <>
-                                <button
-                                  className="btn-gray acceptbtn"
-                                  onClick={() => handleAcceptPost(noti)}
-                                >
-                                  <Check size={16} />
-                                </button>
-                                <button
-                                  className="btn-gray declinebtn"
-                                  onClick={() => handleRejectPost(noti)}
-                                >
-                                  <X size={16} />
-                                </button>
+                                <button className="btn-gray acceptbtn" data-tooltip="Accept" onClick={() => handleAcceptPost(noti)}><Check size={16} /></button>
+                                <button className="btn-gray declinebtn" data-tooltip="Decline" onClick={() => handleRejectPost(noti)}><X size={16} /></button>
                               </>
                             )}
                           </div>
@@ -299,10 +280,8 @@ const NotificationPage = () => {
                       </div>
                       <div className="noti-desc">
                         <p>
-                          {noti.type === 3 &&
-                            "Collaboration request awaiting approval."}
-                          {noti.type === 4 &&
-                            "Collaboration response received."}
+                          {noti.type === 3 && "Collaboration request awaiting approval."}
+                          {noti.type === 4 && "Collaboration response received."}
                         </p>
                       </div>
                     </div>
@@ -335,7 +314,9 @@ const NotificationPage = () => {
                 {/* earning */}
                 <div className="charge_wrap">
                   <p>you earning</p>
-                  <div className="right_box"><span>{selectedPost?.postTag?.myPercentage ?? 0}%</span></div>
+                  <div className="right_box">
+                   <span className="premium-btn"><span>{selectedPost?.postTag?.myPercentage ?? 0}%</span></span>
+                  </div>
                 </div>
                 <p>{selectedPost?.postPreview?.text}</p>
                 <ul>

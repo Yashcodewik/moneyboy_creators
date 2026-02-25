@@ -36,34 +36,34 @@ const VideoPlayer = memo(function VideoPlayer({
   }, [publicId]);
 
   useEffect(() => {
-  progressSenderRef.current = debounce(() => {
-    const player = plyrRef.current?.plyr;
-    if (!player || !player.duration) return;
+    progressSenderRef.current = debounce(() => {
+      const player = plyrRef.current?.plyr;
+      if (!player || !player.duration) return;
 
-    dispatch(
-      updateVideoProgress({
-        postId,
-        watchedSeconds: Math.floor(player.currentTime),
-        duration: Math.floor(player.duration),
-      })
-    );
-  }, 8000); // ✅ 8 seconds
-}, [postId]);
+      dispatch(
+        updateVideoProgress({
+          postId,
+          watchedSeconds: Math.floor(player.currentTime),
+          duration: Math.floor(player.duration),
+        })
+      );
+    }, 8000); // ✅ 8 seconds
+  }, [postId]);
 
-useEffect(() => {
-  const handleVisibility = () => {
-    if (document.hidden) {
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        progressSenderRef.current?.flush();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
       progressSenderRef.current?.flush();
-    }
-  };
-
-  document.addEventListener("visibilitychange", handleVisibility);
-
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibility);
-    progressSenderRef.current?.flush();
-  };
-}, []);
+    };
+  }, []);
 
 
   /* 💾 Progress sender (throttled) */
@@ -87,39 +87,39 @@ useEffect(() => {
   };
 
   return (
-   <Plyr
-  ref={plyrRef}
-  source={{
-    type: "video",
-    sources: [{ src, type: "video/mp4" }],
-  }}
-  options={{
-    autoplay: true,
-    controls: [
-      "play",
-      "progress",
-      "current-time",
-      "mute",
-      "volume",
-      "fullscreen",
-    ],
-  }}
-  onLoadedMetadata={() => {
-    const player = plyrRef.current?.plyr;
-    if (player && watchedSeconds) {
-      player.currentTime = watchedSeconds;
-    }
-  }}
-  onTimeUpdate={() => {
-    progressSenderRef.current?.();
-  }}
-  onPause={() => {
-    progressSenderRef.current?.flush();
-  }}
-  onEnded={() => {
-    progressSenderRef.current?.flush();
-  }}
-/>
+    <Plyr
+      ref={plyrRef}
+      source={{
+        type: "video",
+        sources: [{ src, type: "video/mp4" }],
+      }}
+      options={{
+        autoplay: true,
+        controls: [
+          "play",
+          "progress",
+          "current-time",
+          "mute",
+          "volume",
+          "fullscreen",
+        ],
+      }}
+      onLoadedMetadata={() => {
+        const player = plyrRef.current?.plyr;
+        if (player && watchedSeconds) {
+          player.currentTime = watchedSeconds;
+        }
+      }}
+      onTimeUpdate={() => {
+        progressSenderRef.current?.();
+      }}
+      onPause={() => {
+        progressSenderRef.current?.flush();
+      }}
+      onEnded={() => {
+        progressSenderRef.current?.flush();
+      }}
+    />
 
 
   );

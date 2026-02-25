@@ -5,19 +5,7 @@ import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import Link from "next/link";
-import {
-  ShoppingCart,
-  ChartNoAxesCombined,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Sparkles,
-  Image,
-  Video,
-  Flame,
-  FlameIcon,
-  PlayCircle,
-} from "lucide-react";
+import {ChevronLeft, ChevronRight,} from "lucide-react";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 import { Play } from "next/font/google";
@@ -25,12 +13,7 @@ import { CgClose } from "react-icons/cg";
 import AllCreators from "./AllCreators";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import {
-  fetchAllCreators,
-  fetchFeaturedPosts,
-  fetchMyPaidPosts,
-  fetchPaidContentFeed,
-} from "@/redux/store/Action";
+import { fetchAllCreators, fetchFeaturedPosts, fetchMyPaidPosts, fetchPaidContentFeed,} from "@/redux/store/Action";
 import PPVRequestModal from "../ProfilePage/PPVRequestModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
@@ -40,18 +23,10 @@ import SubscriptionModal from "../ProfilePage/SubscriptionModal";
 import FeaturedContentSlider from "./FeaturedSlider";
 import { TbCamera } from "react-icons/tb";
 import { apiPostWithMultiForm, getApiByParams } from "@/utils/endpoints/common";
-import {
-  API_GET_STORE_IMAGES,
-  API_UPDATE_STORE_IMAGES,
-} from "@/utils/api/APIConstant";
+import {API_GET_STORE_IMAGES, API_UPDATE_STORE_IMAGES,} from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
 
-type TimeFilter =
-  | "all_time"
-  | "most_recent"
-  | "today"
-  | "last_7_days"
-  | "last_30_days";
+type TimeFilter = | "all_time" | "most_recent" | "today" | "last_7_days" | "last_30_days";
 
 const StorePage = () => {
   const router = useRouter();
@@ -63,14 +38,10 @@ const StorePage = () => {
   const { session } = useDecryptedSession();
   const [localSubscribed, setLocalSubscribed] = useState(false);
   const userRole = session?.user?.role;
-  const [subscriptionCreator, setSubscriptionCreator] = useState<any | null>(
-    null,
-  );
+  const [subscriptionCreator, setSubscriptionCreator] = useState<any | null>(null,);
   const isCreator = userRole === 2;
   const loggedInUserId = session?.user?.id;
-  const [activeMainTab, setActiveMainTab] = useState<"marketplace" | "mystore">(
-    isCreator ? "mystore" : "marketplace",
-  );
+  const [activeMainTab, setActiveMainTab] = useState<"marketplace" | "mystore">(isCreator ? "mystore" : "marketplace",);
   const [selectedCreator, setSelectedCreator] = useState<any | null>(null);
   const activeStoreOwner = selectedCreator || session?.user;
   const activeSubscriptionCreator = subscriptionCreator || activeStoreOwner;
@@ -80,9 +51,7 @@ const StorePage = () => {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [subscriptionPlan, setSubscriptionPlan] = useState<
-    "MONTHLY" | "YEARLY"
-  >("MONTHLY");
+  const [subscriptionPlan, setSubscriptionPlan] = useState< "MONTHLY" | "YEARLY">("MONTHLY");
   const [storeImages, setStoreImages] = useState({
     profileImage: "",
     coverImage: "",
@@ -251,13 +220,13 @@ const StorePage = () => {
     await dispatch(
       post.isSaved
         ? unsavePost({
-            postId: post._id,
-            creatorUserId: post.userId,
-          })
+          postId: post._id,
+          creatorUserId: post.userId,
+        })
         : savePost({
-            postId: post._id,
-            creatorUserId: post.userId,
-          }),
+          postId: post._id,
+          creatorUserId: post.userId,
+        }),
     );
   };
 
@@ -460,11 +429,10 @@ const StorePage = () => {
                       {creators.map((creator, index) => (
                         <li
                           key={creator._id}
-                          className={`${
-                            selectedCreator?.publicId === creator.publicId
-                              ? "active"
-                              : ""
-                          }`}
+                          className={`${selectedCreator?.publicId === creator.publicId
+                            ? "active"
+                            : ""
+                            }`}
                         >
                           <div
                             className="icons_wrap"
@@ -665,10 +633,9 @@ const StorePage = () => {
                     <div className="hero-type-card--bg-img">
                       {storeImages.coverImage || activeStoreOwner.coverImage ? (
                         <img
-                          src={`${
-                            storeImages.coverImage ||
+                          src={`${storeImages.coverImage ||
                             activeStoreOwner.coverImage
-                          }`}
+                            }`}
                           alt={`${session?.user?.displayName || "User"} Cover Image`}
                         />
                       ) : (
@@ -874,11 +841,10 @@ const StorePage = () => {
                       )}
                       {(storeImages.profileImage ||
                         activeStoreOwner?.profile) &&
-                      !specialBannerError ? (
+                        !specialBannerError ? (
                         <img
-                          src={`${
-                            storeImages.profileImage || activeStoreOwner.profile
-                          }`}
+                          src={`${storeImages.profileImage || activeStoreOwner.profile
+                            }`}
                           alt={`${activeStoreOwner.displayName || "User"} Profile`}
                         />
                       ) : (
@@ -978,9 +944,8 @@ const StorePage = () => {
                             <div className="creator-content-tabs-btn-wrapper">
                               <div className="multi-tabs-action-buttons">
                                 <button
-                                  className={`multi-tab-switch-btn videos-btn ${
-                                    subActiveTab === "videos" ? "active" : ""
-                                  }`}
+                                  className={`multi-tab-switch-btn videos-btn ${subActiveTab === "videos" ? "active" : ""
+                                    }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("videos")}
                                 >
@@ -1016,9 +981,8 @@ const StorePage = () => {
                                   <span>Videos</span>
                                 </button>
                                 <button
-                                  className={`multi-tab-switch-btn photos-btn ${
-                                    subActiveTab === "photos" ? "active" : ""
-                                  }`}
+                                  className={`multi-tab-switch-btn photos-btn ${subActiveTab === "photos" ? "active" : ""
+                                    }`}
                                   data-multi-tabs-switch-btn
                                   onClick={() => setSubActiveTab("photos")}
                                 >
@@ -1075,9 +1039,8 @@ const StorePage = () => {
                                 data-multi-dem-cards-layout-btns
                               >
                                 <button
-                                  className={`creator-content-grid-layout-btn ${
-                                    layout === "grid" ? "active" : "inactive"
-                                  }`}
+                                  className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"
+                                    }`}
                                   onClick={() => setLayout("grid")}
                                 >
                                   <svg
@@ -1106,9 +1069,8 @@ const StorePage = () => {
                                   </svg>
                                 </button>
                                 <button
-                                  className={`creator-content-grid-layout-btn ${
-                                    layout === "list" ? "active" : "inactive"
-                                  }`}
+                                  className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"
+                                    }`}
                                   onClick={() => setLayout("list")}
                                 >
                                   <svg
@@ -1184,19 +1146,27 @@ const StorePage = () => {
                                         >
                                           <div className="creator-media-card__media-wrapper">
                                             <div className="creator-media-card__media">
-                                              {media.url &&
-                                              !videoErrors[post._id] ? (
-                                                <video
-                                                  src={media.url}
-                                                  muted
-                                                  playsInline
-                                                  preload="metadata"
-                                                  onError={() =>
-                                                    setVideoErrors((prev) => ({
-                                                      ...prev,
-                                                      [post._id]: true,
-                                                    }))
-                                                  }
+                                              {media.url && !videoErrors[post._id] ? (
+                                                <Plyr
+                                                  options={{
+                                                    controls: [
+                                                      "play-large",
+                                                      "play",
+                                                      "progress",
+                                                      "current-time",
+                                                      "mute",
+                                                      "fullscreen",
+                                                    ],
+                                                  }}
+                                                  source={{
+                                                    type: "video",
+                                                    sources: [
+                                                      {
+                                                        src: media.url,
+                                                        type: "video/webm",
+                                                      },
+                                                    ],
+                                                  }}
                                                 />
                                               ) : (
                                                 <div className="noprofile">
@@ -1241,9 +1211,8 @@ const StorePage = () => {
                                                   !post.isUnlocked &&
                                                   !post.isSubscribed && (
                                                     <div
-                                                      className={`creator-media-card__stats-btn wishlist-icon ${
-                                                        isSaved ? "active" : ""
-                                                      }`}
+                                                      className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""
+                                                        }`}
                                                       onClick={(e) =>
                                                         handleSaveToggle(
                                                           e,
@@ -1313,7 +1282,7 @@ const StorePage = () => {
                                               {!post.isUnlocked &&
                                                 post.isSubscribed &&
                                                 post.accessType ===
-                                                  "subscriber" && (
+                                                "subscriber" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline grey-variant"
                                                     onClick={() =>
@@ -1330,7 +1299,7 @@ const StorePage = () => {
                                               {/* PAY PER VIEW */}
                                               {!post.isUnlocked &&
                                                 post.accessType ===
-                                                  "pay_per_view" && (
+                                                "pay_per_view" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline"
                                                     onClick={(e) => {
@@ -1378,7 +1347,7 @@ const StorePage = () => {
                                               {!post.isUnlocked &&
                                                 !post.isSubscribed &&
                                                 post.accessType ===
-                                                  "subscriber" && (
+                                                "subscriber" && (
                                                   <a
                                                     className="btn-txt-gradient btn-outline grey-variant"
                                                     onClick={(e) => {
@@ -1499,16 +1468,10 @@ const StorePage = () => {
                                       post.userId === loggedInUserId;
                                     const isSaved = post.isSaved;
                                     return (
-                                      <div
-                                        className="creator-media-card card"
-                                        key={post._id}
-                                      >
+                                      <div className="creator-media-card card" key={post._id}>
                                         <div className="creator-media-card__media-wrapper">
                                           <div className="creator-media-card__media">
-                                            <img
-                                              src={media.url}
-                                              alt="Post Image"
-                                            />
+                                            <img src={media.url} alt="Post Image" />
                                           </div>
 
                                           <div className="creator-media-card__overlay">
@@ -1516,42 +1479,11 @@ const StorePage = () => {
                                               {!isOwnPost &&
                                                 !post.isUnlocked &&
                                                 !post.isSubscribed && (
-                                                  <div
-                                                    className={`creator-media-card__stats-btn wishlist-icon ${
-                                                      isSaved ? "active" : ""
-                                                    }`}
-                                                    onClick={(e) =>
-                                                      handleSaveToggle(e, post)
-                                                    }
-                                                  >
-                                                    <svg
-                                                      xmlns="http://www.w3.org/2000/svg"
-                                                      width="21"
-                                                      height="20"
-                                                      viewBox="0 0 21 20"
-                                                      fill="none"
-                                                    >
-                                                      <path
-                                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                                        stroke="none"
-                                                        stroke-width="1.5"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                                        stroke="none"
-                                                        stroke-width="1.5"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                                                        stroke="none"
-                                                        stroke-width="1.5"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                      ></path>
+                                                  <div className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""}`} onClick={(e) => handleSaveToggle(e, post)}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                                                      <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                      <path d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                      <path d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                     </svg>
                                                   </div>
                                                 )}
@@ -1559,51 +1491,27 @@ const StorePage = () => {
                                           </div>
                                         </div>
 
-                                        <div className="creator-media-card__desc">
-                                          <p>{post.text}</p>
-                                        </div>
-
+                                        <div className="creator-media-card__desc"><p>{post.text}</p></div>
                                         <div className="creator-media-card__btn mt-auto">
                                           {/* OWN POST → NO BUTTON */}
-
                                           <>
                                             {/* PURCHASED */}
                                             {post.isUnlocked && (
-                                              <a
-                                                className="btn-txt-gradient btn-outline grey-variant"
-                                                onClick={() =>
-                                                  handlePostRedirect(
-                                                    post,
-                                                    isOwnPost,
-                                                  )
-                                                }
-                                              >
-                                                <span>Purchased</span>
-                                              </a>
+                                              <a className="btn-txt-gradient btn-outline grey-variant" onClick={() => handlePostRedirect(post, isOwnPost,)}><span>Purchased</span></a>
                                             )}
 
                                             {/* SUBSCRIBED */}
                                             {!post.isUnlocked &&
                                               post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
-                                                <a
-                                                  className="btn-txt-gradient btn-outline grey-variant"
-                                                  onClick={() =>
-                                                    handlePostRedirect(
-                                                      post,
-                                                      isOwnPost,
-                                                    )
-                                                  }
-                                                >
-                                                  <span>Subscribed</span>
-                                                </a>
+                                              "subscriber" && (
+                                                <a className="btn-txt-gradient btn-outline grey-variant" onClick={() => handlePostRedirect(post, isOwnPost,)}><span>Subscribed</span></a>
                                               )}
 
                                             {/* PAY PER VIEW */}
                                             {!post.isUnlocked &&
                                               post.accessType ===
-                                                "pay_per_view" && (
+                                              "pay_per_view" && (
                                                 <a
                                                   className="btn-txt-gradient btn-outline"
                                                   onClick={(e) => {
@@ -1651,7 +1559,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               !post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <a
                                                   className="btn-txt-gradient btn-outline grey-variant"
                                                   onClick={(e) => {
@@ -1769,54 +1677,25 @@ const StorePage = () => {
           onConfirm={handleConfirmSubscription}
           plan={subscriptionPlan}
           action="subscribe"
-          creator={{
-            displayName: activeSubscriptionCreator?.displayName,
-            userName: activeSubscriptionCreator?.userName,
-            profile: activeSubscriptionCreator?.profile,
-          }}
-          subscription={{
-            monthlyPrice: activeStoreOwner?.subscription?.monthlyPrice,
-            yearlyPrice: activeStoreOwner?.subscription?.yearlyPrice,
-          }}
+          creator={{ displayName: activeSubscriptionCreator?.displayName, userName: activeSubscriptionCreator?.userName, profile: activeSubscriptionCreator?.profile, }}
+          subscription={{ monthlyPrice: activeStoreOwner?.subscription?.monthlyPrice, yearlyPrice: activeStoreOwner?.subscription?.yearlyPrice, }}
         />
       )}
 
- {unlockModalPost && (
-  <UnlockContentModal
-    onClose={() => setUnlockModalPost(null)}
-    creator={{
-      displayName:
-        unlockModalPost.creatorInfo?.displayName ||
-        unlockModalPost.user?.displayName,
-      userName:
-        unlockModalPost.creatorInfo?.userName ||
-        unlockModalPost.user?.userName,
-      profile:
-        unlockModalPost.creatorInfo?.profile ||
-        unlockModalPost.user?.profile,
-    }}
-    post={{
-      publicId: unlockModalPost.publicId,
-      text: unlockModalPost.text,
-      price: unlockModalPost.price,
-    }}
-    onConfirm={handleConfirmUnlock}
-    loading={unlocking}
-  />
-)}
+      {unlockModalPost && (
+        <UnlockContentModal onClose={() => setUnlockModalPost(null)} creator={{displayName: unlockModalPost.creatorInfo?.displayName || unlockModalPost.user?.displayName, userName: unlockModalPost.creatorInfo?.userName || unlockModalPost.user?.userName, profile: unlockModalPost.creatorInfo?.profile || unlockModalPost.user?.profile,}}
+          post={{publicId: unlockModalPost.publicId, text: unlockModalPost.text, price: unlockModalPost.price,}}
+          onConfirm={handleConfirmUnlock}
+          loading={unlocking}
+        />
+      )}
 
       {showPPVModal && activeStoreOwner && (
         <PPVRequestModal
           onClose={() => setShowPPVModal(false)}
-          creator={{
-            userId: activeStoreOwner?._id,
-            displayName: activeStoreOwner?.displayName,
-            userName: activeStoreOwner?.userName,
-            profile: activeStoreOwner?.profile,
-          }}
+          creator={{ userId: activeStoreOwner?._id, displayName: activeStoreOwner?.displayName, userName: activeStoreOwner?.userName, profile: activeStoreOwner?.profile,}}
           post={{ _id: "" }}
-          onSuccess={({ amount }) => {
-            setShowPPVModal(false);
+          onSuccess={({ amount }) => {setShowPPVModal(false);
             // alert(`PPV request sent: €${amount}`);
           }}
         />
@@ -1828,9 +1707,7 @@ const StorePage = () => {
         aria-modal="true"
       >
         <div className="modal-wrap video_modal">
-          <button className="close-btn" onClick={handleClose}>
-            <CgClose size={22} />
-          </button>
+          <button className="close-btn" onClick={handleClose}><CgClose size={22} /></button>
           <Plyr
             options={{
               controls: [

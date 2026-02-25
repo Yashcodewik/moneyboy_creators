@@ -74,7 +74,6 @@ const MediaCard = memo(function MediaCard({
               <Link href="#" className="ply_btn">
                 <PlayCircle strokeWidth={1} size={32} />
               </Link>
-
               <Plyr
                 ref={plyrRef}
                 source={{

@@ -1,16 +1,4 @@
-import {
-  ChartNoAxesCombined,
-  ChevronLeft,
-  ChevronRight,
-  CircleArrowLeft,
-  CircleArrowRight,
-  FlameIcon,
-  Image,
-  PlayCircle,
-  Sparkle,
-  Sparkles,
-  Video,
-} from "lucide-react";
+import {ChartNoAxesCombined, ChevronLeft, ChevronRight, CircleArrowLeft, CircleArrowRight, FlameIcon, Image, PlayCircle, Sparkle, Sparkles, Video,} from "lucide-react";
 import React, { useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import Link from "next/link";
@@ -19,6 +7,7 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { useEffect } from "react";
 import { fetchPaidContentFeed } from "@/redux/store/Action";
 import { useRouter } from "next/navigation";
+import { Plyr } from "plyr-react";
 
 interface AllCreatorsProps {
   onUnlock: (post: any) => void;
@@ -323,7 +312,22 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                 src={post.media?.mediaFiles?.[0]}
                               />
                             ) : (
-                              <video src={post.media?.mediaFiles?.[0]} muted />
+                              <>
+                               <Plyr
+                                source={{
+                                  type: "video",
+                                  sources: [{ src: post.media?.mediaFiles?.[0], type: "video/mp4" }],
+                                }}
+                                options={{
+                                  autoplay: false,
+                                  muted: true,
+                                  controls: [],
+                                  clickToPlay: false,
+                                  hideControls: true,
+                                }}
+                              />
+                              {/* <video src={post.media?.mediaFiles?.[0]} muted /> */}
+                              </>
                             )}
 
                             {post.media?.type === "video" && (
