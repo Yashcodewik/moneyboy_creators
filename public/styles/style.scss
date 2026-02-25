@@ -6,6 +6,18 @@ body {
   background: #f4f4f4;
 }
 
+// mixin Class Start
+@mixin skeleton {
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 25%,
+    #f3f4f6 50%,
+    #e5e7eb 75%
+  );
+  background-size: 200% 100%;
+  animation: skloading 1.2s infinite linear;
+}
+
 .label-input input:disabled {
   color: #999;
   opacity: 0.7;
@@ -253,6 +265,81 @@ body {
   100% {
     transform: translateY(-160px);
     opacity: 0;
+  }
+}
+@keyframes skloading {0% { background-position: 200% 0; }100% { background-position: -200% 0; }}
+
+// Skeleton Loading Animations
+.moneyboy-post__container {
+  &.skloading {
+    overflow: hidden;
+    position: relative;
+    border-radius: 20px;
+    /* shimmer effect */
+    .post_avatar,
+    .post__time,
+    .line,
+    .moneyboy-post__img,
+    ul li {
+      background: linear-gradient(90deg, #e5e7eb 25%,#f3f4f6 50%,#e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: skloading 1.2s infinite linear;
+    }
+    .line {
+      height: 12px;
+      border-radius: 20px;
+      margin-bottom: 8px;
+      &:last-child {margin-bottom: 0px;}
+      &.short { width: 40%; }
+      &.medium { width: 70%; }
+      &.long { width: 100%; }
+    }
+    .post_header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      &-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+      }
+      .post_avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+      }
+      .post__time {
+        width: 60px;
+        height: 12px;
+        border-radius: 20px;
+      }
+    }
+    .post_text {
+      flex: 1;
+    }
+    .moneyboy-post__media {
+      .moneyboy-post__img {
+        width: 100%;
+        border-radius: 16px;
+      }
+      .moneyboy-post__actions {
+        background: rgba(0, 0, 0, 0.15);
+        ul {
+          display: flex;
+          gap: 8px;
+          padding: 0;
+          margin: 0;
+          list-style: none;
+          li {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+          }
+        }
+      }
+    }
   }
 }
 

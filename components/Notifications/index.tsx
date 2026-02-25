@@ -6,7 +6,11 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 import { Check, Eye, X } from "lucide-react";
 import { CgClose } from "react-icons/cg";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_APPROVE_POST, API_GET_NOTIFICATIONS, API_REJECT_POST } from "@/utils/api/APIConstant";
+import {
+  API_APPROVE_POST,
+  API_GET_NOTIFICATIONS,
+  API_REJECT_POST,
+} from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
 import FlipClockCountdown from "@leenguyen/react-flip-clock-countdown";
 import "@leenguyen/react-flip-clock-countdown/dist/index.css";
@@ -120,7 +124,7 @@ const NotificationPage = () => {
 
   // const endTime = new Date().getTime() + 24 * 60 * 60 * 1000;
 
-  const getCountdownEndTime = () => { 
+  const getCountdownEndTime = () => {
     if (!selectedPost?.createdAt) return Date.now();
 
     const createdTime = new Date(selectedPost.createdAt).getTime();
@@ -149,62 +153,61 @@ const NotificationPage = () => {
     }
   }, [selectedPost]);
 
-
   const handleAcceptPost = async (noti: any) => {
-  const ok = await showAcceptPostConsent();
-  if (!ok) return;
+    const ok = await showAcceptPostConsent();
+    if (!ok) return;
 
-  const res = await apiPost({
-    url: API_APPROVE_POST,
-    values: { postId: noti.referenceId },
-  });
+    const res = await apiPost({
+      url: API_APPROVE_POST,
+      values: { postId: noti.referenceId },
+    });
 
-  if (res?.success) {
-    ShowToast(res.message, "success");
+    if (res?.success) {
+      ShowToast(res.message, "success");
 
-    // update UI instantly
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n._id === noti._id
-          ? { ...n, postTag: { ...n.postTag, myStatus: "approved" } }
-          : n
-      )
-    );
+      // update UI instantly
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n._id === noti._id
+            ? { ...n, postTag: { ...n.postTag, myStatus: "approved" } }
+            : n,
+        ),
+      );
 
-    setShowModal(false);
-  } else {
-    ShowToast(res?.message || "Failed", "error");
-  }
-};
+      setShowModal(false);
+    } else {
+      ShowToast(res?.message || "Failed", "error");
+    }
+  };
 
-const handleRejectPost = async (noti: any) => {
-  const reason = await showDeclineReason();
-  if (!reason) return;
+  const handleRejectPost = async (noti: any) => {
+    const reason = await showDeclineReason();
+    if (!reason) return;
 
-  const res = await apiPost({
-    url: API_REJECT_POST,
-    values: {
-      postId: noti.referenceId,
-      reason,
-    },
-  });
+    const res = await apiPost({
+      url: API_REJECT_POST,
+      values: {
+        postId: noti.referenceId,
+        reason,
+      },
+    });
 
-  if (res?.success) {
-    ShowToast(res.message, "success");
+    if (res?.success) {
+      ShowToast(res.message, "success");
 
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n._id === noti._id
-          ? { ...n, postTag: { ...n.postTag, myStatus: "rejected" } }
-          : n
-      )
-    );
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n._id === noti._id
+            ? { ...n, postTag: { ...n.postTag, myStatus: "rejected" } }
+            : n,
+        ),
+      );
 
-    setShowModal(false);
-  } else {
-    ShowToast(res?.message || "Failed", "error");
-  }
-};
+      setShowModal(false);
+    } else {
+      ShowToast(res?.message || "Failed", "error");
+    }
+  };
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -215,9 +218,9 @@ const handleRejectPost = async (noti: any) => {
                 <div className="noti-page-title">
                   <h2>Notifications</h2>
                   {notifications.length > 0 && (
-                  <div className="noti-num-circle">
-                    <span>{notifications.length}</span>
-                  </div>
+                    <div className="noti-num-circle">
+                      <span>{notifications.length}</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -263,7 +266,7 @@ const handleRejectPost = async (noti: any) => {
                         <div className="noti-time">
                           <span>{formatTime(noti.createdAt)}</span>
                         </div>
-                        {noti.type === 3 && noti.postTag?.myStatus === "pending" && (
+                        {noti.postPreview && (
                           <div className="noti-more-actions iconbtn">
                             <button
                               className="btn-gray viewbtn"
@@ -274,26 +277,32 @@ const handleRejectPost = async (noti: any) => {
                             >
                               <Eye size={16} />
                             </button>
-                            <button
-                              className="btn-gray acceptbtn"
-                              onClick={() => handleAcceptPost(noti)}
-                            >
-                              <Check size={16} />
-                            </button>
-                            <button
-                              className="btn-gray declinebtn"
-                             onClick={() => handleRejectPost(noti)}
-                            >
-                              <X size={16} />
-                            </button>
+
+                            {noti.postTag?.myStatus === "pending" && (
+                              <>
+                                <button
+                                  className="btn-gray acceptbtn"
+                                  onClick={() => handleAcceptPost(noti)}
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  className="btn-gray declinebtn"
+                                  onClick={() => handleRejectPost(noti)}
+                                >
+                                  <X size={16} />
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
                       <div className="noti-desc">
                         <p>
-                          {noti.type === 3
-                            ? "Collaboration request awaiting approval."
-                            : ""}
+                          {noti.type === 3 &&
+                            "Collaboration request awaiting approval."}
+                          {noti.type === 4 &&
+                            "Collaboration response received."}
                         </p>
                       </div>
                     </div>
@@ -350,12 +359,12 @@ const handleRejectPost = async (noti: any) => {
                   </div>
                 </div>
 
-                {/* post text */}
+               
                 <p>{selectedPost?.postPreview?.text}</p>
 
-                {/* tagged collaborators */}
+               
                 <ul>
-                  {/* TAGGER FIRST */}
+                  
                   {selectedPost?.postTag?.taggedBy && (
                     <li key={selectedPost.postTag.taggedBy._id}>
                       <img
@@ -370,7 +379,7 @@ const handleRejectPost = async (noti: any) => {
                     </li>
                   )}
 
-                  {/* COLLABORATORS */}
+                  
                   {selectedPost?.postTag?.taggedUsers?.map((u: any) => (
                     <li key={u.user._id}>
                       <img
@@ -384,6 +393,46 @@ const handleRejectPost = async (noti: any) => {
                     </li>
                   ))}
                 </ul>
+
+                
+                <div className="approval_status_wrap mt-2">
+                  {selectedPost?.postTag?.myStatus === "approved" && (
+                    <div className="approved_box">
+                      <Check size={16} /> Post Approved
+                    </div>
+                  )}
+
+                  {selectedPost?.postTag?.myStatus === "rejected" && (
+                    <div className="rejected_box">
+                      <X size={16} /> Post Rejected
+                      {selectedPost?.postTag?.myRejectReason && (
+                        <p className="reject_reason">
+                          Reason: {selectedPost.postTag.myRejectReason}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedPost?.postTag?.myStatus === "pending" && (
+                    <div className="pending_actions">
+                      <button
+                        type="button"
+                        className="btn-gray acceptbtn"
+                        onClick={() => handleAcceptPost(selectedPost)}
+                      >
+                        <Check size={16} /> Accept
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn-gray declinebtn"
+                        onClick={() => handleRejectPost(selectedPost)}
+                      >
+                        <X size={16} /> Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -206,7 +206,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             const player = ref.plyr;
 
             const onEnter = () => {
-                player.muted = true; // required for mobile autoplay
+                player.muted = true;
                 player.play();
             };
 
@@ -314,24 +314,23 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
 
 
     useEffect(() => {
-  const handleOutsideClick = (e: MouseEvent) => {
-    const target = e.target as Node;
+        const handleOutsideClick = (e: MouseEvent) => {
+            const target = e.target as Node;
 
-    // if click is outside menu AND button → close menu
-    if (
-      open &&
-      menuRef.current &&
-      !menuRef.current.contains(target) &&
-      buttonRef.current &&
-      !buttonRef.current.contains(target)
-    ) {
-      setOpen(false);
-    }
-  };
+            if (
+                open &&
+                menuRef.current &&
+                !menuRef.current.contains(target) &&
+                buttonRef.current &&
+                !buttonRef.current.contains(target)
+            ) {
+                setOpen(false);
+            }
+        };
 
-  document.addEventListener("mousedown", handleOutsideClick);
-  return () => document.removeEventListener("mousedown", handleOutsideClick);
-}, [open]);
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }, [open]);
     return (
         <>
             <div className="moneyboy-post__container card">
@@ -431,23 +430,23 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                     </div>
                                 );
                             }}> */}
-                            <Swiper slidesPerView={1} spaceBetween={15} navigation modules={[Navigation]} className="post_swiper">
-                                {post.media?.[0]?.mediaFiles?.length > 0 ? (post.media[0].mediaFiles.map((file: string, i: number) => {
-                                    const isVideo = post.media?.[0]?.type === "video";
-                                    return (
-                                        <SwiperSlide key={i}>
-                                            {isVideo ? (
-                                                <Plyr source={{ type: "video", sources: [{ src: file, type: "video/mp4" }], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
-                                            ) : (
-                                                <PhotoView src={file}><img src={file} alt="Post" /></PhotoView>
-                                            )}
-                                        </SwiperSlide>
-                                    );
-                                })
-                                ) : (
-                                    <SwiperSlide><div className="nomedia"></div></SwiperSlide>
-                                )}
-                            </Swiper>
+                        <Swiper slidesPerView={1} spaceBetween={15} navigation modules={[Navigation]} className="post_swiper">
+                            {post.media?.[0]?.mediaFiles?.length > 0 ? (post.media[0].mediaFiles.map((file: string, i: number) => {
+                                const isVideo = post.media?.[0]?.type === "video";
+                                return (
+                                    <SwiperSlide key={i}>
+                                        {isVideo ? (
+                                            <Plyr source={{ type: "video", sources: [{ src: file, type: "video/mp4" }], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
+                                        ) : (
+                                            <PhotoView src={file}><img src={file} alt="Post" /></PhotoView>
+                                        )}
+                                    </SwiperSlide>
+                                );
+                            })
+                            ) : (
+                                <SwiperSlide><div className="nomedia"></div></SwiperSlide>
+                            )}
+                        </Swiper>
                         {/* </PhotoProvider> */}
                     </div>
                     <div className="moneyboy-post__actions">
