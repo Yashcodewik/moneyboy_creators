@@ -585,7 +585,7 @@ const ProfilePage = () => {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span> For Subscribers </span>
+                    <span> Subscribers Only </span>
                   </>
                 )}
                 {isPPVPost && !post.isUnlocked && (
