@@ -29,26 +29,6 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
   const [sort, setSort] = useState<"price_low" | "price_high" | "">();
   const { page, totalPages } = paidContentFeedPagination;
 
-
-  const handleOpenFullscreen = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setOpen(true);
-
-    // Small delay so modal mounts before play
-    setTimeout(() => {
-      const video: HTMLVideoElement | undefined = playerRef.current?.media;
-      if (!video) return;
-
-      video.play();
-    }, 100);
-  };
-
-  const handleClose = () => {
-    const video: HTMLVideoElement | undefined = playerRef.current?.media;
-    video?.pause();
-    setOpen(false);
-  };
-
   useEffect(() => {
     let tabParam: "trending" | "new" | "photo" | "video" = "new";
 
@@ -337,13 +317,14 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                     paidContentFeed.map((post) => (
                       <div className="creator-media-card card" key={post._id}>
                         <div className="creator-media-card__media-wrapper">
-                          <div className="creator-media-card__media" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
+                          <div className="creator-media-card__media">
                             {post.media?.type === "photo" ? (
                               <img
                                 alt="Post Image"
                                 src={post.media?.mediaFiles?.[0]}
                               />
                             ) : (
+                              <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)} >
                                 <Plyr
                                   ref={(ref) => {
                                     if (ref?.plyr) {
@@ -364,13 +345,13 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                     controls: [],
                                     clickToPlay: false,
                                     autoplay: false,
-                                    preload: "none",
                                   }}
                                 />
+                              </div>
                             )}
 
                             {post.media?.type === "video" && (
-                              <Link href="#" className="ply_btn" onClick={handleOpenFullscreen}>
+                              <Link href="#" className="ply_btn">
                                 <PlayCircle strokeWidth={1} size={32} />
                               </Link>
                             )}
