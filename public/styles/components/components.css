@@ -1222,6 +1222,41 @@
                font-size: 16px;
                font-size: 14px;
                font-size: 13px;
+               &.btntooltip_wrapper {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                overflow: visible;
+                z-index: 5;
+                button[data-tooltip]::after {
+                  -webkit-backdrop-filter: blur(15px);
+                  backdrop-filter: blur(15px);
+                  border-radius: 15px;
+                  border: 1.5px solid #ffffff7a;
+                  white-space: pre-line;
+                  text-align: left;
+                  line-height: 1.5;
+                  min-width: 90px;
+                  transition: opacity 0.18s ease, transform 0.18s ease;
+                }
+                button[data-tooltip][data-position="right"]::after {
+                  left: calc(100% + 10px);
+                  top: 50%;
+                  bottom: auto;
+                  transform: translateY(-50%) translateX(6px);
+                }
+                button[data-tooltip][data-position="right"]::before {
+                  left: 100%;
+                  top: 50%;
+                  bottom: auto;
+                  transform: translateY(-50%);
+                  border-color: transparent #1f1f1f transparent transparent;
+                }
+                button[data-tooltip][data-position="right"]:hover::after {
+                  transform: translateY(-20%) translateX(-1px);
+                }
+              }
              }
            }
  

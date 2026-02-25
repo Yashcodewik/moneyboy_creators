@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Featuredboys from "../Featuredboys";
 import { useDeviceType } from "@/hooks/useDeviceType";
-import { Check, Eye, X } from "lucide-react";
+import { BadgeCheck, Check, CircleX, Clock, Eye, X } from "lucide-react";
 import { CgClose } from "react-icons/cg";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import {
@@ -317,139 +317,66 @@ const NotificationPage = () => {
       {showModal && (
         <div className="modal show" role="dialog">
           <form className="modal-wrap notipost-modal">
-            <button
-              type="button"
-              className="close-btn"
-              onClick={() => setShowModal(false)}
-            >
-              <CgClose size={22} />
-            </button>
-
+            <button type="button" className="close-btn" onClick={() => setShowModal(false)}><CgClose size={22} /></button>
             <h3 className="title">Post Details</h3>
-
             <div className="post_wrap">
               {/* POST IMAGES */}
               <div className="img_wrap">
-                <Swiper
-                  modules={[Navigation, Pagination, Autoplay]}
-                  spaceBetween={20}
-                  slidesPerView={1}
-                  navigation
-                  pagination={{ clickable: true }}
-                  autoplay={{ delay: 3000 }}
-                  loop={true}
-                >
+                <Swiper modules={[Navigation, Pagination, Autoplay]} spaceBetween={20} slidesPerView={1} navigation pagination={{ clickable: true }} autoplay={{ delay: 3000 }} loop={true}>
                   {selectedPost?.postPreview?.media?.map(
                     (img: string, i: number) => (
-                      <SwiperSlide key={i}>
-                        <img src={img} alt="post media" />
-                      </SwiperSlide>
+                      <SwiperSlide key={i}><img src={img} alt="post media" /></SwiperSlide>
                     ),
                   )}
                 </Swiper>
               </div>
-
               {/* DETAILS */}
               <div className="details_wrap">
                 {/* earning */}
                 <div className="charge_wrap">
                   <p>you earning</p>
-                  <div className="right_box">
-                    <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
-                  </div>
+                  <div className="right_box"><span>{selectedPost?.postTag?.myPercentage ?? 0}%</span></div>
                 </div>
-
-               
                 <p>{selectedPost?.postPreview?.text}</p>
-
-               
                 <ul>
-                  
                   {selectedPost?.postTag?.taggedBy && (
                     <li key={selectedPost.postTag.taggedBy._id}>
-                      <img
-                        src={
-                          selectedPost.postTag.taggedBy.profile ||
-                          "/images/logo/black-logo-square.png"
-                        }
-                        alt="Profile Avatar"
-                        className="user_icons"
-                      />
+                      <img src={selectedPost.postTag.taggedBy.profile || "/images/logo/black-logo-square.png"} alt="Profile Avatar" className="user_icons" />
                       <span>@{selectedPost.postTag.taggedBy.userName}</span>
                     </li>
                   )}
-
-                  
                   {selectedPost?.postTag?.taggedUsers?.map((u: any) => (
                     <li key={u.user._id}>
-                      <img
-                        src={
-                          u.user.profile || "/images/logo/black-logo-square.png"
-                        }
-                        alt="Profile Avatar"
-                        className="user_icons"
-                      />
+                      <img src={u.user.profile || "/images/logo/black-logo-square.png"} alt="Profile Avatar" className="user_icons" />
                       <span>@{u.user.userName}</span>
                     </li>
                   ))}
                 </ul>
-
-                
-                <div className="approval_status_wrap mt-2">
-                  {selectedPost?.postTag?.myStatus === "approved" && (
-                    <div className="approved_box">
-                      <Check size={16} /> Post Approved
-                    </div>
-                  )}
-
-                  {selectedPost?.postTag?.myStatus === "rejected" && (
-                    <div className="rejected_box">
-                      <X size={16} /> Post Rejected
-                      {selectedPost?.postTag?.myRejectReason && (
-                        <p className="reject_reason">
-                          Reason: {selectedPost.postTag.myRejectReason}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {selectedPost?.postTag?.myStatus === "pending" && (
-                    <div className="pending_actions">
-                      <button
-                        type="button"
-                        className="btn-gray acceptbtn"
-                        onClick={() => handleAcceptPost(selectedPost)}
-                      >
-                        <Check size={16} /> Accept
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn-gray declinebtn"
-                        onClick={() => handleRejectPost(selectedPost)}
-                      >
-                        <X size={16} /> Reject
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
-
+            <div className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}>
+              {selectedPost?.postTag?.myStatus === "approved" && (
+                <div className="head"><h3>Post Approved</h3> <BadgeCheck /></div>
+              )}
+              {selectedPost?.postTag?.myStatus === "rejected" && (
+                <>
+                  <div className="head"><h3>Post Rejected</h3> <CircleX color="#c62828" /></div>
+                  {selectedPost?.postTag?.myRejectReason && (
+                    <p className="reject_reason">Reason: {selectedPost.postTag.myRejectReason}</p>
+                  )}
+                </>
+              )}
+              {selectedPost?.postTag?.myStatus === "pending" && (
+                <>
+                  <div className="head"> <h3>Pending Review</h3> <Clock /></div>
+                  <p className="pending_text">This post is awaiting moderation. Please review and take action.</p>
+                </>
+              )}
+            </div>
             {/* TIMER */}
             <div className="timer_wrap mt-3">
               <p>You Have To View This Post Times</p>
-              <FlipClockCountdown
-                key={countdownTo}
-                to={countdownTo}
-                labels={["", "", "", ""]}
-                renderMap={[false, true, true, true]}
-                showSeparators={true}
-                labelStyle={{ display: "none" }}
-                digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}
-              >
-                Finished
-              </FlipClockCountdown>
+              <FlipClockCountdown key={countdownTo} to={countdownTo} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>Finished</FlipClockCountdown>
             </div>
           </form>
         </div>
