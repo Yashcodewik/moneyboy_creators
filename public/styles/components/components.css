@@ -1257,6 +1257,36 @@
                   transform: translateY(-20%) translateX(-1px);
                 }
               }
+              .taglist {
+                display: flex;
+                gap: 6px;
+                align-items: center;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                padding: 0;
+                margin: 0;
+                list-style: none;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                &::-webkit-scrollbar {
+                  display: none;
+                }
+                li {
+                  flex: 0 0 auto; 
+                  .taglink {
+                    display: block;
+                    border-radius: 8px;
+                    padding: 4px 6px;
+                    font-weight: 600;
+                    color: #000;
+                    font-size: 12px;
+                    line-height: 100%;
+                    background: linear-gradient(93.25deg, #e5741f -49.57%, #fece26 98.1%);
+                  }
+                }
+              }
              }
            }
  

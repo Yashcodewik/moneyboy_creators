@@ -194,7 +194,7 @@ const MediaCard = memo(function MediaCard({
         </div>
       </div>
 
-      <div className="pm-page-card-body">
+      <div className="pm-page-card-body lineclamp1">
         <h2>{`${truncateText(item.text)}${item.text?.length > 50 ? "..." : ""}`}</h2>
       </div>
 

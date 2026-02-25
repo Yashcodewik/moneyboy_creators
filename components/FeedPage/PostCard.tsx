@@ -368,8 +368,14 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                     </div>
                                 </div>
                                 <div className="profile-card__username btntooltip_wrapper">
-                                  @{post.creatorInfo?.displayName}
-                                  <button type="button" className="active-down-effect" data-position="right" data-tooltip={moreUsers.map(u => `@${u}`).join('\n')}><CircleQuestionMark size={15}/></button>
+                                    @{post.creatorInfo?.displayName}
+                                    <ul className="taglist">
+                                        <li><Link href="" className="taglink">@alex</Link></li>
+                                        <li><Link href="" className="taglink">@rohan</Link></li>
+                                        <li><Link href="" className="taglink">@meera</Link></li>
+                                        <li><Link href="" className="taglink">@sam</Link></li>
+                                    </ul>
+                                    {/* <button type="button" className="active-down-effect" data-position="right" data-tooltip={moreUsers.map(u => `@${u}`).join('\n')}><CircleQuestionMark size={15}/></button> */}
                                 </div>
                             </div>
                         </div>

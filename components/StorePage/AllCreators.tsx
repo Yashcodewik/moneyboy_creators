@@ -1,4 +1,4 @@
-import {ChartNoAxesCombined, ChevronLeft, ChevronRight, CircleArrowLeft, CircleArrowRight, FlameIcon, Image, PlayCircle, Sparkle, Sparkles, Video,} from "lucide-react";
+import { ChartNoAxesCombined, ChevronLeft, ChevronRight, CircleArrowLeft, CircleArrowRight, FlameIcon, Image, PlayCircle, Sparkle, Sparkles, Video, } from "lucide-react";
 import React, { useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import Link from "next/link";
@@ -19,7 +19,6 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
   const [subActiveTab, setSubActiveTab] = useState<
     "trending" | "new" | "photos" | "videos"
   >("trending");
-  const playerRef = useRef<any>(null);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dispatch = useDispatch<AppDispatch>();
@@ -95,62 +94,99 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
   };
 
   const renderPagination = () => {
-  if (!totalPages || totalPages <= 1) return null;
+    if (!totalPages || totalPages <= 1) return null;
 
-  const pages: (number | string)[] = [];
+    const pages: (number | string)[] = [];
 
-  if (totalPages <= 6) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i);
-  } else {
-    pages.push(1, 2, 3);
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1, 2, 3);
 
-    if (page > 4) pages.push("...");
-    if (page > 3 && page < totalPages - 2) pages.push(page);
-    if (page < totalPages - 3) pages.push("...");
+      if (page > 4) pages.push("...");
+      if (page > 3 && page < totalPages - 2) pages.push(page);
+      if (page < totalPages - 3) pages.push("...");
 
-    pages.push(totalPages - 1, totalPages);
-  }
+      pages.push(totalPages - 1, totalPages);
+    }
 
-  const handlePageChange = (newPage: number) => {
-    let tabParam: "trending" | "new" | "photo" | "video" = "new";
+    const handlePageChange = (newPage: number) => {
+      let tabParam: "trending" | "new" | "photo" | "video" = "new";
 
-    if (subActiveTab === "trending") tabParam = "trending";
-    if (subActiveTab === "photos") tabParam = "photo";
-    if (subActiveTab === "videos") tabParam = "video";
+      if (subActiveTab === "trending") tabParam = "trending";
+      if (subActiveTab === "photos") tabParam = "photo";
+      if (subActiveTab === "videos") tabParam = "video";
 
-    dispatch(
-      fetchPaidContentFeed({
-        page: newPage,
-        limit: 8,
-        tab: tabParam,
-        search: search.trim(),
-        filter: filter || undefined,
-        sort: sort || undefined,
-      })
+      dispatch(
+        fetchPaidContentFeed({
+          page: newPage,
+          limit: 8,
+          tab: tabParam,
+          search: search.trim(),
+          filter: filter || undefined,
+          sort: sort || undefined,
+        })
+      );
+    };
+
+    return (
+      <div className="pagination_wrap">
+        {/* Prev */}
+        <button className="btn-prev" disabled={page === 1} onClick={() => handlePageChange(page - 1)}><CircleArrowLeft color="#000" /></button>
+
+        {pages.map((p, i) =>
+          p === "..." ? (
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
+          ) : (
+            <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => handlePageChange(p as number)} ><span>{p}</span></button>
+          )
+        )}
+
+        {/* Next */}
+        <button className="btn-next" disabled={page === totalPages} onClick={() => handlePageChange(page + 1)}><CircleArrowRight color="#000" /></button>
+      </div>
     );
   };
 
-  return (
-    <div className="pagination_wrap">
-      {/* Prev */}
-      <button className="btn-prev" disabled={page === 1} onClick={() => handlePageChange(page - 1)}><CircleArrowLeft color="#000" /></button>
+  const playersRef = useRef<{ [key: string]: any }>({});
 
-      {pages.map((p, i) =>
-        p === "..." ? (
-          <button key={i} className="premium-btn" disabled>
-            <span>…</span>
-          </button>
-        ) : (
-          <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => handlePageChange(p as number)} ><span>{p}</span></button>
-        )
-      )}
+  const playPreview = (id: string) => {
+    // pause other videos
+    Object.values(playersRef.current).forEach((p: any) => {
+      if (p && !p.paused) {
+        p.pause();
+        p.currentTime = 0;
+      }
+    });
 
-      {/* Next */}
-      <button className="btn-next" disabled={page === totalPages} onClick={() => handlePageChange(page + 1)}><CircleArrowRight color="#000" /></button>
-    </div>
-  );
-};
+    const player = playersRef.current[id];
+    if (!player) return;
 
+    player.muted = true;
+    player.currentTime = 0;
+    player.play().catch(() => { });
+  };
+
+  const stopPreview = (id: string) => {
+    const player = playersRef.current[id];
+    if (!player) return;
+
+    player.pause();
+    player.currentTime = 0;
+  };
+
+  const openFullscreen = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+
+    const player = playersRef.current[id];
+    if (!player) return;
+
+    player.muted = false;
+    player.play();
+    player.fullscreen.enter();
+  };
 
   return (
     <div>
@@ -245,36 +281,32 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
               <div className="creator-content-tabs-btn-wrapper">
                 <div className="multi-tabs-action-buttons">
                   <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "trending" ? "active" : ""
-                    }`}
+                    className={`multi-tab-switch-btn ${subActiveTab === "trending" ? "active" : ""
+                      }`}
                     onClick={() => setSubActiveTab("trending")}
                   >
                     <ChartNoAxesCombined size={18} /> <span>Trending</span>
                   </button>
 
                   <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "new" ? "active" : ""
-                    }`}
+                    className={`multi-tab-switch-btn ${subActiveTab === "new" ? "active" : ""
+                      }`}
                     onClick={() => setSubActiveTab("new")}
                   >
                     <Sparkles size={18} /> <span>New</span>
                   </button>
 
                   <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "photos" ? "active" : ""
-                    }`}
+                    className={`multi-tab-switch-btn ${subActiveTab === "photos" ? "active" : ""
+                      }`}
                     onClick={() => setSubActiveTab("photos")}
                   >
                     <Image size={18} /> <span>Photos</span>
                   </button>
 
                   <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "videos" ? "active" : ""
-                    }`}
+                    className={`multi-tab-switch-btn ${subActiveTab === "videos" ? "active" : ""
+                      }`}
                     onClick={() => setSubActiveTab("videos")}
                   >
                     <Video size={18} />
@@ -305,29 +337,36 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                     paidContentFeed.map((post) => (
                       <div className="creator-media-card card" key={post._id}>
                         <div className="creator-media-card__media-wrapper">
-                          <div className="creator-media-card__media">
+                          <div className="creator-media-card__media" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
                             {post.media?.type === "photo" ? (
                               <img
                                 alt="Post Image"
                                 src={post.media?.mediaFiles?.[0]}
                               />
                             ) : (
-                              <>
-                               <Plyr
-                                source={{
-                                  type: "video",
-                                  sources: [{ src: post.media?.mediaFiles?.[0], type: "video/mp4" }],
-                                }}
-                                options={{
-                                  autoplay: false,
-                                  muted: true,
-                                  controls: [],
-                                  clickToPlay: false,
-                                  hideControls: true,
-                                }}
-                              />
-                              {/* <video src={post.media?.mediaFiles?.[0]} muted /> */}
-                              </>
+                                <Plyr
+                                  ref={(ref) => {
+                                    if (ref?.plyr) {
+                                      playersRef.current[post._id] = ref.plyr;
+                                    }
+                                  }}
+                                  source={{
+                                    type: "video",
+                                    sources: [
+                                      {
+                                        src: post.media?.mediaFiles?.[0],
+                                        type: "video/mp4",
+                                      },
+                                    ],
+                                  }}
+                                  options={{
+                                    muted: true,
+                                    controls: [],
+                                    clickToPlay: false,
+                                    autoplay: false,
+                                    preload: "none",
+                                  }}
+                                />
                             )}
 
                             {post.media?.type === "video" && (
@@ -347,7 +386,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                               )}
                               {subActiveTab === "new" && (
                                 <div className="creator-media-card__stats-btn">
-                                  <Sparkle fill="none" stroke="white"/>
+                                  <Sparkle fill="none" stroke="white" />
                                   <span> New </span>
                                 </div>
                               )}
@@ -429,7 +468,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                       </div>
                     ))}
                 </div>
-                {renderPagination()}  
+                {renderPagination()}
               </div>
             </div>
           </div>
