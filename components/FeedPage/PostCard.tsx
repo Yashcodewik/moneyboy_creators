@@ -6,7 +6,7 @@ import { Navigation } from "swiper/modules";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, X, } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, X, CircleQuestionMark, } from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
@@ -30,6 +30,8 @@ import ReportModal from "../ReportModal";
 import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
 import ShowToast from "../common/ShowToast";
+
+const moreUsers = ["alex", "rohan", "meera", "sam", "disha"];
 
 const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     const [open, setOpen] = useState(false);
@@ -365,7 +367,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                         <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                                     </div>
                                 </div>
-                                <div className="profile-card__username">@{post.creatorInfo?.displayName}</div>
+                                <div className="profile-card__username btntooltip_wrapper">
+                                  @{post.creatorInfo?.displayName}
+                                  <button type="button" className="active-down-effect" data-position="right" data-tooltip={moreUsers.map(u => `@${u}`).join('\n')}><CircleQuestionMark size={15}/></button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -762,9 +767,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                                     {topComment.userId?.displayName}
                                                 </div>
                                             </div>
-                                            <div className="profile-card__username">
-                                                @{topComment.userId?.userName}
-                                            </div>
+                                            <div className="profile-card__username">@{topComment.userId?.userName}</div>
                                         </div>
                                     </div>
                                 </a>
