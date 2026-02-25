@@ -41,9 +41,9 @@ const FeedPage = () => {
   const userId = (session?.user as any)?.id;
 
   useEffect(() => {
-    if (activeTab === "feed" && feedPosts.length === 0) {dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT }));}
-    if (activeTab === "following" && followingPosts.length === 0 && isLoggedIn) {dispatch(fetchFollowingPosts({ page: 1, limit: LIMIT }));}
-    if (activeTab === "popular" && popularPosts.length === 0) {dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT }));}
+    if (activeTab === "feed" && feedPosts.length === 0) { dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT })); }
+    if (activeTab === "following" && followingPosts.length === 0 && isLoggedIn) { dispatch(fetchFollowingPosts({ page: 1, limit: LIMIT })); }
+    if (activeTab === "popular" && popularPosts.length === 0) { dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT })); }
   }, [activeTab, isLoggedIn, userId]);
 
   /* ================= INFINITE SCROLL ================= */
@@ -168,8 +168,7 @@ const FeedPage = () => {
           <button className="btn_icons" onClick={onClose}><X size={20} /></button>
         </div>
       );
-    }}
-    >
+    }}>
       <>
         <div className="moneyboy-2x-1x-layout-container">
           <div className="moneyboy-2x-1x-a-layout">
@@ -189,6 +188,7 @@ const FeedPage = () => {
                   { key: "popular", label: "Popular" },
                 ]} />
               <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
+              
                 <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={activeList?.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
                   {activeList?.map((post: any) => (
                     <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount} />
