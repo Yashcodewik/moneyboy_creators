@@ -190,7 +190,7 @@ const AccountSecurity = ({ profile }: any) => {
             <h5>Connect Your Social Accounts</h5>
             <p>Connect your social accounts to automatically publish your MoneyBoy posts.</p>
             <div className="btn_wrap">
-              <label>Sign in With x</label>
+              <label>Connect X Account</label>
               {profile?.socialId ? (
                 <button
                   type="button"

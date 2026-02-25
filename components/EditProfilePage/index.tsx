@@ -913,7 +913,7 @@ const EditProfilePage = () => {
       <ImageCropModal
         show={cropOpen}
         image={cropImage}
-        aspect={cropType === "cover" ? 16 / 6 : 1}
+          aspect={cropType === "cover" ? 6 / 1 : 1}
         onClose={() => setCropOpen(false)}
         onSave={handleCropSave}
       />

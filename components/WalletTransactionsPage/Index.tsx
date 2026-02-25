@@ -350,7 +350,7 @@ const WalletTransactionsPage = () => {
                                 </h3>
                               </div>
                               <div className="rline">
-                                <p>Total Review Amount</p>
+                                <p>In Review</p>
                                 <h3>
                                   ${" "}
                                   {summary?.totalReviewAmount?.toFixed(2) ||
