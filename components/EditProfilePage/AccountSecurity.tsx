@@ -191,19 +191,32 @@ const AccountSecurity = ({ profile }: any) => {
             <p>Connect Your Social accounts to Your MoneYBoy Profile</p>
             <div className="btn_wrap">
               <label>Sign in With x</label>
-              <button
-                type="button"
-                className="active-down-effect xbtn"
-                onClick={async () => {
-                  document.cookie = "userType=Activities; path=/";
-                  signIn("twitter");
-                }}
-              >
-                <div className="icons">
-                  <FaXTwitter size={18} />
-                </div>{" "}
-                SIGN IN WITH X
-              </button>
+              {profile?.socialId ? (
+                <button
+                  type="button"
+                  className="active-down-effect xbtn connected"
+                  disabled
+                >
+                  <div className="icons">
+                    <FaXTwitter size={18} />
+                  </div>
+                  CONNECTED
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="active-down-effect xbtn"
+                  onClick={async () => {
+                    document.cookie = "userType=Activities; path=/";
+                    signIn("twitter");
+                  }}
+                >
+                  <div className="icons">
+                    <FaXTwitter size={18} />
+                  </div>
+                  Connect X Account
+                </button>
+              )}
             </div>
           </div>
         </div>
