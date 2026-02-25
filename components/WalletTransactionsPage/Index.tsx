@@ -350,10 +350,10 @@ const WalletTransactionsPage = () => {
                                 </h3>
                               </div>
                               <div className="rline">
-                                <p>Withdrew</p>
+                                <p>Total Review Amount</p>
                                 <h3>
                                   ${" "}
-                                  {summary?.totalWithdrawn?.toFixed(2) ||
+                                  {summary?.totalReviewAmount?.toFixed(2) ||
                                     "0.00"}
                                 </h3>
                               </div>
@@ -386,7 +386,7 @@ const WalletTransactionsPage = () => {
                                 $ {summary?.totalSpent?.toFixed(2) || "0.00"}
                               </h3>
                             </div>
-                            <Link href="/add-funds?q=2">
+                            <Link href="/add-funds?tab=addfunds">
                               <button
                                 className="btn-txt-gradient"
                                 type="button"
@@ -481,6 +481,11 @@ const WalletTransactionsPage = () => {
                                           {txn.status === "SUCCESS" && (
                                             <span className="badge success">
                                               Success
+                                            </span>
+                                          )}
+                                          {txn.status === "PENDING" && (
+                                            <span className="badge pending">
+                                              Pending
                                             </span>
                                           )}
                                         </div>

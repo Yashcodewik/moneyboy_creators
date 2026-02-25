@@ -2,24 +2,23 @@
 
 import { CgClose } from "react-icons/cg";
 
-import { API_PROMOTE_PROFILE } from "@/utils/api/APIConstant";
+import { API_GET_PROMOTIONS, API_PROMOTE_PROFILE } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
-import { useState } from "react";
-import { apiPost } from "@/utils/endpoints/common";
+import { useEffect, useState } from "react";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 
-const pricingPlans: Record<number, number> = {
-  3: 9.99,
-  7: 7.99,
-  14: 5.99,
-  30: 3.99,
-};
+
 
 const PromoteModal = ({ onClose }: { onClose: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [duration, setDuration] = useState(3);
 const [paymentType, setPaymentType] = useState("wallet");
-const pricePerDay = pricingPlans[duration];
-const totalPrice = (duration * pricePerDay).toFixed(2);
+const [plans, setPlans] = useState<any[]>([]);
+const selectedPlan = plans.find((p) => p.days === duration);
+const pricePerDay = parseFloat(
+  String(selectedPlan?.price || "0").replace(/[^\d.]/g, "")
+);
+const totalPrice = (pricePerDay * duration).toFixed(2);
 const handlePromote = async () => {
   setLoading(true);
 
@@ -39,6 +38,25 @@ const handlePromote = async () => {
     onClose();
   } else {
     ShowToast(response?.message || "Something went wrong", "error");
+  }
+};
+
+useEffect(() => {
+  fetchPromotions();
+}, []);
+
+const fetchPromotions = async () => {
+  const res = await getApiWithOutQuery({
+    url: API_GET_PROMOTIONS,
+  });
+
+  if (res?.success && res.data.length) {
+    setPlans(res.data);
+
+    // ✅ set default selected duration from API
+    setDuration(res.data[0].duration);
+  } else {
+    ShowToast("Failed to load promotion plans", "error");
   }
 };
   return (
@@ -63,58 +81,27 @@ const handlePromote = async () => {
         </div>
 
         {/* STATIC UI ONLY */}
-        <div className="select_wrap grid2">
-<label className="radio_wrap box_select">
-  <input
-    type="radio"
-    name="duration"
-    checked={duration === 3}
-    onChange={() => setDuration(3)}
-  />
-  <h3>3 Days</h3>
-  <p>$9.99 /day</p>
-</label>
-
-<label className="radio_wrap box_select">
-  <input
-    type="radio"
-    name="duration"
-    checked={duration === 7}
-    onChange={() => setDuration(7)}
-  />
-  <h3>7 Days</h3>
-  <p>$7.99 /day</p>
-</label>
-
-<label className="radio_wrap box_select">
-  <input
-    type="radio"
-    name="duration"
-    checked={duration === 14}
-    onChange={() => setDuration(14)}
-  />
-  <h3>14 Days</h3>
-  <p>$5.99 /day</p>
-</label>
-
-<label className="radio_wrap box_select">
-  <input
-    type="radio"
-    name="duration"
-    checked={duration === 30}
-    onChange={() => setDuration(30)}
-  />
-  <h3>30 Days</h3>
-  <p>$3.99 /day</p>
-</label>
-        </div>
+       <div className="select_wrap grid2">
+  {plans.map((plan) => (
+    <label key={plan._id} className="radio_wrap box_select">
+      <input
+        type="radio"
+        name="duration"
+        checked={duration === plan.duration}
+        onChange={() => setDuration(plan.duration)}
+      />
+      <h3>{plan.days} Days</h3>
+      <p>${plan.price} /day</p>
+    </label>
+  ))}
+</div>
 
      <div className="total_wrap">
   <div>
     <h3>Total Price</h3>
     <p>
-      {duration} Days at ${pricePerDay} /day
-    </p>
+  {duration || 0} Days at ${pricePerDay || 0} /day
+</p>
   </div>
   <div>
     <h2>${totalPrice}</h2>
