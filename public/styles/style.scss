@@ -268,6 +268,7 @@ body {
     .post__time,
     .line,
     .moneyboy-post__img,
+    .moneyboy-post__actions li,
     ul li {
       background: linear-gradient(90deg, #e5e7eb 25%,#f3f4f6 50%,#e5e7eb 75%);
       background-size: 200% 100%;
@@ -387,10 +388,7 @@ body {
   justify-content: center;
   align-items: center;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.07);
-  transition:
-    background-color 0.2s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
   &:hover:not(:disabled):not(.disabled) {
     background-color: #bfbfbf;
     transform: translateY(-1px);
@@ -1787,6 +1785,9 @@ body {
 .max-w-22 {
   max-width: 22px;
 }
+.max-w-200 {
+  max-width: 200px;
+}
 .h-full {
   height: 100%;
 }
@@ -2851,9 +2852,10 @@ body {
       p {
         color: #505050;
         font-size: 14px;
-        font-weight: 600;
-        line-height: 120%;
-        transition: var(--transition-fast);
+        line-height: 18px;
+        font-weight: 400;
+        letter-spacing: 3%;
+        font-style: Medium;
         font-family: var(--font-family-base);
       }
     }
@@ -2861,10 +2863,26 @@ body {
   .posterimg {
     aspect-ratio: 3;
     width: 100%;
+    position: relative;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    transition: var(--transition-fast);
+    background-color: #e4e4e4;
+    &::after {
+      content: "";
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      background: #00000063;
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
     img.posterimg {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      position: relative;
+      z-index: 2;
     }
   }
 }
@@ -4453,6 +4471,54 @@ body {
           padding: 14px 8px;
           border-radius: 14px;
           height: -webkit-fill-available;
+        }
+      }
+    }
+    &.videorecord-modal {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 550px;
+      .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+      h3.title {
+        justify-content: start;
+        font-size: 28px;
+        margin-bottom: 0px;
+      }
+      .actions {
+        gap: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
+        button {
+          cursor: pointer;
+          width: 100%;
+          max-width: 50%;
+          padding: 14px 8px;
+          border-radius: 14px;
+          height: -webkit-fill-available;
+        }
+      }
+      .vdocont_wrap {
+        width: 100%;
+        border: 2px solid #f4f4f4;
+        aspect-ratio: 1;
+        margin: 0 auto;
+        border-radius: 24px;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition-normal);
+        video {
+          aspect-ratio: 1;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 24px;
         }
       }
     }
@@ -6822,11 +6888,15 @@ body {
         transition: var(--transition-fast);
         opacity: 0.8;
         gap: 8px;
+        color: #000;
         svg {
           width: 26px;
           height: 26px;
           transition: var(--transition-fast);
           transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          path {
+            stroke: #000;
+          }
         }
         span {
           color: #00000099;
@@ -6844,10 +6914,13 @@ body {
         opacity: 1;
         a {
           svg {
-            transform: scale(1.1);
+            fill: var(--like-color);
+            stroke: var(--like-color);
             path {
-              // stroke: var(--like-color);
-              fill: var(--like-color);
+              stroke: var(--like-color);
+              &:nth-child(2) {
+                stroke: #fff;
+              }
             }
           }
         }

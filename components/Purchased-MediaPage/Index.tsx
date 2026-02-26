@@ -863,7 +863,7 @@ const renderPagination = () => {
                         <a
                           href="#"
                           className="btn-txt-gradient btn-outline"
-                          // onClick={toggleVideo}
+                        // onClick={toggleVideo}
                         >
                           <span>Watch Now</span>
                         </a>
@@ -880,25 +880,22 @@ const renderPagination = () => {
                     <div className="pm-multi-tabs-buttons-wrapper">
                       <div className="multi-tabs-action-buttons">
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "favorites" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "favorites" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("favorites")}
                         >
                           <span>Favorites</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "continue-watching" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "continue-watching" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("continue-watching")}
                         >
                           <span>Continue Watching</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "watch-later" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "watch-later" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("watch-later")}
                         >
                           <span>Watch Later</span>
@@ -912,17 +909,15 @@ const renderPagination = () => {
                           <span>All Media</span>
                         </button> */}
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "recently-purchased" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "recently-purchased" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("recently-purchased")}
                         >
                           <span>Recently Purchased</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "recently-added" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "recently-added" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("recently-added")}
                         >
                           <span>Recently Added From Subscriptions</span>

@@ -1160,6 +1160,16 @@
                 &.thumup-btn {
                     &:hover, &.active {
                         svg {
+                            fill: var(--like-color);
+                            stroke: var(--like-color);
+                            path {
+                              stroke: var(--like-color);
+                              &:nth-child(2) {
+                                stroke: #fff;
+                              }
+                            }
+                          }
+                        /* svg {
                             path {
                                 stroke: white;
 
@@ -1168,7 +1178,7 @@
                                     fill: black;
                                 }
                             }
-                        }
+                        } */
                     }
                 }
 

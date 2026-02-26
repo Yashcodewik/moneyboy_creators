@@ -184,7 +184,7 @@ const FeedPage = () => {
               <BtnGroupTabs activeTab={activeTab} onChange={(value) => { if (!isLoggedIn && value === "following") { router.push("/discover"); return; } setActiveTab(value as TabType); }}
                 tabs={[{ key: "feed", label: "Feed" }, { key: "following", label: isLoggedIn ? "Following" : "Discover", }, { key: "popular", label: "Popular" },]} />
               <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
-                
+
                 <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={activeList?.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
                   {loading && activeList.length === 0 ? (Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="moneyboy-post__container card skloading">
@@ -205,12 +205,16 @@ const FeedPage = () => {
                       </div>
                       <div className="moneyboy-post__media">
                         <div className="moneyboy-post__img"></div>
+                        <div className="moneyboy-post__actions">
+                          <ul><li></li><li></li><li></li></ul>
+                          <ul><li></li><li></li></ul>
+                        </div>
                       </div>
                     </div>
-                    ))
+                  ))
                   ) : (
                     activeList?.map((post: any) => (
-                      <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount}/>
+                      <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount} />
                     ))
                   )}
                 </InfiniteScrollWrapper>
