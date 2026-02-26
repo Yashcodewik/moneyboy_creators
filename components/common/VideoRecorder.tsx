@@ -114,7 +114,7 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
         {/* STEP 1 — Enable Camera */}
         {!cameraEnabled && !loading && (
           <button className="premium-btn" onClick={startCamera}>
-            Enable Camera
+            <span>Enable Camera</span>
           </button>
         )}
 
@@ -122,48 +122,48 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
 
         {/* Video Preview */}
         <video
-  ref={videoRef}
-  autoPlay
-  muted
-  playsInline
-  width="100%"
-  style={{
-    borderRadius: "8px",
-    display: cameraEnabled ? "block" : "none",
-  }}
-/>
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          width="100%"
+          style={{
+            borderRadius: "8px",
+            display: cameraEnabled ? "block" : "none",
+          }}
+        />
 
         {/* Controls */}
         {cameraEnabled && (
           <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
             {!isRecording && recordedChunks.length === 0 && (
               <button className="premium-btn" onClick={startRecording}>
-                Start Recording
+                <span>Start Recording</span>
               </button>
             )}
 
             {isRecording && (
               <button className="btn-danger" onClick={stopRecording}>
-                Stop Recording
+                <span>Stop Recording</span>
               </button>
             )}
 
             {!isRecording && recordedChunks.length > 0 && (
               <>
                 <button className="premium-btn" onClick={handleSubmit}>
-                  Use Recording
+                  <span>Use Recording</span>
                 </button>
 
                 <button
                   className="cate-back-btn"
                   onClick={() => setRecordedChunks([])}
                 >
-                  Retake
+                  <span>Retake</span>
                 </button>
               </>
             )}
 
-            <button className="cate-back-btn" onClick={onClose}>
+            <button className="btn-danger" onClick={onClose}>
               Cancel
             </button>
           </div>
