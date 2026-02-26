@@ -17,6 +17,7 @@ export const fetchPurchasedMedia = createAsyncThunk(
       creatorId,
       type,
       time,
+      publicId, 
     }: {
       page?: number;
       limit?: number;
@@ -25,6 +26,7 @@ export const fetchPurchasedMedia = createAsyncThunk(
       creatorId?: string;
       type?: string;
       time?: string;
+      publicId?: string; 
     },
     { rejectWithValue }
   ) => {
@@ -39,6 +41,7 @@ export const fetchPurchasedMedia = createAsyncThunk(
           creatorId,
           type,
           time,
+          publicId,
         },
       });
 

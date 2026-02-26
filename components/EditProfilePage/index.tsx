@@ -33,6 +33,7 @@ import enLocale from "i18n-iso-countries/langs/en.json";
 import AccountSecurity from "./AccountSecurity";
 import PricingSetting from "./PricingSetting";
 import ImageCropModal from "./ImageCropModal";
+import { showError, showSuccess } from "@/utils/alert";
 
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
@@ -136,21 +137,20 @@ const EditProfilePage = () => {
           return;
         }
         if (res?.success) {
-          ShowToast("Profile updated successfully", "success");
+          showSuccess("Profile updated successfully");
           await fetchProfile();
         }
       } catch (err: any) {
         const backendMessage = err?.response?.data?.message;
 
         if (Array.isArray(backendMessage)) {
-          ShowToast(backendMessage.join(", "), "error");
+          showError(backendMessage.join(", "));
         } else {
-          ShowToast(
+          showError(
             backendMessage ||
               err?.response?.data?.error ||
               err?.message ||
               "Something went wrong",
-            "error",
           );
         }
       } finally {
@@ -888,11 +888,13 @@ const EditProfilePage = () => {
                         <div className="btm_btn ">
                           <button
                             type="submit"
-                            className="premium-btn active-down-effect"
+                            className={`premium-btn active-down-effect ${loading ? "disabled" : ""}`}
                             onClick={() => formik.handleSubmit()}
                             disabled={loading}
                           >
-                            <span>Save Changes</span>
+                            <span>
+                              {loading ? "Saving..." : "Save Changes"}
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -913,7 +915,7 @@ const EditProfilePage = () => {
       <ImageCropModal
         show={cropOpen}
         image={cropImage}
-          aspect={cropType === "cover" ? 6 / 1 : 1}
+        aspect={cropType === "cover" ? 6 / 1 : 1}
         onClose={() => setCropOpen(false)}
         onSave={handleCropSave}
       />
