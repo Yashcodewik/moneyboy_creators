@@ -163,7 +163,7 @@ const NotificationPage = () => {
     });
 
     if (res?.success) {
-      ShowToast(res.message, "success");
+      // ShowToast(res.message, "success");
 
       // update UI instantly
       setNotifications((prev) =>
@@ -176,7 +176,7 @@ const NotificationPage = () => {
 
       setShowModal(false);
     } else {
-      ShowToast(res?.message || "Failed", "error");
+      // ShowToast(res?.message || "Failed", "error");
     }
   };
 
@@ -193,7 +193,7 @@ const NotificationPage = () => {
     });
 
     if (res?.success) {
-      ShowToast(res.message, "success");
+      // ShowToast(res.message, "success");
 
       setNotifications((prev) =>
         prev.map((n) =>
@@ -205,7 +205,7 @@ const NotificationPage = () => {
 
       setShowModal(false);
     } else {
-      ShowToast(res?.message || "Failed", "error");
+      // ShowToast(res?.message || "Failed", "error");
     }
   };
   return (
