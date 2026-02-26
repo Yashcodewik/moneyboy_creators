@@ -140,6 +140,25 @@ const PurchasedMediaPage: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>();
 
+  const videoWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (showVideo && videoWrapRef.current) {
+      const headerOffset = 90;
+
+      const elementPosition =
+        videoWrapRef.current.getBoundingClientRect().top;
+
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  }, [showVideo, selectedItemId]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -467,50 +486,18 @@ const PurchasedMediaPage: React.FC = () => {
             </div>
 
             {showVideo && selectedItem && (
-              <div className="video_wrap">
+              <div ref={videoWrapRef} className="video_wrap">
                 {/* <VideoPlayer src={selectedVideoUrl} publicId={selectedItem.publicId} postId={selectedItem._id} watchedSeconds={selectedItem.watchedSeconds} duration={selectedItem.videoDuration}/> */}
                 <div className="posterimg">
                   <PhotoProvider
-                    toolbarRender={({
-                      images,
-                      index,
-                      onIndexChange,
-                      onClose,
-                      rotate,
-                      onRotate,
-                      scale,
-                      onScale,
-                      visible,
-                    }) => {
+                    toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible, }) => {
                       if (!visible) return null;
-
                       return (
                         <div className="toolbar_controller">
-                          <button
-                            className="btn_icons"
-                            onClick={() =>
-                              index > 0 && onIndexChange(index - 1)
-                            }
-                          >
-                            <ChevronLeft size={20} />
-                          </button>
-
-                          <span>
-                            {index + 1} / {images.length}
-                          </span>
-
-                          <button
-                            className="btn_icons"
-                            onClick={() =>
-                              index < images.length - 1 &&
-                              onIndexChange(index + 1)
-                            }
-                          >
-                            <ChevronRight size={20} />
-                          </button>
-
-                          <button
-                            className="btn_icons"
+                          <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
+                          <span>{index + 1} / {images.length}</span>
+                          <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
+                          <button className="btn_icons"
                             onClick={() => onScale(scale + 0.2)}
                           >
                             <ZoomIn size={20} />
@@ -537,7 +524,7 @@ const PurchasedMediaPage: React.FC = () => {
                       );
                     }}
                   >
-                    <Swiper modules={[Navigation, Pagination]} navigation pagination={{ clickable: true }} spaceBetween={10}> 
+                    <Swiper modules={[Navigation, Pagination]} navigation pagination={{ clickable: true }} spaceBetween={10}>
                       {mediaItems.map((media: MediaBlock, idx: number) => (
                         <SwiperSlide key={idx}>
                           {/* VIDEO */}
@@ -962,10 +949,6 @@ const PurchasedMediaPage: React.FC = () => {
                               onOpen={(item) => {
                                 setSelectedItemId(item._id);
                                 setShowVideo(true);
-                                window.scrollTo({
-                                  top: 0,
-                                  behavior: "smooth",
-                                });
                               }}
                             />
                           ))}
