@@ -55,13 +55,17 @@ const initialState: PurchasedMediaState = {
 const purchasedMediaSlice = createSlice({
   name: "purchasedMedia",
   initialState,
-  reducers: {
-    resetPurchasedMedia: (state) => {
-      state.items = [];
-      state.pagination = initialState.pagination;
-      state.error = null;
-    },
+reducers: {
+  resetPurchasedMedia: (state) => {
+    state.items = [];
+    state.pagination = initialState.pagination;
+    state.error = null;
   },
+
+  setPage: (state, action: PayloadAction<number>) => {
+    state.pagination.page = action.payload;
+  },
+},
   extraReducers: (builder) => {
     builder
       /* ----------------------------------
@@ -154,6 +158,6 @@ const purchasedMediaSlice = createSlice({
   },
 });
 
-export const { resetPurchasedMedia } = purchasedMediaSlice.actions;
+export const { resetPurchasedMedia, setPage } = purchasedMediaSlice.actions;
 
 export default purchasedMediaSlice.reducer;

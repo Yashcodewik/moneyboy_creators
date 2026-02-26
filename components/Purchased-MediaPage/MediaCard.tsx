@@ -12,7 +12,7 @@ const MediaCard = memo(function MediaCard({
 }: {
   item: any;
   onOpen: (item: any) => void;
-  onNavigate: (publicId: string) => void;
+  onNavigate?: (publicId: string) => void;
 }) {
   //   console.log("🔁 MediaCard render:", item._id);
 
@@ -65,7 +65,7 @@ const MediaCard = memo(function MediaCard({
       <div className="pm-page-card-media-container">
         <div
           className="pm-page-card--img"
-          onClick={() => (isVideo ? onOpen(item) : onNavigate(item.publicId))}
+          onClick={() => onOpen(item)}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >

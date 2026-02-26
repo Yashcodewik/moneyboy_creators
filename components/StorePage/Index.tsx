@@ -208,11 +208,11 @@ const StorePage = () => {
 
     setSelectedCreator(creator);
   };
-  const handlePostRedirect = (post: any, isOwnPost: boolean) => {
-    if (post.isUnlocked || post.isSubscribed || isOwnPost) {
-      router.push(`/post?page&publicId=${post.publicId}`);
-    }
-  };
+const handlePostRedirect = (post: any, isOwnPost: boolean) => {
+  if (post.isUnlocked || post.isSubscribed || isOwnPost) {
+    router.push(`/purchased-media?publicId=${post.publicId}`);
+  }
+};
 
   const handleSaveToggle = async (e: React.MouseEvent, post: any) => {
     e.stopPropagation();
