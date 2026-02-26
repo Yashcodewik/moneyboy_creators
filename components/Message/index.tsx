@@ -613,19 +613,25 @@ const uploadVoiceMessage = async (file: File) => {
 
 const startRecording = async () => {
   try {
-    // 🔍 Check permission state first (optional but professional)
     const permission = await navigator.permissions.query({
       name: "microphone" as PermissionName,
     });
 
     if (permission.state === "denied") {
-      toast.error("Microphone permission is blocked. Please enable it in browser settings.");
+      toast.error("Microphone permission is blocked.");
       return;
     }
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    const mediaRecorder = new MediaRecorder(stream);
+    // ✅ Pick best supported MIME type
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? "audio/webm;codecs=opus"
+      : MediaRecorder.isTypeSupported("audio/mp4")
+      ? "audio/mp4"
+      : "audio/ogg";
+
+    const mediaRecorder = new MediaRecorder(stream, { mimeType });
     mediaRecorderRef.current = mediaRecorder;
     audioChunksRef.current = [];
 
@@ -636,20 +642,34 @@ const startRecording = async () => {
     };
 
     mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunksRef.current, {
-        type: "audio/webm",
-      });
+  // ✅ Stop mic tracks
+  stream.getTracks().forEach((track) => track.stop());
 
-      const file = new File([audioBlob], "voice-message.webm", {
-        type: "audio/webm",
-      });
+  const extension = mimeType.includes("mp4")
+    ? "mp4"
+    : mimeType.includes("ogg")
+    ? "ogg"
+    : "webm";
 
-      await uploadVoiceMessage(file);
-    };
+  const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+
+  console.log("🎙 Blob size:", audioBlob.size);
+
+  // ✅ Minimum size check (1KB example)
+  if (audioBlob.size < 1000) {
+    toast.error("Recording too short or no sound detected");
+    return;
+  }
+
+  const file = new File([audioBlob], `voice-message.${extension}`, {
+    type: mimeType,
+  });
+
+  await uploadVoiceMessage(file);
+};
 
     mediaRecorder.start();
     setIsRecording(true);
-
   } catch (err: any) {
     if (err.name === "NotAllowedError") {
       toast.error("Microphone permission denied");
@@ -953,6 +973,7 @@ const stopRecording = () => {
                                       {/* AUDIO */}
                                       {msg.type === 4 && (
                                         <div className="chat-msg-audio">
+                                          
                                           <CustomAudioPlayer src={msg.mediaUrl} />
                                         </div>
                                       )}
@@ -1353,7 +1374,7 @@ const stopRecording = () => {
                                 </svg>
                               </button>
                               <button  
-                               className={`voice-recorder-icon-btn ${isRecording ? "recording" : ""}`}
+                               className={`voice-recorder-icon-btn ${isRecording ? "" : ""}`}
                                 onMouseDown={startRecording}
                                 onMouseUp={stopRecording}
                                 onMouseLeave={isRecording ? stopRecording : undefined}
