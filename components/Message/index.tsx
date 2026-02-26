@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { deleteThread, fetchMessages, fetchSidebar, reportThread, sendMessageAction } from "@/redux/message/messageActions";
 import { addSocketMessage, markMessagesReadFromSocket, setActiveThread, setThreadDetails } from "@/redux/message/messageSlice";
 import { useSelector } from "react-redux";
+import CustomAudioPlayer from "../common/CustomAudioPlayer";
 
 const MessagePage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,6 +51,10 @@ const MessagePage = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [reportMessage, setReportMessage] = useState("");
+
+  const [isRecording, setIsRecording] = useState(false);
+const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+const audioChunksRef = useRef<Blob[]>([]);
   const isMobile = useDeviceType();
   const { isBlocked } = useAppSelector(
   (state) => state.message
@@ -580,6 +585,88 @@ const handleDelete = async () => {
   toast.success("Conversation deleted");
 };
 
+const uploadVoiceMessage = async (file: File) => {
+  if (!activeThreadId || !activeUser?.id) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("threadId", activeThreadId);
+  formData.append("receiverId", activeUser.id);
+
+  try {
+    const res = await apiPostWithMultiForm({
+      url: API_MESSAGE_CHAT_UPLOAD_MEDIA,
+      values: formData,
+    });
+
+    if (res && !res.error) {
+      dispatch(addSocketMessage(res));
+      socket.emit("mediaMessageUploaded", {
+        threadId: activeThreadId,
+        messageId: res._id,
+      });
+    }
+  } catch (err) {
+    console.error("Voice upload failed");
+  }
+};
+
+const startRecording = async () => {
+  try {
+    // 🔍 Check permission state first (optional but professional)
+    const permission = await navigator.permissions.query({
+      name: "microphone" as PermissionName,
+    });
+
+    if (permission.state === "denied") {
+      toast.error("Microphone permission is blocked. Please enable it in browser settings.");
+      return;
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = mediaRecorder;
+    audioChunksRef.current = [];
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunksRef.current.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunksRef.current, {
+        type: "audio/webm",
+      });
+
+      const file = new File([audioBlob], "voice-message.webm", {
+        type: "audio/webm",
+      });
+
+      await uploadVoiceMessage(file);
+    };
+
+    mediaRecorder.start();
+    setIsRecording(true);
+
+  } catch (err: any) {
+    if (err.name === "NotAllowedError") {
+      toast.error("Microphone permission denied");
+    } else if (err.name === "NotFoundError") {
+      toast.error("No microphone detected");
+    } else {
+      toast.error("Recording failed");
+    }
+  }
+};
+
+const stopRecording = () => {
+  if (!mediaRecorderRef.current) return;
+
+  mediaRecorderRef.current.stop();
+  setIsRecording(false);
+};
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -860,6 +947,13 @@ const handleDelete = async () => {
                                               ],
                                             }}
                                           />
+                                        </div>
+                                      )}
+
+                                      {/* AUDIO */}
+                                      {msg.type === 4 && (
+                                        <div className="chat-msg-audio">
+                                          <CustomAudioPlayer src={msg.mediaUrl} />
                                         </div>
                                       )}
 
@@ -1258,7 +1352,14 @@ const handleDelete = async () => {
                                   ></path>
                                 </svg>
                               </button>
-                              <button className="voice-recorder-icon-btn">
+                              <button  
+                               className={`voice-recorder-icon-btn ${isRecording ? "recording" : ""}`}
+                                onMouseDown={startRecording}
+                                onMouseUp={stopRecording}
+                                onMouseLeave={isRecording ? stopRecording : undefined}
+                                onTouchStart={startRecording}
+                                onTouchEnd={stopRecording}
+                                >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="35"
