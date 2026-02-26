@@ -418,7 +418,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                 (post.accessType === "pay_per_view" &&
                                   post.isUnlocked)
                               ) {
-                                router.push(`/post?publicId=${post.publicId}`);
+                                router.push(`/purchased-media?publicId=${post.publicId}`);
                                 return;
                               }
 

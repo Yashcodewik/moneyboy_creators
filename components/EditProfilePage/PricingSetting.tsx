@@ -8,6 +8,7 @@ import {
 } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
 import { GoDotFill } from "react-icons/go";
+import { showError, showSuccess } from "@/utils/alert";
 
 const PricingSetting = () => {
   const [subscription, setSubscription] = useState({
@@ -16,7 +17,7 @@ const PricingSetting = () => {
     ppvVideoPrice: "",
     ppvPhotoPrice: "",
   });
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     fetchSubscription();
   }, []);
@@ -54,21 +55,29 @@ const PricingSetting = () => {
         .min(1, "Must be greater than 0"),
     }),
     onSubmit: async (values) => {
-      const res = await apiPost({
-        url: API_CREATE_UPDATE_SUBSCRIPTION,
-        values: {
-          monthlyPrice: Number(values.monthlyPrice),
-          yearlyPrice: Number(values.yearlyPrice),
-          ppvVideoPrice: Number(values.ppvVideoPrice),
-          ppvPhotoPrice: Number(values.ppvPhotoPrice),
-        },
-      });
+      try {
+        setLoading(true);
 
-      if (res?.success) {
-        fetchSubscription();
-        ShowToast("Subscription updated successfully", "success");
-      } else {
-        ShowToast(res?.message || "Failed to update subscription", "error");
+        const res = await apiPost({
+          url: API_CREATE_UPDATE_SUBSCRIPTION,
+          values: {
+            monthlyPrice: Number(values.monthlyPrice),
+            yearlyPrice: Number(values.yearlyPrice),
+            ppvVideoPrice: Number(values.ppvVideoPrice),
+            ppvPhotoPrice: Number(values.ppvPhotoPrice),
+          },
+        });
+
+        if (res?.success) {
+          await fetchSubscription();
+          showSuccess("Subscription updated successfully");
+        } else {
+          showError(res?.message || "Failed to update subscription");
+        }
+      } catch (err: any) {
+        showError(err?.message || "Something went wrong");
+      } finally {
+        setLoading(false);
       }
     },
   });
@@ -148,8 +157,12 @@ const PricingSetting = () => {
               </div>
             </div>
             <div className="btm_btn">
-              <button type="submit" className="premium-btn active-down-effect">
-                <span>Save Changes</span>
+              <button
+                type="submit"
+                className={`premium-btn active-down-effect ${loading ? "disabled" : ""}`}
+                disabled={loading}
+              >
+                <span>{loading ? "Saving..." : "Save Changes"}</span>
               </button>
             </div>
           </div>
