@@ -146,8 +146,7 @@ const PurchasedMediaPage: React.FC = () => {
     if (showVideo && videoWrapRef.current) {
       const headerOffset = 90;
 
-      const elementPosition =
-        videoWrapRef.current.getBoundingClientRect().top;
+      const elementPosition = videoWrapRef.current.getBoundingClientRect().top;
 
       const offsetPosition =
         elementPosition + window.pageYOffset - headerOffset;
@@ -193,7 +192,7 @@ const PurchasedMediaPage: React.FC = () => {
         type: mediaType !== "all" ? mediaType : undefined,
         time: timeFilter !== "all_time" ? timeFilter : undefined,
         search,
-      })
+      }),
     );
   }, [page, activeTab, selectedCreator, mediaType, timeFilter, search]);
 
@@ -208,16 +207,13 @@ const PurchasedMediaPage: React.FC = () => {
         type: mediaType !== "all" ? mediaType : undefined,
         time: timeFilter !== "all_time" ? timeFilter : undefined,
         search,
-      })
+      }),
     );
   };
 
   useEffect(() => {
     dispatch(setPage(1));
   }, [activeTab, selectedCreator, mediaType, timeFilter, search]);
-
-
-
 
   const creators = useSelector(
     (state: RootState) => state.purchasedMedia.creators.items,
@@ -305,7 +301,7 @@ const PurchasedMediaPage: React.FC = () => {
   useEffect(() => {
     if (publicIdFromUrl && items.length) {
       const matchedItem = items.find(
-        (item) => item.publicId === publicIdFromUrl
+        (item) => item.publicId === publicIdFromUrl,
       );
 
       if (matchedItem) {
@@ -321,7 +317,6 @@ const PurchasedMediaPage: React.FC = () => {
       }
     }
   }, [publicIdFromUrl, items]);
-
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -363,7 +358,7 @@ const PurchasedMediaPage: React.FC = () => {
             >
               <span>{p}</span>
             </button>
-          )
+          ),
         )}
 
         {/* NEXT */}
@@ -490,14 +485,42 @@ const PurchasedMediaPage: React.FC = () => {
                 {/* <VideoPlayer src={selectedVideoUrl} publicId={selectedItem.publicId} postId={selectedItem._id} watchedSeconds={selectedItem.watchedSeconds} duration={selectedItem.videoDuration}/> */}
                 <div className="posterimg">
                   <PhotoProvider
-                    toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible, }) => {
+                    toolbarRender={({
+                      images,
+                      index,
+                      onIndexChange,
+                      onClose,
+                      rotate,
+                      onRotate,
+                      scale,
+                      onScale,
+                      visible,
+                    }) => {
                       if (!visible) return null;
                       return (
                         <div className="toolbar_controller">
-                          <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
-                          <span>{index + 1} / {images.length}</span>
-                          <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
-                          <button className="btn_icons"
+                          <button
+                            className="btn_icons"
+                            onClick={() =>
+                              index > 0 && onIndexChange(index - 1)
+                            }
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+                          <span>
+                            {index + 1} / {images.length}
+                          </span>
+                          <button
+                            className="btn_icons"
+                            onClick={() =>
+                              index < images.length - 1 &&
+                              onIndexChange(index + 1)
+                            }
+                          >
+                            <ChevronRight size={20} />
+                          </button>
+                          <button
+                            className="btn_icons"
                             onClick={() => onScale(scale + 0.2)}
                           >
                             <ZoomIn size={20} />
@@ -524,9 +547,15 @@ const PurchasedMediaPage: React.FC = () => {
                       );
                     }}
                   >
-                    <Swiper modules={[Navigation, Pagination]} navigation pagination={{ clickable: true }} spaceBetween={10}>
+                    <Swiper
+                      key={selectedItemId}
+                      modules={[Navigation, Pagination]}
+                      navigation
+                      pagination={{ clickable: true }}
+                      spaceBetween={10}
+                    >
                       {mediaItems.map((media: MediaBlock, idx: number) => (
-                        <SwiperSlide key={idx}>
+                        <SwiperSlide key={media.mediaFiles?.[0] || idx}>
                           {/* VIDEO */}
                           {media.type === "video" && media.mediaFiles?.[0] && (
                             <VideoPlayer
@@ -850,7 +879,7 @@ const PurchasedMediaPage: React.FC = () => {
                         <a
                           href="#"
                           className="btn-txt-gradient btn-outline"
-                        // onClick={toggleVideo}
+                          // onClick={toggleVideo}
                         >
                           <span>Watch Now</span>
                         </a>
@@ -867,22 +896,25 @@ const PurchasedMediaPage: React.FC = () => {
                     <div className="pm-multi-tabs-buttons-wrapper">
                       <div className="multi-tabs-action-buttons">
                         <button
-                          className={`multi-tab-switch-btn ${activeTab === "favorites" ? "active" : ""
-                            }`}
+                          className={`multi-tab-switch-btn ${
+                            activeTab === "favorites" ? "active" : ""
+                          }`}
                           onClick={() => handleTabClick("favorites")}
                         >
                           <span>Favorites</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${activeTab === "continue-watching" ? "active" : ""
-                            }`}
+                          className={`multi-tab-switch-btn ${
+                            activeTab === "continue-watching" ? "active" : ""
+                          }`}
                           onClick={() => handleTabClick("continue-watching")}
                         >
                           <span>Continue Watching</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${activeTab === "watch-later" ? "active" : ""
-                            }`}
+                          className={`multi-tab-switch-btn ${
+                            activeTab === "watch-later" ? "active" : ""
+                          }`}
                           onClick={() => handleTabClick("watch-later")}
                         >
                           <span>Watch Later</span>
@@ -896,15 +928,17 @@ const PurchasedMediaPage: React.FC = () => {
                           <span>All Media</span>
                         </button> */}
                         <button
-                          className={`multi-tab-switch-btn ${activeTab === "recently-purchased" ? "active" : ""
-                            }`}
+                          className={`multi-tab-switch-btn ${
+                            activeTab === "recently-purchased" ? "active" : ""
+                          }`}
                           onClick={() => handleTabClick("recently-purchased")}
                         >
                           <span>Recently Purchased</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${activeTab === "recently-added" ? "active" : ""
-                            }`}
+                          className={`multi-tab-switch-btn ${
+                            activeTab === "recently-added" ? "active" : ""
+                          }`}
                           onClick={() => handleTabClick("recently-added")}
                         >
                           <span>Recently Added From Subscriptions</span>
@@ -947,8 +981,12 @@ const PurchasedMediaPage: React.FC = () => {
                               key={item._id}
                               item={item}
                               onOpen={(item) => {
-                                setSelectedItemId(item._id);
-                                setShowVideo(true);
+                                setShowVideo(false);
+
+                                setTimeout(() => {
+                                  setSelectedItemId(item._id);
+                                  setShowVideo(true);
+                                }, 80);
                               }}
                             />
                           ))}
@@ -962,7 +1000,6 @@ const PurchasedMediaPage: React.FC = () => {
             </div>
           </div>
         </div>
-
       </div>
       {showReportModal && reportPost && (
         <ReportModal
