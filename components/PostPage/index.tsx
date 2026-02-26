@@ -443,6 +443,9 @@ const PostPage = () => {
                   <li onClick={() => alert("meera")}><img src="https://i.pravatar.cc/40?img=3" alt="meera" className="user_icons" /> <span>@meera</span></li>
                   <li onClick={() => alert("sam")}><img src="https://i.pravatar.cc/40?img=4" alt="sam" className="user_icons" /> <span>@sam</span></li>
                   <li onClick={() => alert("disha")}><img src="https://i.pravatar.cc/40?img=5" alt="disha" className="user_icons" /> <span>@disha</span></li>
+                  <li onClick={() => alert("meera")}><img src="https://i.pravatar.cc/40?img=3" alt="meera" className="user_icons" /> <span>@meera</span></li>
+                  <li onClick={() => alert("sam")}><img src="https://i.pravatar.cc/40?img=4" alt="sam" className="user_icons" /> <span>@sam</span></li>
+                  <li onClick={() => alert("disha")}><img src="https://i.pravatar.cc/40?img=5" alt="disha" className="user_icons" /> <span>@disha</span></li>
                 </ul>
               </div>
               <div className="moneyboy-post__desc">
