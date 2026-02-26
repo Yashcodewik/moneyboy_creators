@@ -1382,11 +1382,17 @@
      }
 
      .taggedlist_wrap {
-      max-width: 220px; 
+      display: inline-flex;
+      max-width: 100%;
       overflow-x: auto;
       overflow-y: hidden;
       white-space: nowrap;
-      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       ul {
         margin: 0px;
         display: inline-flex;
