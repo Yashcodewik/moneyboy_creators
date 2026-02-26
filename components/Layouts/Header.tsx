@@ -683,7 +683,7 @@ const Header = () => {
                         className="menu-link my-profile-link"
                         onClick={(e) => {
                           e.preventDefault();
-                          // setIsOpen(false);
+                          setIsOpen(false);
 
                           console.log("=============", session?.user?.role);
 

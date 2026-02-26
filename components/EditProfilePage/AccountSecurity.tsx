@@ -1,9 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ShowToast from "../common/ShowToast";
-import { apiPost } from "@/utils/endpoints/common";
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import {
   API_BLOCK_COUNTRIES,
   API_CHANGE_CREATOR_PASSWORD,
+  API_GET_BLOCKED_COUNTRIES,
   API_TOGGLE_CREATOR_ACCOUNT,
   API_UNBLOCK_COUNTRIES,
 } from "@/utils/api/APIConstant";
@@ -12,6 +13,7 @@ import { countryOptions } from "../helper/creatorOptions";
 import CustomSelect from "../CustomSelect";
 import { signIn } from "next-auth/react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import { showError, showSuccess } from "@/utils/alert";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -33,49 +35,61 @@ const AccountSecurity = ({ profile }: any) => {
   const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
   const prevBlockedCountriesRef = useRef<string[]>([]);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState(false);
+  const [blockLoading, setBlockLoading] = useState(false);
 
   const handleChangePassword = async () => {
     if (!passwordData.password || !passwordData.confirmPassword) {
-      ShowToast("Please fill all password fields", "error");
+      showError("Please fill all password fields");
       return;
     }
 
     if (passwordData.password !== passwordData.confirmPassword) {
-      ShowToast("Password and confirm password do not match", "error");
+      showError("Password and confirm password do not match");
       return;
     }
 
-    const res = await apiPost({
-      url: API_CHANGE_CREATOR_PASSWORD,
-      values: passwordData,
-    });
+    try {
+      setPasswordLoading(true);
 
-    if (res?.success) {
-      ShowToast(res.message || "Password updated successfully", "success");
-      setPasswordData({
-        password: "",
-        confirmPassword: "",
+      const res = await apiPost({
+        url: API_CHANGE_CREATOR_PASSWORD,
+        values: passwordData,
       });
-    } else {
-      ShowToast(res?.message || "Failed to update password", "error");
+
+      if (res?.success) {
+        showSuccess(res.message || "Password updated successfully");
+        setPasswordData({ password: "", confirmPassword: "" });
+      } else {
+        showError(res?.message || "Failed to update password");
+      }
+    } catch (err: any) {
+      showError(err?.message || "Something went wrong");
+    } finally {
+      setPasswordLoading(false);
     }
   };
   const handleToggleAccount = async () => {
     try {
+      setToggleLoading(true);
+
       const res = await apiPost({
         url: API_TOGGLE_CREATOR_ACCOUNT,
         values: {},
       });
 
       if (res?.success) {
-        ShowToast(res.message, "success");
+        showSuccess(res.message);
         setUserProfile((prev: any) => ({
           ...prev,
           status: res.status,
         }));
       }
     } catch (error: any) {
-      ShowToast(error?.message || "Failed to toggle account", "error");
+      showError(error?.message || "Failed to toggle account");
+    } finally {
+      setToggleLoading(false);
     }
   };
 
@@ -87,6 +101,8 @@ const AccountSecurity = ({ profile }: any) => {
     const toUnblock = previous.filter((c) => !current.includes(c));
 
     try {
+      setBlockLoading(true);
+
       if (toBlock.length) {
         await apiPost({
           url: API_BLOCK_COUNTRIES,
@@ -103,12 +119,33 @@ const AccountSecurity = ({ profile }: any) => {
 
       prevBlockedCountriesRef.current = current;
 
-      ShowToast("Blocked countries updated successfully", "success");
+      showSuccess("Blocked countries updated successfully");
     } catch (err: any) {
-      ShowToast(err?.message || "Failed to update blocked countries", "error");
+      showError(err?.message || "Failed to update blocked countries");
+    } finally {
+      setBlockLoading(false);
     }
   };
 
+  useEffect(() => {
+    const fetchBlockedCountries = async () => {
+      try {
+        const res = await getApiWithOutQuery({
+          url: API_GET_BLOCKED_COUNTRIES,
+        });
+
+        if (res?.success) {
+          const countries = res.countryNames || [];
+          setBlockedCountries(countries);
+          prevBlockedCountriesRef.current = countries;
+        }
+      } catch (err) {
+        console.error("Failed to load blocked countries");
+      }
+    };
+
+    fetchBlockedCountries();
+  }, []);
   return (
     <div className="creator-profile-card-container">
       <div className="card filters-card-wrapper">
@@ -178,17 +215,21 @@ const AccountSecurity = ({ profile }: any) => {
           </div>
           <div className="btm_btn">
             <button
-              className="premium-btn active-down-effect"
+              className={`premium-btn active-down-effect ${passwordLoading ? "disabled" : ""}`}
               onClick={handleChangePassword}
+              disabled={passwordLoading}
             >
-              <span>Save Changes</span>
+              <span>{passwordLoading ? "Saving..." : "Save Changes"}</span>
             </button>
           </div>
         </div>
         <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap connect_social_wrap">
           <div className="select_countries_wrap">
             <h5>Connect Your Social Accounts</h5>
-            <p>Connect your social accounts to automatically publish your MoneyBoy posts.</p>
+            <p>
+              Connect your social accounts to automatically publish your
+              MoneyBoy posts.
+            </p>
             <div className="btn_wrap">
               <label>Connect X Account</label>
               {profile?.socialId ? (
@@ -227,16 +268,19 @@ const AccountSecurity = ({ profile }: any) => {
               <p>Hides the profile temporarily (Does not delete it)</p>
             </div>
             <button
-              className={`btn-danger ${
+              className={`btn-danger ${toggleLoading ? "disabled" : ""} ${
                 userProfile?.status === UserStatus.SELF_DEACTIVATED
                   ? "reactivate-btn"
                   : ""
               }`}
               onClick={handleToggleAccount}
+              disabled={toggleLoading}
             >
-              {userProfile?.status === UserStatus.SELF_DEACTIVATED
-                ? "Reactivate account"
-                : "Deactivate account"}
+              {toggleLoading
+                ? "Please wait..."
+                : userProfile?.status === UserStatus.SELF_DEACTIVATED
+                  ? "Reactivate account"
+                  : "Deactivate account"}
             </button>
           </div>
         </div>
@@ -259,10 +303,11 @@ const AccountSecurity = ({ profile }: any) => {
             <div className="btm_btn">
               <button
                 type="button"
-                className="premium-btn active-down-effect"
+                className={`premium-btn active-down-effect ${blockLoading ? "disabled" : ""}`}
                 onClick={handleSaveBlockedCountries}
+                disabled={blockLoading}
               >
-                <span>Save Changes</span>
+                <span>{blockLoading ? "Saving..." : "Save Changes"}</span>
               </button>
             </div>
           </div>

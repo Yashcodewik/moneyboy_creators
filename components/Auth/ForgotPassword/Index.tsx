@@ -14,6 +14,7 @@ import {
   API_VERIFY_RESET_OTP,
 } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
+import { showError, showSuccess } from "@/utils/alert";
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -85,10 +86,13 @@ const ForgotPassword = () => {
         });
 
         if (res?.success) {
-          ShowToast(res.message, "success");
-          router.push("/login");
+          showSuccess("Password changed successfully");
+
+          setTimeout(() => {
+            router.push("/login");
+          }, 1800);
         } else {
-          ShowToast(res?.message || "Reset failed", "error");
+          showError(res?.message || "Reset failed");
 
           // 👇 if OTP wrong or expired → reopen modal
           if (res?.message?.toLowerCase().includes("otp")) {
@@ -246,8 +250,14 @@ const ForgotPassword = () => {
                       )}
                   </div>
                 </div>
-                <button type="submit" className="premium-btn mb-0">
-                  <span>Update Password</span>
+                <button
+                  type="submit"
+                  className={`premium-btn mb-0 ${formik.isSubmitting ? "disabled" : ""}`}
+                  disabled={formik.isSubmitting}
+                >
+                  <span>
+                    {formik.isSubmitting ? "Updating..." : "Update Password"}
+                  </span>
                 </button>
               </div>
             )}

@@ -21,6 +21,7 @@ import ShowToast from "../common/ShowToast";
 import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
 import NoProfileSvg from "../common/NoProfileSvg";
+import { showError, showSuccess } from "@/utils/alert";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -99,10 +100,10 @@ const UserEditProfilePage = () => {
       });
 
       if (res?.success) {
-        ShowToast("Profile updated successfully", "success");
+        showSuccess("Profile updated successfully");
       }
     } catch (error: any) {
-      ShowToast(error?.error, "error");
+     showError(error?.error || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -110,12 +111,12 @@ const UserEditProfilePage = () => {
 
   const handleChangePassword = async () => {
     if (!passwordData.password || !passwordData.confirmPassword) {
-      ShowToast("Please fill all password fields", "error");
+      showError("Please fill all password fields");
       return;
     }
 
     if (passwordData.password !== passwordData.confirmPassword) {
-      ShowToast("Password and confirm password do not match", "error");
+      showError("Password and confirm password do not match");
       return;
     }
 
@@ -125,13 +126,13 @@ const UserEditProfilePage = () => {
     });
 
     if (res?.success) {
-      ShowToast(res.message || "Password updated successfully", "success");
+      showSuccess(res.message || "Password updated successfully");
       setPasswordData({
         password: "",
         confirmPassword: "",
       });
     } else {
-      ShowToast(res?.message || "Failed to update password", "error");
+      showError(res?.message || "Failed to update password");
     }
   };
 
@@ -143,7 +144,7 @@ const UserEditProfilePage = () => {
       });
 
       if (res?.success) {
-        ShowToast(res.message, "success");
+        showSuccess(res.message);
 
         // Update local userProfile status
         setUserProfile((prev: any) => ({
@@ -152,7 +153,7 @@ const UserEditProfilePage = () => {
         }));
       }
     } catch (error: any) {
-      ShowToast(error?.message || "Failed to toggle account", "error");
+      showError(error?.message || "Failed to toggle account");
     }
   };
 
