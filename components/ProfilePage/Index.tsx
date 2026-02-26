@@ -1,13 +1,35 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { apiPost, getApiByParams, getApiWithOutQuery,} from "@/utils/endpoints/common";
-import { API_CREATOR_PROFILE, API_CREATOR_PROFILE_BY_ID, API_DELETE_POST, API_FOLLOWER_COUNT, API_GET_POSTS_BY_CREATOR, API_SAVE_CREATOR, API_SAVE_POST, API_SEND_TIP, API_SUBSCRIBE_CREATOR, API_UNLOCK_POST, API_UNSAVE_CREATOR, API_UNSAVE_POST, API_UPGRADE_SUBSCRIPTION,} from "@/utils/api/APIConstant";
+import {
+  apiPost,
+  getApiByParams,
+  getApiWithOutQuery,
+} from "@/utils/endpoints/common";
+import {
+  API_CREATOR_PROFILE,
+  API_CREATOR_PROFILE_BY_ID,
+  API_DELETE_POST,
+  API_FOLLOWER_COUNT,
+  API_GET_POSTS_BY_CREATOR,
+  API_SAVE_CREATOR,
+  API_SAVE_POST,
+  API_SEND_TIP,
+  API_SUBSCRIBE_CREATOR,
+  API_UNLOCK_POST,
+  API_UNSAVE_CREATOR,
+  API_UNSAVE_POST,
+  API_UPGRADE_SUBSCRIPTION,
+} from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useParams, useRouter } from "next/navigation";
 import { AppDispatch, RootState } from "../../redux/store";
-import { fetchFollowerCounts, followUserAction, unfollowUserAction,} from "../../redux/other/followActions";
+import {
+  fetchFollowerCounts,
+  followUserAction,
+  unfollowUserAction,
+} from "../../redux/other/followActions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
@@ -20,8 +42,42 @@ import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import ShowToast from "../common/ShowToast";
 import { showQuestion, showSuccess, showError } from "../../utils/alert";
 
-interface User { _id: string; userId: string; publicId: string; firstName: string; lastName: string; displayName: string; userName: string; email: string; role: number; createdAt: string; updatedAt: string; __v: number; profile: string; coverImage: string;}
-interface CreatorDetails { _id: string; userId: string; city: string; country: string; bio: string; bodyType: string; sexualOrientation: string; age: string; eyeColor: string; hairColor: string; ethnicity: string; height: string; style: string; size: string; popularity: string; createdAt: string; updatedAt: string; __v: number;}
+interface User {
+  _id: string;
+  userId: string;
+  publicId: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  userName: string;
+  email: string;
+  role: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  profile: string;
+  coverImage: string;
+}
+interface CreatorDetails {
+  _id: string;
+  userId: string;
+  city: string;
+  country: string;
+  bio: string;
+  bodyType: string;
+  sexualOrientation: string;
+  age: string;
+  eyeColor: string;
+  hairColor: string;
+  ethnicity: string;
+  height: string;
+  style: string;
+  size: string;
+  popularity: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
 
 interface SubscriptionStatus {
   isSubscribed: boolean;
@@ -116,9 +172,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: profilePublicId,
-        });
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: profilePublicId,
+          });
 
       return response;
     },
@@ -248,8 +304,6 @@ const ProfilePage = () => {
   const videoPosts = posts?.filter((post: any) =>
     post?.media?.some((m: any) => m.type === "video"),
   );
-
-
 
   const openTipModal = () => {
     setShowTipModal(true);
@@ -441,10 +495,12 @@ const ProfilePage = () => {
     const queryClient = useQueryClient();
     const handleDeletePost = async (postId: string) => {
       if (!postId) return;
-      const confirm = await showQuestion("This action cannot be undone. Delete this post?");
+      const confirm = await showQuestion(
+        "This action cannot be undone. Delete this post?",
+      );
       if (!confirm) return;
       try {
-        const res = await apiPost({url: API_DELETE_POST, values: { postId },});
+        const res = await apiPost({ url: API_DELETE_POST, values: { postId } });
         if (res?.success) {
           showSuccess("Post deleted successfully");
           queryClient.setQueryData(
@@ -455,7 +511,7 @@ const ProfilePage = () => {
                 ...oldData,
                 posts: oldData.posts.filter((p: any) => p._id !== postId),
               };
-            }
+            },
           );
         } else {
           showError(res?.message || "Failed to delete post");
@@ -492,21 +548,17 @@ const ProfilePage = () => {
           return {
             ...oldData,
             posts: oldData.posts.map((p: any) =>
-              p._id === postId ? { ...p, isSaved: newState } : p
+              p._id === postId ? { ...p, isSaved: newState } : p,
             ),
           };
-        }
+        },
       );
 
       try {
         if (post.isSaved) {
-          await dispatch(
-            unsavePost({ postId, creatorUserId })
-          ).unwrap();
+          await dispatch(unsavePost({ postId, creatorUserId })).unwrap();
         } else {
-          await dispatch(
-            savePost({ postId, creatorUserId })
-          ).unwrap();
+          await dispatch(savePost({ postId, creatorUserId })).unwrap();
         }
       } catch (err) {
         queryClient.invalidateQueries({
@@ -521,7 +573,10 @@ const ProfilePage = () => {
         key={post?.publicId}
       >
         <div className="creator-content-card">
-          <div className="creator-content-card__media" onClick={() => handlePostClick(post)}>
+          <div
+            className="creator-content-card__media"
+            onClick={() => handlePostClick(post)}
+          >
             <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
@@ -627,11 +682,38 @@ const ProfilePage = () => {
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
                 {!isOwnProfile && !hideSaveBtn && (
-                  <div className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`} onClick={handleSavePost}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                      <path d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <div
+                    className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`}
+                    onClick={handleSavePost}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="25"
+                      viewBox="0 0 24 25"
+                      fill="none"
+                    >
+                      <path
+                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                      <path
+                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                      <path
+                        d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
                     </svg>
                     {/* <span> 13 </span> */}
                   </div>
@@ -675,10 +757,35 @@ const ProfilePage = () => {
                 </div>
                 <div className="creator-content-stat-box post-comment-btn massage-btn active">
                   <button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z" stroke="white" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
-                      <path d="M7 8H17" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                      <path d="M7 13H13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                      <path
+                        d="M7 8H17"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                      <path
+                        d="M7 13H13"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
                     </svg>
                   </button>
                   <span>{post?.commentCount}</span>
@@ -737,7 +844,12 @@ const ProfilePage = () => {
               </>
             )}
             {isOwner && (
-              <button className="btn-danger icons" onClick={() => handleDeletePost(post._id)}><Trash2 size={28} color="#FFF" /></button>
+              <button
+                className="btn-danger icons"
+                onClick={() => handleDeletePost(post._id)}
+              >
+                <Trash2 size={28} color="#FFF" />
+              </button>
             )}
           </div>
         </div>
@@ -802,7 +914,6 @@ const ProfilePage = () => {
     return Math.round(savingsPercent);
   };
 
-
   const handleSaveCreator = async (e: React.MouseEvent) => {
     e.preventDefault();
 
@@ -824,10 +935,9 @@ const ProfilePage = () => {
     if (res?.success) {
       ShowToast(isSaved ? "Creator removed" : "Creator saved", "success");
 
-      refetch();   // ⭐ refresh state from server
+      refetch(); // ⭐ refresh state from server
     }
   };
-
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -1191,24 +1301,91 @@ const ProfilePage = () => {
                   <div className="profile-card__geo-details">
                     {(profile?.creator?.city || profile?.creator?.country) && (
                       <div className="profile-card__geo-detail">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <path d="M3.61971 8.49C5.58971 -0.169998 18.4197 -0.159997 20.3797 8.5C21.5297 13.58 18.3697 17.88 15.5997 20.54C13.5897 22.48 10.4097 22.48 8.38971 20.54C5.62971 17.88 2.46971 13.57 3.61971 8.49Z" stroke="none" stroke-width="1.5"></path>
-                          <path d="M11.9999 13.43C13.723 13.43 15.1199 12.0331 15.1199 10.31C15.1199 8.58687 13.723 7.19 11.9999 7.19C10.2768 7.19 8.87988 8.58687 8.87988 10.31C8.87988 12.0331 10.2768 13.43 11.9999 13.43Z" stroke="none" stroke-width="1.5"></path>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M3.61971 8.49C5.58971 -0.169998 18.4197 -0.159997 20.3797 8.5C21.5297 13.58 18.3697 17.88 15.5997 20.54C13.5897 22.48 10.4097 22.48 8.38971 20.54C5.62971 17.88 2.46971 13.57 3.61971 8.49Z"
+                            stroke="none"
+                            stroke-width="1.5"
+                          ></path>
+                          <path
+                            d="M11.9999 13.43C13.723 13.43 15.1199 12.0331 15.1199 10.31C15.1199 8.58687 13.723 7.19 11.9999 7.19C10.2768 7.19 8.87988 8.58687 8.87988 10.31C8.87988 12.0331 10.2768 13.43 11.9999 13.43Z"
+                            stroke="none"
+                            stroke-width="1.5"
+                          ></path>
                         </svg>
-                        <span>{profile?.creator?.city}{profile?.creator?.city && profile?.creator?.country && ", "}{profile?.creator?.country}</span>
+                        <span>
+                          {profile?.creator?.city}
+                          {profile?.creator?.city &&
+                            profile?.creator?.country &&
+                            ", "}
+                          {profile?.creator?.country}
+                        </span>
                       </div>
                     )}
                     {/* Joined Date */}
                     <div className="profile-card__geo-detail">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M8 2V5" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M16 2V5" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M8 11H16" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M8 16H12" stroke="none" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M8 2V5"
+                          stroke="none"
+                          stroke-width="1.5"
+                          stroke-miterlimit="10"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        ></path>
+                        <path
+                          d="M16 2V5"
+                          stroke="none"
+                          stroke-width="1.5"
+                          stroke-miterlimit="10"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        ></path>
+                        <path
+                          d="M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z"
+                          stroke="none"
+                          stroke-width="1.5"
+                          stroke-miterlimit="10"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        ></path>
+                        <path
+                          d="M8 11H16"
+                          stroke="none"
+                          stroke-width="1.5"
+                          stroke-miterlimit="10"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        ></path>
+                        <path
+                          d="M8 16H12"
+                          stroke="none"
+                          stroke-width="1.5"
+                          stroke-miterlimit="10"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        ></path>
                       </svg>
                       <span>
-                        Joined{" "} {profile?.user?.createdAt ? new Date(profile.user.createdAt).toLocaleString("default", { month: "long", year: "numeric", }) : ""}
+                        Joined{" "}
+                        {profile?.user?.createdAt
+                          ? new Date(profile.user.createdAt).toLocaleString(
+                              "default",
+                              { month: "long", year: "numeric" },
+                            )
+                          : ""}
                       </span>
                     </div>
                   </div>
@@ -1216,8 +1393,10 @@ const ProfilePage = () => {
                 {session?.isAuthenticated && (
                   <div className="creator-profile-stats-link">
                     <div className="profile-card__stats">
-                      <div className="profile-card__stats-item posts-stats"
-                        onClick={() => setActiveTab("posts")}>
+                      <div
+                        className="profile-card__stats-item posts-stats"
+                        onClick={() => setActiveTab("posts")}
+                      >
                         <div className="profile-card__stats-num">
                           {postCount.toLocaleString()}
                         </div>
@@ -1262,54 +1441,58 @@ const ProfilePage = () => {
                         </div>
                       </div>
                       {/* Followers */}
-                        <Link href={`/follower?tab=followers&id=${profile?.user?._id}`}>
-                          <div className="profile-card__stats-item followers-stats">
-                            <div className="profile-card__stats-num">
-                              {profileStats.followerCount.toLocaleString()}
-                            </div>
-                            <div className="profile-card__stats-label">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="25"
-                                viewBox="0 0 24 25"
-                                fill="none"
-                              >
-                                <path
-                                  d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                              </svg>
-                              <span>Followers</span>
-                            </div>
+                      <Link
+                        href={`/follower?tab=followers&id=${profile?.user?._id}`}
+                      >
+                        <div className="profile-card__stats-item followers-stats">
+                          <div className="profile-card__stats-num">
+                            {profileStats.followerCount.toLocaleString()}
                           </div>
-                        </Link>
+                          <div className="profile-card__stats-label">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="25"
+                              viewBox="0 0 24 25"
+                              fill="none"
+                            >
+                              <path
+                                d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                            </svg>
+                            <span>Followers</span>
+                          </div>
+                        </div>
+                      </Link>
                       {/* Following */}
-                      <Link href={`/follower?tab=following&id=${profile?.user?._id}`}>
+                      <Link
+                        href={`/follower?tab=following&id=${profile?.user?._id}`}
+                      >
                         <div className="profile-card__stats-item following-stats">
                           <div className="profile-card__stats-num">
                             {profileStats.followingCount.toLocaleString()}
@@ -1319,29 +1502,28 @@ const ProfilePage = () => {
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
                               height="25"
-                                viewBox="0 0 24 25"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                                <path
-                                  d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z"
-                                  stroke="none"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                              </svg>
-                              <span>Following</span>
-                            </div>
+                              viewBox="0 0 24 25"
+                              fill="none"
+                            >
+                              <path
+                                d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                            </svg>
+                            <span>Following</span>
                           </div>
-                        </Link>
-                     
+                        </div>
+                      </Link>
                     </div>
                     <div className="creator-profile-link">
                       <a
@@ -1592,10 +1774,19 @@ const ProfilePage = () => {
                             router.push("/login");
                             return;
                           }
-                          if (!profile?.user?.publicId) return;
 
-                          router.push(`/store?tab=marketplace&creator=${profile?.user?.publicId}`);
+                          // 👤 Creator viewing own profile
+                          if (isOwnProfile) {
+                            router.push("/store");
+                            return;
+                          }
 
+                          // 👀 Visitor viewing creator profile
+                          if (profile?.user?.publicId) {
+                            router.push(
+                              `/store?tab=marketplace&creator=${profile.user.publicId}`,
+                            );
+                          }
                         }}
                       >
                         <img
