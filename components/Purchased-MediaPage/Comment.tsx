@@ -197,30 +197,10 @@ const currentUserId = session?.user?.id;
                         <div className="like-deslike-wrap">
                             <ul>
                                 <li>
-                                    <Link href="#" className={`comment-like-btn`}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            dispatch(likeComment({ commentId: comment._id }));
-                                        }}
-                                    >
-                                        <ThumbsUp 
-                                            color={isLikedByMe ? "DeepPink" : "black"}
-                                            fill={isLikedByMe ? "DeepPink" : "none"}
-                                            strokeWidth={2} /> {comment.likeCount}
-                                    </Link>
+                                    <Link href="#" className={`comment-like-btn`} onClick={(e) => {e.preventDefault(); dispatch(likeComment({ commentId: comment._id }));}}><ThumbsUp  strokeWidth={2} /> {comment.likeCount}</Link>
                                 </li>
                                 <li>
-                                    <Link href="#" className={`comment-dislike-btn`}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            dispatch(dislikeComment({ commentId: comment._id }));
-                                        }}
-                                    >
-                                        <ThumbsDown 
-                                            color={isDislikedByMe ? "DeepPink" : "black"}
-                                            fill={isDislikedByMe ? "DeepPink" : "none"}
-                                            strokeWidth={2} /> {comment.dislikeCount}
-                                    </Link>
+                                    <Link href="#" className={`comment-dislike-btn`} onClick={(e) => {e.preventDefault(); dispatch(dislikeComment({ commentId: comment._id }));}}><ThumbsDown strokeWidth={2} /> {comment.dislikeCount}</Link>
                                 </li>
                             </ul>
                         </div>

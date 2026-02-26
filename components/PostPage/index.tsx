@@ -436,6 +436,15 @@ const PostPage = () => {
                   </div>
                 </div>
               </div>
+              <div className="taggedlist_wrap">
+                <ul>
+                  <li onClick={() => alert("alex")}><img src="https://i.pravatar.cc/40?img=1" alt="alex" className="user_icons" /> <span>@alex</span></li>
+                  <li onClick={() => alert("rohan")}><img src="https://i.pravatar.cc/40?img=2" alt="rohan" className="user_icons" /> <span>@rohan</span></li>
+                  <li onClick={() => alert("meera")}><img src="https://i.pravatar.cc/40?img=3" alt="meera" className="user_icons" /> <span>@meera</span></li>
+                  <li onClick={() => alert("sam")}><img src="https://i.pravatar.cc/40?img=4" alt="sam" className="user_icons" /> <span>@sam</span></li>
+                  <li onClick={() => alert("disha")}><img src="https://i.pravatar.cc/40?img=5" alt="disha" className="user_icons" /> <span>@disha</span></li>
+                </ul>
+              </div>
               <div className="moneyboy-post__desc">
                 <p className="post-text">
                   {post?.text ? (

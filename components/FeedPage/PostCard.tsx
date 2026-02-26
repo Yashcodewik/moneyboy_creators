@@ -6,7 +6,7 @@ import { Navigation } from "swiper/modules";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, X, CircleQuestionMark, } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, X, CircleQuestionMark, AtSign, } from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
@@ -337,7 +337,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         <>
             <div className="moneyboy-post__container card">
                 <div className="moneyboy-post__header">
-                    <div className="profile-card" onClick={() => handleProfileClick(post.creatorInfo?.publicId)} style={{ cursor: "pointer" }}>
+                    <div className="profile-card" style={{ cursor: "pointer" }}>
                         <div className="profile-card__main">
                             <div className="profile-card__avatar-settings">
                                 <div className="profile-card__avatar">
@@ -367,15 +367,28 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                         <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                                     </div>
                                 </div>
-                                <div className="profile-card__username btntooltip_wrapper">
+                                <div className="profile-card__username tagged_userlist">
                                     @{post.creatorInfo?.displayName}
-                                    <ul className="taglist">
+                                    {/* <ul className="taglist">
                                         <li><Link href="" className="taglink">@alex</Link></li>
                                         <li><Link href="" className="taglink">@rohan</Link></li>
                                         <li><Link href="" className="taglink">@meera</Link></li>
                                         <li><Link href="" className="taglink">@sam</Link></li>
-                                    </ul>
-                                    {/* <button type="button" className="active-down-effect" data-position="right" data-tooltip={moreUsers.map(u => `@${u}`).join('\n')}><CircleQuestionMark size={15}/></button> */}
+                                    </ul> */}
+                                    <div className="tagged_userlist">
+                                        <button type="button" className="active-down-effect" onClick={() => setOpen(!open)}> & More <AtSign size={16}/></button>
+                                        {open && (
+                                            <div className="user-dropdown">
+                                                <ul>
+                                                    <li onClick={() => alert("alex")}><img src="https://i.pravatar.cc/40?img=1" alt="alex" className="user_icons" /> <span>@alex</span></li>
+                                                    <li onClick={() => alert("rohan")}><img src="https://i.pravatar.cc/40?img=2" alt="rohan" className="user_icons" /> <span>@rohan</span></li>
+                                                    <li onClick={() => alert("meera")}><img src="https://i.pravatar.cc/40?img=3" alt="meera" className="user_icons" /> <span>@meera</span></li>
+                                                    <li onClick={() => alert("sam")}><img src="https://i.pravatar.cc/40?img=4" alt="sam" className="user_icons" /> <span>@sam</span></li>
+                                                    <li onClick={() => alert("disha")}><img src="https://i.pravatar.cc/40?img=5" alt="disha" className="user_icons" /> <span>@disha</span></li>
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
