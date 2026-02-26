@@ -9,8 +9,8 @@ import { debounce } from "@/libs/helper";
 
 interface VideoPlayerProps {
   src: string;
-  publicId: string;   // 👁 views
-  postId: string;     // ▶️ progress (DB)
+  publicId: string; // 👁 views
+  postId: string; // ▶️ progress (DB)
   watchedSeconds?: number;
   duration?: number;
 }
@@ -45,7 +45,7 @@ const VideoPlayer = memo(function VideoPlayer({
           postId,
           watchedSeconds: Math.floor(player.currentTime),
           duration: Math.floor(player.duration),
-        })
+        }),
       );
     }, 8000); // ✅ 8 seconds
   }, [postId]);
@@ -65,6 +65,16 @@ const VideoPlayer = memo(function VideoPlayer({
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (plyrRef.current?.plyr) {
+        try {
+          plyrRef.current.plyr.pause();
+          plyrRef.current.plyr.destroy();
+        } catch (e) {}
+      }
+    };
+  }, []);
 
   /* 💾 Progress sender (throttled) */
   const sendProgress = (force = false) => {
@@ -82,7 +92,7 @@ const VideoPlayer = memo(function VideoPlayer({
         postId, // ✅ DB ID
         watchedSeconds: current,
         duration: Math.floor(player.duration),
-      })
+      }),
     );
   };
 
@@ -120,8 +130,6 @@ const VideoPlayer = memo(function VideoPlayer({
         progressSenderRef.current?.flush();
       }}
     />
-
-
   );
 });
 
