@@ -16,7 +16,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import VideoRecorder from "../common/VideoRecorder";
-import { showSuccess, showError } from "@/utils/alert";
+import { showSuccess, showError, showQuestion } from "@/utils/alert";
 
 type FeedParams = { show: boolean; onClose: () => void; };
 type TagUser = { _id: string; displayName: string; userName: string; profile?: string; };
@@ -150,7 +150,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
 
   useEffect(()=>{
     const esc = (e:KeyboardEvent)=>{
-      if(e.key === "Escape") onClose();
+      if(e.key === "Escape") confirmClose();
     };
     document.addEventListener("keydown", esc);
     return ()=>document.removeEventListener("keydown", esc);
@@ -405,14 +405,34 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
       ]
       : [];
 
+const confirmClose = async () => {
+  if (
+    !formik.values.text &&
+    mediaFiles.length === 0 &&
+    selectedTagUsers.length === 0
+  ) {
+    onClose();
+    return;
+  }
+
+  const leave = await showQuestion(
+    "Are you sure you want to leave? Your changes will not be saved.",
+    "Leave Without Saving",
+    "Continue Editing"
+  );
+
+  if (leave) onClose();
+}
+
   return (
     <>
-      <div className={`modal ${show ? "show" : ""}`} role="dialog" aria-modal="true" onClick={onClose}>
+      <div className={`modal ${show ? "show" : ""}`} role="dialog" aria-modal="true" onClick={confirmClose}>
         <form className="modal-wrap post-modal" onClick={(e) => e.stopPropagation()} onSubmit={formik.handleSubmit}>
           <div className="modal_head">
             <h3>New Post</h3>
-            <button type="button" className="close-btn" onClick={onClose}><CgClose size={22} /></button>
+            <button type="button" className="close-btn" onClick={confirmClose}><CgClose size={22} /></button>
           </div>
+            <button type="button" className="close-btn" onClick={confirmClose}><CgClose size={22} /></button>
 
           <div className="input-wrap">
             <div className="label-input textarea one">
@@ -631,7 +651,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         </form>
 
         {showTagModal && (
-          <div className="modal show" role="dialog" aria-modal="true" onClick={() => setShowTagModal(false)}>
+          <div className="modal show" role="dialog" aria-modal="true" onClick={confirmClose}>
             <div className="modal-wrap creators-modal" onClick={(e) => e.stopPropagation()}>
               <button type="button" className="close-btn" onClick={() => setShowTagModal(false)}><CgClose size={22} /></button>
               <h3>Tag other creators</h3>

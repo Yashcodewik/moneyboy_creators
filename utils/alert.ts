@@ -14,14 +14,18 @@ const baseConfig = {
 };
 
 /* ================= AUTO ALERT ================= */
-const autoAlert = (
-  icon: SweetAlertIcon,
-  message: string,
-  timer = 2200
-) => {
+const autoAlert = (icon: SweetAlertIcon, message: string, timer = 2200) => {
   Swal.fire({
-    ...baseConfig, icon, title: message, showConfirmButton: false, timer, timerProgressBar: true,
-    didOpen: (toast) => { toast.addEventListener("mouseenter", Swal.stopTimer); toast.addEventListener("mouseleave", Swal.resumeTimer); },
+    ...baseConfig,
+    icon,
+    title: message,
+    showConfirmButton: false,
+    timer,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
+    },
   });
 };
 
@@ -31,9 +35,21 @@ export const showError = (msg: string) => autoAlert("error", msg, 2600);
 export const showWarning = (msg: string) => autoAlert("warning", msg, 2600);
 export const showInfo = (msg: string) => autoAlert("info", msg, 2400);
 
-/* ================= YES / NO QUESTION ================= */
-export const showQuestion = async (message: string): Promise<boolean> => {
-  const result = await Swal.fire({ ...baseConfig, icon: "question", title: message, showCancelButton: true, confirmButtonText: "<span>Yes</span>", cancelButtonText: "<span>No</span>", focusCancel: true, });
+export const showQuestion = async (
+  message: string,
+  confirmText = "Yes",
+  cancelText = "No",
+): Promise<boolean> => {
+  const result = await Swal.fire({
+    ...baseConfig,
+    icon: "question",
+    title: message,
+    showCancelButton: true,
+    confirmButtonText: `<span>${confirmText}</span>`,
+    cancelButtonText: `<span>${cancelText}</span>`,
+    focusCancel: true,
+  });
+
   return result.isConfirmed;
 };
 
@@ -56,8 +72,13 @@ export const showAcceptPostConsent = async (): Promise<boolean> => {
     confirmButtonText: "<span>Accept & Continue</span>",
 
     preConfirm: () => {
-      const selected = document.querySelector('input[name="consent"]:checked') as HTMLInputElement | null;
-      if (!selected) { Swal.showValidationMessage("Please select an option"); return false; }
+      const selected = document.querySelector(
+        'input[name="consent[]"]:checked',
+      ) as HTMLInputElement | null;
+      if (!selected) {
+        Swal.showValidationMessage("Please select an option");
+        return false;
+      }
       return true;
     },
   });
@@ -82,25 +103,35 @@ export const showDeclineReason = async (): Promise<string | null> => {
     confirmButtonText: "<span>Submit</span>",
     showCancelButton: false,
     didOpen: () => {
-      const textarea = document.getElementById("declineNote") as HTMLTextAreaElement;
+      const textarea = document.getElementById(
+        "declineNote",
+      ) as HTMLTextAreaElement;
       const counter = document.getElementById("charCount");
       textarea.focus();
-      textarea.addEventListener("input", () => { if (counter) counter.textContent = textarea.value.length.toString(); });
+      textarea.addEventListener("input", () => {
+        if (counter) counter.textContent = textarea.value.length.toString();
+      });
     },
 
     preConfirm: () => {
-      const note = (document.getElementById("declineNote") as HTMLTextAreaElement).value;
-      if (!note.trim()) { Swal.showValidationMessage("Please enter a reason"); return false; }
+      const note = (
+        document.getElementById("declineNote") as HTMLTextAreaElement
+      ).value;
+      if (!note.trim()) {
+        Swal.showValidationMessage("Please enter a reason");
+        return false;
+      }
       return note;
     },
   });
 
-  if (result.isConfirmed) { showWarning("Post declined"); return result.value; }
+  if (result.isConfirmed) {
+    showWarning("Post declined");
+    return result.value;
+  }
   showInfo("Decline cancelled");
   return null;
 };
-
-
 
 // Just Show Timer Modal Start
 // import Swal from "sweetalert2";
