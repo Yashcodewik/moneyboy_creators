@@ -65,6 +65,12 @@ import {
 } from "lucide-react";
 import "react-photo-view/dist/react-photo-view.css";
 import { setPage } from "@/redux/purchasedMedia/Slice";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 // Define types for the API response
 interface MediaItem {
@@ -117,13 +123,13 @@ const PurchasedMediaPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const layoutRef = useRef<HTMLDivElement | null>(null);
   const searchParams = useSearchParams();
-const publicIdFromUrl = searchParams.get("publicId");
-const { items, loading, pagination } = useSelector(
-  (state: RootState) => state.purchasedMedia,
-);
+  const publicIdFromUrl = searchParams.get("publicId");
+  const { items, loading, pagination } = useSelector(
+    (state: RootState) => state.purchasedMedia,
+  );
 
-const { page, limit, total } = pagination;
-const totalPages = Math.ceil(total / limit);
+  const { page, limit, total } = pagination;
+  const totalPages = Math.ceil(total / limit);
 
   // const [openDropdown, setOpenDropdown] = useState
   //   "status" | "type" | "creator" | "time" | null
@@ -157,39 +163,39 @@ const totalPages = Math.ceil(total / limit);
     dispatch(fetchPurchasedMediaCreators());
   }, [dispatch]);
 
-useEffect(() => {
-  dispatch(
-    fetchPurchasedMedia({
-      page, // ✅ dynamic page
-      limit: 12,
-      publicId: publicIdFromUrl || undefined,
-      tab: activeTab === "collection" ? "all-media" : activeTab,
-      creatorId: selectedCreator !== "all" ? selectedCreator : undefined,
-      type: mediaType !== "all" ? mediaType : undefined,
-      time: timeFilter !== "all_time" ? timeFilter : undefined,
-      search,
-    })
-  );
-}, [page, activeTab, selectedCreator, mediaType, timeFilter, search]);
+  useEffect(() => {
+    dispatch(
+      fetchPurchasedMedia({
+        page, // ✅ dynamic page
+        limit: 12,
+        publicId: publicIdFromUrl || undefined,
+        tab: activeTab === "collection" ? "all-media" : activeTab,
+        creatorId: selectedCreator !== "all" ? selectedCreator : undefined,
+        type: mediaType !== "all" ? mediaType : undefined,
+        time: timeFilter !== "all_time" ? timeFilter : undefined,
+        search,
+      })
+    );
+  }, [page, activeTab, selectedCreator, mediaType, timeFilter, search]);
 
-const refetchPurchasedMedia = () => {
-  dispatch(
-    fetchPurchasedMedia({
-      page, // ✅ use current page
-      limit: 12,
-      publicId: publicIdFromUrl || undefined,
-      tab: activeTab === "collection" ? "all-media" : activeTab,
-      creatorId: selectedCreator !== "all" ? selectedCreator : undefined,
-      type: mediaType !== "all" ? mediaType : undefined,
-      time: timeFilter !== "all_time" ? timeFilter : undefined,
-      search,
-    })
-  );
-};
+  const refetchPurchasedMedia = () => {
+    dispatch(
+      fetchPurchasedMedia({
+        page, // ✅ use current page
+        limit: 12,
+        publicId: publicIdFromUrl || undefined,
+        tab: activeTab === "collection" ? "all-media" : activeTab,
+        creatorId: selectedCreator !== "all" ? selectedCreator : undefined,
+        type: mediaType !== "all" ? mediaType : undefined,
+        time: timeFilter !== "all_time" ? timeFilter : undefined,
+        search,
+      })
+    );
+  };
 
-useEffect(() => {
-  dispatch(setPage(1));
-}, [activeTab, selectedCreator, mediaType, timeFilter, search]);
+  useEffect(() => {
+    dispatch(setPage(1));
+  }, [activeTab, selectedCreator, mediaType, timeFilter, search]);
 
 
 
@@ -277,81 +283,81 @@ useEffect(() => {
     refetchPurchasedMedia();
   };
 
-useEffect(() => {
-  if (publicIdFromUrl && items.length) {
-    const matchedItem = items.find(
-      (item) => item.publicId === publicIdFromUrl
-    );
+  useEffect(() => {
+    if (publicIdFromUrl && items.length) {
+      const matchedItem = items.find(
+        (item) => item.publicId === publicIdFromUrl
+      );
 
-    if (matchedItem) {
-      setSelectedItemId(matchedItem._id);
-      setShowVideo(true);
+      if (matchedItem) {
+        setSelectedItemId(matchedItem._id);
+        setShowVideo(true);
 
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
-      }, 150);
+        setTimeout(() => {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        }, 150);
+      }
     }
-  }
-}, [publicIdFromUrl, items]);
+  }, [publicIdFromUrl, items]);
 
 
-const renderPagination = () => {
-  if (totalPages <= 1) return null;
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
 
-  const pages: (number | string)[] = [];
+    const pages: (number | string)[] = [];
 
-  if (totalPages <= 6) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i);
-  } else {
-    pages.push(1, 2, 3);
-    if (page > 4) pages.push("...");
-    if (page > 3 && page < totalPages - 2) pages.push(page);
-    if (page < totalPages - 3) pages.push("...");
-    pages.push(totalPages - 1, totalPages);
-  }
+    if (totalPages <= 6) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1, 2, 3);
+      if (page > 4) pages.push("...");
+      if (page > 3 && page < totalPages - 2) pages.push(page);
+      if (page < totalPages - 3) pages.push("...");
+      pages.push(totalPages - 1, totalPages);
+    }
 
-  return (
-    <div className="pagination_wrap">
-      {/* PREVIOUS */}
-      <button
-        className="btn-prev"
-        disabled={page === 1}
-        onClick={() => dispatch(setPage(page - 1))}
-      >
-        <CircleArrowLeft color="#000" />
-      </button>
+    return (
+      <div className="pagination_wrap">
+        {/* PREVIOUS */}
+        <button
+          className="btn-prev"
+          disabled={page === 1}
+          onClick={() => dispatch(setPage(page - 1))}
+        >
+          <CircleArrowLeft color="#000" />
+        </button>
 
-      {/* PAGE NUMBERS */}
-      {pages.map((p, i) =>
-        p === "..." ? (
-          <button key={i} className="premium-btn" disabled>
-            <span>…</span>
-          </button>
-        ) : (
-          <button
-            key={i}
-            className={page === p ? "premium-btn" : "btn-primary"}
-            onClick={() => dispatch(setPage(p as number))}
-          >
-            <span>{p}</span>
-          </button>
-        )
-      )}
+        {/* PAGE NUMBERS */}
+        {pages.map((p, i) =>
+          p === "..." ? (
+            <button key={i} className="premium-btn" disabled>
+              <span>…</span>
+            </button>
+          ) : (
+            <button
+              key={i}
+              className={page === p ? "premium-btn" : "btn-primary"}
+              onClick={() => dispatch(setPage(p as number))}
+            >
+              <span>{p}</span>
+            </button>
+          )
+        )}
 
-      {/* NEXT */}
-      <button
-        className="btn-next"
-        disabled={page === totalPages}
-        onClick={() => dispatch(setPage(page + 1))}
-      >
-        <CircleArrowRight color="#000" />
-      </button>
-    </div>
-  );
-};
+        {/* NEXT */}
+        <button
+          className="btn-next"
+          disabled={page === totalPages}
+          onClick={() => dispatch(setPage(page + 1))}
+        >
+          <CircleArrowRight color="#000" />
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="moneyboy-2x-1x-layout-container" ref={layoutRef}>
@@ -531,43 +537,37 @@ const renderPagination = () => {
                       );
                     }}
                   >
-                    {mediaItems.map((media: MediaBlock, idx: number) => (
-                      <React.Fragment key={idx}>
-                        {/* VIDEO */}
-                        {media.type === "video" && media.mediaFiles?.[0] && (
-                          <VideoPlayer
-                            src={media.mediaFiles[0]}
-                            publicId={selectedItem.publicId}
-                            postId={selectedItem._id}
-                            watchedSeconds={selectedItem.watchedSeconds}
-                            duration={selectedItem.videoDuration}
-                          />
-                        )}
-
-                        {/* PHOTOS */}
-                        {(media.type === "photo" || media.type === "image") &&
-                          media.mediaFiles?.[0] && (
-                            <PhotoView src={media.mediaFiles[0]}>
-                              <img
-                                src={media.mediaFiles[0]}
-                                alt="media"
-                                className="posterimg"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </PhotoView>
+                    <Swiper modules={[Navigation, Pagination]} navigation pagination={{ clickable: true }} spaceBetween={10}> 
+                      {mediaItems.map((media: MediaBlock, idx: number) => (
+                        <SwiperSlide key={idx}>
+                          {/* VIDEO */}
+                          {media.type === "video" && media.mediaFiles?.[0] && (
+                            <VideoPlayer
+                              src={media.mediaFiles[0]}
+                              publicId={selectedItem.publicId}
+                              postId={selectedItem._id}
+                              watchedSeconds={selectedItem.watchedSeconds}
+                              duration={selectedItem.videoDuration}
+                            />
                           )}
-                      </React.Fragment>
-                    ))}
+
+                          {/* PHOTO */}
+                          {(media.type === "photo" || media.type === "image") &&
+                            media.mediaFiles?.[0] && (
+                              <PhotoView src={media.mediaFiles[0]}>
+                                <img
+                                  src={media.mediaFiles[0]}
+                                  alt="media"
+                                  className="posterimg"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </PhotoView>
+                            )}
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
                   </PhotoProvider>
                 </div>
-
-                {/* optional close */}
-                {/* <button
-                  onClick={closeVideo}
-                  style={{ position: "absolute", top: 10, right: 10 }}
-                >
-                  ✕
-                </button> */}
                 {selectedItem && (
                   <>
                     <div className="pm-page-card-footer vdocard-footer">
@@ -962,10 +962,10 @@ const renderPagination = () => {
                               onOpen={(item) => {
                                 setSelectedItemId(item._id);
                                 setShowVideo(true);
-                               window.scrollTo({
-  top: 0,
-  behavior: "smooth",
-});
+                                window.scrollTo({
+                                  top: 0,
+                                  behavior: "smooth",
+                                });
                               }}
                             />
                           ))}

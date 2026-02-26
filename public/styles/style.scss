@@ -2868,16 +2868,7 @@ body {
     backdrop-filter: blur(15px);
     transition: var(--transition-fast);
     background-color: #e4e4e4;
-    &::after {
-      content: "";
-      -webkit-backdrop-filter: blur(4px);
-      backdrop-filter: blur(4px);
-      background: #00000063;
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    img.posterimg {
+    img.posterimg, video {
       width: 100%;
       height: 100%;
       object-fit: contain;
