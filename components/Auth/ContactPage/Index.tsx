@@ -10,6 +10,38 @@ import { apiPostWithMultiForm } from "@/utils/endpoints/common";
 import { API_CONTACT_US } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
 import { useFormik } from "formik";
+const SUBJECT_OPTIONS = [
+  {
+    label: "Info – General Questions",
+    value: "info",
+    email: "info@moneyboy.com",
+  },
+  {
+    label: "Support – Technical & Account Issues",
+    value: "support",
+    email: "support@moneyboy.com",
+  },
+  {
+    label: "Billing – Payments & Subscription Issues",
+    value: "billing",
+    email: "support@moneyboy.com",
+  },
+  {
+    label: "Marketing – Partnerships & Collaborations",
+    value: "marketing",
+    email: "marketing@moneyboy.com",
+  },
+  {
+    label: "Advertise – Advertising & Sponsorships",
+    value: "advertise",
+    email: "advertise@moneyboy.com",
+  },
+  {
+    label: "MoneyBoy – Corporate & Official Inquiries",
+    value: "corporate",
+    email: "moneyboy@moneyboy.com",
+  },
+];
 
 export const contactSchema = yup.object().shape({
   firstName: yup.string().trim().required("First name is required"),
@@ -26,6 +58,7 @@ const ContactPage = () => {
   const formik = useFormik({
     initialValues: {
       firstName: "",
+      routeEmail: "",
       email: "",
       subject: "",
       message: "",
@@ -40,6 +73,7 @@ const ContactPage = () => {
         formData.append("firstName", values.firstName);
         formData.append("email", values.email);
         formData.append("subject", values.subject);
+        formData.append("routeEmail", values.routeEmail);
         formData.append("message", values.message);
 
         if (file) {
@@ -139,47 +173,50 @@ const ContactPage = () => {
                   <CustomSelect
                     label="Subject *"
                     icon={<svg className="icons lockBox svg-icon" />}
-                    options={[
-                      {
-                        label: "Account Verification Issue",
-                        value: "Account Verification Issue",
-                      },
-                      { label: "Billing Issue", value: "Billing Issue" },
-                      { label: "Report a Bug", value: "Report a Bug" },
-                    ]}
+                    options={SUBJECT_OPTIONS}
                     value={formik.values.subject}
                     onChange={(val: any) => {
-                      formik.setFieldValue("subject", val || "", true);
+                      formik.setFieldValue("subject", val, true);
+
+                      const selected = SUBJECT_OPTIONS.find(
+                        (opt) => opt.value === val,
+                      );
+                      formik.setFieldValue(
+                        "routeEmail",
+                        selected?.email || "",
+                        true,
+                      );
+
                       formik.setFieldTouched("subject", true, true);
                     }}
                   />
 
                   {/* {formik.touched.subject && formik.errors.subject && (
-                    <span className="error-message">
-                      {formik.errors.subject}
-                    </span>
-                  )} */}
+                      <span className="error-message">
+                        {formik.errors.subject}
+                      </span>
+                    )} */}
                 </div>
                 {/* <div className="label-input one file-upload-wrapper">
-                  <div className="input-placeholder-icon">
-                    <i className="icons idshape size-45"></i>
-                    <div className="imgicons">
-                      <TbCamera size="16" />
+                    <div className="input-placeholder-icon">
+                      <i className="icons idshape size-45"></i>
+                      <div className="imgicons">
+                        <TbCamera size="16" />
+                      </div>
                     </div>
-                  </div>
-                  <p>Your government issued ID card (Optional)</p>
-                  <input
-                    type="file"
-                    className="real-file-input"
-                    accept="image/*,.pdf"
-                    onChange={(e) => {
-                      const selectedFile = e.target.files?.[0];
-                      if (selectedFile) {
-                        setFile(selectedFile);
-                      }
-                    }}
-                  />
-                </div> */}
+                    <p>Your government issued ID card (Optional)</p>
+                    <input
+                      type="file"
+                      className="real-file-input"
+                      accept="image/*,.pdf"
+                      onChange={(e) => {
+                        const selectedFile = e.target.files?.[0];
+                        if (selectedFile) {
+                          setFile(selectedFile);
+                        }
+                      }}
+                    />
+                  </div> */}
                 <div className="one">
                   <div className="label-input textarea one">
                     <div className="input-placeholder-icon">
