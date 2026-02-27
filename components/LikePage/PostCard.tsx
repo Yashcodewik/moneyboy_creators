@@ -9,7 +9,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
-import { ArrowUpRight, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowUpRight, AtSign, ThumbsDown, ThumbsUp } from "lucide-react";
 import { CgClose } from "react-icons/cg";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import CustomSelect from "../CustomSelect";
@@ -87,6 +87,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const emojiRef = useRef<HTMLDivElement | null>(null);
   const emojiButtonRef = useRef<HTMLDivElement | null>(null);
   const [showTipModal, setShowTipModal] = useState(false);
+  const tagButtonRef = useRef<HTMLButtonElement | null>(null);
   const [liked, setLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [saved, setSaved] = useState(post.isSaved);
@@ -97,8 +98,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const emojiBtnRef = useRef<HTMLDivElement | null>(null);
   const [isReported, setIsReported] = useState(post.isReported);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [showTaggedUsers, setShowTaggedUsers] = useState(false);
   const commentsState = useAppSelector((state) => state.comments);
   const postComments = commentsState.comments[post._id] || [];
+  const tagMenuRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useDeviceType();
   const dispatch = useAppDispatch();
   const desktopStyle: React.CSSProperties = {
@@ -259,10 +262,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     }
   };
 
-    const handleLikeComment = (commentId: string) => {
+  const handleLikeComment = (commentId: string) => {
     dispatch(likeComment({ commentId }));
   };
-  
+
   const handleDislikeComment = (commentId: string) => {
     dispatch(dislikeComment({ commentId }));
   };
@@ -294,6 +297,25 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       console.error("Tip failed:", err);
     }
   };
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (
+        showTaggedUsers &&
+        tagMenuRef.current &&
+        !tagMenuRef.current.contains(target) &&
+        tagButtonRef.current &&
+        !tagButtonRef.current.contains(target)
+      ) {
+        setShowTaggedUsers(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [showTaggedUsers]);
   return (
     <>
       <div className="moneyboy-post__container card">
@@ -351,9 +373,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               <div className="profile-card__info">
                 <div className="profile-card__name-badge">
                   <div className="profile-card__name">
-                    {post.creatorInfo.displayName}
+                    {post.creatorInfo?.userName}
                   </div>
-                  {/* {post.user.badge && (<div className="profile-card__badge"><img src={post.user.badge} alt="Badge" /></div>)} */}
                   <div className="profile-card__badge">
                     <img
                       src="/images/logo/profile-badge.png"
@@ -361,8 +382,51 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                     />
                   </div>
                 </div>
-                <div className="profile-card__username">
-                  @{post.creatorInfo.userName}
+                <div className="profile-card__username tagged_userlist">
+                  @{post.creatorInfo?.displayName}
+                  {/* <ul className="taglist">
+                                        <li><Link href="" className="taglink">@alex</Link></li>
+                                        <li><Link href="" className="taglink">@rohan</Link></li>
+                                        <li><Link href="" className="taglink">@meera</Link></li>
+                                        <li><Link href="" className="taglink">@sam</Link></li>
+                                    </ul> */}
+                  {post.taggedCreators?.length > 0 && (
+                    <div className="tagged_userlist">
+                      <button
+                        type="button"
+                        ref={tagButtonRef}
+                        className="active-down-effect"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowTaggedUsers((prev) => !prev);
+                        }}
+                      >
+                        & More <AtSign size={16} />
+                      </button>
+
+                      {showTaggedUsers && (
+                        <div ref={tagMenuRef} className="user-dropdown">
+                          <ul>
+                            {post.taggedCreators.map((user: any) => (
+                              <li
+                                key={user._id}
+                                onClick={() =>
+                                  handleProfileClick(user.publicId)
+                                }
+                              >
+                                <img
+                                  src={user.profile}
+                                  alt={user.userName}
+                                  className="user_icons"
+                                />
+                                <span>@{user.userName}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

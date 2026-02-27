@@ -449,63 +449,40 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                                         <li><Link href="" className="taglink">@meera</Link></li>
                                         <li><Link href="" className="taglink">@sam</Link></li>
                                     </ul> */}
-                  <div className="tagged_userlist">
-                    <button
-                      type="button"
-                      ref={tagButtonRef}
-                      className="active-down-effect"
-                      onClick={() => setShowTaggedUsers((prev) => !prev)}
-                    >
-                      {" "}
-                      & More <AtSign size={16} />
-                    </button>
-                    {showTaggedUsers && (
-                      <div ref={tagMenuRef} className="user-dropdown">
-                        <ul>
-                          <li onClick={() => alert("alex")}>
-                            <img
-                              src="https://i.pravatar.cc/40?img=1"
-                              alt="alex"
-                              className="user_icons"
-                            />{" "}
-                            <span>@alex</span>
-                          </li>
-                          <li onClick={() => alert("rohan")}>
-                            <img
-                              src="https://i.pravatar.cc/40?img=2"
-                              alt="rohan"
-                              className="user_icons"
-                            />{" "}
-                            <span>@rohan</span>
-                          </li>
-                          <li onClick={() => alert("meera")}>
-                            <img
-                              src="https://i.pravatar.cc/40?img=3"
-                              alt="meera"
-                              className="user_icons"
-                            />{" "}
-                            <span>@meera</span>
-                          </li>
-                          <li onClick={() => alert("sam")}>
-                            <img
-                              src="https://i.pravatar.cc/40?img=4"
-                              alt="sam"
-                              className="user_icons"
-                            />{" "}
-                            <span>@sam</span>
-                          </li>
-                          <li onClick={() => alert("disha")}>
-                            <img
-                              src="https://i.pravatar.cc/40?img=5"
-                              alt="disha"
-                              className="user_icons"
-                            />{" "}
-                            <span>@disha</span>
-                          </li>
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+                  {post.taggedCreators?.length > 0 && (
+                    <div className="tagged_userlist">
+                      <button
+                        type="button"
+                        ref={tagButtonRef}
+                        className="active-down-effect"
+                        onClick={() => setShowTaggedUsers((prev) => !prev)}
+                      >
+                        & More <AtSign size={16} />
+                      </button>
+
+                      {showTaggedUsers && (
+                        <div ref={tagMenuRef} className="user-dropdown">
+                          <ul>
+                            {post.taggedCreators.map((user: any) => (
+                              <li
+                                key={user._id}
+                                onClick={() =>
+                                  handleProfileClick(user.publicId)
+                                }
+                              >
+                                <img
+                                  src={user.profile}
+                                  alt={user.userName}
+                                  className="user_icons"
+                                />
+                                <span>@{user.userName}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
