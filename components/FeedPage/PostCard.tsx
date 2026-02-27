@@ -457,7 +457,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                         className="active-down-effect"
                         onClick={() => setShowTaggedUsers((prev) => !prev)}
                       >
-                        & More <AtSign size={16} />
+                        & Others
                       </button>
 
                       {showTaggedUsers && (

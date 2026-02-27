@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { API_LIKE_POST, API_UNLIKE_POST } from "@/utils/api/APIConstant";
@@ -16,8 +16,9 @@ import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPo
 import { PhotoProvider } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
 import { showSuccess, showError, showWarning, showInfo, showQuestion, } from "@/utils/alert";
-import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleChevronDown, CircleChevronUp, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
 import BtnGroupTabs from "../BtnGroupTabs";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
@@ -39,6 +40,35 @@ const FeedPage = () => {
   const popularPosts = allPosts.filter((p: any) => p.source === "popular");
   /* ================= INITIAL LOAD / TAB CHANGE ================= */
   const userId = (session?.user as any)?.id;
+  const isMobile = useDeviceType();
+  const [showSidebarMobile, setShowSidebarMobile] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
+
+  useEffect(() => {
+    const container = document.getElementById("feed-scroll-container");
+    if (!container) return;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const nearBottom = scrollTop + clientHeight >= scrollHeight - 150;
+      setShowSidebar(nearBottom);
+    };
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleScroll = () => {
+      if (window.scrollY < 200) {
+        setShowSidebarMobile(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isMobile]);
 
   useEffect(() => {
     if (activeTab === "feed" && feedPosts.length === 0) { dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT })); }
@@ -221,10 +251,29 @@ const FeedPage = () => {
               </div>
             </div>
           </div>
-          <aside className="moneyboy-2x-1x-b-layout scrolling">
-            <Featuredboys />
-          </aside>
+          {(!isMobile || showSidebarMobile) && (
+            <aside className={`moneyboy-2x-1x-b-layout scrolling ${isMobile ? "mobile-sidebar" : ""}`} ref={sidebarRef}>
+              <Featuredboys />
+            </aside>
+          )}
         </div>
+
+
+        {isMobile && (
+          <div className="updownarrow active-down-effect">
+            <button type="button" className="premium-btn" onClick={() => { if (isMobile) { setShowSidebarMobile(prev => !prev); setTimeout(() => { sidebarRef.current?.scrollIntoView({ behavior: "smooth", block: "start", }); }, 100); } else { sidebarRef.current?.scrollIntoView({ behavior: "smooth", block: "start", }); } }}>
+              {isMobile ? (
+                showSidebarMobile ? (
+                  <CircleChevronUp size={24} color="#FFF" />
+                ) : (
+                  <CircleChevronDown size={24} color="#FFF" />
+                )
+              ) : (
+                <CircleChevronDown size={24} color="#FFF" />
+              )}
+            </button>
+          </div>
+        )}
 
         {/* ================= MODALS ================= */}
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">

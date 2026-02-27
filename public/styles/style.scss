@@ -75,6 +75,30 @@ body {
   }
 }
 
+.updownarrow {
+  z-index: 99;
+  aspect-ratio: 1;
+  border-radius: 100%;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  display: flex;
+  position: fixed;
+  bottom: 150px;
+  right: 15px;
+  .premium-btn {
+    aspect-ratio: 1;
+    border-radius: 100%;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    display: flex;
+    svg {
+      transform: scale(1.15);
+    }
+  }
+}
+
 /* Animation Start */
 @keyframes spin {
   to {
@@ -6954,8 +6978,8 @@ body {
   /* mobile */
   @media (max-width: 767px) {
     &:has(.infinite-scroll-component) {
-      height: auto;
-      min-height: 50dvh;
+      height: calc(100vh - 295px);
+      min-height: 100%;
     }
   }
 }
