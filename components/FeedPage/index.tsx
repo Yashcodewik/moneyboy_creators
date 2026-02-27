@@ -61,7 +61,7 @@ const FeedPage = () => {
     if (!isMobile) return;
 
     const handleScroll = () => {
-      if (window.scrollY < 200) {
+      if (window.scrollY > 200) {
         setShowSidebarMobile(false);
       }
     };
@@ -74,7 +74,8 @@ const FeedPage = () => {
     if (activeTab === "feed" && feedPosts.length === 0) { dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT })); }
     if (activeTab === "following" && followingPosts.length === 0 && isLoggedIn) { dispatch(fetchFollowingPosts({ page: 1, limit: LIMIT })); }
     if (activeTab === "popular" && popularPosts.length === 0) { dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT })); }
-  }, [activeTab, isLoggedIn, userId]);
+  }, [activeTab, isLoggedIn, userId, feedPosts.length, followingPosts.length, popularPosts.length,
+  ]);
 
   /* ================= INFINITE SCROLL ================= */
   const fetchMoreHandler = () => {
@@ -85,7 +86,7 @@ const FeedPage = () => {
       hasMorePopular,
       loading,
     });
-    if (loading) return;
+    if (loading || !activeHasMore) return;
     if (activeTab === "feed" && hasMoreFeed) {
       dispatch(
         fetchFeedPosts({
@@ -213,42 +214,43 @@ const FeedPage = () => {
               </div> */}
               <BtnGroupTabs activeTab={activeTab} onChange={(value) => { if (!isLoggedIn && value === "following") { router.push("/discover"); return; } setActiveTab(value as TabType); }}
                 tabs={[{ key: "feed", label: "Feed" }, { key: "following", label: isLoggedIn ? "Following" : "Discover", }, { key: "popular", label: "Popular" },]} />
-              <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
-
-                <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={activeList?.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
-                  {loading && activeList.length === 0 ? (Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="moneyboy-post__container card skloading">
-                      <div className="post_header">
-                        <div className="post_header-left">
-                          <div className="post_avatar"></div>
-                          <div className="post_text">
-                            <div className="line medium"></div>
-                            <div className="line short"></div>
+              {!(isMobile && showSidebarMobile) && (
+                <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
+                  <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={activeList?.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
+                    {loading && activeList.length === 0 ? (Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="moneyboy-post__container card skloading">
+                        <div className="post_header">
+                          <div className="post_header-left">
+                            <div className="post_avatar"></div>
+                            <div className="post_text">
+                              <div className="line medium"></div>
+                              <div className="line short"></div>
+                            </div>
+                          </div>
+                          <div className="post__time"></div>
+                        </div>
+                        <div>
+                          <div className="line long"></div>
+                          <div className="line medium"></div>
+                          <div className="line short"></div>
+                        </div>
+                        <div className="moneyboy-post__media">
+                          <div className="moneyboy-post__img"></div>
+                          <div className="moneyboy-post__actions">
+                            <ul><li></li><li></li><li></li></ul>
+                            <ul><li></li><li></li></ul>
                           </div>
                         </div>
-                        <div className="post__time"></div>
                       </div>
-                      <div>
-                        <div className="line long"></div>
-                        <div className="line medium"></div>
-                        <div className="line short"></div>
-                      </div>
-                      <div className="moneyboy-post__media">
-                        <div className="moneyboy-post__img"></div>
-                        <div className="moneyboy-post__actions">
-                          <ul><li></li><li></li><li></li></ul>
-                          <ul><li></li><li></li></ul>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                  ) : (
-                    activeList?.map((post: any) => (
-                      <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount} />
                     ))
-                  )}
-                </InfiniteScrollWrapper>
-              </div>
+                    ) : (
+                      activeList?.map((post: any) => (
+                        <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount} />
+                      ))
+                    )}
+                  </InfiniteScrollWrapper>
+                </div>
+              )}
             </div>
           </div>
           {(!isMobile || showSidebarMobile) && (
@@ -261,16 +263,8 @@ const FeedPage = () => {
 
         {isMobile && (
           <div className="updownarrow active-down-effect">
-            <button type="button" className="premium-btn" onClick={() => { if (isMobile) { setShowSidebarMobile(prev => !prev); setTimeout(() => { sidebarRef.current?.scrollIntoView({ behavior: "smooth", block: "start", }); }, 100); } else { sidebarRef.current?.scrollIntoView({ behavior: "smooth", block: "start", }); } }}>
-              {isMobile ? (
-                showSidebarMobile ? (
-                  <CircleChevronUp size={24} color="#FFF" />
-                ) : (
-                  <CircleChevronDown size={24} color="#FFF" />
-                )
-              ) : (
-                <CircleChevronDown size={24} color="#FFF" />
-              )}
+            <button type="button" className="premium-btn" onClick={() => setShowSidebarMobile(prev => !prev)}>
+              {showSidebarMobile ? (<CircleChevronUp size={24} color="#fece26" />) : (<CircleChevronDown size={24} color="#fece26" />)}
             </button>
           </div>
         )}
