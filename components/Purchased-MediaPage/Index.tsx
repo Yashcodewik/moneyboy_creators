@@ -143,19 +143,25 @@ const PurchasedMediaPage: React.FC = () => {
   const videoWrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (showVideo && videoWrapRef.current) {
-      const headerOffset = 90;
+    if (!showVideo || !selectedItemId) return;
 
-      const elementPosition = videoWrapRef.current.getBoundingClientRect().top;
+    const timer = setTimeout(() => {
+      // Scroll everything that has scrolled
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
 
-      const offsetPosition =
-        elementPosition + window.pageYOffset - headerOffset;
+      // Walk up from video_wrap and scroll every parent
+      let el: HTMLElement | null = videoWrapRef.current;
+      while (el) {
+        if (el.scrollTop > 0) {
+          el.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        el = el.parentElement;
+      }
+    }, 150);
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-    }
+    return () => clearTimeout(timer);
   }, [showVideo, selectedItemId]);
 
   useEffect(() => {
@@ -373,6 +379,11 @@ const PurchasedMediaPage: React.FC = () => {
     );
   };
 
+  const totalMediaFiles = mediaItems.reduce(
+    (acc, media) => acc + (media.mediaFiles?.length || 0),
+    0,
+  );
+
   return (
     <div className="moneyboy-2x-1x-layout-container" ref={layoutRef}>
       <div className="moneyboy-2x-1x-a-layout">
@@ -481,7 +492,11 @@ const PurchasedMediaPage: React.FC = () => {
             </div>
 
             {showVideo && selectedItem && (
-              <div ref={videoWrapRef} className="video_wrap">
+              <div
+                ref={videoWrapRef}
+                className="video_wrap"
+                style={{ scrollMarginTop: "90px" }}
+              >
                 {/* <VideoPlayer src={selectedVideoUrl} publicId={selectedItem.publicId} postId={selectedItem._id} watchedSeconds={selectedItem.watchedSeconds} duration={selectedItem.videoDuration}/> */}
                 <div className="posterimg">
                   <PhotoProvider
@@ -550,37 +565,41 @@ const PurchasedMediaPage: React.FC = () => {
                     <Swiper
                       key={selectedItemId}
                       modules={[Navigation, Pagination]}
-                      navigation
-                      pagination={{ clickable: true }}
+                      navigation={totalMediaFiles > 1}
+                      pagination={
+                        totalMediaFiles > 1 ? { clickable: true } : false
+                      }
                       spaceBetween={10}
                     >
-                      {mediaItems.map((media: MediaBlock, idx: number) => (
-                        <SwiperSlide key={media.mediaFiles?.[0] || idx}>
-                          {/* VIDEO */}
-                          {media.type === "video" && media.mediaFiles?.[0] && (
-                            <VideoPlayer
-                              src={media.mediaFiles[0]}
-                              publicId={selectedItem.publicId}
-                              postId={selectedItem._id}
-                              watchedSeconds={selectedItem.watchedSeconds}
-                              duration={selectedItem.videoDuration}
-                            />
-                          )}
+                      {mediaItems.map((media: MediaBlock, idx: number) =>
+                        media.mediaFiles.map((file, fileIndex) => (
+                          <SwiperSlide key={`${idx}-${fileIndex}`}>
+                            {/* VIDEO */}
+                            {media.type === "video" && (
+                              <VideoPlayer
+                                src={file}
+                                publicId={selectedItem.publicId}
+                                postId={selectedItem._id}
+                                watchedSeconds={selectedItem.watchedSeconds}
+                                duration={selectedItem.videoDuration}
+                              />
+                            )}
 
-                          {/* PHOTO */}
-                          {(media.type === "photo" || media.type === "image") &&
-                            media.mediaFiles?.[0] && (
-                              <PhotoView src={media.mediaFiles[0]}>
+                            {/* IMAGE */}
+                            {(media.type === "photo" ||
+                              media.type === "image") && (
+                              <PhotoView src={file}>
                                 <img
-                                  src={media.mediaFiles[0]}
+                                  src={file}
                                   alt="media"
                                   className="posterimg"
                                   onClick={(e) => e.stopPropagation()}
                                 />
                               </PhotoView>
                             )}
-                        </SwiperSlide>
-                      ))}
+                          </SwiperSlide>
+                        )),
+                      )}
                     </Swiper>
                   </PhotoProvider>
                 </div>
@@ -986,6 +1005,31 @@ const PurchasedMediaPage: React.FC = () => {
                                 setTimeout(() => {
                                   setSelectedItemId(item._id);
                                   setShowVideo(true);
+
+                                  // Scroll ALL possible containers to top
+                                  setTimeout(() => {
+                                    // Window
+                                    window.scrollTo({
+                                      top: 0,
+                                      behavior: "smooth",
+                                    });
+
+                                    // Document
+                                    document.documentElement.scrollTop = 0;
+                                    document.body.scrollTop = 0;
+
+                                    // Find and scroll the ACTUAL scrollable parent
+                                    const allScrollable =
+                                      document.querySelectorAll("*");
+                                    allScrollable.forEach((el) => {
+                                      if (el.scrollTop > 0) {
+                                        el.scrollTo({
+                                          top: 0,
+                                          behavior: "smooth",
+                                        });
+                                      }
+                                    });
+                                  }, 100);
                                 }, 80);
                               }}
                             />
