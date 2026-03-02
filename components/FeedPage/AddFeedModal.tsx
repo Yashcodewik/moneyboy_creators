@@ -453,16 +453,16 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const collaborators: (TaggedUserWithShare & { isCreator: boolean })[] =
     selectedTagUsers.length > 0
       ? [
-          {
-            _id: "creator",
-            displayName: creator.name ?? "",
-            userName: creator.username ?? "",
-            profile: creator.profile,
-            percentage: creatorPercentage,
-            isCreator: true,
-          },
-          ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
-        ]
+        {
+          _id: "creator",
+          displayName: creator.name ?? "",
+          userName: creator.username ?? "",
+          profile: creator.profile,
+          percentage: creatorPercentage,
+          isCreator: true,
+        },
+        ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
+      ]
       : [];
 
   const confirmClose = async () => {
@@ -509,44 +509,16 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
 
           <div className="input-wrap">
             <div className="label-input textarea one">
-              <textarea
-                ref={textareaRef}
-                rows={4}
-                placeholder="Compose new post..."
-                name="text"
-                value={formik.values.text}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) e.stopPropagation();
-                }}
-              />
+              <textarea ref={textareaRef} rows={4} placeholder="Compose new post..." name="text" value={formik.values.text} onChange={formik.handleChange} onBlur={formik.handleBlur} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) e.stopPropagation(); }} />
             </div>
             <span className="right">
-              <button
-                type="button"
-                ref={emojiBtnRef}
-                className="emoji-btn"
-                onClick={() => setShowEmoji((prev) => !prev)}
-              >
-                <Smile
-                  size={20}
-                  stroke="black"
-                  strokeWidth={1}
-                  fill="#fece26"
-                />
+              <button type="button" ref={emojiBtnRef} className="emoji-btn" onClick={() => setShowEmoji((prev) => !prev)}>
+                <Smile size={20} stroke="black" strokeWidth={1} fill="#fece26" />
               </button>
               {formik.values.text.length}/300
               {showEmoji && (
                 <div ref={emojiRef} className="emoji-picker-wrapper">
-                  <EmojiPicker
-                    onEmojiClick={handleEmojiClick}
-                    autoFocusSearch={false}
-                    skinTonesDisabled
-                    previewConfig={{ showPreview: false }}
-                    height={320}
-                    width={320}
-                  />
+                  <EmojiPicker onEmojiClick={handleEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={320} width={320} />
                 </div>
               )}
             </span>
@@ -556,22 +528,11 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           )}
           <div className="select_wrap">
             <label className="radio_wrap">
-              <input
-                type="radio"
-                name="access"
-                checked={accessType === "subscriber"}
-                onChange={() => handleAccessTypeChange("subscriber")}
-              />{" "}
-              Only for Subscribers
+              <input type="radio" name="access" checked={accessType === "subscriber"} onChange={() => handleAccessTypeChange("subscriber")} />{" "} Only for Subscribers
             </label>
 
             <label className="radio_wrap">
-              <input
-                type="radio"
-                name="access"
-                checked={accessType === "pay_per_view"}
-                onChange={() => handleAccessTypeChange("pay_per_view")}
-              />{" "}
+              <input type="radio" name="access" checked={accessType === "pay_per_view"} onChange={() => handleAccessTypeChange("pay_per_view")} />{" "}
               Pay per View
             </label>
 
@@ -651,8 +612,8 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       value={
                         formik.values.scheduledAt
                           ? new Date(
-                              formik.values.scheduledAt,
-                            ).toLocaleDateString("en-GB")
+                            formik.values.scheduledAt,
+                          ).toLocaleDateString("en-GB")
                           : ""
                       }
                       readOnly
@@ -722,7 +683,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           )}
 
           {collaborators.length > 0 && (
-            <div className="moneyboy-post__header">
+            <div className="moneyboy-post__header scrollbar">
               {collaborators.map((user) => (
                 <div className="profile-card upl_card" key={user._id}>
                   <div className="profile-card__main">
@@ -750,8 +711,8 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                     </div>
 
                     <div className="right_box">
-                      {accessType === "free" && <span>Free</span>}
-                      {accessType === "subscriber" && <span>Subscriber</span>}
+                      {accessType === "free" && <span className="btn-primary">Free</span>}
+                      {accessType === "subscriber" && <span className="btn-primary">Subscriber</span>}
                       {accessType === "pay_per_view" && (
                         <input
                           type="number"
@@ -827,7 +788,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
             type="file"
             hidden
             ref={imageInputRef}
-             accept=".png,.jpeg,.jpg,.wbjpg,.mp4"
+            accept=".png,.jpeg,.jpg,.wbjpg,.mp4"
             multiple
             onChange={handleImageChange}
           />
@@ -888,12 +849,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                   </button>
                 </li>
               </ul>
-              <button
-                type="submit"
-                data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
-                className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
-                disabled={isSubmitting || !hasMedia}
-              >
+              <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} disabled={isSubmitting || !hasMedia}>
                 <span>{isSubmitting ? "Posting..." : "Post"}</span>
               </button>
             </div>
@@ -901,44 +857,13 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         </form>
 
         {showTagModal && (
-          <div
-            className="modal show"
-            role="dialog"
-            aria-modal="true"
-            onClick={confirmClose}
-          >
-            <div
-              className="modal-wrap creators-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                className="close-btn"
-                onClick={() => setShowTagModal(false)}
-              >
-                <CgClose size={22} />
-              </button>
+          <div className="modal show" role="dialog" aria-modal="true" onClick={confirmClose}>
+            <div className="modal-wrap creators-modal" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="close-btn" onClick={() => setShowTagModal(false)}><CgClose size={22} /></button>
               <h3>Tag other creators</h3>
               <div className="label-input search_wrap">
-                <div className="input-placeholder-icon">
-                  <IoSearch size={22} color="#716f6f" />
-                </div>
-                <input
-                  className="form-input"
-                  type="text"
-                  placeholder="Enter Keywords Here"
-                  value={tagSearch}
-                  onChange={(e) => searchTagUsers(e.target.value)}
-                />
-              </div>
-              <div className="actions">
-                <button
-                  type="button"
-                  className="premium-btn"
-                  onClick={() => setShowTagModal(false)}
-                >
-                  <span>Tag user</span>
-                </button>
+                <div className="input-placeholder-icon"><IoSearch size={22} color="#716f6f" /></div>
+                <input className="form-input" type="text" placeholder="Enter Keywords Here" value={tagSearch} onChange={(e) => searchTagUsers(e.target.value)} />
               </div>
               <div className="moneyboy-post__header scrollbar">
                 <div className="profile-card">
@@ -947,71 +872,43 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       (u) => u._id === user._id,
                     );
                     return (
-                      <div
-                        key={user._id}
-                        className="profile-card__main"
-                        onClick={() => toggleTagUser(user)}
-                      >
+                      <label key={user._id} className={`profile-card__main radio-card ${selected ? "active" : ""}`} >
                         <div className="profile-card__avatar-settings">
                           <div className="profile-card__avatar">
                             {user.profile ? (
-                              <img
-                                src={user.profile}
-                                alt={user.displayName}
-                                className="img-fluid"
-                              />
+                              <img src={user.profile} alt={user.displayName} />
                             ) : (
                               <NoProfileSVG />
                             )}
                           </div>
                         </div>
                         <div className="profile-card__info">
-                          <div className="profile-card__name">
-                            {user.displayName}
-                          </div>
-                          <div className="profile-card__username">
-                            @{user.userName}
-                          </div>
+                          <div className="profile-card__name">{user.displayName}</div>
+                          <div className="profile-card__username">@{user.userName}</div>
                         </div>
-                        {selected && (
-                          <div className="rigth_info">
-                            <BadgeCheck size={22} />
-                          </div>
-                        )}
-                      </div>
+                        <div className="radio-indicator">
+                         <input type="checkbox" name="tagUser" checked={selected} onChange={() => toggleTagUser(user)} />
+                         <span className="checkmark"></span>
+                        </div>
+                      </label>
                     );
                   })}
                 </div>
               </div>
-              <div className="creators-footer">
-                <Link href="#" className="invite"></Link>
-                <button
-                  className="cate-back-btn active-down-effect close"
-                  onClick={() => setShowTagModal(false)}
-                >
-                  Close
-                </button>
+              <div className="actions creators-footer justify-end">
+                <button type="button" className="premium-btn" onClick={() => setShowTagModal(false)}><span>Tag user</span></button>
               </div>
+              {/* <div className="creators-footer">
+                <Link href="#" className="invite"></Link>
+                <button className="cate-back-btn active-down-effect close" onClick={() => setShowTagModal(false)}>Close</button>
+              </div> */}
             </div>
           </div>
         )}
       </div>
 
       {showRecorder && (
-        <VideoRecorder
-          onClose={() => setShowRecorder(false)}
-          onRecorded={(file: File) => {
-            if (videoCount >= 3) {
-              showError("Maximum 3 videos allowed");
-              return;
-            }
-            setMediaFiles((prev) => [...prev, file]);
-            setMediaPreviews((prev) => [
-              ...prev,
-              { url: URL.createObjectURL(file), type: "video" },
-            ]);
-          }}
-        />
+        <VideoRecorder onClose={() => setShowRecorder(false)} onRecorded={(file: File) => { if (videoCount >= 3) { showError("Maximum 3 videos allowed"); return; } setMediaFiles((prev) => [...prev, file]); setMediaPreviews((prev) => [...prev, { url: URL.createObjectURL(file), type: "video" },]); }} />
       )}
     </>
   );

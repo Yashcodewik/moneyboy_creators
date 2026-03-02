@@ -324,19 +324,10 @@ const Header = () => {
                   </div>
 
                   <div className="header-profile-avatar">
-                    <button
-                      data-floating-menu-triger
-                      ref={buttonRef}
-                      onClick={() => setIsOpen((prev) => !prev)}
-                    >
+                    <button data-floating-menu-triger ref={buttonRef} onClick={() => setIsOpen((prev) => !prev)}>
                       <div className="profile-avatar">
                         {userProfile?.profile ? (
-                          <Image
-                            src={userProfile.profile}
-                            alt="User Image"
-                            width={40}
-                            height={40}
-                          />
+                          <Image src={userProfile.profile} alt="User Image" width={40} height={40} />
                         ) : (
                           <NoProfileSvg />
                         )}
@@ -346,14 +337,8 @@ const Header = () => {
                 </>
               ) : (
                 <div className="header-auth-buttons flex items-center gap-10">
-                  <Link href="/login" className="btn-txt-gradient btn-grey">
-                    {" "}
-                    <span>Sign In</span>
-                  </Link>
-                  <Link href="/benefits" className="btn-txt-gradient">
-                    {" "}
-                    <span>Sign Up</span>
-                  </Link>
+                  <Link href="/login" className="btn-txt-gradient btn-grey">{" "} <span>Sign In</span></Link>
+                  <Link href="/benefits" className="btn-txt-gradient">{" "} <span>Sign Up</span></Link>
                 </div>
               )}
             </div>
@@ -362,34 +347,12 @@ const Header = () => {
       </header>
 
       {isOpen && (
-        <div
-          className="floating-menu-container"
-          data-floating-menu-main
-          ref={menuRef}
-          onClick={() => setIsOpen(false)}
-        >
-          <div
-            className="menu-content-wrapper"
-            ref={menuRef}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="floating-menu-container" data-floating-menu-main ref={menuRef} onClick={() => setIsOpen(false)}>
+          <div className="menu-content-wrapper" ref={menuRef} onClick={(e) => e.stopPropagation()}>
             <div className="menu-content-container">
-              <div
-                className="menu-close-btn"
-                data-floating-menu-close-btn
-                onClick={() => setIsOpen(false)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="31"
-                  height="31"
-                  viewBox="0 0 31 31"
-                  fill="none"
-                >
-                  <path
-                    d="M15.4998 0.916668C7.46442 0.916668 0.916504 7.46458 0.916504 15.5C0.916504 23.5354 7.46442 30.0833 15.4998 30.0833C23.5353 30.0833 30.0832 23.5354 30.0832 15.5C30.0832 7.46458 23.5353 0.916668 15.4998 0.916668ZM20.3998 18.8542C20.8228 19.2771 20.8228 19.9771 20.3998 20.4C20.1811 20.6188 19.904 20.7208 19.6269 20.7208C19.3498 20.7208 19.0728 20.6188 18.854 20.4L15.4998 17.0458L12.1457 20.4C11.9269 20.6188 11.6498 20.7208 11.3728 20.7208C11.0957 20.7208 10.8186 20.6188 10.5998 20.4C10.1769 19.9771 10.1769 19.2771 10.5998 18.8542L13.954 15.5L10.5998 12.1458C10.1769 11.7229 10.1769 11.0229 10.5998 10.6C11.0228 10.1771 11.7228 10.1771 12.1457 10.6L15.4998 13.9542L18.854 10.6C19.2769 10.1771 19.9769 10.1771 20.3998 10.6C20.8228 11.0229 20.8228 11.7229 20.3998 12.1458L17.0457 15.5L20.3998 18.8542Z"
-                    fill="none"
-                  />
+              <div className="menu-close-btn" data-floating-menu-close-btn onClick={() => setIsOpen(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="31" height="31" viewBox="0 0 31 31" fill="none">
+                  <path d="M15.4998 0.916668C7.46442 0.916668 0.916504 7.46458 0.916504 15.5C0.916504 23.5354 7.46442 30.0833 15.4998 30.0833C23.5353 30.0833 30.0832 23.5354 30.0832 15.5C30.0832 7.46458 23.5353 0.916668 15.4998 0.916668ZM20.3998 18.8542C20.8228 19.2771 20.8228 19.9771 20.3998 20.4C20.1811 20.6188 19.904 20.7208 19.6269 20.7208C19.3498 20.7208 19.0728 20.6188 18.854 20.4L15.4998 17.0458L12.1457 20.4C11.9269 20.6188 11.6498 20.7208 11.3728 20.7208C11.0957 20.7208 10.8186 20.6188 10.5998 20.4C10.1769 19.9771 10.1769 19.2771 10.5998 18.8542L13.954 15.5L10.5998 12.1458C10.1769 11.7229 10.1769 11.0229 10.5998 10.6C11.0228 10.1771 11.7228 10.1771 12.1457 10.6L15.4998 13.9542L18.854 10.6C19.2769 10.1771 19.9769 10.1771 20.3998 10.6C20.8228 11.0229 20.8228 11.7229 20.3998 12.1458L17.0457 15.5L20.3998 18.8542Z" fill="none"/>
                 </svg>
               </div>
               <div className="menu-content">
@@ -399,35 +362,13 @@ const Header = () => {
                       <div className="profile-card__avatar-settings">
                         <div className="profile-card__avatar">
                           {userProfile?.profile ? (
-                            <Image
-                              src={userProfile.profile}
-                              alt="User Image"
-                              width={40}
-                              height={40}
-                            />
+                            <Image src={userProfile.profile} alt="User Image" width={40} height={40}/>
                           ) : (
                             <div className="noprofile">
-                              <svg
-                                width="40"
-                                height="40"
-                                viewBox="0 0 66 54"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  className="animate-m"
-                                  d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                                  fill="url(#paint0_linear_4470_53804)"
-                                />
+                              <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)"/>
                                 <defs>
-                                  <linearGradient
-                                    id="paint0_linear_4470_53804"
-                                    x1="0"
-                                    y1="27"
-                                    x2="66"
-                                    y2="27"
-                                    gradientUnits="userSpaceOnUse"
-                                  >
+                                  <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
                                     <stop stop-color="#FDAB0A" />
                                     <stop offset="0.4" stop-color="#FECE26" />
                                     <stop offset="1" stop-color="#FE990B" />
@@ -441,30 +382,16 @@ const Header = () => {
                       <div className="profile-card__info">
                         <div className="profile-card__name-badge">
                           <div className="profile-card__name">
-                            {profileLoading
-                              ? "Loading..."
-                              : userProfile?.displayName ||
-                                userProfile?.name ||
-                                session?.user?.name ||
-                                "Corey Bergson"}
+                            {profileLoading ? "Loading..." : userProfile?.displayName || userProfile?.name || session?.user?.name || "Corey Bergson"}
                           </div>
                           {session?.user?.role === 2 && (
                             <div className="profile-card__badge">
-                              <img
-                                src="/images/logo/profile-badge.png"
-                                alt="MoneyBoy Social Profile Badge"
-                              />
+                              <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                             </div>
                           )}
                         </div>
                         <div className="profile-card__username">
-                          {profileLoading
-                            ? "@loading"
-                            : `@${
-                                userProfile?.username ||
-                                session?.user?.username ||
-                                "coreybergson"
-                              }`}
+                          {profileLoading ? "@loading" : `@${userProfile?.username || session?.user?.username || "coreybergson"}`}
                         </div>
                       </div>
                     </div>
@@ -472,43 +399,12 @@ const Header = () => {
                     <div className="menu-profile-stats">
                       <div className="menu-profile-stats-item">
                         <div className="icon">
-                          <Link
-                            href="/wallet-transactions?tab=wallet"
-                            className="load-wallet-btn"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 25"
-                              fill="none"
-                            >
-                              <path
-                                d="M18.04 14.05C17.62 14.46 17.38 15.05 17.44 15.68C17.53 16.76 18.52 17.55 19.6 17.55H21.5V18.74C21.5 20.81 19.81 22.5 17.74 22.5H6.26C4.19 22.5 2.5 20.81 2.5 18.74V12.01C2.5 9.94001 4.19 8.25 6.26 8.25H17.74C19.81 8.25 21.5 9.94001 21.5 12.01V13.45H19.48C18.92 13.45 18.41 13.67 18.04 14.05Z"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M2.5 12.91V8.34004C2.5 7.15004 3.23 6.09 4.34 5.67L12.28 2.67C13.52 2.2 14.85 3.12003 14.85 4.45003V8.25002"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M22.5588 14.4702V16.5302C22.5588 17.0802 22.1188 17.5302 21.5588 17.5502H19.5988C18.5188 17.5502 17.5288 16.7602 17.4388 15.6802C17.3788 15.0502 17.6188 14.4602 18.0388 14.0502C18.4088 13.6702 18.9188 13.4502 19.4788 13.4502H21.5588C22.1188 13.4702 22.5588 13.9202 22.5588 14.4702Z"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7 12.5H14"
-                                stroke="none"
-                                strokeWidth="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
+                          <Link href="/wallet-transactions?tab=wallet" className="load-wallet-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 25" fill="none">
+                              <path d="M18.04 14.05C17.62 14.46 17.38 15.05 17.44 15.68C17.53 16.76 18.52 17.55 19.6 17.55H21.5V18.74C21.5 20.81 19.81 22.5 17.74 22.5H6.26C4.19 22.5 2.5 20.81 2.5 18.74V12.01C2.5 9.94001 4.19 8.25 6.26 8.25H17.74C19.81 8.25 21.5 9.94001 21.5 12.01V13.45H19.48C18.92 13.45 18.41 13.67 18.04 14.05Z" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M2.5 12.91V8.34004C2.5 7.15004 3.23 6.09 4.34 5.67L12.28 2.67C13.52 2.2 14.85 3.12003 14.85 4.45003V8.25002" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M22.5588 14.4702V16.5302C22.5588 17.0802 22.1188 17.5302 21.5588 17.5502H19.5988C18.5188 17.5502 17.5288 16.7602 17.4388 15.6802C17.3788 15.0502 17.6188 14.4602 18.0388 14.0502C18.4088 13.6702 18.9188 13.4502 19.4788 13.4502H21.5588C22.1188 13.4702 22.5588 13.9202 22.5588 14.4702Z" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M7 12.5H14" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </Link>
                         </div>
@@ -1059,9 +955,8 @@ const Header = () => {
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className={`menu-link posts-link ${
-                            pathname === "/like" ? "active" : ""
-                          }`}
+                          className={`menu-link posts-link ${pathname === "/like" ? "active" : ""
+                            }`}
                           onClick={(e) => handleTabNavigation(e, "posts")}
                         >
                           <svg
@@ -1106,9 +1001,8 @@ const Header = () => {
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className={`menu-link videos-link ${
-                            pathname === "/like" ? "active" : ""
-                          }`}
+                          className={`menu-link videos-link ${pathname === "/like" ? "active" : ""
+                            }`}
                           onClick={(e) => handleTabNavigation(e, "videos")}
                         >
                           <svg
@@ -1386,54 +1280,54 @@ const Header = () => {
                         </svg>
                         <span>Marketplace</span>
                       </a>
-                       {session?.user?.role === 2 && (
-                      <a href="/store" className="menu-link store-link">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="25"
-                          viewBox="0 0 24 25"
-                          fill="none"
-                        >
-                          <path
-                            d="M3.00977 11.6486V16.1386C3.00977 20.6286 4.80977 22.4286 9.29977 22.4286H14.6898C19.1798 22.4286 20.9798 20.6286 20.9798 16.1386V11.6486"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M12 12.4286C13.83 12.4286 15.18 10.9386 15 9.10859L14.34 2.42859H9.66999L8.99999 9.10859C8.81999 10.9386 10.17 12.4286 12 12.4286Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M18.3098 12.4286C20.3298 12.4286 21.8098 10.7886 21.6098 8.77859L21.3298 6.02859C20.9698 3.42859 19.9698 2.42859 17.3498 2.42859H14.2998L14.9998 9.43859C15.1698 11.0886 16.6598 12.4286 18.3098 12.4286Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M5.63988 12.4286C7.28988 12.4286 8.77988 11.0886 8.93988 9.43859L9.15988 7.22859L9.63988 2.42859H6.58988C3.96988 2.42859 2.96988 3.42859 2.60988 6.02859L2.33988 8.77859C2.13988 10.7886 3.61988 12.4286 5.63988 12.4286Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M12 17.4286C10.33 17.4286 9.5 18.2586 9.5 19.9286V22.4286H14.5V19.9286C14.5 18.2586 13.67 17.4286 12 17.4286Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span>Store</span>
-                      </a>
-                       )}
+                      {session?.user?.role === 2 && (
+                        <a href="/store" className="menu-link store-link">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="25"
+                            viewBox="0 0 24 25"
+                            fill="none"
+                          >
+                            <path
+                              d="M3.00977 11.6486V16.1386C3.00977 20.6286 4.80977 22.4286 9.29977 22.4286H14.6898C19.1798 22.4286 20.9798 20.6286 20.9798 16.1386V11.6486"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M12 12.4286C13.83 12.4286 15.18 10.9386 15 9.10859L14.34 2.42859H9.66999L8.99999 9.10859C8.81999 10.9386 10.17 12.4286 12 12.4286Z"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M18.3098 12.4286C20.3298 12.4286 21.8098 10.7886 21.6098 8.77859L21.3298 6.02859C20.9698 3.42859 19.9698 2.42859 17.3498 2.42859H14.2998L14.9998 9.43859C15.1698 11.0886 16.6598 12.4286 18.3098 12.4286Z"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M5.63988 12.4286C7.28988 12.4286 8.77988 11.0886 8.93988 9.43859L9.15988 7.22859L9.63988 2.42859H6.58988C3.96988 2.42859 2.96988 3.42859 2.60988 6.02859L2.33988 8.77859C2.13988 10.7886 3.61988 12.4286 5.63988 12.4286Z"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M12 17.4286C10.33 17.4286 9.5 18.2586 9.5 19.9286V22.4286H14.5V19.9286C14.5 18.2586 13.67 17.4286 12 17.4286Z"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Store</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div className="links-block">

@@ -431,9 +431,7 @@ const NotificationPage = () => {
                 </ul>
               </div>
             </div>
-            <div
-              className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}
-            >
+            <div className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}>
               {selectedPost?.postTag?.myStatus === "approved" && (
                 <div className="head">
                   <h3>Post Approved</h3> <BadgeCheck />
@@ -455,12 +453,9 @@ const NotificationPage = () => {
                 <>
                   <div className="head">
                     {" "}
-                    <h3>Pending Review</h3> <Clock />
+                    <h3>Collaboration Request Pending</h3> <Clock />
                   </div>
-                  <p className="pending_text">
-                    This post is awaiting moderation. Please review and take
-                    action.
-                  </p>
+                  <p className="pending_text">You have been tagged in this post and invited to collaborate. Please review the content and choose to accept or decline before the deadline.</p>
                 </>
               )}
             </div>
@@ -481,6 +476,10 @@ const NotificationPage = () => {
                 </FlipClockCountdown>
               </div>
             )}
+            <div className="actions">
+              <button className="btn-danger active-down-effect">Decline</button>
+              <button className="premium-btn active-down-effect"><span>Accept</span></button>
+            </div>
           </form>
         </div>
       )}
