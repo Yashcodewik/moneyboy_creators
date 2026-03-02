@@ -186,6 +186,9 @@ const EditProfilePage = () => {
       const parsedDate = new Date(formData.dob);
       setStartDate(parsedDate);
       formik.setFieldValue("dob", formData.dob);
+
+      const age = calculateAge(parsedDate);
+      formik.setFieldValue("age", age);
     }
   }, [formData.dob]);
 
@@ -225,11 +228,14 @@ const EditProfilePage = () => {
     { label: "December", value: "11" },
   ];
 
-  const years = Array.from({ length: 100 }, (_, i) => {
-    const year = new Date().getFullYear() - i;
-    return { label: year.toString(), value: year.toString() };
-  });
+// start from 18 years old (no future years)
+const currentYear = new Date().getFullYear();
+const maxYear = currentYear - 18;
 
+const years = Array.from({ length: 100 }, (_, i) => {
+  const year = maxYear - i;
+  return { label: year.toString(), value: year.toString() };
+});
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -609,12 +615,17 @@ const EditProfilePage = () => {
                                     )}
                                     onChange={(date: Date | null) => {
                                       if (date) {
+                                        setStartDate(date); // ✅ VERY IMPORTANT
+
                                         const formattedDate =
                                           date.toISOString();
-                                        formik.setFieldValue("dob",formattedDate);
+                                        formik.setFieldValue(
+                                          "dob",
+                                          formattedDate,
+                                        );
+
                                         const age = calculateAge(date);
-                                        // const ageGroup = getAgeGroup(age);
-                                        formik.setFieldValue("age", age);
+                                        formik.setFieldValue("age", age); // numeric age
                                       }
                                       setActiveField(null);
                                     }}
@@ -733,17 +744,22 @@ const EditProfilePage = () => {
                               )}
                           </div>
                           <div>
-                            <input
-                              type="number"
-                              placeholder="age *"
-                              value={formik.values.age}
-                              name="age"
-                              disabled
-                              // onChange={(e) => {
-                              //   const val = e.target.value;
-                              //   formik.setFieldValue("age", val);
-                              // }}
-                            />
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <svg className="icons calendarClock svg-icon"></svg>
+                              </div>
+
+                              <input
+                                type="text"
+                                placeholder="All Ages"
+                                value={
+                                  formik.values.age
+                                    ? `${formik.values.age}`
+                                    : ""
+                                }
+                                disabled
+                              />
+                            </div>
                             {/* //<CustomSelect
                             //   label="All Ages"
                             //   icon={
