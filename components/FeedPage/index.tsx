@@ -74,7 +74,7 @@ const FeedPage = () => {
   const [showSidebarMobile, setShowSidebarMobile] = useState(false);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
 
-  console.log(allPosts ,"allPosts==============================");
+  console.log(allPosts, "allPosts==============================");
 
   useEffect(() => {
     const container = document.getElementById("feed-scroll-container");
@@ -318,50 +318,50 @@ const FeedPage = () => {
                   >
                     {loading && activeList.length === 0
                       ? Array.from({ length: 4 }).map((_, i) => (
-                          <div
-                            key={i}
-                            className="moneyboy-post__container card skloading"
-                          >
-                            <div className="post_header">
-                              <div className="post_header-left">
-                                <div className="post_avatar"></div>
-                                <div className="post_text">
-                                  <div className="line medium"></div>
-                                  <div className="line short"></div>
-                                </div>
+                        <div
+                          key={i}
+                          className="moneyboy-post__container card skloading"
+                        >
+                          <div className="post_header">
+                            <div className="post_header-left">
+                              <div className="post_avatar"></div>
+                              <div className="post_text">
+                                <div className="line medium"></div>
+                                <div className="line short"></div>
                               </div>
-                              <div className="post__time"></div>
                             </div>
-                            <div>
-                              <div className="line long"></div>
-                              <div className="line medium"></div>
-                              <div className="line short"></div>
-                            </div>
-                            <div className="moneyboy-post__media">
-                              <div className="moneyboy-post__img"></div>
-                              <div className="moneyboy-post__actions">
-                                <ul>
-                                  <li></li>
-                                  <li></li>
-                                  <li></li>
-                                </ul>
-                                <ul>
-                                  <li></li>
-                                  <li></li>
-                                </ul>
-                              </div>
+                            <div className="post__time"></div>
+                          </div>
+                          <div>
+                            <div className="line long"></div>
+                            <div className="line medium"></div>
+                            <div className="line short"></div>
+                          </div>
+                          <div className="moneyboy-post__media">
+                            <div className="moneyboy-post__img"></div>
+                            <div className="moneyboy-post__actions">
+                              <ul>
+                                <li></li>
+                                <li></li>
+                                <li></li>
+                              </ul>
+                              <ul>
+                                <li></li>
+                                <li></li>
+                              </ul>
                             </div>
                           </div>
-                        ))
+                        </div>
+                      ))
                       : activeList?.map((post: any) => (
-                          <PostCard
-                            key={post._id}
-                            post={post}
-                            onLike={handleLike}
-                            onSave={handleSave}
-                            onCommentAdded={incrementCommentCount}
-                          />
-                        ))}
+                        <PostCard
+                          key={post._id}
+                          post={post}
+                          onLike={handleLike}
+                          onSave={handleSave}
+                          onCommentAdded={incrementCommentCount}
+                        />
+                      ))}
                   </InfiniteScrollWrapper>
                 </div>
               )}

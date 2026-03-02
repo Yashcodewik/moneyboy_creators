@@ -267,7 +267,7 @@ const handleFilterChange = (filterName: string, value: string) => {
 
               <div className="show-advance-filter-btn">
                 <button
-                  className="premium-btn"
+                  className="premium-btn shimmer"
                   data-content-advanced-filters-toggle-button
                   onClick={() => setAdavanceFilter((prev) => !prev)}
                 >

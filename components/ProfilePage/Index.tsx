@@ -408,7 +408,7 @@ const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
     if (!isSubscribed) {
       return (
         <button
-          className="btn-txt-gradient btn-outline p-sm"
+          className="btn-txt-gradient shimmer btn-outline p-sm"
           disabled={subLoading}
           onClick={() => openSubscriptionModal(targetPlan, "subscribe")}
         >
@@ -421,7 +421,7 @@ const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
       if (isExpiringSoon) {
         return (
           <button
-            className="btn-txt-gradient btn-outline p-sm"
+            className="btn-txt-gradient shimmer btn-outline p-sm"
             disabled={subLoading}
             onClick={() => openSubscriptionModal(targetPlan, "renew")}
           >
@@ -431,7 +431,7 @@ const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
       }
 
       return (
-        <button className="btn-txt-gradient btn-outline p-sm" disabled>
+        <button className="btn-txt-gradient shimmer btn-outline p-sm" disabled>
           <span>Subscribed</span>
         </button>
       );
@@ -439,7 +439,7 @@ const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
 
     if (currentPlan === "YEARLY" && targetPlan === "MONTHLY") {
       return (
-        <button className="btn-txt-gradient btn-outline p-sm" disabled>
+        <button className="btn-txt-gradient shimmer btn-outline p-sm" disabled>
           <span>Subscribed</span>
         </button>
       );
@@ -448,7 +448,7 @@ const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
     if (currentPlan === "MONTHLY" && targetPlan === "YEARLY") {
       return (
         <button
-          className="btn-txt-gradient btn-outline p-sm"
+          className="btn-txt-gradient shimmer btn-outline p-sm"
           disabled={subLoading}
           onClick={() => openSubscriptionModal(targetPlan, "upgrade")}
         >

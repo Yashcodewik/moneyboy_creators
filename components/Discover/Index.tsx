@@ -164,15 +164,11 @@ const Dashboard = () => {
         {/* PAGE NUMBERS */}
         {pages.map((p, i) =>
           p === "..." ? (
-            <button key={i} className="premium-btn" disabled>
+            <button key={i} className="premium-btn shimmer" disabled>
               <span>…</span>
             </button>
           ) : (
-            <button
-              key={i}
-              className={page === p ? "premium-btn" : "btn-primary"}
-              onClick={() => dispatch(setPage(p as number))}
-            >
+            <button key={i} className={page === p ? "premium-btn shimmer" : "btn-primary"} onClick={() => dispatch(setPage(p as number))}>
               <span>{p}</span>
             </button>
           ),

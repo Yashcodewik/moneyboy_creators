@@ -286,6 +286,35 @@ body {
   }
 }
 @keyframes skloading {0% {background-position: 200% 0;}100% {background-position: -200% 0;}}
+/* shimmer animation */
+@keyframes shimmer {
+  0%   { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(150%) skewX(-20deg); }
+}
+
+/* shimmer layer Start */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 55%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.35) 50%,transparent 80%);
+    transform: translateX(-150%) skewX(-20deg);
+    animation: shimmer 1.6s linear infinite;
+    mix-blend-mode: screen;
+  }
+}
 
 // Skeleton Loading Animations
 .moneyboy-post__container {
@@ -2860,7 +2889,6 @@ body {
       .meta-actions a {
         gap: 3px;
         font-size: 13px;
-        color: var(--color-text);
         background-color: #e4e4e4;
         cursor: pointer;
         will-change: transform;
@@ -2871,11 +2899,20 @@ body {
         padding: 5px 10px;
         display: inline-flex;
         transition: var(--transition-fast);
+        span {color: var(--color-text);}
+        svg path {
+          fill: #000 !important;
+          stroke: #000 !important;
+        }
         &:hover {
           background: #f9f9f9;
+          svg path {
+            fill: #000 !important;
+            stroke: #000 !important;
+          }
         }
         &.favorite {
-          color: #c0392b;
+          color: #000;
           font-weight: bold;
         }
       }

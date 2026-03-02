@@ -1633,12 +1633,12 @@
                   &.active {
                     svg path {
                       &:nth-child(1) {
-                        stroke: #f5ad23;
-                        fill: #f5ad23;
+                        stroke: #FFA500;
+                        fill: #FFA500;
                       }
         
                       &:nth-child(2) {
-                        stroke: #f5ad23;
+                        stroke: #FFA500;
                       }
                     }
                   }
@@ -1653,8 +1653,8 @@
                   &.active,
                   &.liked {
                     svg path {
-                      stroke: var(--like-color);
-                      fill: var(--like-color);
+                      stroke: #FFA500;
+                      fill: #FFA500;
                     }
                   }
         
@@ -1673,8 +1673,8 @@
                   &:active,
                   &.active {
                     svg path:nth-child(1) {
-                      fill: #46a0e3;
-                      stroke: #46a0e3;
+                      fill: #000;
+                      stroke: #000;
                     }
                   }
                 }
@@ -1694,8 +1694,8 @@
                     svg path {
                       &:nth-child(1),
                       &:nth-child(2) {
-                        stroke: #e84c88;
-                        fill: #e84c88;
+                        stroke: #000;
+                        fill: #000;
                       }
                     }
                   }
@@ -1711,8 +1711,8 @@
                     svg path {
                       &:nth-child(1),
                       &:nth-child(2) {
-                        stroke: #6c5ce7;
-                        fill: #6c5ce7;
+                        stroke: #000;
+                        fill: #000;
                       }
         
                       &:nth-child(3) {
@@ -3045,12 +3045,12 @@
                        svg {
                          path {
                            &:nth-child(1) {
-                             stroke: #a77bff;
-                             fill: #a77bff;
+                             stroke: #FFA500;
+                             fill: #FFA500;
                            }
  
                            &:nth-child(2) {
-                             stroke: #a77bff;
+                             stroke: #FFA500;
                              fill: #fff;
                            }
                          }
@@ -3062,7 +3062,7 @@
                      &:hover {
                        svg {
                          path {
-                           fill: #fece26;
+                           fill: #FFA500;
                          }
                        }
                      }
@@ -3282,12 +3282,12 @@
                                svg {
                                  path {
                                    &:nth-child(1) {
-                                     stroke: #a77bff;
-                                     fill: #a77bff;
+                                     stroke: #FFA500;
+                                     fill: #FFA500;
                                    }
  
                                    &:nth-child(2) {
-                                     stroke: #a77bff;
+                                     stroke: #FFA500;
                                      fill: #fff;
                                    }
                                  }
@@ -3299,7 +3299,7 @@
                              &:hover {
                                svg {
                                  path {
-                                   fill: #fece26;
+                                   fill: #FFA500;
                                  }
                                }
                              }

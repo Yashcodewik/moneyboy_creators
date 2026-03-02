@@ -510,7 +510,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                 photos, videos.
                               </p>
                             </div>
-                            <button className="btn-txt-gradient btn-outline p-sm">
+                            <button className="btn-txt-gradient shimmer btn-outline p-sm">
                               <span>shop Now</span>
                             </button>
                           </div>
@@ -672,7 +672,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                         <div>
                           <button
                             disabled={isOwnStore}
-                            className="btn-txt-gradient btn-outline p-sm"
+                            className="btn-txt-gradient shimmer btn-outline p-sm"
                             onClick={() => setShowPPVModal(true)}
                           >
                             <span>Request PPV</span>
@@ -776,7 +776,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
 
                       <a
                         href="#"
-                        className="btn-txt-gradient btn-outline"
+                        className="btn-txt-gradient shimmer btn-outline"
                         onClick={(e) => {
                           e.preventDefault();
 
@@ -1266,7 +1266,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                               {/* PURCHASED */}
                                               {post.isUnlocked && (
                                                 <a
-                                                  className="btn-txt-gradient btn-outline grey-variant"
+                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
                                                   onClick={() =>
                                                     handlePostRedirect(
                                                       post,
@@ -1284,7 +1284,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                                 post.accessType ===
                                                 "subscriber" && (
                                                   <a
-                                                    className="btn-txt-gradient btn-outline grey-variant"
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
                                                     onClick={() =>
                                                       handlePostRedirect(
                                                         post,
@@ -1301,7 +1301,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                                 post.accessType ===
                                                 "pay_per_view" && (
                                                   <a
-                                                    className="btn-txt-gradient btn-outline"
+                                                    className="btn-txt-gradient shimmer btn-outline"
                                                     onClick={(e) => {
                                                       if (isOwnPost) {
                                                         e.preventDefault();
@@ -1349,7 +1349,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                                 post.accessType ===
                                                 "subscriber" && (
                                                   <a
-                                                    className="btn-txt-gradient btn-outline grey-variant"
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
                                                     onClick={(e) => {
                                                       if (isOwnPost) {
                                                         e.preventDefault();
@@ -1497,7 +1497,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                           <>
                                             {/* PURCHASED */}
                                             {post.isUnlocked && (
-                                              <a className="btn-txt-gradient btn-outline grey-variant" onClick={() => handlePostRedirect(post, isOwnPost,)}><span>Purchased</span></a>
+                                              <a className="btn-txt-gradient shimmer btn-outline grey-variant" onClick={() => handlePostRedirect(post, isOwnPost,)}><span>Purchased</span></a>
                                             )}
 
                                             {/* SUBSCRIBED */}
@@ -1505,7 +1505,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                               post.isSubscribed &&
                                               post.accessType ===
                                               "subscriber" && (
-                                                <a className="btn-txt-gradient btn-outline grey-variant" onClick={() => handlePostRedirect(post, isOwnPost,)}><span>Subscribed</span></a>
+                                                <a className="btn-txt-gradient shimmer btn-outline grey-variant" onClick={() => handlePostRedirect(post, isOwnPost,)}><span>Subscribed</span></a>
                                               )}
 
                                             {/* PAY PER VIEW */}
@@ -1513,7 +1513,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                               post.accessType ===
                                               "pay_per_view" && (
                                                 <a
-                                                  className="btn-txt-gradient btn-outline"
+                                                  className="btn-txt-gradient shimmer btn-outline"
                                                   onClick={(e) => {
                                                     if (isOwnPost) {
                                                       e.preventDefault();
@@ -1561,7 +1561,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                                               post.accessType ===
                                               "subscriber" && (
                                                 <a
-                                                  className="btn-txt-gradient btn-outline grey-variant"
+                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
                                                   onClick={(e) => {
                                                     if (isOwnPost) {
                                                       e.preventDefault();

@@ -352,7 +352,7 @@ useEffect(() => {
                             </div>
                           </div>
                           <div className="rel-user-action-btn">
-                            <button className="btn-txt-gradient"
+                            <button className="btn-txt-gradient shimmer"
                               onClick={async (e) => {
                                 e.preventDefault();
                                 if (!item?.subscriber?._id) return;
@@ -444,7 +444,7 @@ useEffect(() => {
                             <div className="rel-user-action-btn">
                              {state === "ACTIVE" && (
                                 <button
-                                  className="btn-danger"
+                                  className="btn-danger shimmer"
                                   onClick={() => {
                                     setCancellingId(item._id);
                                     cancelSubscription(item._id, {
@@ -468,7 +468,7 @@ useEffect(() => {
                               )}
 
                               {state === "EXPIRED" && (
-                                <button className="btn-txt-gradient">
+                                <button className="btn-txt-gradient shimmer">
                                   <span>Activate</span>
                                 </button>
                               )}

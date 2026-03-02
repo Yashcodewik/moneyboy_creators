@@ -437,7 +437,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
                             <Link
                               href="#"
-                              className={`btn-txt-gradient btn-outline ${
+                              className={`btn-txt-gradient shimmer btn-outline ${
                                 isOwnPost ? "opacity-50 cursor-not-allowed" : ""
                               }`}
                               onClick={(e) => {
