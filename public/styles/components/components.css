@@ -1331,15 +1331,15 @@
                   display: inline-flex;
                   align-items: center;
                   justify-content: center;
-                  margin-left: -10px;
+                  margin-left: -12px;
               
                   &:first-child {
                     margin-left: 0;
                   }
               
                   .user_icons {
-                    width: 26px;
-                    height: 26px;
+                    width: 24px;
+                    height: 24px;
                     object-fit: cover;
                     border-radius: 50%;
                     cursor: pointer;
