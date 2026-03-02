@@ -393,34 +393,59 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                     <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                   </div>
                 </div>
-                <div className="profile-card__username tagged_userlist">
-                  @{post.creatorInfo?.displayName}
-                  <button type="button" className="active-down-effect">&
-                    <ul className="taglist">
-                      <li><img src="/images/profile-banners/profile-banner-1.jpg" className="user_icons" /></li>
-                      <li><img src="/images/profile-banners/profile-banner-2.jpg" className="user_icons" /></li>
-                      <li><img src="/images/profile-banners/profile-banner-3.jpg" className="user_icons" /></li>
-                      <li className="more-count">+2</li>
-                    </ul>
-                  </button>
-                  {post.taggedCreators?.length > 0 && (
-                    <div className="tagged_userlist">
-                      <button type="button" ref={tagButtonRef} className="active-down-effect" onClick={() => setShowTaggedUsers((prev) => !prev)}>& Others</button>
-                      {showTaggedUsers && (
-                        <div ref={tagMenuRef} className="user-dropdown">
-                          <ul>
-                            {post.taggedCreators.map((user: any) => (
-                              <li key={user._id} onClick={() => handleProfileClick(user.publicId)}>
-                                <img src={user.profile} alt={user.userName} className="user_icons" />
-                                <span>@{user.userName}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+               <div className="profile-card__username tagged_userlist">
+  @{post.creatorInfo?.displayName}
+
+  {/* Show tagged creators preview */}
+  {post.taggedCreators?.length > 0 && (
+    <button
+      type="button"
+      ref={tagButtonRef}
+      className="active-down-effect"
+      onClick={() => setShowTaggedUsers(prev => !prev)}
+    >
+      <ul className="taglist">
+        {post.taggedCreators.slice(0, 3).map((user: any) => (
+          <li key={user._id}>
+            <img
+              src={user.profile}
+              className="user_icons"
+              alt={user.userName}
+            />
+          </li>
+        ))}
+
+        {/* show +count only if more than 3 */}
+        {post.taggedCreators.length > 3 && (
+          <li className="more-count">
+            +{post.taggedCreators.length - 3}
+          </li>
+        )}
+      </ul>
+    </button>
+  )}
+
+  {/* Dropdown list */}
+  {post.taggedCreators?.length > 0 && showTaggedUsers && (
+    <div ref={tagMenuRef} className="user-dropdown">
+      <ul>
+        {post.taggedCreators.map((user: any) => (
+          <li
+            key={user._id}
+            onClick={() => handleProfileClick(user.publicId)}
+          >
+            <img
+              src={user.profile}
+              alt={user.userName}
+              className="user_icons"
+            />
+            <span>@{user.userName}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</div>
               </div>
             </div>
           </div>
