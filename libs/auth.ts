@@ -157,6 +157,7 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
             user.id = res.user._id;
             user.accessToken = res.token;
             user.publicId = res.user.publicId;
+            user.role = res.user.role;
             return true;
           }
 
@@ -187,6 +188,7 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
             user.id = res.user._id;
             user.accessToken = res.token;
             user.publicId = res.user.publicId;
+            user.role = res.user.role;
           }
 
           return true;
@@ -205,6 +207,7 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
         token.user = user;
         token.accessToken = user.accessToken;
         token.publicId = user.publicId;
+        token.role = user.role;
       }
 
       return token;
@@ -213,6 +216,10 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
     async session({ session, token }: { session: any; token: any }) {
       if (token?.user) {
         session.user = token.user;
+        session.user.role = token.role;
+        session.user.publicId = token.publicId;
+        session.accessToken = token.accessToken;
+        session.publicId = token.publicId;
         session.isAuthenticated = true;
       } else {
         session.user = null;
