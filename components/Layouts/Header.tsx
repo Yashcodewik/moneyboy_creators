@@ -277,7 +277,7 @@ const Header = () => {
                             </svg>
                           </Link>
                         </li>
-                        <li>
+                        <li className="noti-btn">
                           <Link
                             href="#"
                             className={`icon-link ${isNotificationsPage ? "active" : ""}`}
@@ -317,6 +317,7 @@ const Header = () => {
                               />
                             </svg>
                           </Link>
+                          <span>5</span>
                         </li>
                       </ul>
                     </nav>
