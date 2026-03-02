@@ -792,6 +792,20 @@
                      }
                    }
                  }
+                 &.mstore-link {
+                  svg {
+                    path {
+                      stroke-width: 4px;
+                    }
+                  }
+                  &:hover {
+                    svg {
+                      path {
+                        fill: #000;
+                      }
+                    }
+                  }
+                 }
                }
              }
            }
