@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
-import CustomSelect from '../CustomSelect'
-import { getDecryptedSession } from '@/libs/getDecryptedSession';
+import React, { useEffect, useRef, useState } from "react";
+import CustomSelect from "../CustomSelect";
+import { getDecryptedSession } from "@/libs/getDecryptedSession";
 import {
   ageGroupOptions,
   bodyTypeOptions,
@@ -43,16 +43,16 @@ interface FilterProps {
   setFilterValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
 
-const Filter: React.FC<FilterProps> = ({ 
-  search, 
-  setSearch, 
+const Filter: React.FC<FilterProps> = ({
+  search,
+  setSearch,
   setPage,
-  filterValues,  // Use props, not local state
-  setFilterValues // Use props, not local state
+  filterValues, // Use props, not local state
+  setFilterValues, // Use props, not local state
 }) => {
   const [adavanceFilter, setAdavanceFilter] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
-  
+
   // REMOVE THESE DUPLICATE STATES:
   // const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   // const [creators, setCreators] = useState<any[]>([]);
@@ -95,7 +95,7 @@ const Filter: React.FC<FilterProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const isClickInsideDropdown = Object.values(dropdownRefs.current).some(
-        (ref) => ref && ref.contains(event.target as Node)
+        (ref) => ref && ref.contains(event.target as Node),
       );
 
       const target = event.target as HTMLElement;
@@ -121,13 +121,13 @@ const Filter: React.FC<FilterProps> = ({
   };
 
   // Update this function to use the props
-const handleFilterChange = (filterName: string, value: string) => {
-  setPage(1); // reset pagination
-  setFilterValues((prev) => ({
-    ...prev,
-    [filterName]: value || "all", // keep "all" as no-filter
-  }));
-};
+  const handleFilterChange = (filterName: string, value: string) => {
+    setPage(1); // reset pagination
+    setFilterValues((prev) => ({
+      ...prev,
+      [filterName]: value || "all", // keep "all" as no-filter
+    }));
+  };
 
   return (
     <div className="discover-page-filters-container">
@@ -180,7 +180,7 @@ const handleFilterChange = (filterName: string, value: string) => {
                       type="text"
                       placeholder="Search here"
                       value={search}
-                    onChange={(e) => setSearch(e.target.value)} 
+                      onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
                 </div>
@@ -191,9 +191,9 @@ const handleFilterChange = (filterName: string, value: string) => {
                   <CustomSelect
                     label="All Categories"
                     options={categoryOptions}
-                    value={filterValues.category || "all"}
-                    onChange={(value) =>
-                      handleFilterChange("category", value as string)
+                    value={filterValues.bodyType || "all"} // 🔥 use bodyType
+                    onChange={
+                      (value) => handleFilterChange("bodyType", value as string) // 🔥 update bodyType
                     }
                     icon={
                       <svg
@@ -243,7 +243,9 @@ const handleFilterChange = (filterName: string, value: string) => {
                     label="Featured"
                     options={featureOptions}
                     value={filterValues.feature || "all"}
-                    onChange={(value) =>handleFilterChange("feature", value as string)}
+                    onChange={(value) =>
+                      handleFilterChange("feature", value as string)
+                    }
                     icon={
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
