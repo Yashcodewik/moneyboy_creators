@@ -284,7 +284,14 @@ useEffect(() => {
                         <div className="user-subbox" key={item._id}>
                           <div className="rel-user-profile">
                             <div className="profile-card">
-                              <Link href="#" className="profile-card__main">
+                              <Link
+  href={
+    item?.subscriber?.role === 2
+      ? `/profile/${item?.subscriber?.publicId}`
+      : `/userprofile/${item?.subscriber?.publicId}`
+  }
+  className="profile-card__main"
+>
                                 <div className="profile-card__avatar-settings">
                                   <div className="profile-card__avatar">
                                   {item?.subscriber?.profile ? (
@@ -310,9 +317,11 @@ useEffect(() => {
                                 <div className="profile-card__info">
                                   <div className="profile-card__name-badge">
                                     <div className="profile-card__name">{item?.subscriber?.displayName || "Unknown"}</div>
+                                   {item?.subscriber?.role === 2 && (
                                     <div className="profile-card__badge">
                                       <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                                    </div>
+                                  </div>
+                                  )}
                                   </div>
                                   <div className="profile-card__username">
                                     <ul>

@@ -768,11 +768,13 @@ const Sidebar: React.FC = () => {
 
                     <li>
                       <Link
-                        href="/store"
+                        href="/store?tab=marketplace"
                         className={`active-down-effect ${
                           activePage === "store" ? "active" : ""
                         }`}
-                        onClick={(e) => handleNavClick("store", "/store", e)}
+                        onClick={(e) =>
+                          handleNavClick("store", "/store?tab=marketplace", e)
+                        }
                       >
                         <div>
                           <svg
