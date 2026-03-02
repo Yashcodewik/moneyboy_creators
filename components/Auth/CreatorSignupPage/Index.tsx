@@ -200,10 +200,11 @@ const CreatorSignupPage = () => {
 
   const getAgeGroup = (age: number) => {
     if (age >= 18 && age <= 24) return "18_24";
-    if (age >= 25 && age <= 34) return "25_34";
-    if (age >= 35 && age <= 44) return "35_44";
-    if (age >= 45 && age <= 54) return "45_54";
-    if (age >= 55) return "55_plus";
+    if (age >= 25 && age <= 29) return "25_29";
+    if (age >= 30 && age <= 34) return "30_34";
+    if (age >= 35 && age <= 39) return "35_39";
+    if (age >= 40 && age <= 44) return "40_44";
+    if (age >= 45) return "45_plus";
     return "";
   };
 
@@ -222,8 +223,11 @@ const CreatorSignupPage = () => {
     { label: "Dec", value: "11" },
   ];
 
+  const currentYear = new Date().getFullYear();
+  const maxYear = currentYear - 18;
+
   const years = Array.from({ length: 100 }, (_, i) => {
-    const year = new Date().getFullYear() - i;
+    const year = maxYear - i;
     return { label: year.toString(), value: year.toString() };
   });
 
@@ -536,17 +540,17 @@ const CreatorSignupPage = () => {
                                     </div>
                                   )}
                                   onChange={(date: Date | null) => {
-                                    setStartDate(date);
                                     if (date) {
-                                      const formattedDate =
-                                        date.toLocaleDateString("en-CA");
+                                      setStartDate(date);
+
+                                      const formattedDate = date.toISOString();
                                       formik.setFieldValue(
                                         "dob",
                                         formattedDate,
                                       );
+
                                       const age = calculateAge(date);
-                                      const ageGroup = getAgeGroup(age);
-                                      formik.setFieldValue("age", ageGroup);
+                                      formik.setFieldValue("age", age); // ✅ numeric age
                                     }
                                     setActiveField(null);
                                   }}
@@ -663,21 +667,19 @@ const CreatorSignupPage = () => {
                               </span>
                             )}
                         </div>
-                        <div>
-                          <CustomSelect
-                            label="All Ages"
-                            icon={
-                              <svg className="icons calendarClock svg-icon"></svg>
+                        <div className="label-input">
+                          <div className="input-placeholder-icon">
+                            <svg className="icons calendarClock svg-icon"></svg>
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="All Ages"
+                            value={
+                              formik.values.age ? `${formik.values.age}` : ""
                             }
-                            options={ageGroupOptions}
-                            value={formik.values.age}
-                            onChange={(val) => formik.setFieldValue("age", val)}
+                            disabled
                           />
-                          {formik.touched.age && formik.errors.age && (
-                            <span className="error-message">
-                              {formik.errors.age}
-                            </span>
-                          )}
                         </div>
 
                         <div>

@@ -265,25 +265,35 @@ const ProfilePage = () => {
     }
   };
 
-  const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
-    if (!profile?.user?._id || subLoading) return;
+const queryClient = useQueryClient();
 
-    setSubLoading(true);
+const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
+  if (!profile?.user?._id || subLoading) return;
 
-    const res = await apiPost({
-      url: API_SUBSCRIBE_CREATOR,
-      values: {
-        creatorId: profile.user._id,
-        planType,
-      },
+  setSubLoading(true);
+
+  const res = await apiPost({
+    url: API_SUBSCRIBE_CREATOR,
+    values: {
+      creatorId: profile.user._id,
+      planType,
+    },
+  });
+
+  if (res?.success) {
+    toast.success("Subscribed successfully");
+
+    // ✅ refresh creator profile data
+    queryClient.invalidateQueries({
+      queryKey: ["creator-profile", profilePublicId],
     });
 
-    if (!res?.success) {
-      alert(res?.message || "Subscription failed");
-    }
+  } else {
+    alert(res?.message || "Subscription failed");
+  }
 
-    setSubLoading(false);
-  };
+  setSubLoading(false);
+};
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ["creator-posts", profilePublicId, search, timeFilter],
@@ -336,24 +346,33 @@ const ProfilePage = () => {
     }
   };
 
-  const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
-    if (!profile?.user?._id || subLoading) return;
+const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
+  if (!profile?.user?._id || subLoading) return;
 
-    setSubLoading(true);
+  setSubLoading(true);
 
-    const res = await apiPost({
-      url: API_UPGRADE_SUBSCRIPTION,
-      values: {
-        creatorId: profile.user._id,
-        planType,
-      },
+  const res = await apiPost({
+    url: API_UPGRADE_SUBSCRIPTION,
+    values: {
+      creatorId: profile.user._id,
+      planType,
+    },
+  });
+
+  if (res?.success) {
+    toast.success("Subscription updated");
+
+    // ✅ refresh subscription status
+    queryClient.invalidateQueries({
+      queryKey: ["creator-profile", profilePublicId],
     });
 
-    if (!res?.success) {
-      alert(res?.message || "Upgrade failed");
-    }
-    setSubLoading(false);
-  };
+  } else {
+    alert(res?.message || "Upgrade failed");
+  }
+
+  setSubLoading(false);
+};
 
   const handleSendTip = async (amount: number) => {
     if (!amount || amount <= 0) {
@@ -475,52 +494,78 @@ const ProfilePage = () => {
 
     const hasMedia = Boolean(realMedia);
     const handlePostClick = (post: any) => {
-      if (isOwner || isFree) {
+      // OWNER viewing own content
+      if (isOwner) {
         router.push(`/post?page&publicId=${post.publicId}`);
         return;
       }
+
+      // FREE POSTS → normal open
+      if (isFree) {
+        router.push(`/post?page&publicId=${post.publicId}`);
+        return;
+      }
+
+      // SUBSCRIBER POSTS
       if (isSubscriberPost) {
         if (isSubscribed) {
-          router.push(`/post?page&publicId=${post.publicId}`);
+          // ✅ redirect to purchased media
+          router.push(`/purchased-media?publicId=${post.publicId}`);
         }
         return;
       }
+
+      // PPV POSTS
       if (isPPVPost) {
         if (post.isUnlocked) {
-          router.push(`/post?page&publicId=${post.publicId}`);
+          // ✅ redirect to purchased media
+          router.push(`/purchased-media?publicId=${post.publicId}`);
         }
         return;
       }
     };
     const queryClient = useQueryClient();
     const handleDeletePost = async (postId: string) => {
-      if (!postId) return;
-      const confirm = await showQuestion(
-        "This action cannot be undone. Delete this post?",
-      );
-      if (!confirm) return;
-      try {
-        const res = await apiPost({ url: API_DELETE_POST, values: { postId } });
-        if (res?.success) {
-          showSuccess("Post deleted successfully");
-          queryClient.setQueryData(
-            ["profile-creator-posts", profilePublicId],
-            (oldData: any) => {
-              if (!oldData) return oldData;
-              return {
-                ...oldData,
-                posts: oldData.posts.filter((p: any) => p._id !== postId),
-              };
-            },
-          );
-        } else {
-          showError(res?.message || "Failed to delete post");
+  if (!postId) return;
+
+  const confirm = await showQuestion(
+    "This action cannot be undone. Delete this post?"
+  );
+  if (!confirm) return;
+
+  try {
+    const res = await apiPost({
+      url: API_DELETE_POST,
+      values: { postId },
+    });
+
+    if (res?.success) {
+      showSuccess("Post deleted successfully");
+
+      queryClient.setQueryData(
+        ["creator-posts", profilePublicId, search, timeFilter],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            posts: oldData.posts.filter((p: any) => p._id !== postId),
+          };
         }
-      } catch (err) {
-        console.error("Delete post error:", err);
-        showError("Something went wrong");
-      }
-    };
+      );
+
+      // optional safety refetch
+      queryClient.invalidateQueries({
+        queryKey: ["creator-posts"],
+      });
+
+    } else {
+      showError(res?.message || "Failed to delete post");
+    }
+  } catch (err) {
+    console.error("Delete post error:", err);
+    showError("Something went wrong");
+  }
+};
 
     const dispatch = useDispatch<AppDispatch>();
 
@@ -594,7 +639,8 @@ const ProfilePage = () => {
                 </video>
               )}
             </div>
-            {!canViewContent && (
+            {(isSubscriberPost && !isSubscribed) ||
+            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={() => {
@@ -602,8 +648,9 @@ const ProfilePage = () => {
                     router.push("/login");
                     return;
                   }
+                  if (isOwner) return;
                   // ONLY PPV opens modal
-                  if (isPPVPost && !post.isUnlocked) {
+                  if (isPPVPost && (!post.isUnlocked || isOwner)) {
                     setUnlockPost(post);
                     setShowUnlockModal(true);
                   }
@@ -643,7 +690,7 @@ const ProfilePage = () => {
                     <span> Subscribers Only </span>
                   </>
                 )}
-                {isPPVPost && !post.isUnlocked && (
+                {isPPVPost && (!post.isUnlocked || isOwner) && (
                   <>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -678,7 +725,7 @@ const ProfilePage = () => {
                   </>
                 )}
               </div>
-            )}
+            ) : null}
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
                 {!isOwnProfile && !hideSaveBtn && (
