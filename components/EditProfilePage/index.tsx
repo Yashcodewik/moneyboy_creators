@@ -197,17 +197,7 @@ const EditProfilePage = () => {
     return age;
   };
 
-  const getAgeGroup = (age: number) => {
-    if (age >= 18 && age <= 24) return "18_24";
-    if (age >= 25 && age <= 34) return "25_34";
-    if (age >= 35 && age <= 44) return "35_44";
-    if (age >= 45 && age <= 54) return "45_54";
-    if (age >= 55) return "55_plus";
-    return "";
-  };
-
   const today = new Date();
-
   const maxAllowedDate = new Date(
     today.getFullYear() - 18,
     today.getMonth(),
@@ -334,9 +324,9 @@ const EditProfilePage = () => {
                                 y2="27"
                                 gradientUnits="userSpaceOnUse"
                               >
-                                <stop stop-color="#FDAB0A" />
-                                <stop offset="0.4" stop-color="#FECE26" />
-                                <stop offset="1" stop-color="#FE990B" />
+                                <stop stopColor="#FDAB0A" />
+                                <stop offset="0.4" stopColor="#FECE26" />
+                                <stop offset="1" stopColor="#FE990B" />
                               </linearGradient>
                             </defs>
                           </svg>
@@ -409,14 +399,14 @@ const EditProfilePage = () => {
                                           y2="27"
                                           gradientUnits="userSpaceOnUse"
                                         >
-                                          <stop stop-color="#FDAB0A" />
+                                          <stop stopColor="#FDAB0A" />
                                           <stop
                                             offset="0.4"
-                                            stop-color="#FECE26"
+                                            stopColor="#FECE26"
                                           />
                                           <stop
                                             offset="1"
-                                            stop-color="#FE990B"
+                                            stopColor="#FE990B"
                                           />
                                         </linearGradient>
                                       </defs>
@@ -556,15 +546,7 @@ const EditProfilePage = () => {
                                 name="gender"
                               />
                             </div>
-                            {/* <CustomSelect
-                          label="Select Gender *"
-                          icon={<i className="icons groupUser svg-icon"></i>}
-                          options={genderOptions}
-                          value={formik.values.gender}
-                          onChange={(val) =>
-                            formik.setFieldValue("gender", val)
-                          }
-                        /> */}
+
                             {formik.touched.gender && formik.errors.gender && (
                               <span className="error-message">
                                 {formik.errors.gender as string}
@@ -629,13 +611,10 @@ const EditProfilePage = () => {
                                       if (date) {
                                         const formattedDate =
                                           date.toISOString();
-                                        formik.setFieldValue(
-                                          "dob",
-                                          formattedDate,
-                                        );
+                                        formik.setFieldValue("dob",formattedDate);
                                         const age = calculateAge(date);
-                                        const ageGroup = getAgeGroup(age);
-                                        formik.setFieldValue("age", ageGroup);
+                                        // const ageGroup = getAgeGroup(age);
+                                        formik.setFieldValue("age", age);
                                       }
                                       setActiveField(null);
                                     }}
@@ -754,17 +733,28 @@ const EditProfilePage = () => {
                               )}
                           </div>
                           <div>
-                            <CustomSelect
-                              label="All Ages"
-                              icon={
-                                <svg className="icons calendarClock svg-icon"></svg>
-                              }
-                              options={ageGroupOptions}
+                            <input
+                              type="number"
+                              placeholder="age *"
                               value={formik.values.age}
-                              onChange={(val) =>
-                                formik.setFieldValue("age", val)
-                              }
+                              name="age"
+                              disabled
+                              // onChange={(e) => {
+                              //   const val = e.target.value;
+                              //   formik.setFieldValue("age", val);
+                              // }}
                             />
+                            {/* //<CustomSelect
+                            //   label="All Ages"
+                            //   icon={
+                            //     <svg className="icons calendarClock svg-icon"></svg>
+                            //   }
+                            //   options={ageGroupOptions}
+                            //   value={formik.values.age}
+                            //   onChange={(val) =>
+                            //     formik.setFieldValue("age", val)
+                            //   }
+                            // /> */}
                             {formik.touched.age && formik.errors.age && (
                               <span className="error-message">
                                 {formik.errors.age as string}

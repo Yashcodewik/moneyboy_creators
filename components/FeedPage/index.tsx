@@ -12,11 +12,32 @@ import CustomSelect from "../CustomSelect";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost, } from "@/redux/other/feedPostsSlice";
+import {
+  fetchFeedPosts,
+  fetchFollowingPosts,
+  fetchPopularPosts,
+  incrementFeedPostCommentCount,
+  updateFeedPost,
+} from "@/redux/other/feedPostsSlice";
 import { PhotoProvider } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import { showSuccess, showError, showWarning, showInfo, showQuestion, } from "@/utils/alert";
-import { ChevronLeft, ChevronRight, CircleChevronDown, CircleChevronUp, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  showInfo,
+  showQuestion,
+} from "@/utils/alert";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleChevronDown,
+  CircleChevronUp,
+  RotateCw,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import BtnGroupTabs from "../BtnGroupTabs";
 import { useDeviceType } from "@/hooks/useDeviceType";
 
@@ -33,7 +54,16 @@ const FeedPage = () => {
   const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
-  const { posts, feedPage, followingPage, popularPage, hasMoreFeed, hasMoreFollowing, hasMorePopular, loading, } = useSelector((state: any) => state.feedPosts);
+  const {
+    posts,
+    feedPage,
+    followingPage,
+    popularPage,
+    hasMoreFeed,
+    hasMoreFollowing,
+    hasMorePopular,
+    loading,
+  } = useSelector((state: any) => state.feedPosts);
   const allPosts = Object.values(posts);
   const feedPosts = allPosts.filter((p: any) => p.source === "feed");
   const followingPosts = allPosts.filter((p: any) => p.source === "following");
@@ -43,7 +73,8 @@ const FeedPage = () => {
   const isMobile = useDeviceType();
   const [showSidebarMobile, setShowSidebarMobile] = useState(false);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
-  const [showSidebar, setShowSidebar] = useState(false);
+
+  console.log(allPosts ,"allPosts==============================");
 
   useEffect(() => {
     const container = document.getElementById("feed-scroll-container");
@@ -51,8 +82,8 @@ const FeedPage = () => {
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
       const nearBottom = scrollTop + clientHeight >= scrollHeight - 150;
-      setShowSidebar(nearBottom);
     };
+
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
@@ -71,21 +102,30 @@ const FeedPage = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    if (activeTab === "feed" && feedPosts.length === 0) { dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT })); }
-    if (activeTab === "following" && followingPosts.length === 0 && isLoggedIn) { dispatch(fetchFollowingPosts({ page: 1, limit: LIMIT })); }
-    if (activeTab === "popular" && popularPosts.length === 0) { dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT })); }
-  }, [activeTab, isLoggedIn, userId, feedPosts.length, followingPosts.length, popularPosts.length,
+    if (activeTab === "feed" && feedPosts.length === 0) {
+      dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT }));
+    }
+    if (
+      activeTab === "following" &&
+      followingPosts.length === 0 &&
+      isLoggedIn
+    ) {
+      dispatch(fetchFollowingPosts({ page: 1, limit: LIMIT }));
+    }
+    if (activeTab === "popular" && popularPosts.length === 0) {
+      dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT }));
+    }
+  }, [
+    activeTab,
+    isLoggedIn,
+    userId,
+    feedPosts.length,
+    followingPosts.length,
+    popularPosts.length,
   ]);
 
   /* ================= INFINITE SCROLL ================= */
   const fetchMoreHandler = () => {
-    console.log("🔥 FETCH MORE TRIGGERED", {
-      activeTab,
-      hasMoreFeed,
-      hasMoreFollowing,
-      hasMorePopular,
-      loading,
-    });
     if (loading || !activeHasMore) return;
     if (activeTab === "feed" && hasMoreFeed) {
       dispatch(
@@ -174,433 +214,184 @@ const FeedPage = () => {
   };
 
   /* ================= UI HELPERS ================= */
-  const activeList = activeTab === "feed" ? feedPosts : activeTab === "following" ? followingPosts : popularPosts;
-  const activeHasMore = activeTab === "feed" ? hasMoreFeed : activeTab === "following" ? hasMoreFollowing : hasMorePopular;
 
-  /* ================= RENDER ================= */
-  const allFeedImages = activeList
-    ?.flatMap((post: any) =>
-      (post.media?.[0]?.mediaFiles || []).filter(
-        () => post.media?.[0]?.type !== "video"
-      )
-    ) ?? [];
+  const activeList =
+    activeTab === "feed"
+      ? feedPosts
+      : activeTab === "following"
+        ? followingPosts
+        : popularPosts;
+
+
+  const activeHasMore =
+    activeTab === "feed"
+      ? hasMoreFeed
+      : activeTab === "following"
+        ? hasMoreFollowing
+        : hasMorePopular;
 
   return (
-    <PhotoProvider toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible }) => {
-      if (!visible) return null;
-      return (
-        <div className="toolbar_controller">
-          <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
-          <span>{index + 1} / {images.length}</span>
-          <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
-          <button className="btn_icons" onClick={() => onScale(scale + 0.2)}><ZoomIn size={20} /></button>
-          <button className="btn_icons" onClick={() => onScale(Math.max(0.5, scale - 0.2))}><ZoomOut size={20} /></button>
-          <button className="btn_icons" onClick={() => onRotate(rotate + 90)}><RotateCw size={20} /></button>
-          <button className="btn_icons" onClick={onClose}><X size={20} /></button>
-        </div>
-      );
-    }}>
+    <PhotoProvider
+      toolbarRender={({
+        images,
+        index,
+        onIndexChange,
+        onClose,
+        rotate,
+        onRotate,
+        scale,
+        onScale,
+        visible,
+      }) => {
+        if (!visible) return null;
+        return (
+          <div className="toolbar_controller">
+            <button
+              className="btn_icons"
+              onClick={() => index > 0 && onIndexChange(index - 1)}
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span>
+              {index + 1} / {images.length}
+            </span>
+            <button
+              className="btn_icons"
+              onClick={() =>
+                index < images.length - 1 && onIndexChange(index + 1)
+              }
+            >
+              <ChevronRight size={20} />
+            </button>
+            <button className="btn_icons" onClick={() => onScale(scale + 0.2)}>
+              <ZoomIn size={20} />
+            </button>
+            <button
+              className="btn_icons"
+              onClick={() => onScale(Math.max(0.5, scale - 0.2))}
+            >
+              <ZoomOut size={20} />
+            </button>
+            <button className="btn_icons" onClick={() => onRotate(rotate + 90)}>
+              <RotateCw size={20} />
+            </button>
+            <button className="btn_icons" onClick={onClose}>
+              <X size={20} />
+            </button>
+          </div>
+        );
+      }}
+    >
       <>
         <div className="moneyboy-2x-1x-layout-container">
           <div className="moneyboy-2x-1x-a-layout">
             <div className="moneyboy-feed-page-container">
-              {/* TABS */}
-              {/* <div className="moneyboy-feed-page-cate-buttons card">
-                <button className="page-content-type-button" onClick={() => showSuccess("Success Message")}>Success</button>
-                <button className="page-content-type-button" onClick={() => showError("Error Message")}>Error</button>
-                <button className="page-content-type-button" onClick={() => showWarning("Warning Message")}>Warning</button>
-                <button className="page-content-type-button" onClick={() => showInfo("Info Message")}>Info</button>
-                <button className="page-content-type-button" onClick={async () => {const ok = await showQuestion("Continue?"); ok ? showSuccess("Yes clicked") : showError("No clicked");}}>Question</button>
-              </div> */}
-              <BtnGroupTabs activeTab={activeTab} onChange={(value) => { if (!isLoggedIn && value === "following") { router.push("/discover"); return; } setActiveTab(value as TabType); }}
-                tabs={[{ key: "feed", label: "Feed" }, { key: "following", label: isLoggedIn ? "Following" : "Discover", }, { key: "popular", label: "Popular" },]} />
+              <BtnGroupTabs
+                activeTab={activeTab}
+                onChange={(value) => {
+                  if (!isLoggedIn && value === "following") {
+                    router.push("/discover");
+                    return;
+                  }
+                  setActiveTab(value as TabType);
+                }}
+                tabs={[
+                  { key: "feed", label: "Feed" },
+                  {
+                    key: "following",
+                    label: isLoggedIn ? "Following" : "Discover",
+                  },
+                  { key: "popular", label: "Popular" },
+                ]}
+              />
               {!(isMobile && showSidebarMobile) && (
-                <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
-                  <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={activeList?.length} fetchMore={fetchMoreHandler} hasMore={activeHasMore}>
-                    {loading && activeList.length === 0 ? (Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="moneyboy-post__container card skloading">
-                        <div className="post_header">
-                          <div className="post_header-left">
-                            <div className="post_avatar"></div>
-                            <div className="post_text">
+                <div
+                  id="feed-scroll-container"
+                  className="moneyboy-posts-scroll-container"
+                >
+                  <InfiniteScrollWrapper
+                    className="moneyboy-posts-wrapper"
+                    scrollableTarget="feed-scroll-container"
+                    dataLength={activeList?.length}
+                    fetchMore={fetchMoreHandler}
+                    hasMore={activeHasMore}
+                  >
+                    {loading && activeList.length === 0
+                      ? Array.from({ length: 4 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="moneyboy-post__container card skloading"
+                          >
+                            <div className="post_header">
+                              <div className="post_header-left">
+                                <div className="post_avatar"></div>
+                                <div className="post_text">
+                                  <div className="line medium"></div>
+                                  <div className="line short"></div>
+                                </div>
+                              </div>
+                              <div className="post__time"></div>
+                            </div>
+                            <div>
+                              <div className="line long"></div>
                               <div className="line medium"></div>
                               <div className="line short"></div>
                             </div>
+                            <div className="moneyboy-post__media">
+                              <div className="moneyboy-post__img"></div>
+                              <div className="moneyboy-post__actions">
+                                <ul>
+                                  <li></li>
+                                  <li></li>
+                                  <li></li>
+                                </ul>
+                                <ul>
+                                  <li></li>
+                                  <li></li>
+                                </ul>
+                              </div>
+                            </div>
                           </div>
-                          <div className="post__time"></div>
-                        </div>
-                        <div>
-                          <div className="line long"></div>
-                          <div className="line medium"></div>
-                          <div className="line short"></div>
-                        </div>
-                        <div className="moneyboy-post__media">
-                          <div className="moneyboy-post__img"></div>
-                          <div className="moneyboy-post__actions">
-                            <ul><li></li><li></li><li></li></ul>
-                            <ul><li></li><li></li></ul>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                    ) : (
-                      activeList?.map((post: any) => (
-                        <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount} />
-                      ))
-                    )}
+                        ))
+                      : activeList?.map((post: any) => (
+                          <PostCard
+                            key={post._id}
+                            post={post}
+                            onLike={handleLike}
+                            onSave={handleSave}
+                            onCommentAdded={incrementCommentCount}
+                          />
+                        ))}
                   </InfiniteScrollWrapper>
                 </div>
               )}
             </div>
           </div>
           {(!isMobile || showSidebarMobile) && (
-            <aside className={`moneyboy-2x-1x-b-layout scrolling ${isMobile ? "mobile-sidebar" : ""}`} ref={sidebarRef}>
+            <aside
+              className={`moneyboy-2x-1x-b-layout scrolling ${isMobile ? "mobile-sidebar" : ""}`}
+              ref={sidebarRef}
+            >
               <Featuredboys />
             </aside>
           )}
         </div>
 
-
         {isMobile && (
           <div className="updownarrow active-down-effect">
-            <button type="button" className="premium-btn" onClick={() => setShowSidebarMobile(prev => !prev)}>
-              {showSidebarMobile ? (<CircleChevronUp size={24} color="#fece26" />) : (<CircleChevronDown size={24} color="#fece26" />)}
+            <button
+              type="button"
+              className="premium-btn"
+              onClick={() => setShowSidebarMobile((prev) => !prev)}
+            >
+              {showSidebarMobile ? (
+                <CircleChevronUp size={24} color="#fece26" />
+              ) : (
+                <CircleChevronDown size={24} color="#fece26" />
+              )}
             </button>
           </div>
         )}
-
-        {/* ================= MODALS ================= */}
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <div className="modal-wrap tip-modal">
-            <button className="close-btn"><CgClose size={22} /></button>
-            <div className="profile-card">
-              <div className="profile-card__main justify-center">
-                <div className="profile-card__avatar-settings">
-                  <div className="profile-card__avatar">
-                    <img src="/images/profile-avatars/profile-avatar-1.png" alt="MoneyBoy Social Profile Avatar" />
-                  </div>
-                </div>
-                <div className="profile-card__info">
-                  <div className="profile-card__name-badge">
-                    <div className="profile-card__name"> Addisonraee </div>
-                    <div className="profile-card__badge">
-                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
-                    </div>
-                  </div>
-                  <div className="profile-card__username">@rae</div>
-                </div>
-              </div>
-            </div>
-            <h3 className="title">Thanks for the Tip</h3>
-            <div className="text-center">
-              <label className="orange">Enter The Amount</label>
-              <input className="form-input number-input" type="number" placeholder="Question" name="firstName" />
-            </div>
-            <div className="actions">
-              <button className="premium-btn active-down-effect">
-                <span>Sent Tip</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <div className="modal-wrap subscription-modal">
-            <button className="close-btn">
-              <CgClose size={22} />
-            </button>
-            <div className="profile-card">
-              <div className="profile-card__main justify-center">
-                <div className="profile-card__avatar-settings">
-                  <div className="profile-card__avatar">
-                    <img
-                      src="/images/profile-avatars/profile-avatar-1.png"
-                      alt="MoneyBoy Social Profile Avatar"
-                    />
-                  </div>
-                </div>
-                <div className="profile-card__info">
-                  <div className="profile-card__name-badge">
-                    <div className="profile-card__name">Corey Bergson</div>
-                    <div className="profile-card__badge">
-                      <img
-                        src="/images/logo/profile-badge.png"
-                        alt="MoneyBoy Social Profile Badge"
-                      />
-                    </div>
-                  </div>
-                  <div className="profile-card__username">@coreybergson</div>
-                </div>
-              </div>
-            </div>
-            <h3 className="title">Monthly Subscription <span className="gradinttext">$9.99</span>{" "}<sub>/month <span>(Save 25%)</span></sub></h3>
-            <ul className="points">
-              <li>Full access to this creator’s exclusive content</li>
-              <li>Direct message with this creator</li>
-              <li>Requested personalised Pay Per view contaent </li>
-              <li>Cancel your subscription at any time</li>
-            </ul>
-            <div className="actions">
-              <CustomSelect
-                label="Select  a payment card"
-                searchable={false}
-                options={[
-                  { label: "Visa Credit Card", value: "visa" },
-                  { label: "Mastercard Credit Card", value: "mastercard" },
-                  { label: "RuPay Debit Card", value: "rupay" },
-                  { label: "American Express", value: "amex" },
-                  { label: "Discover Card", value: "discover" },
-                ]}
-              />
-              <button className="premium-btn active-down-effect">
-                <span>Subscribe</span>
-              </button>
-            </div>
-            <p className="note">
-              Clicking “Subscribe” will take you to the payment screen to finalize
-              you subscription
-            </p>
-          </div>
-        </div>
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <div className="modal-wrap tip-modal unlockmodal">
-            <button className="close-btn"><CgClose size={22} /></button>
-            <div className="profile-card">
-              <div className="profile-card__main justify-center">
-                <div className="profile-card__avatar-settings">
-                  <div className="profile-card__avatar">
-                    <img
-                      src="/images/profile-avatars/profile-avatar-1.png"
-                      alt="MoneyBoy Social Profile Avatar"
-                    />
-                  </div>
-                </div>
-                <div className="profile-card__info">
-                  <div className="profile-card__name-badge">
-                    <div className="profile-card__name"> Romanatwood</div>
-                    <div className="profile-card__badge">
-                      <img
-                        src="/images/logo/profile-badge.png"
-                        alt="MoneyBoy Social Profile Badge"
-                      />
-                    </div>
-                  </div>
-                  <div className="profile-card__username">@atwood</div>
-                </div>
-              </div>
-            </div>
-            <h3 className="title">Unlock Content</h3>
-            <h4><span className="textorange">4.99</span> USD</h4>
-            <p>My man hates spiders!!{" "} <img src="/images/icons/spider_icons.svg" className="icons" />{" "} <img src="/images/icons/smiling-faceicons.svg" className="icons" /></p>
-            <div className="actions">
-              <button className="premium-btn active-down-effect"><span>Confirm to unlock</span></button>
-            </div>
-          </div>
-        </div>
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <div className="modal-wrap promote-modal">
-            <button className="close-btn">
-              <CgClose size={22} />
-            </button>
-            <h3 className="title">Promote Your Profile</h3>
-            <p>
-              Increase your visibility on MoneyBoy! Promote your profile to appear
-              in the Featured MoneyBoys section and attract more fans.
-            </p>
-            <div className="note">
-              <p>
-                Choose your promotion plan and pay easily with your Wallet or
-                credit card.”
-              </p>
-            </div>
-            <div className="select_wrap grid2">
-              <label className="radio_wrap box_select">
-                <input type="radio" name="access" />
-                <h3>3 Days</h3>
-                <p>$9.99 /day</p>
-              </label>
-              <label className="radio_wrap box_select">
-                <input type="radio" name="access" />
-                <h3>7 Days</h3>
-                <p>$7.99 /day</p>
-              </label>
-              <label className="radio_wrap box_select">
-                <input type="radio" name="access" />
-                <h3>14 Days</h3>
-                <p>$5.99 /day</p>
-              </label>
-              <label className="radio_wrap box_select">
-                <input type="radio" name="access" />
-                <h3>30 Days</h3>
-                <p>$3.99 /day</p>
-              </label>
-            </div>
-            <div className="total_wrap">
-              <div>
-                <h3>Total Price</h3>
-                <p>7 Days at $7.99 /day</p>
-              </div>
-              <div>
-                <h2>$55.99</h2>
-              </div>
-            </div>
-            <h4>Payment Method</h4>
-            <div className="select_wrap">
-              <label className="radio_wrap">
-                <input type="radio" name="access" />{" "}
-                <img src="/images/icons/wallet_icons.svg" className="icons" />{" "}
-                <p>Pay with wallet</p>
-              </label>
-              <label className="radio_wrap">
-                <input type="radio" name="access" />{" "}
-                <img src="/images/icons/card_icons.svg" className="icons" />{" "}
-                <p>Pay with credit/debit card</p>
-              </label>
-            </div>
-            <div className="actions">
-              <button className="premium-btn active-down-effect">
-                <span>Confirm & Promote</span>
-              </button>
-              <button className="active-down-effect">
-                <span>Cancel</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <div className="modal-wrap request-modal">
-            <button className="close-btn">
-              <CgClose size={22} />
-            </button>
-            <h3 className="title">PPV - Request Custom Content</h3>
-            <div className="profile-card">
-              <div className="profile-card__main justify-center">
-                <div className="profile-card__avatar-settings">
-                  <div className="profile-card__avatar">
-                    <img
-                      src="/images/profile-avatars/profile-avatar-1.png"
-                      alt="MoneyBoy Social Profile Avatar"
-                    />
-                  </div>
-                </div>
-                <div className="profile-card__info">
-                  <div className="profile-card__name-badge">
-                    <div className="profile-card__name">Gogo</div>
-                    <div className="profile-card__badge">
-                      <img
-                        src="/images/logo/profile-badge.png"
-                        alt="MoneyBoy Social Profile Badge"
-                      />
-                    </div>
-                  </div>
-                  <div className="profile-card__username">@gogo</div>
-                </div>
-              </div>
-            </div>
-            <p className="small">
-              Request a personalized video or photo directly from this MoneyBoy.
-            </p>
-            <div>
-              <label>Request type</label>
-              <CustomSelect
-                searchable={false}
-                label="Custom video"
-                options={[
-                  { label: "Select One", value: "select1" },
-                  { label: "Select Two", value: "select1" },
-                  { label: "Select Three", value: "select1" },
-                ]}
-              />
-            </div>
-            <div>
-              <label>Request type</label>
-              <textarea
-                rows={3}
-                placeholder="Describe what you’d like (tone, outfit, duration, etc.)"
-              />
-            </div>
-            <div>
-              <label>Upload reference file</label>
-              <div className="upload-wrapper">
-                <div className="img_wrap">
-                  <svg className="icons idshape size-45"></svg>
-                  {/* <div className="imgicons"><TbCamera size="16" /></div> */}
-                </div>
-              </div>
-            </div>
-            <div>
-              <label>Offer your price</label>
-              <input className="form-input" type="number" placeholder="10.99" />
-            </div>
-            <div className="">
-              <p className="boldblack">Minimum request price: 20€</p>
-              <p>Final price will be confirmed by the creator before payment.</p>
-            </div>
-            <div className="actions">
-              <button className="premium-btn active-down-effect">
-                <span>Send Request</span>
-              </button>
-              <button className="active-down-effect">
-                <span>Cancel</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <div className="modal-wrap report-modal">
-            <button className="close-btn">
-              <CgClose size={22} />
-            </button>
-            <h3 className="title">Report Pop-Up</h3>
-            <div className="img_wrap">
-              <img
-                src="/images/profile-avatars/profile-avatar-1.png"
-                alt="MoneyBoy Social Profile Avatar"
-              />
-            </div>
-            <div>
-              <label>
-                Tital <span>*</span>
-              </label>
-              <CustomSelect
-                searchable={false}
-                label="Violent Or Repulsive Content"
-                options={[
-                  {
-                    label: "Violent or repulsive content",
-                    value: "violent_or_repulsive",
-                  },
-                  {
-                    label: "Hateful or abusive content",
-                    value: "hateful_or_abusive",
-                  },
-                  {
-                    label: "Harassment or bullying",
-                    value: "harassment_or_bullying",
-                  },
-                  {
-                    label: "Harmful or dangerous acts",
-                    value: "harmful_or_dangerous",
-                  },
-                  { label: "Child abuse", value: "child_abuse" },
-                  { label: "Promotes terrorism", value: "promotes_terrorism" },
-                  { label: "Spam or misleading", value: "spam_or_misleading" },
-                  { label: "Infringes my rights", value: "infringes_my_rights" },
-                  { label: "Others", value: "others" },
-                ]}
-              />
-            </div>
-            <div className="input-wrap">
-              <label>Description</label>
-              <textarea rows={3} placeholder="Tell Us Whay You Report?" />
-              <label className="right">0/300</label>
-            </div>
-            <div className="actions">
-              <button className="premium-btn active-down-effect">
-                <span>Submit</span>
-              </button>
-            </div>
-          </div>
-        </div>
       </>
     </PhotoProvider>
   );

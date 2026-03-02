@@ -96,6 +96,7 @@ const PricingSetting = () => {
             <div className="form_grid">
               <div className="one">
                 <label>Monthly Subscription Price*</label>
+                  {/* <span className="currency">$</span> */}
                 <div className="label-input">
                   <input
                     type="number"
@@ -131,7 +132,8 @@ const PricingSetting = () => {
                     </span>
                   )}
               </div>
-
+              {/* <hr></hr>
+              <h6>Minimum price for custom PPV requests. This is the starting amount fans must pay to request personalized content</h6> */}
               <div className="one">
                 <label>PPV Request - Custom video</label>
                 <div className="label-input">

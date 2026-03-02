@@ -504,7 +504,7 @@ const ProfilePage = () => {
         if (res?.success) {
           showSuccess("Post deleted successfully");
           queryClient.setQueryData(
-            ["creator-posts", profilePublicId],
+            ["profile-creator-posts", profilePublicId],
             (oldData: any) => {
               if (!oldData) return oldData;
               return {

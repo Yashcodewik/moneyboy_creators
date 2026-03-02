@@ -383,7 +383,12 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           <div className="profile-card" style={{ cursor: "pointer" }}>
             <div className="profile-card__main">
               <div className="profile-card__avatar-settings">
-                <div className="profile-card__avatar">
+                <div
+                  className="profile-card__avatar"
+                  onClick={() => {
+                    handleProfileClick(post.creatorInfo?.publicId);
+                  }}
+                >
                   {post.creatorInfo?.profile &&
                   !avatarErrorMap[post.creatorInfo.publicId] ? (
                     <img
@@ -430,7 +435,12 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 </div>
               </div>
               <div className="profile-card__info">
-                <div className="profile-card__name-badge">
+                <div
+                  className="profile-card__name-badge"
+                  onClick={() => {
+                    handleProfileClick(post.creatorInfo?.publicId);
+                  }}
+                >
                   <div className="profile-card__name">
                     {post.creatorInfo?.userName}
                   </div>
@@ -443,12 +453,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 </div>
                 <div className="profile-card__username tagged_userlist">
                   @{post.creatorInfo?.displayName}
-                  {/* <ul className="taglist">
-                                        <li><Link href="" className="taglink">@alex</Link></li>
-                                        <li><Link href="" className="taglink">@rohan</Link></li>
-                                        <li><Link href="" className="taglink">@meera</Link></li>
-                                        <li><Link href="" className="taglink">@sam</Link></li>
-                                    </ul> */}
                   {post.taggedCreators?.length > 0 && (
                     <div className="tagged_userlist">
                       <button
