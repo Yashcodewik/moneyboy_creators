@@ -1339,7 +1339,7 @@ const Header = () => {
                         <span>Purchased Media</span>
                       </a>
 
-                      <a href="/store" className="menu-link store-link">
+                      <a href="/store?tab=marketplace" className="menu-link store-link">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -1385,6 +1385,54 @@ const Header = () => {
                         </svg>
                         <span>Marketplace</span>
                       </a>
+                       {session?.user?.role === 2 && (
+                      <a href="/store" className="menu-link store-link">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="25"
+                          viewBox="0 0 24 25"
+                          fill="none"
+                        >
+                          <path
+                            d="M3.00977 11.6486V16.1386C3.00977 20.6286 4.80977 22.4286 9.29977 22.4286H14.6898C19.1798 22.4286 20.9798 20.6286 20.9798 16.1386V11.6486"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M12 12.4286C13.83 12.4286 15.18 10.9386 15 9.10859L14.34 2.42859H9.66999L8.99999 9.10859C8.81999 10.9386 10.17 12.4286 12 12.4286Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M18.3098 12.4286C20.3298 12.4286 21.8098 10.7886 21.6098 8.77859L21.3298 6.02859C20.9698 3.42859 19.9698 2.42859 17.3498 2.42859H14.2998L14.9998 9.43859C15.1698 11.0886 16.6598 12.4286 18.3098 12.4286Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M5.63988 12.4286C7.28988 12.4286 8.77988 11.0886 8.93988 9.43859L9.15988 7.22859L9.63988 2.42859H6.58988C3.96988 2.42859 2.96988 3.42859 2.60988 6.02859L2.33988 8.77859C2.13988 10.7886 3.61988 12.4286 5.63988 12.4286Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M12 17.4286C10.33 17.4286 9.5 18.2586 9.5 19.9286V22.4286H14.5V19.9286C14.5 18.2586 13.67 17.4286 12 17.4286Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Store</span>
+                      </a>
+                       )}
                     </div>
                   </div>
                   <div className="links-block">

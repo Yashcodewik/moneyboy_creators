@@ -9,6 +9,7 @@ const Footer = () => {
       <ul className="ft_links">
         <li><Link href="/login">Login</Link></li>
         <li><Link href="/benefits">Signup</Link></li>
+        <li><Link href="/contact-us">Contact</Link></li>
         <li><Link href="/help">Help & Support</Link></li>
         <li><Link href="/terms">Terms of Service</Link></li>
         <li><Link href="/usc">U.S.C 2257</Link></li>
