@@ -1,36 +1,37 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
-import { apiPost, getApi } from "@/utils/endpoints/common";
+import { apiPost } from "@/utils/endpoints/common";
 import {
-  API_GET_SAVED_CREATORS,
-  API_GET_SAVED_ITEMS,
   API_SUBSCRIBE_CREATOR,
   API_UNLOCK_POST,
-  API_UNSAVE_CREATOR,
-  API_UNSAVE_FREE_CREATOR,
-  API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
+
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchSavedFreeCreators,
-  removeSavedFreeCreator,
   updateSavedFreeCreatorState,
 } from "@/redux/wishlist/savedFreeCreatorsSlice";
+
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import { updateCreatorSavedState } from "@/redux/discover/discoverCreatorsSlice";
+
 import { useRouter } from "next/navigation";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
+
 import WishlistMediaCard from "./WishlistMediaCard";
 import {
   fetchSavedLockedPosts,
   removeSavedLockedPost,
 } from "@/redux/wishlist/savedLockedPostsSlice";
+
 import UnlockContentModal from "../ProfilePage/UnlockContentModal";
 import SubscriptionModal from "../ProfilePage/SubscriptionModal";
 import NoProfileSvg from "../common/NoProfileSvg";
+import BtnGroupTabs from "../BtnGroupTabs";
+import { useAppDispatch } from "@/redux/store";
 
 interface SavedCreator {
   creatorUserId: string;
@@ -40,136 +41,130 @@ interface SavedCreator {
   isSaved: boolean;
   publicId: string;
 }
+
+type TopTab = "moneyboys" | "savedMedia";
+
 const WishlistPage = () => {
   const router = useRouter();
-  const [wishlist, setWishlist] = useState(false);
-  const [allTime, setAllTime] = useState(false);
-  const [showUnlockModal, setShowUnlockModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("moneyboys");
-  const [subActiveTab, setSubActiveTab] = useState<string>("videos");
-  const [layout, setLayout] = useState<"grid" | "list">("grid");
-  const [likedItems, setLikedItems] = useState<number[]>([]);
-  const [time, setTime] = useState<string>("all");
-  const [savedTime, setSavedTime] = useState<string>("all");
+  const dispatch = useAppDispatch();
+
+  const [activeTab, setActiveTab] =
+    useState<"moneyboys" | "savedMedia">("moneyboys");
+
+  const [layout, setLayout] =
+    useState<"grid" | "list">("grid");
+
+  const [subActiveTab, setSubActiveTab] =
+    useState<"videos" | "photos">("videos");
+
+  const [time, setTime] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [page, setPage] = useState(1);
+
   const [showPPVModal, setShowPPVModal] = useState(false);
-  const [unlocking, setUnlocking] = useState(false);
-  const [unlockPost, setUnlockPost] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [unlockLoading, setUnlockLoading] = useState(false);
+
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY">(
-    "MONTHLY",
-  );
-  const [modalAction, setModalAction] = useState<
-    "subscribe" | "upgrade" | "renew"
-  >("subscribe");
   const [selectedCreator, setSelectedCreator] = useState<any>(null);
-  const [searchInput, setSearchInput] = useState("");
-  const searchTimeout = React.useRef<NodeJS.Timeout | null>(null);
-  const [removedCreatorIds, setRemovedCreatorIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const dispatch = useDispatch();
+  const [selectedPlan, setSelectedPlan] =
+    useState<"MONTHLY" | "YEARLY">("MONTHLY");
+
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const savedCreators = useSelector(
-    (state: {
-      savedFreeCreators: {
-        creators: SavedCreator[];
-      };
-    }) => state.savedFreeCreators.creators,
+    (state: any) => state.savedFreeCreators.creators
   );
+
+  const handleProfileClick = (publicId: string) => {
+    router.push(`/profile/${publicId}`);
+  };
+
+  const [modalAction, setModalAction] =
+    useState<"subscribe" | "upgrade" | "renew">("subscribe");
 
   const {
     posts: savedMediaPosts,
-    page: mediaPage,
-    totalPages: mediaTotalPages,
+    totalPages,
     loading: mediaLoading,
   } = useSelector((state: any) => state.savedLockedPosts);
-  const isSavedMediaTab = activeTab === "savedMedia";
 
-  const handleTabClick = (tabName: string) => {
-    setActiveTab(tabName);
-    setPage(1);
-    setSearchInput("");
-    setSearchTerm("");
-  };
-
-  const toggleLike = (id: number) => {
-    setLikedItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-  const handleUnlockClick = (post: any) => {
-    setSelectedPost(post);
-    setShowPPVModal(true);
-  };
+  /* ========== FETCH ========== */
 
   useEffect(() => {
     if (activeTab === "moneyboys") {
-      // 🔵 Saved Creators
       dispatch(
         fetchSavedFreeCreators({
           page,
           limit: 9,
           search: searchTerm,
           time,
-        }) as any,
-      ).then((res: any) => {
-        if (res?.payload?.pagination?.totalPages) {
-          setTotalPages(res.payload.pagination.totalPages);
-        }
-      });
+        }) as any
+      );
     }
 
     if (activeTab === "savedMedia") {
-      // 🟣 Saved Media
       dispatch(
         fetchSavedLockedPosts({
           page,
           limit: 9,
           search: searchTerm,
           type: subActiveTab === "videos" ? "video" : "photo",
-          time: time,
-        }) as any,
+          time,
+        }) as any
       );
     }
-  }, [activeTab, subActiveTab, searchTerm, page, time]);
+  }, [activeTab, subActiveTab, searchTerm, page, time, dispatch]);
 
-const handleToggleSaveCreator = (creator: SavedCreator) => {
-  const isCurrentlySaved = creator.isSaved;
+  useEffect(() => {
+    return () => {
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+      }
+    };
+  }, []);
 
-  // 🔥 instant icon toggle
-  dispatch(
-    updateSavedFreeCreatorState({
-      creatorUserId: creator.creatorUserId,
-      isSaved: !isCurrentlySaved,
-    })
-  );
+  /* ========== HANDLERS ========== */
 
-  dispatch(
-    updateCreatorSavedState({
-      creatorId: creator.creatorUserId,
-      saved: !isCurrentlySaved,
-    })
-  );
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
 
-  // 🔥 API call
-  if (isCurrentlySaved) {
-    dispatch(unsavePost({ creatorUserId: creator.creatorUserId }) as any);
-  } else {
-    dispatch(savePost({ creatorUserId: creator.creatorUserId }) as any);
-  }
-};
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
 
+    searchTimeout.current = setTimeout(() => {
+      setPage(1);
+      setSearchTerm(value);
+    }, 500);
+  };
+
+  const handleToggleSaveCreator = (creator: SavedCreator) => {
+    const { creatorUserId, isSaved } = creator;
+    const nextSavedState = !isSaved;
+
+    dispatch(
+      updateSavedFreeCreatorState({
+        creatorUserId,
+        isSaved: nextSavedState,
+      })
+    );
+
+    dispatch(nextSavedState
+      ? savePost({ creatorUserId })
+      : unsavePost({ creatorUserId })
+    );
+  };
 
   const handleUnsaveMedia = (postId: string) => {
-    // 1️⃣ Optimistic UI (instant remove from grid)
     dispatch(removeSavedLockedPost({ postId }));
-
-    // 2️⃣ Backend call (already shows toast)
     dispatch(unsavePost({ postId }) as any);
+  };
+
+  const handleUnlockClick = (post: any) => {
+    setSelectedPost(post);
+    setShowPPVModal(true);
   };
 
   const confirmUnlockPost = async () => {
@@ -177,8 +172,6 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
 
     try {
       setUnlockLoading(true);
-
-      console.log("Calling unlock API:", selectedPost.post._id);
 
       const res = await apiPost({
         url: API_UNLOCK_POST,
@@ -190,113 +183,38 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
 
       if (res?.success) {
         setShowPPVModal(false);
-        setSelectedPost(null);
-
         router.push(`/post?publicId=${selectedPost.post.publicId}`);
-      } else {
-        alert(res?.message || "Failed to unlock post");
       }
-    } catch (err) {
-      console.error("Unlock error:", err);
     } finally {
       setUnlockLoading(false);
     }
   };
 
-  const handleProfileClick = (publicId: string) => {
-    router.push(`/profile/${publicId}`);
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value);
-
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
-
-    searchTimeout.current = setTimeout(() => {
-      setPage(1); // 🔥 Reset page on search
-      setSearchTerm(value); // 🔥 Triggers useEffect
-    }, 500);
-  };
+  /* ========== PAGINATION ========== */
 
   const renderPagination = () => {
-    if (totalPages <= 1) return null;
-
-    const pages: (number | string)[] = [];
-    if (totalPages <= 6) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1, 2, 3);
-      if (page > 4) pages.push("...");
-      if (page > 3 && page < totalPages - 2) pages.push(page);
-      if (page < totalPages - 3) pages.push("...");
-      pages.push(totalPages - 1, totalPages);
-    }
+    if (!totalPages || totalPages <= 1) return null;
 
     return (
       <div className="pagination_wrap">
-        <button
-          className="btn-prev"
-          disabled={page === 1}
-          onClick={() => setPage((prev) => prev - 1)}
-        >
-          <CircleArrowLeft color="#000" />
-        </button>
-
-        {pages.map((p, i) =>
-          p === "..." ? (
-            <button key={i} className="premium-btn" disabled>
-              <span>…</span>
-            </button>
-          ) : (
-            <button
-              key={i}
-              className={page === p ? "premium-btn" : "btn-primary"}
-              onClick={() => setPage(p as number)}
-            >
-              <span>{p}</span>
-            </button>
-          ),
-        )}
-
-        <button
-          className="btn-next"
-          disabled={page === totalPages}
-          onClick={() => setPage((prev) => prev + 1)}
-        >
-          <CircleArrowRight color="#000" />
-        </button>
+        <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}><CircleArrowLeft /></button>
+        <span>{page} / {totalPages}</span>
+        <button disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}><CircleArrowRight /></button>
       </div>
     );
   };
 
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-        <div
-          className="moneyboy-feed-page-container moneyboy-diff-content-wrappers"
-          data-multiple-tabs-section
-          data-scroll-zero
-          data-identifier="1"
-        >
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            <button
-              className={`page-content-type-button active-down-effect ${activeTab === "moneyboys" ? "active" : ""}`}
-              onClick={() => handleTabClick("moneyboys")}
-            >
-              Moneyboys
-            </button>
-            <button
-              className={`page-content-type-button active-down-effect ${activeTab === "savedMedia" ? "active" : ""}`}
-              onClick={() => handleTabClick("savedMedia")}
-            >
-              Saved Media
-            </button>
-          </div>
+        <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-multiple-tabs-section data-scroll-zero data-identifier="1">
+          <BtnGroupTabs activeTab={activeTab} onChange={(value) => { setActiveTab(value as TopTab); setPage(1); setSearchInput(""); setSearchTerm(""); }}
+            tabs={[
+              { key: "moneyboys", label: "Moneyboys" },
+              { key: "savedMedia", label: "Saved Media" },
+            ]}
+          />
           {activeTab === "moneyboys" && (
             <div data-active data-identifier="1">
               <div>
@@ -371,9 +289,8 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
                               data-multi-dem-cards-layout-btns
                             >
                               <button
-                                className={`creator-content-grid-layout-btn ${
-                                  layout === "grid" ? "active" : "inactive"
-                                }`}
+                                className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"
+                                  }`}
                                 onClick={() => setLayout("grid")}
                               >
                                 <svg
@@ -402,9 +319,8 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
                                 </svg>
                               </button>
                               <button
-                                className={`creator-content-grid-layout-btn ${
-                                  layout === "list" ? "active" : "inactive"
-                                }`}
+                                className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"
+                                  }`}
                                 onClick={() => setLayout("list")}
                               >
                                 <svg
@@ -440,7 +356,7 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
                         }
                       >
                         <div className="creator-content-type-container-wrapper">
-                          {savedCreators.map((creator) => (
+                          {savedCreators.map((creator: any) => (
                             <div
                               key={creator.creatorUserId}
                               className="user-profile-card-wrapper user-profile-card-small"
@@ -461,15 +377,15 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
                                 </div> */}
 
                                 <div className="user-profile-card__img">
-                                      {creator?.profile ? (
-                                        <img
-                                          src={creator.profile}
-                                          alt="Discover Profile Avatar"
-                                        />
-                                      ) : (
-                                        <NoProfileSvg   />
-                                      )}
-                                    </div>
+                                  {creator?.profile ? (
+                                    <img
+                                      src={creator.profile}
+                                      alt="Discover Profile Avatar"
+                                    />
+                                  ) : (
+                                    <NoProfileSvg />
+                                  )}
+                                </div>
 
                                 <div className="user-profile-content-overlay-container">
                                   <div className="user-profile-card__action-btns">
@@ -529,9 +445,8 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
                                     </div> */}
 
                                     <div
-                                      className={`user-profile-card__wishlist-btn ${
-                                        creator.isSaved ? "active" : ""
-                                      }`}
+                                      className={`user-profile-card__wishlist-btn ${creator.isSaved ? "active" : ""
+                                        }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleToggleSaveCreator(
@@ -966,16 +881,8 @@ const handleToggleSaveCreator = (creator: SavedCreator) => {
                 setShowPPVModal(false);
                 setSelectedPost(null);
               }}
-              creator={{
-                displayName: selectedPost.creator?.displayName,
-                userName: selectedPost.creator?.userName,
-                profile: selectedPost.creator?.profile,
-              }}
-              post={{
-                publicId: selectedPost.post._id,
-                text: selectedPost.post.text,
-                price: selectedPost.post.price,
-              }}
+              creator={selectedPost.creator}
+              post={selectedPost.post}
               onConfirm={confirmUnlockPost}
               loading={unlockLoading}
             />

@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-export interface TabItem { key: string; label: string;}
-interface Props { activeTab: string; onChange: (tab: string) => void; tabs: TabItem[];}
+export interface TabItem { key: string; label: string; img?: string; }
+interface Props { activeTab: string; onChange: (tab: string) => void; tabs: TabItem[]; }
 
 const BtnGroupTabs = ({ activeTab, onChange, tabs }: Props) => {
   const groupRef = useRef<HTMLDivElement>(null);
@@ -13,7 +13,7 @@ const BtnGroupTabs = ({ activeTab, onChange, tabs }: Props) => {
     if (!btn || !parent) return;
     const rect = btn.getBoundingClientRect();
     const parentRect = parent.getBoundingClientRect();
-    setIndicator({left: rect.left - parentRect.left, width: rect.width,});
+    setIndicator({ left: rect.left - parentRect.left, width: rect.width, });
   };
 
   const moveToActive = () => {
@@ -27,19 +27,20 @@ const BtnGroupTabs = ({ activeTab, onChange, tabs }: Props) => {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  useEffect(() => { moveToActive();
+  useEffect(() => {
+    moveToActive();
     const resizeObserver = new ResizeObserver(moveToActive);
     if (groupRef.current) resizeObserver.observe(groupRef.current);
     window.addEventListener("resize", moveToActive);
-    return () => {resizeObserver.disconnect(); window.removeEventListener("resize", moveToActive);};
+    return () => { resizeObserver.disconnect(); window.removeEventListener("resize", moveToActive); };
   }, [activeTab, tabs]);
 
   return (
     <div className="moneyboy-feed-page-cate-buttons card btnGroup" ref={groupRef} onMouseLeave={moveToActive}>
-      <span className="slider" style={{left: indicator.left, width: indicator.width,}}/>
+      <span className="slider" style={{ left: indicator.left, width: indicator.width, }} />
       {tabs.map((tab, i) => (
-        <button key={tab.key} ref={(el :any) => (btnRefs.current[i] = el)} className={`page-content-type-button active-down-effect ${activeTab === tab.key ? "active" : ""}`} onClick={() => onChange(tab.key)} onMouseEnter={() => updatePosition(btnRefs.current[i])}>
-          {tab.label}
+        <button key={tab.key} ref={(el: any) => (btnRefs.current[i] = el)} className={`page-content-type-button active-down-effect max-50 ${activeTab === tab.key ? "active" : ""}`} onClick={() => onChange(tab.key)} onMouseEnter={() => updatePosition(btnRefs.current[i])}>
+          <div className="flex items-end justify-center">{tab.img && (<img src={tab.img} alt={tab.label} className="max-w-22" />)} <span>{tab.label}</span></div>
         </button>
       ))}
     </div>

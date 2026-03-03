@@ -385,47 +385,18 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 <div className="profile-card__username tagged_userlist">
                   @{post.creatorInfo?.displayName}
                   {/* <ul className="taglist">
-                                        <li><Link href="" className="taglink">@alex</Link></li>
-                                        <li><Link href="" className="taglink">@rohan</Link></li>
-                                        <li><Link href="" className="taglink">@meera</Link></li>
-                                        <li><Link href="" className="taglink">@sam</Link></li>
-                                    </ul> */}
+                      <li><Link href="" className="taglink">@alex</Link></li>
+                      <li><Link href="" className="taglink">@rohan</Link></li>
+                      <li><Link href="" className="taglink">@meera</Link></li>
+                      <li><Link href="" className="taglink">@sam</Link></li>
+                  </ul> */}
                   {post.taggedCreators?.length > 0 && (
-                    <div className="tagged_userlist">
-                      <button
-                        type="button"
-                        ref={tagButtonRef}
-                        className="active-down-effect"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowTaggedUsers((prev) => !prev);
-                        }}
-                      >
-                        & More <AtSign size={16} />
-                      </button>
-
-                      {showTaggedUsers && (
-                        <div ref={tagMenuRef} className="user-dropdown">
-                          <ul>
-                            {post.taggedCreators.map((user: any) => (
-                              <li
-                                key={user._id}
-                                onClick={() =>
-                                  handleProfileClick(user.publicId)
-                                }
-                              >
-                                <img
-                                  src={user.profile}
-                                  alt={user.userName}
-                                  className="user_icons"
-                                />
-                                <span>@{user.userName}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
+                    <button type="button" ref={tagButtonRef} className="active-down-effect" onClick={() => setShowTaggedUsers(prev => !prev)}>
+                      <ul className="taglist">
+                        {post.taggedCreators.slice(0, 3).map((user: any) => (<li key={user._id}><img src={user.profile} className="user_icons" alt={user.userName} /></li>))}
+                        {post.taggedCreators.length > 3 && (<li className="more-count">+{post.taggedCreators.length - 3}</li>)}
+                      </ul>
+                    </button>
                   )}
                 </div>
               </div>

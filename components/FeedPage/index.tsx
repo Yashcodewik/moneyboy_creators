@@ -246,38 +246,13 @@ const FeedPage = () => {
         if (!visible) return null;
         return (
           <div className="toolbar_controller">
-            <button
-              className="btn_icons"
-              onClick={() => index > 0 && onIndexChange(index - 1)}
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <span>
-              {index + 1} / {images.length}
-            </span>
-            <button
-              className="btn_icons"
-              onClick={() =>
-                index < images.length - 1 && onIndexChange(index + 1)
-              }
-            >
-              <ChevronRight size={20} />
-            </button>
-            <button className="btn_icons" onClick={() => onScale(scale + 0.2)}>
-              <ZoomIn size={20} />
-            </button>
-            <button
-              className="btn_icons"
-              onClick={() => onScale(Math.max(0.5, scale - 0.2))}
-            >
-              <ZoomOut size={20} />
-            </button>
-            <button className="btn_icons" onClick={() => onRotate(rotate + 90)}>
-              <RotateCw size={20} />
-            </button>
-            <button className="btn_icons" onClick={onClose}>
-              <X size={20} />
-            </button>
+            <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
+            <span>{index + 1} / {images.length}</span>
+            <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
+            <button className="btn_icons" onClick={() => onScale(scale + 0.2)}><ZoomIn size={20} /></button>
+            <button className="btn_icons" onClick={() => onScale(Math.max(0.5, scale - 0.2))}><ZoomOut size={20} /></button>
+            <button className="btn_icons" onClick={() => onRotate(rotate + 90)}><RotateCw size={20} /></button>
+            <button className="btn_icons" onClick={onClose}><X size={20} /></button>
           </div>
         );
       }}

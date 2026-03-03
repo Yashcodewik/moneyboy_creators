@@ -325,16 +325,10 @@ const PostPage = () => {
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-        <div className="moneyboy-feed-page-container">
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            <button
-              className="cate-back-btn active-down-effect"
-              onClick={() => router.push("/feed")}
-            >
-              <span className="icons arrowLeft hwhite"></span>
+        <div className="moneyboy-feed-page-container common-cntwrap">
+          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}>
+              <span className="icons arrowLeft"></span>
             </button>
             <button className="page-content-type-button active-down-effect active max-w-50">
               Post Details
@@ -960,7 +954,6 @@ const PostPage = () => {
                   }}
                 />
               )}
-            </div>
             {showComment && (
               <div className="flex flex-column gap-20">
                 {/* ================= Add Comment ================= */}
@@ -1142,6 +1135,7 @@ const PostPage = () => {
                 ))}
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
