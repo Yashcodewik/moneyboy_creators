@@ -34,6 +34,7 @@ import AccountSecurity from "./AccountSecurity";
 import PricingSetting from "./PricingSetting";
 import ImageCropModal from "./ImageCropModal";
 import { showError, showSuccess } from "@/utils/alert";
+import { useSession } from "next-auth/react";
 
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
@@ -50,6 +51,7 @@ const EditProfilePage = () => {
   const [cropOpen, setCropOpen] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"avatar" | "cover" | null>(null);
+  const { data: session, update } = useSession();
 
   const handleCropSave = async (croppedBase64: string) => {
     const blob = await (await fetch(croppedBase64)).blob();
@@ -139,6 +141,22 @@ const EditProfilePage = () => {
         if (res?.success) {
           showSuccess("Profile updated successfully");
           await fetchProfile();
+
+          const fresh = await getApiWithOutQuery({
+            url: API_CREATOR_PROFILE_INFO,
+          });
+
+          if (fresh?.user) {
+            await update({
+              user: {
+                ...session?.user,
+                profile: fresh.user.profile,
+                displayName: fresh.user.displayName,
+                firstName: fresh.user.firstName,
+                lastName: fresh.user.lastName,
+              },
+            });
+          }
         }
       } catch (err: any) {
         const backendMessage = err?.response?.data?.message;
@@ -228,14 +246,14 @@ const EditProfilePage = () => {
     { label: "December", value: "11" },
   ];
 
-// start from 18 years old (no future years)
-const currentYear = new Date().getFullYear();
-const maxYear = currentYear - 18;
+  // start from 18 years old (no future years)
+  const currentYear = new Date().getFullYear();
+  const maxYear = currentYear - 18;
 
-const years = Array.from({ length: 100 }, (_, i) => {
-  const year = maxYear - i;
-  return { label: year.toString(), value: year.toString() };
-});
+  const years = Array.from({ length: 100 }, (_, i) => {
+    const year = maxYear - i;
+    return { label: year.toString(), value: year.toString() };
+  });
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
