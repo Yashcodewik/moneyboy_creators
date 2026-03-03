@@ -486,26 +486,12 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
 
   return (
     <>
-      <div
-        className={`modal ${show ? "show" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        onClick={confirmClose}
-      >
-        <form
-          className="modal-wrap post-modal"
-          onClick={(e) => e.stopPropagation()}
-          onSubmit={formik.handleSubmit}
-        >
+      <div className={`modal ${show ? "show" : ""}`} role="dialog" aria-modal="true" onClick={confirmClose}>
+        <form className="modal-wrap post-modal" onClick={(e) => e.stopPropagation()} onSubmit={formik.handleSubmit}>
           <div className="modal_head">
-            <h3>New Post</h3>
-            <button type="button" className="close-btn" onClick={confirmClose}>
-              <CgClose size={22} />
-            </button>
+            <h3 className="title">Create New Post</h3>
+            <button type="button" className="close-btn" onClick={confirmClose}><CgClose size={22} /></button>
           </div>
-          <button type="button" className="close-btn" onClick={confirmClose}>
-            <CgClose size={22} />
-          </button>
 
           <div className="input-wrap">
             <div className="label-input textarea one">
@@ -859,8 +845,10 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         {showTagModal && (
           <div className="modal show" role="dialog" aria-modal="true" onClick={confirmClose}>
             <div className="modal-wrap creators-modal" onClick={(e) => e.stopPropagation()}>
-              <button type="button" className="close-btn" onClick={() => setShowTagModal(false)}><CgClose size={22} /></button>
-              <h3>Tag other creators</h3>
+              <div className="modal_head">
+                <h3 className="title">Tag Other Creators</h3>
+                <button type="button" className="close-btn" onClick={() => setShowTagModal(false)}><CgClose size={22} /></button>
+              </div>
               <div className="label-input search_wrap">
                 <div className="input-placeholder-icon"><IoSearch size={22} color="#716f6f" /></div>
                 <input className="form-input" type="text" placeholder="Enter Keywords Here" value={tagSearch} onChange={(e) => searchTagUsers(e.target.value)} />
@@ -887,8 +875,8 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                           <div className="profile-card__username">@{user.userName}</div>
                         </div>
                         <div className="radio-indicator">
-                         <input type="checkbox" name="tagUser" checked={selected} onChange={() => toggleTagUser(user)} />
-                         <span className="checkmark"></span>
+                          <input type="checkbox" name="tagUser" checked={selected} onChange={() => toggleTagUser(user)} />
+                          <span className="checkmark"></span>
                         </div>
                       </label>
                     );

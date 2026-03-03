@@ -351,48 +351,17 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
                 <div className="col-4-cards-layout">
                   {!loadingPaidContentFeed &&
-                    paidContentFeed.map((post) => {
-                      const isOwnPost =
-                        post.creatorInfo?._id === loggedInUserId;
-
+                    paidContentFeed.map((post) => {const isOwnPost = post.creatorInfo?._id === loggedInUserId;
                       return (
                         <div className="creator-media-card card" key={post._id}>
                           <div className="creator-media-card__media-wrapper">
                             <div className="creator-media-card__media">
                               {post.media?.type === "photo" ? (
-                                <img
-                                  alt="Post Image"
-                                  src={post.media?.mediaFiles?.[0]}
-                                />
+                                <img alt="Post Image" src={post.media?.mediaFiles?.[0]}/>
                               ) : (
-                                <div
-                                  className="h-full"
-                                  onMouseEnter={() => playPreview(post._id)}
-                                  onMouseLeave={() => stopPreview(post._id)}
-                                >
-                                  <Plyr
-                                    ref={(ref) => {
-                                      if (ref?.plyr) {
-                                        playersRef.current[post._id] = ref.plyr;
-                                      }
-                                    }}
-                                    source={{
-                                      type: "video",
-                                      sources: [
-                                        {
-                                          src: post.media?.mediaFiles?.[0],
-                                          type: "video/mp4",
-                                        },
-                                      ],
-                                    }}
-                                    options={{
-                                      muted: true,
-                                      controls: [],
-                                      clickToPlay: false,
-                                      autoplay: false,
-                                    }}
-                                  />
-                                </div>
+                                  <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
+                                // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
+                                // </div>
                               )}
 
                               {post.media?.type === "video" && (
@@ -401,7 +370,6 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                 </Link>
                               )}
                             </div>
-
                             <div className="creator-media-card__overlay">
                               <div className="creator-media-card__stats">
                                 {subActiveTab === "trending" && (
@@ -419,12 +387,10 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                               </div>
                             </div>
                           </div>
-
                           <div className="creator-media-card__desc">
                             <h5 className="lineclamp1">{post.text}</h5>
                             <p>By {post.creatorInfo?.displayName}</p>
                           </div>
-
                           <div className="creator-media-card__btn mt-auto">
                             {/* hide price for own post */}
                             {!isOwnPost &&
@@ -434,7 +400,6 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                   From <span>${post.price}</span>
                                 </h5>
                               )}
-
                             <Link
                               href="#"
                               className={`btn-txt-gradient shimmer btn-outline ${

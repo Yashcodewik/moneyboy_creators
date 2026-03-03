@@ -5,6 +5,7 @@ import CustomSelect from "../CustomSelect";
 import { apiPost } from "@/utils/endpoints/common";
 import { useState } from "react";
 import { API_CREATE_PPV_REQUEST } from "@/utils/api/APIConstant";
+import { CircleDollarSign } from "lucide-react";
 interface PPVRequestModalProps {
   onClose: () => void;
   creator: {
@@ -194,7 +195,7 @@ const PPVRequestModal = ({
             </div>
           </div>
           <div>
-            <label>Offer your price</label>
+            <label>Offer your price $</label>
             <input
               className="form-input"
               type="number"
@@ -204,7 +205,7 @@ const PPVRequestModal = ({
             />
           </div>
           <div className="">
-            <p className="boldblack">Minimum request price: 20€</p>
+            <p className="boldblack">Minimum request price: 20$</p>
             <p>Final price will be confirmed by the creator before payment.</p>
           </div>
           <div className="actions">

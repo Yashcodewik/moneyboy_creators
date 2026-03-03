@@ -1711,8 +1711,8 @@
                     svg path {
                       &:nth-child(1),
                       &:nth-child(2) {
-                        stroke: #000;
-                        fill: #000;
+                        stroke: #FFA500;
+                        fill: #FFA500;
                       }
         
                       &:nth-child(3) {
@@ -1930,13 +1930,13 @@
                      svg {
                        path {
                          &:nth-child(1) {
-                           stroke: #6c5ce7;
-                           fill: #6c5ce7;
+                           stroke: #FFA500;
+                           fill: #FFA500;
                          }
  
                          &:nth-child(2) {
-                           stroke: #6c5ce7;
-                           fill: #6c5ce7;
+                           stroke: #FFA500;
+                           fill: #FFA500;
                          }
  
                          &:nth-child(3) {
