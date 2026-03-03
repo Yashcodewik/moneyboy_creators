@@ -546,9 +546,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
               <CgClose size={22} />
             </button>
           </div>
-          <button type="button" className="close-btn" onClick={confirmClose}>
-            <CgClose size={22} />
-          </button>
+          
 
           <div className="input-wrap">
             <div className="label-input textarea one">
