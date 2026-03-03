@@ -359,8 +359,9 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                               {post.media?.type === "photo" ? (
                                 <img alt="Post Image" src={post.media?.mediaFiles?.[0]}/>
                               ) : (
-                                  <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
+                                <video ref={(el) => {if (el) playersRef.current[post._id] = el;}} src={post.media?.mediaFiles?.[0]} muted loop playsInline/>
                                 // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
+                                //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
                                 // </div>
                               )}
 

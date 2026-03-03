@@ -7065,10 +7065,9 @@ body {
         opacity: 1;
         a {
           svg {
-            fill: var(--like-color);
-            stroke: var(--like-color);
             path {
-              stroke: var(--like-color);
+              stroke: #FFA500;
+              fill: #FFA500;
               &:nth-child(2) {
                 stroke: #fff;
               }
