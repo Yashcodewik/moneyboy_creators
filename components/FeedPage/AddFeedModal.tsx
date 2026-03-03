@@ -11,9 +11,11 @@ import {
   apiPostWithMultiForm,
   apiPost,
   getApiByParams,
+  getApiWithOutQuery,
 } from "@/utils/endpoints/common";
 import {
   API_CREATE_POST,
+  API_GET_MY_SUBSCRIPTION,
   API_SEARCH_TAG_USERS,
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
@@ -120,6 +122,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   >(null);
   const [isScheduled, setIsScheduled] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
+  const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);
   const [showRecorder, setShowRecorder] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
@@ -200,6 +203,17 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     return () => document.removeEventListener("keydown", esc);
   }, []);
 
+  useEffect(() => {
+    if (!show || session?.user?.role !== 2) return;
+
+    const checkSubscription = async () => {
+      const res = await getApiWithOutQuery({ url: API_GET_MY_SUBSCRIPTION });
+      console.log("Subscription API response:", res); // ← check this in console
+      const isSet = res?.success && res?.data?.monthlyPrice > 0;
+      setHasSubscription(!!isSet);
+    };
+    checkSubscription();
+  }, [show]);
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -327,6 +341,23 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     onSubmit: async (values) => {
       if (isSubmitting) return;
       setIsSubmitting(true);
+      if (
+        values.accessType === "subscriber" &&
+        session?.user?.role === 2 &&
+        hasSubscription === false // ← use fetched value, null means still loading
+      ) {
+        const goToPricing = await showQuestion(
+          `<p>You must set your subscription price before uploading subscriber content.</p>
+     <p>Please go to <strong>Edit Profile → Pricing Settings</strong> to configure your pricing.</p>`,
+          "Go to Pricing Settings",
+          "Cancel",
+          true,
+        );
+        if (goToPricing)
+          window.location.href = "/creator-edit-profile?tab=pricing";
+        setIsSubmitting(false);
+        return;
+      }
 
       try {
         if (selectedTagUsers.length > 0) {
@@ -400,8 +431,20 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           url: API_CREATE_POST,
           values: formData,
         });
-
         if (!res?.success) {
+          // ← Catch the backend subscription error and show custom popup
+          if (res?.message?.toLowerCase().includes("subscription")) {
+            const goToPricing = await showQuestion(
+              `<p>You must set your subscription price before uploading subscriber content.</p>
+       <p>Please go to <strong>Edit Profile → Pricing Settings</strong> to configure your pricing.</p>`,
+              "Go to Pricing Settings",
+              "Cancel",
+              true,
+            );
+            if (goToPricing)
+              window.location.href = "/creator-edit-profile?tab=pricing";
+            return;
+          }
           showError(res?.message || "Failed to create post");
           return;
         }
@@ -453,16 +496,16 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const collaborators: (TaggedUserWithShare & { isCreator: boolean })[] =
     selectedTagUsers.length > 0
       ? [
-        {
-          _id: "creator",
-          displayName: creator.name ?? "",
-          userName: creator.username ?? "",
-          profile: creator.profile,
-          percentage: creatorPercentage,
-          isCreator: true,
-        },
-        ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
-      ]
+          {
+            _id: "creator",
+            displayName: creator.name ?? "",
+            userName: creator.username ?? "",
+            profile: creator.profile,
+            percentage: creatorPercentage,
+            isCreator: true,
+          },
+          ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
+        ]
       : [];
 
   const confirmClose = async () => {
@@ -498,7 +541,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           onSubmit={formik.handleSubmit}
         >
           <div className="modal_head">
-            <h3>New Post</h3>
+            <h3 className="title">Create New Post</h3>
             <button type="button" className="close-btn" onClick={confirmClose}>
               <CgClose size={22} />
             </button>
@@ -509,16 +552,44 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
 
           <div className="input-wrap">
             <div className="label-input textarea one">
-              <textarea ref={textareaRef} rows={4} placeholder="Compose new post..." name="text" value={formik.values.text} onChange={formik.handleChange} onBlur={formik.handleBlur} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) e.stopPropagation(); }} />
+              <textarea
+                ref={textareaRef}
+                rows={4}
+                placeholder="Compose new post..."
+                name="text"
+                value={formik.values.text}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) e.stopPropagation();
+                }}
+              />
             </div>
             <span className="right">
-              <button type="button" ref={emojiBtnRef} className="emoji-btn" onClick={() => setShowEmoji((prev) => !prev)}>
-                <Smile size={20} stroke="black" strokeWidth={1} fill="#fece26" />
+              <button
+                type="button"
+                ref={emojiBtnRef}
+                className="emoji-btn"
+                onClick={() => setShowEmoji((prev) => !prev)}
+              >
+                <Smile
+                  size={20}
+                  stroke="black"
+                  strokeWidth={1}
+                  fill="#fece26"
+                />
               </button>
               {formik.values.text.length}/300
               {showEmoji && (
                 <div ref={emojiRef} className="emoji-picker-wrapper">
-                  <EmojiPicker onEmojiClick={handleEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={320} width={320} />
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiClick}
+                    autoFocusSearch={false}
+                    skinTonesDisabled
+                    previewConfig={{ showPreview: false }}
+                    height={320}
+                    width={320}
+                  />
                 </div>
               )}
             </span>
@@ -528,11 +599,22 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           )}
           <div className="select_wrap">
             <label className="radio_wrap">
-              <input type="radio" name="access" checked={accessType === "subscriber"} onChange={() => handleAccessTypeChange("subscriber")} />{" "} Only for Subscribers
+              <input
+                type="radio"
+                name="access"
+                checked={accessType === "subscriber"}
+                onChange={() => handleAccessTypeChange("subscriber")}
+              />{" "}
+              Only for Subscribers
             </label>
 
             <label className="radio_wrap">
-              <input type="radio" name="access" checked={accessType === "pay_per_view"} onChange={() => handleAccessTypeChange("pay_per_view")} />{" "}
+              <input
+                type="radio"
+                name="access"
+                checked={accessType === "pay_per_view"}
+                onChange={() => handleAccessTypeChange("pay_per_view")}
+              />{" "}
               Pay per View
             </label>
 
@@ -612,8 +694,8 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       value={
                         formik.values.scheduledAt
                           ? new Date(
-                            formik.values.scheduledAt,
-                          ).toLocaleDateString("en-GB")
+                              formik.values.scheduledAt,
+                            ).toLocaleDateString("en-GB")
                           : ""
                       }
                       readOnly
@@ -711,12 +793,16 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                     </div>
 
                     <div className="right_box">
-                      {accessType === "free" && <span className="btn-primary">Free</span>}
-                      {accessType === "subscriber" && <span className="btn-primary">Subscriber</span>}
+                      {accessType === "free" && (
+                        <span className="btn-primary">Free</span>
+                      )}
+                      {accessType === "subscriber" && (
+                        <span className="btn-primary">Subscriber</span>
+                      )}
                       {accessType === "pay_per_view" && (
                         <input
                           type="number"
-                          placeholder="Add User Percentage"
+                          placeholder="Add Percentage"
                           className="form-input"
                           value={user.percentage || ""}
                           onChange={(e) => {
@@ -849,7 +935,12 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                   </button>
                 </li>
               </ul>
-              <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} disabled={isSubmitting || !hasMedia}>
+              <button
+                type="submit"
+                data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
+                className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
+                disabled={isSubmitting || !hasMedia}
+              >
                 <span>{isSubmitting ? "Posting..." : "Post"}</span>
               </button>
             </div>
@@ -857,13 +948,37 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         </form>
 
         {showTagModal && (
-          <div className="modal show" role="dialog" aria-modal="true" onClick={confirmClose}>
-            <div className="modal-wrap creators-modal" onClick={(e) => e.stopPropagation()}>
-              <button type="button" className="close-btn" onClick={() => setShowTagModal(false)}><CgClose size={22} /></button>
-              <h3>Tag other creators</h3>
+          <div
+            className="modal show"
+            role="dialog"
+            aria-modal="true"
+            onClick={confirmClose}
+          >
+            <div
+              className="modal-wrap creators-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal_head">
+                <h3 className="title">Tag Other Creators</h3>
+                <button
+                  type="button"
+                  className="close-btn"
+                  onClick={() => setShowTagModal(false)}
+                >
+                  <CgClose size={22} />
+                </button>
+              </div>
               <div className="label-input search_wrap">
-                <div className="input-placeholder-icon"><IoSearch size={22} color="#716f6f" /></div>
-                <input className="form-input" type="text" placeholder="Enter Keywords Here" value={tagSearch} onChange={(e) => searchTagUsers(e.target.value)} />
+                <div className="input-placeholder-icon">
+                  <IoSearch size={22} color="#716f6f" />
+                </div>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Enter Keywords Here"
+                  value={tagSearch}
+                  onChange={(e) => searchTagUsers(e.target.value)}
+                />
               </div>
               <div className="moneyboy-post__header scrollbar">
                 <div className="profile-card">
@@ -872,7 +987,10 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       (u) => u._id === user._id,
                     );
                     return (
-                      <label key={user._id} className={`profile-card__main radio-card ${selected ? "active" : ""}`} >
+                      <label
+                        key={user._id}
+                        className={`profile-card__main radio-card ${selected ? "active" : ""}`}
+                      >
                         <div className="profile-card__avatar-settings">
                           <div className="profile-card__avatar">
                             {user.profile ? (
@@ -883,12 +1001,21 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                           </div>
                         </div>
                         <div className="profile-card__info">
-                          <div className="profile-card__name">{user.displayName}</div>
-                          <div className="profile-card__username">@{user.userName}</div>
+                          <div className="profile-card__name">
+                            {user.displayName}
+                          </div>
+                          <div className="profile-card__username">
+                            @{user.userName}
+                          </div>
                         </div>
                         <div className="radio-indicator">
-                         <input type="checkbox" name="tagUser" checked={selected} onChange={() => toggleTagUser(user)} />
-                         <span className="checkmark"></span>
+                          <input
+                            type="checkbox"
+                            name="tagUser"
+                            checked={selected}
+                            onChange={() => toggleTagUser(user)}
+                          />
+                          <span className="checkmark"></span>
                         </div>
                       </label>
                     );
@@ -896,7 +1023,13 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                 </div>
               </div>
               <div className="actions creators-footer justify-end">
-                <button type="button" className="premium-btn" onClick={() => setShowTagModal(false)}><span>Tag user</span></button>
+                <button
+                  type="button"
+                  className="premium-btn"
+                  onClick={() => setShowTagModal(false)}
+                >
+                  <span>Tag user</span>
+                </button>
               </div>
               {/* <div className="creators-footer">
                 <Link href="#" className="invite"></Link>
@@ -908,7 +1041,20 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
       </div>
 
       {showRecorder && (
-        <VideoRecorder onClose={() => setShowRecorder(false)} onRecorded={(file: File) => { if (videoCount >= 3) { showError("Maximum 3 videos allowed"); return; } setMediaFiles((prev) => [...prev, file]); setMediaPreviews((prev) => [...prev, { url: URL.createObjectURL(file), type: "video" },]); }} />
+        <VideoRecorder
+          onClose={() => setShowRecorder(false)}
+          onRecorded={(file: File) => {
+            if (videoCount >= 3) {
+              showError("Maximum 3 videos allowed");
+              return;
+            }
+            setMediaFiles((prev) => [...prev, file]);
+            setMediaPreviews((prev) => [
+              ...prev,
+              { url: URL.createObjectURL(file), type: "video" },
+            ]);
+          }}
+        />
       )}
     </>
   );
