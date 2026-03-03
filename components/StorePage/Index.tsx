@@ -1,19 +1,17 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import FeaturedSlider from "./FeaturedSlider";
 import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import Link from "next/link";
-import {ChevronLeft, ChevronRight,} from "lucide-react";
+import { ChevronLeft, ChevronRight, } from "lucide-react";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
-import { Play } from "next/font/google";
 import { CgClose } from "react-icons/cg";
 import AllCreators from "./AllCreators";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { fetchAllCreators, fetchFeaturedPosts, fetchMyPaidPosts, fetchPaidContentFeed,} from "@/redux/store/Action";
+import { fetchAllCreators, fetchFeaturedPosts, fetchMyPaidPosts, fetchPaidContentFeed, } from "@/redux/store/Action";
 import PPVRequestModal from "../ProfilePage/PPVRequestModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
@@ -23,14 +21,14 @@ import SubscriptionModal from "../ProfilePage/SubscriptionModal";
 import FeaturedContentSlider from "./FeaturedSlider";
 import { TbCamera } from "react-icons/tb";
 import { apiPostWithMultiForm, getApiByParams } from "@/utils/endpoints/common";
-import {API_GET_STORE_IMAGES, API_UPDATE_STORE_IMAGES,} from "@/utils/api/APIConstant";
+import { API_GET_STORE_IMAGES, API_UPDATE_STORE_IMAGES, } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
+import ImageCropModal from "./ImageCropModal";
 
 type TimeFilter = | "all_time" | "most_recent" | "today" | "last_7_days" | "last_30_days";
 
 const StorePage = () => {
   const router = useRouter();
-  const [store, setStore] = useState(false);
   const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [subActiveTab, setSubActiveTab] = useState<string>("videos");
   const [showPPVModal, setShowPPVModal] = useState(false);
@@ -51,16 +49,16 @@ const StorePage = () => {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [subscriptionPlan, setSubscriptionPlan] = useState< "MONTHLY" | "YEARLY">("MONTHLY");
-  const [storeImages, setStoreImages] = useState({
-    profileImage: "",
-    coverImage: "",
-  });
+  const [subscriptionPlan, setSubscriptionPlan] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
+  const [storeImages, setStoreImages] = useState({ profileImage: "", coverImage: "", });
   const searchParams = useSearchParams();
   const tabFromUrl = searchParams.get("tab");
   const profilePublicId = activeStoreOwner?.publicId;
-  const isOwnStore =
-    isCreator && activeStoreOwner?.publicId === session?.user?.publicId;
+  const isOwnStore = isCreator && activeStoreOwner?.publicId === session?.user?.publicId;
+
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropType, setCropType] = useState<"profile" | "cover" | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
 
   const creatorFromUrl = searchParams.get("creator");
   const handleOpenFullscreen = (e: React.MouseEvent) => {
@@ -208,11 +206,11 @@ const StorePage = () => {
 
     setSelectedCreator(creator);
   };
-const handlePostRedirect = (post: any, isOwnPost: boolean) => {
-  if (post.isUnlocked || post.isSubscribed || isOwnPost) {
-    router.push(`/purchased-media?publicId=${post.publicId}`);
-  }
-};
+  const handlePostRedirect = (post: any, isOwnPost: boolean) => {
+    if (post.isUnlocked || post.isSubscribed || isOwnPost) {
+      router.push(`/purchased-media?publicId=${post.publicId}`);
+    }
+  };
 
   const handleSaveToggle = async (e: React.MouseEvent, post: any) => {
     e.stopPropagation();
@@ -287,17 +285,6 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
   const isSubscribed = localSubscribed || !!activeStoreOwner?.isSubscribed;
 
   useEffect(() => {
-    if (!creatorFromUrl || !creators?.length) return;
-
-    const creator = creators.find((c) => c.publicId === creatorFromUrl);
-
-    if (creator) {
-      setSelectedCreator(creator);
-      setActiveMainTab("marketplace");
-    }
-  }, [creatorFromUrl, creators]);
-
-  useEffect(() => {
     const userId =
       selectedCreator?._id || selectedCreator?.id || session?.user?.id;
     if (!userId) return;
@@ -319,33 +306,45 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
     fetchStoreImages();
   }, [activeStoreOwner?._id, activeStoreOwner?.id]);
 
-  const handleImageUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "profile" | "cover",
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleCropSave = async (croppedBase64: string) => {
+    if (!cropType) return;
+
+    // Convert base64 to File
+    const res = await fetch(croppedBase64);
+    const blob = await res.blob();
+    const file = new File([blob], "cropped-image.jpg", {
+      type: blob.type,
+    });
 
     const formData = new FormData();
 
-    if (type === "profile") formData.append("profileImage", file);
-    if (type === "cover") formData.append("coverImage", file);
+    if (cropType === "profile") {
+      formData.append("profileImage", file);
+    }
 
-    const res = await apiPostWithMultiForm({
+    if (cropType === "cover") {
+      formData.append("coverImage", file);
+    }
+
+    const uploadRes = await apiPostWithMultiForm({
       url: API_UPDATE_STORE_IMAGES,
       values: formData,
     });
 
-    if (res?.success) {
+    if (uploadRes?.success) {
       ShowToast("Image updated successfully", "success");
 
       setStoreImages((prev) => ({
         ...prev,
-        ...(type === "profile"
-          ? { profileImage: res.data.profileImage }
-          : { coverImage: res.data.coverImage }),
+        ...(cropType === "profile"
+          ? { profileImage: uploadRes.data.profileImage }
+          : { coverImage: uploadRes.data.coverImage }),
       }));
     }
+
+    setShowCropModal(false);
+    setCropImageSrc(null);
+    setCropType(null);
   };
 
   useEffect(() => {
@@ -353,7 +352,27 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
       profileImage: "",
       coverImage: "",
     });
-  }, [selectedCreator?._id]);
+  }, [activeStoreOwner?._id]);
+
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "profile" | "cover"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setCropImageSrc(reader.result as string);
+      setCropType(type);
+      setShowCropModal(true);
+    };
+
+    reader.readAsDataURL(file);
+
+    e.target.value = "";
+  };
 
   return (
     <>
@@ -497,10 +516,7 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                       <div className="hero-type-card-wrapper">
                         <div className="hero-type-card-container">
                           <div className="hero-type-card--bg-img">
-                            <img
-                              src="/images/marketplace_posterfront.png"
-                              alt="Store Banner Image"
-                            />
+                            <img src="/images/marketplace_posterfront.png" alt="Store Banner Image" />
                           </div>
                           <div className="hero-type-card--content-container">
                             <h2>Unlock exclusive content</h2>
@@ -511,36 +527,23 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                               </p>
                             </div>
                             <button className="btn-txt-gradient shimmer btn-outline p-sm">
-                              <span>shop Now</span>
+                              <span>Shop Now</span>
                             </button>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <AllCreators
-                      onUnlock={(post) => setUnlockModalPost(post)}
-                      onSubscribe={(post) => {
-                        setSubscriptionCreator(post.creatorInfo); // 👈 IMPORTANT
-                        setSubscriptionPlan("MONTHLY");
-                        setShowSubscriptionModal(true);
-                      }}
-                    />
+                    <AllCreators onUnlock={(post) => setUnlockModalPost(post)} onSubscribe={(post) => { setSubscriptionCreator(post.creatorInfo); setSubscriptionPlan("MONTHLY"); setShowSubscriptionModal(true); }} />
                   </>
                 )}
               </div>
             )}
 
             {(activeMainTab === "mystore" || selectedCreator) && (
-              <div
-                className="moneyboy-feed-page-cate-buttons card store-page-header-wrapper"
-                id="posts-tabs-btn-card"
-              >
+              <div className="moneyboy-feed-page-cate-buttons card store-page-header-wrapper" id="posts-tabs-btn-card">
                 <div className="store-page-header">
                   <div className="store-page-header-bg-img">
-                    <img
-                      src="/images/element-assets/store-page-header-bg.jpg"
-                      alt="Store Header BG Image"
-                    />
+                    <img src="/images/element-assets/store-page-header-bg.jpg" alt="Store Header BG Image" />
                   </div>
                   <div className="store-page-header-content-wrapper">
                     <div className="store-page-header--profile">
@@ -550,28 +553,13 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                             <div className="profile-card__avatar-settings">
                               <div className="profile-card__avatar">
                                 {activeStoreOwner.profile ? (
-                                  <img
-                                    src={activeStoreOwner.profile}
-                                    alt={activeStoreOwner.displayName || "User"}
-                                  />
+                                  <img src={activeStoreOwner.profile} alt={activeStoreOwner.displayName || "User"} />
                                 ) : (
                                   <div className="noprofile">
-                                    {/* <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><text x="50%" y="50%">m</text></svg> */}
-                                    <svg
-                                      width="40"
-                                      height="40"
-                                      viewBox="0 0 66 54"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        className="animate-m"
-                                        d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                                        fill="url(#paint0_linear_4470_53804)"
-                                      />
+                                    <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
                                       <defs>
-                                        <linearGradient
-                                          id="paint0_linear_4470_53804"
+                                        <linearGradient id="paint0_linear_4470_53804"
                                           x1="0"
                                           y1="27"
                                           x2="66"
@@ -596,29 +584,17 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                             </div>
                             <div className="profile-card__info">
                               <div className="profile-card__name-badge">
-                                <div className="profile-card__name">
-                                  {activeStoreOwner?.displayName}
-                                </div>
-                                <div className="profile-card__badge">
-                                  <img
-                                    src="/images/logo/profile-badge.png"
-                                    alt="MoneyBoy Social Profile Badge"
-                                  />
-                                </div>
+                                <div className="profile-card__name">{activeStoreOwner?.displayName}</div>
+                                <div className="profile-card__badge"><img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" /></div>
                               </div>
-                              <div className="profile-card__username">
-                                @{activeStoreOwner?.userName}
-                              </div>
+                              <div className="profile-card__username">@{activeStoreOwner?.userName}</div>
                             </div>
                           </div>
                         </Link>
                       </div>
                     </div>
                     <div className="store-page-header-tag">
-                      <img
-                        src="/images/logo/profile-badge.png"
-                        alt="Store Button Icon"
-                      />
+                      <img src="/images/logo/profile-badge.png" alt="Store Button Icon" />
                       <span>Store</span>
                     </div>
                   </div>
@@ -943,77 +919,19 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                             </div>
                             <div className="creator-content-tabs-btn-wrapper">
                               <div className="multi-tabs-action-buttons">
-                                <button
-                                  className={`multi-tab-switch-btn videos-btn ${subActiveTab === "videos" ? "active" : ""
-                                    }`}
-                                  data-multi-tabs-switch-btn
-                                  onClick={() => setSubActiveTab("videos")}
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="25"
-                                    viewBox="0 0 24 25"
-                                    fill="none"
-                                  >
-                                    <path
-                                      d="M12.53 20.92H6.21C3.05 20.92 2 18.82 2 16.71V8.29002C2 5.13002 3.05 4.08002 6.21 4.08002H12.53C15.69 4.08002 16.74 5.13002 16.74 8.29002V16.71C16.74 19.87 15.68 20.92 12.53 20.92Z"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <path
-                                      d="M19.5202 17.6L16.7402 15.65V9.34001L19.5202 7.39001C20.8802 6.44001 22.0002 7.02001 22.0002 8.69001V16.31C22.0002 17.98 20.8802 18.56 19.5202 17.6Z"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <path
-                                      d="M11.5 11.5C12.3284 11.5 13 10.8284 13 10C13 9.17157 12.3284 8.5 11.5 8.5C10.6716 8.5 10 9.17157 10 10C10 10.8284 10.6716 11.5 11.5 11.5Z"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
+                                <button className={`multi-tab-switch-btn videos-btn ${subActiveTab === "videos" ? "active" : ""}`} data-multi-tabs-switch-btn onClick={() => setSubActiveTab("videos")}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                                    <path d="M12.53 20.92H6.21C3.05 20.92 2 18.82 2 16.71V8.29002C2 5.13002 3.05 4.08002 6.21 4.08002H12.53C15.69 4.08002 16.74 5.13002 16.74 8.29002V16.71C16.74 19.87 15.68 20.92 12.53 20.92Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M19.5202 17.6L16.7402 15.65V9.34001L19.5202 7.39001C20.8802 6.44001 22.0002 7.02001 22.0002 8.69001V16.31C22.0002 17.98 20.8802 18.56 19.5202 17.6Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M11.5 11.5C12.3284 11.5 13 10.8284 13 10C13 9.17157 12.3284 8.5 11.5 8.5C10.6716 8.5 10 9.17157 10 10C10 10.8284 10.6716 11.5 11.5 11.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                   <span>Videos</span>
                                 </button>
-                                <button
-                                  className={`multi-tab-switch-btn photos-btn ${subActiveTab === "photos" ? "active" : ""
-                                    }`}
-                                  data-multi-tabs-switch-btn
-                                  onClick={() => setSubActiveTab("photos")}
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="25"
-                                    height="25"
-                                    viewBox="0 0 25 25"
-                                    fill="none"
-                                  >
-                                    <path
-                                      d="M9.5 22.5H15.5C20.5 22.5 22.5 20.5 22.5 15.5V9.5C22.5 4.5 20.5 2.5 15.5 2.5H9.5C4.5 2.5 2.5 4.5 2.5 9.5V15.5C2.5 20.5 4.5 22.5 9.5 22.5Z"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <path
-                                      d="M9.5 10.5C10.6046 10.5 11.5 9.60457 11.5 8.5C11.5 7.39543 10.6046 6.5 9.5 6.5C8.39543 6.5 7.5 7.39543 7.5 8.5C7.5 9.60457 8.39543 10.5 9.5 10.5Z"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <path
-                                      d="M3.16992 19.45L8.09992 16.14C8.88992 15.61 10.0299 15.67 10.7399 16.28L11.0699 16.57C11.8499 17.24 13.1099 17.24 13.8899 16.57L18.0499 13C18.8299 12.33 20.0899 12.33 20.8699 13L22.4999 14.4"
-                                      stroke="none"
-                                      strokeWidth="1.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
+                                <button className={`multi-tab-switch-btn photos-btn ${subActiveTab === "photos" ? "active" : ""}`} data-multi-tabs-switch-btn onClick={() => setSubActiveTab("photos")}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                                    <path d="M9.5 22.5H15.5C20.5 22.5 22.5 20.5 22.5 15.5V9.5C22.5 4.5 20.5 2.5 15.5 2.5H9.5C4.5 2.5 2.5 4.5 2.5 9.5V15.5C2.5 20.5 4.5 22.5 9.5 22.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M9.5 10.5C10.6046 10.5 11.5 9.60457 11.5 8.5C11.5 7.39543 10.6046 6.5 9.5 6.5C8.39543 6.5 7.5 7.39543 7.5 8.5C7.5 9.60457 8.39543 10.5 9.5 10.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M3.16992 19.45L8.09992 16.14C8.88992 15.61 10.0299 15.67 10.7399 16.28L11.0699 16.57C11.8499 17.24 13.1099 17.24 13.8899 16.57L18.0499 13C18.8299 12.33 20.0899 12.33 20.8699 13L22.4999 14.4" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                   <span>Photos</span>
                                 </button>
@@ -1021,43 +939,13 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                             </div>
                             <div className="creater-content-filters-layouts">
                               <div className="creator-content-select-filter">
-                                <CustomSelect
-                                  className="bg-white p-sm size-sm"
-                                  label="All Time"
-                                  options={timeOptions}
-                                  value={time}
-                                  searchable={false}
-                                  onChange={(value) => {
-                                    if (typeof value === "string") {
-                                      setTime(value as TimeFilter);
-                                    }
-                                  }}
-                                />
+                                <CustomSelect className="bg-white p-sm size-sm" label="All Time" options={timeOptions} value={time} searchable={false} onChange={(value) => { if (typeof value === "string") { setTime(value as TimeFilter); } }} />
                               </div>
-                              <div
-                                className="creator-content-grid-layout-options"
-                                data-multi-dem-cards-layout-btns
-                              >
-                                <button
-                                  className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"
-                                    }`}
-                                  onClick={() => setLayout("grid")}
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                  >
-                                    <path
-                                      d="M22 8.52V3.98C22 2.57 21.36 2 19.77 2H15.73C14.14 2 13.5 2.57 13.5 3.98V8.51C13.5 9.93 14.14 10.49 15.73 10.49H19.77C21.36 10.5 22 9.93 22 8.52Z"
-                                      fill="none"
-                                    />
-                                    <path
-                                      d="M22 19.77V15.73C22 14.14 21.36 13.5 19.77 13.5H15.73C14.14 13.5 13.5 14.14 13.5 15.73V19.77C13.5 21.36 14.14 22 15.73 22H19.77C21.36 22 22 21.36 22 19.77Z"
-                                      fill="none"
-                                    />
+                              <div className="creator-content-grid-layout-options" data-multi-dem-cards-layout-btns>
+                                <button className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"}`} onClick={() => setLayout("grid")}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M22 8.52V3.98C22 2.57 21.36 2 19.77 2H15.73C14.14 2 13.5 2.57 13.5 3.98V8.51C13.5 9.93 14.14 10.49 15.73 10.49H19.77C21.36 10.5 22 9.93 22 8.52Z" fill="none" />
+                                    <path d="M22 19.77V15.73C22 14.14 21.36 13.5 19.77 13.5H15.73C14.14 13.5 13.5 14.14 13.5 15.73V19.77C13.5 21.36 14.14 22 15.73 22H19.77C21.36 22 22 21.36 22 19.77Z" fill="none" />
                                     <path
                                       d="M10.5 8.52V3.98C10.5 2.57 9.86 2 8.27 2H4.23C2.64 2 2 2.57 2 3.98V8.51C2 9.93 2.64 10.49 4.23 10.49H8.27C9.86 10.5 10.5 9.93 10.5 8.52Z"
                                       fill="none"
@@ -1098,17 +986,9 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
                             </div>
                           </div>
                         </div>
-                        <div
-                          className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout"
-                          data-layout-toggle-rows={
-                            layout === "list" ? true : undefined
-                          }
-                        >
+                        <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout" data-layout-toggle-rows={layout === "list" ? true : undefined}>
                           {subActiveTab === "videos" && (
-                            <div
-                              className="creator-content-type-container-wrapper"
-                              data-multi-tabs-content-tabdata__active
-                            >
+                            <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tabdata__active>
                               {loadingPaidPosts && (
                                 <div className="loadingtext">
                                   {"Loading".split("").map((char, i) => (
@@ -1678,13 +1558,12 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
           plan={subscriptionPlan}
           action="subscribe"
           creator={{ displayName: activeSubscriptionCreator?.displayName, userName: activeSubscriptionCreator?.userName, profile: activeSubscriptionCreator?.profile, }}
-          subscription={{ monthlyPrice: activeStoreOwner?.subscription?.monthlyPrice, yearlyPrice: activeStoreOwner?.subscription?.yearlyPrice, }}
-        />
+          subscription={{ monthlyPrice: activeSubscriptionCreator?.subscription?.monthlyPrice, yearlyPrice: activeSubscriptionCreator?.subscription?.yearlyPrice, }} />
       )}
 
       {unlockModalPost && (
-        <UnlockContentModal onClose={() => setUnlockModalPost(null)} creator={{displayName: unlockModalPost.creatorInfo?.displayName || unlockModalPost.user?.displayName, userName: unlockModalPost.creatorInfo?.userName || unlockModalPost.user?.userName, profile: unlockModalPost.creatorInfo?.profile || unlockModalPost.user?.profile,}}
-          post={{publicId: unlockModalPost.publicId, text: unlockModalPost.text, price: unlockModalPost.price,}}
+        <UnlockContentModal onClose={() => setUnlockModalPost(null)} creator={{ displayName: unlockModalPost.creatorInfo?.displayName || unlockModalPost.user?.displayName, userName: unlockModalPost.creatorInfo?.userName || unlockModalPost.user?.userName, profile: unlockModalPost.creatorInfo?.profile || unlockModalPost.user?.profile, }}
+          post={{ publicId: unlockModalPost.publicId, text: unlockModalPost.text, price: unlockModalPost.price, }}
           onConfirm={handleConfirmUnlock}
           loading={unlocking}
         />
@@ -1693,9 +1572,10 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
       {showPPVModal && activeStoreOwner && (
         <PPVRequestModal
           onClose={() => setShowPPVModal(false)}
-          creator={{ userId: activeStoreOwner?._id, displayName: activeStoreOwner?.displayName, userName: activeStoreOwner?.userName, profile: activeStoreOwner?.profile,}}
+          creator={{ userId: activeStoreOwner?._id, displayName: activeStoreOwner?.displayName, userName: activeStoreOwner?.userName, profile: activeStoreOwner?.profile, }}
           post={{ _id: "" }}
-          onSuccess={({ amount }) => {setShowPPVModal(false);
+          onSuccess={({ amount }) => {
+            setShowPPVModal(false);
             // alert(`PPV request sent: €${amount}`);
           }}
         />
@@ -1710,27 +1590,24 @@ const handlePostRedirect = (post: any, isOwnPost: boolean) => {
           <button className="close-btn" onClick={handleClose}><CgClose size={22} /></button>
           <Plyr
             options={{
-              controls: [
-                "play-large",
-                "play",
-                "progress",
-                "current-time",
-                "mute",
-                "fullscreen",
-              ],
+              controls: ["play-large", "play", "progress", "current-time", "mute", "fullscreen",],
             }}
             source={{
               type: "video",
               sources: [
                 {
                   src: "https://res.cloudinary.com/drhj03nvv/video/upload/v1770026049/posts/69807440e60b526caa6da50c/1770026048286-screen-capture.webm.mkv",
-                  type: "video/mp4",
+                  type: "video/webm",
                 },
               ],
             }}
           />
         </div>
       </div>
+
+      {showCropModal && cropImageSrc && (
+        <ImageCropModal show={showCropModal} image={cropImageSrc} aspect={cropType === "profile" ? 1 : 16 / 9} onClose={() => { setShowCropModal(false); setCropImageSrc(null); setCropType(null); }} onSave={handleCropSave} />
+      )}
     </>
   );
 };

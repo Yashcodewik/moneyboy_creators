@@ -193,8 +193,10 @@
             animation: heartLikedPopUpAnimation 0.45s ease-out;
 
             path {
-                fill: var(--like-color);
-                stroke: var(--like-color) !important;
+                fill: #FFA500;
+                stroke: #FFA500 !important;
+                /* fill: var(--like-color);
+                stroke: var(--like-color) !important; */
             }
         }
     }

@@ -9,6 +9,7 @@ import {
 import ShowToast from "../common/ShowToast";
 import { GoDotFill } from "react-icons/go";
 import { showError, showSuccess } from "@/utils/alert";
+import { CircleDollarSign } from "lucide-react";
 
 const PricingSetting = () => {
   const [subscription, setSubscription] = useState({
@@ -96,76 +97,40 @@ const PricingSetting = () => {
             <div className="form_grid">
               <div className="one">
                 <label>Monthly Subscription Price*</label>
-                  {/* <span className="currency">$</span> */}
                 <div className="label-input">
-                  <input
-                    type="number"
-                    name="monthlyPrice"
-                    value={subscriptionFormik.values.monthlyPrice}
-                    onChange={subscriptionFormik.handleChange}
-                    onBlur={subscriptionFormik.handleBlur}
-                  />
+                  <div className="input-placeholder-icon"><CircleDollarSign className="icons svg-icon" /></div>
+                  <input type="number" name="monthlyPrice" value={subscriptionFormik.values.monthlyPrice} onChange={subscriptionFormik.handleChange} onBlur={subscriptionFormik.handleBlur} />
                 </div>
-                {subscriptionFormik.touched.monthlyPrice &&
-                  subscriptionFormik.errors.monthlyPrice && (
-                    <span className="error-message">
-                      {subscriptionFormik.errors.monthlyPrice}
-                    </span>
-                  )}
+                {subscriptionFormik.touched.monthlyPrice && subscriptionFormik.errors.monthlyPrice && (<span className="error-message">{subscriptionFormik.errors.monthlyPrice}</span>)}
               </div>
 
               <div className="one">
                 <label>Yearly Subscription Price*</label>
                 <div className="label-input">
-                  <input
-                    type="number"
-                    name="yearlyPrice"
-                    value={subscriptionFormik.values.yearlyPrice}
-                    onChange={subscriptionFormik.handleChange}
-                    onBlur={subscriptionFormik.handleBlur}
-                  />
+                  <div className="input-placeholder-icon"><CircleDollarSign className="icons svg-icon" /></div>
+                  <input type="number" name="yearlyPrice" value={subscriptionFormik.values.yearlyPrice} onChange={subscriptionFormik.handleChange} onBlur={subscriptionFormik.handleBlur} />
                 </div>
-                {subscriptionFormik.touched.yearlyPrice &&
-                  subscriptionFormik.errors.yearlyPrice && (
-                    <span className="error-message">
-                      {subscriptionFormik.errors.yearlyPrice}
-                    </span>
-                  )}
+                {subscriptionFormik.touched.yearlyPrice && subscriptionFormik.errors.yearlyPrice && (<span className="error-message">{subscriptionFormik.errors.yearlyPrice}</span>)}
               </div>
               {/* <hr></hr>
               <h6>Minimum price for custom PPV requests. This is the starting amount fans must pay to request personalized content</h6> */}
               <div className="one">
-                <label>PPV Request - Custom video</label>
+                <label>Minimum price for custom PPV requests. This is the starting amount fans must pay to request personalized content.</label>
                 <div className="label-input">
-                  <input
-                    type="number"
-                    name="ppvVideoPrice"
-                    value={subscriptionFormik.values.ppvVideoPrice}
-                    onChange={subscriptionFormik.handleChange}
-                  />
+                  <div className="input-placeholder-icon"><CircleDollarSign className="icons svg-icon" /></div>
+                  <input type="number" name="ppvVideoPrice" value={subscriptionFormik.values.ppvVideoPrice} onChange={subscriptionFormik.handleChange} />
                 </div>
               </div>
-
               <div className="one">
                 <label>PPV Request - Custom Photo</label>
                 <div className="label-input">
-                  <input
-                    type="number"
-                    name="ppvPhotoPrice"
-                    value={subscriptionFormik.values.ppvPhotoPrice}
-                    onChange={subscriptionFormik.handleChange}
-                  />
+                  <div className="input-placeholder-icon"><CircleDollarSign className="icons svg-icon" /></div>
+                  <input type="number" name="ppvPhotoPrice" value={subscriptionFormik.values.ppvPhotoPrice} onChange={subscriptionFormik.handleChange} />
                 </div>
               </div>
             </div>
             <div className="btm_btn">
-              <button
-                type="submit"
-                className={`premium-btn active-down-effect ${loading ? "disabled" : ""}`}
-                disabled={loading}
-              >
-                <span>{loading ? "Saving..." : "Save Changes"}</span>
-              </button>
+              <button type="submit" className={`premium-btn active-down-effect ${loading ? "disabled" : ""}`} disabled={loading}><span>{loading ? "Saving..." : "Save Changes"}</span></button>
             </div>
           </div>
         </div>

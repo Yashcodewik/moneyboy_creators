@@ -6,9 +6,7 @@ body {
   background: #f4f4f4;
 }
 
-.cusscrolling {
-
-}
+.cusscrolling {}
 
 .label-input input:disabled {
   color: #999;
@@ -2960,31 +2958,47 @@ body {
 .modal {
   position: fixed;
   inset: 0;
-  background: #000000b8;
   z-index: 999;
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.25s ease;
-  transition: var(--transition-fast);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
   display: none;
   opacity: 0;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 20px;
+  transition: opacity 0.25s ease;
   .modal-wrap {
-    background: #fff;
-    padding: 30px;
     position: relative;
     width: 100%;
     max-width: 650px;
-    background-color: white;
+    background: #fff;
     border-radius: 20px;
-    box-shadow: 0px 6px 12px -4px #0808081f, 0px 2px 13.5px 1px #08080803;
-    transition: var(--transition-fast);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.05);
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.25s ease;
+    scrollbar-width: thin;
+    scrollbar-color: #aaaaaa transparent;
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #aaaaaa;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &:hover {
+      scrollbar-color: #aaaaaa #0000;
+    }
     .modal_head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      display: none;
+      display: flex;
       .close-btn {
         flex-shrink: 1;
       }
@@ -3121,7 +3135,14 @@ body {
       display: flex;
       flex-direction: column;
       gap: 15px;
-      padding: 50px;
+      padding: 25px;
+      .title {
+        font-size: 24px;
+        line-height: 100%;
+        font-weight: 500;
+        margin-bottom: 0px;
+        font-family: var(--font-family-base);
+      }
       h3 {
         font-size: 42px;
         line-height: 100%;
@@ -3518,7 +3539,14 @@ body {
       gap: 15px;
       display: flex;
       flex-direction: column;
-      padding: 50px;
+      padding: 25px;
+      .title {
+        font-size: 24px;
+        line-height: 100%;
+        font-weight: 500;
+        margin-bottom: 0px;
+        font-family: var(--font-family-base);
+      }
       h3 {
         font-size: 42px;
         line-height: 100%;
@@ -5611,6 +5639,10 @@ body {
         order: 2;
         width: 100%;
         max-width: 30%;
+        button {
+          min-width: 100%;
+          max-width: 100%;
+        }
       }
       .date_box {
         order: 3;
@@ -7301,15 +7333,15 @@ body {
                 svg {
                   path {
                     &:nth-child(1) {
-                      stroke: #6c5ce7;
-                      fill: #6c5ce7;
+                      stroke: #FFA500;
+                      fill: #FFA500;
                       position: relative;
                       z-index: 2;
                     }
 
                     &:nth-child(2) {
-                      stroke: #6c5ce7;
-                      fill: #6c5ce7;
+                      stroke: #FFA500;
+                      fill: #FFA500;
                     }
 
                     &:nth-child(3) {
@@ -7417,15 +7449,15 @@ body {
                 svg {
                   path {
                     &:nth-child(1) {
-                      stroke: #6c5ce7;
-                      fill: #6c5ce7;
+                      stroke: #FFA500;
+                      fill: #FFA500;
                       position: relative;
                       z-index: 2;
                     }
 
                     &:nth-child(2) {
-                      stroke: #6c5ce7;
-                      fill: #6c5ce7;
+                      stroke: #FFA500;
+                      fill: #FFA500;
                     }
 
                     &:nth-child(3) {
@@ -7754,6 +7786,9 @@ body {
                 }
               }
             }
+            &.plyr {
+                max-width: 182px;
+            }
             .plyr.plyr--video {
               height: 100%;
             }
@@ -7793,6 +7828,10 @@ body {
             line-height: 20px;
             font-weight: 500;
             letter-spacing: 0.25px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 160px;
           }
           p {
             font-size: 14px;
