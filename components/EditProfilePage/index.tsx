@@ -18,6 +18,7 @@ import PricingSetting from "./PricingSetting";
 import ImageCropModal from "./ImageCropModal";
 import { showError, showSuccess } from "@/utils/alert";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
@@ -35,7 +36,7 @@ const EditProfilePage = () => {
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"avatar" | "cover" | null>(null);
   const { data: session, update } = useSession();
-
+const searchParams = useSearchParams();
   const handleCropSave = async (croppedBase64: string) => {
     const blob = await (await fetch(croppedBase64)).blob();
     const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
@@ -45,6 +46,16 @@ const EditProfilePage = () => {
       setCoverFile(file);
     }
   };
+
+
+  useEffect(() => {
+  const tabParam = searchParams.get("tab");
+
+  if (tabParam === "pricing") {
+    setTab(1);
+  }
+}, [searchParams]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -284,7 +295,7 @@ const EditProfilePage = () => {
                         </div>
                       )}
 
-                      <input type="file" hidden accept="image/*" id="coverUpload" onChange={(e) => {const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => {setCropImage(reader.result as string); setCropType("cover"); setCropOpen(true);}; reader.readAsDataURL(file);}}/>
+                      <input type="file" hidden accept="image/*" id="coverUpload" onChange={(e) => {const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => {setCropImage(reader.result as string); setCropType("cover"); setCropOpen(true);}; reader.readAsDataURL(file);  e.target.value = "";}}/>
                       <label htmlFor="coverUpload" className="imgicons active-down-effect-2x"><TbCamera size={16} /></label>
                     </div>
 
@@ -359,6 +370,8 @@ const EditProfilePage = () => {
                                       setCropOpen(true);
                                     };
                                     reader.readAsDataURL(file);
+
+                                    e.target.value = "";
                                   }}
                                 />
 

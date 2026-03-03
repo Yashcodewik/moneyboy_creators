@@ -39,11 +39,13 @@ export const showQuestion = async (
   message: string,
   confirmText = "Yes",
   cancelText = "No",
+  useHtml = false,  // ← add this param
 ): Promise<boolean> => {
   const result = await Swal.fire({
     ...baseConfig,
     icon: "question",
-    title: message,
+    // Use either `title` or `html` based on flag
+    ...(useHtml ? { html: message } : { title: message }),
     showCancelButton: true,
     confirmButtonText: `<span>${confirmText}</span>`,
     cancelButtonText: `<span>${cancelText}</span>`,

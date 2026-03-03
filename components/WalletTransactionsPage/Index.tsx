@@ -26,6 +26,7 @@ const WalletTransactionsPage = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [activeField, setActiveField] = useState<"start" | "end" | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -544,7 +545,10 @@ const WalletTransactionsPage = () => {
                                   <button
                                     className="btn-txt-gradient"
                                     type="button"
-                                    onClick={() => setActiveTab("details")}
+                                    onClick={() => {
+                                      setSelectedTransaction(txn);
+                                      setActiveTab("details");
+                                    }}
                                   >
                                     <span>View</span>
                                   </button>
@@ -619,70 +623,110 @@ const WalletTransactionsPage = () => {
                                         />
                                       </div>
                                     </div>
+
                                     <div className="profile-card__info">
                                       <div className="profile-card__username tphead">
                                         Product
                                       </div>
+
                                       <div className="profile-card__name-badge">
                                         <div className="profile-card__name">
-                                          Sunset Video
+                                          {selectedTransaction?.type
+                                            ?.toLowerCase()
+                                            .replace("_", " ")}
                                         </div>
-                                        <div className="profile-card__badge">
-                                          <span className="badge success">
-                                            Delivered
-                                          </span>
-                                        </div>
+
+                                        {/* <div className="profile-card__badge">
+                <span
+                  className={`badge ${
+                    selectedTransaction?.status === "SUCCESS"
+                      ? "success"
+                      : "pending"
+                  }`}
+                >
+                  {selectedTransaction?.status}
+                </span>
+              </div> */}
                                       </div>
                                     </div>
                                   </Link>
                                 </div>
                               </div>
+
+                              {/* Product Type */}
                               <div className="date_box mobail_show">
                                 <div className="date_wrap">
                                   <svg className="icons archiveBox" />
                                   <div className="containt">
                                     <span>Product Type</span>
-                                    <p>Digital</p>
+                                    <p>
+                                      {selectedTransaction?.type
+                                        ?.toLowerCase()
+                                        .replace("_", " ")}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
+
                               <div className="date_box">
                                 <div className="date_wrap mobail_hide">
                                   <svg className="icons archiveBox" />
                                   <div className="containt">
                                     <span>Product Type</span>
-                                    <p>Digital</p>
+                                    <p>
+                                      {selectedTransaction?.type
+                                        ?.toLowerCase()
+                                        .replace("_", " ")}
+                                    </p>
                                   </div>
                                 </div>
+
+                                {/* Date */}
                                 <div className="date_wrap">
-                                  <svg className="icons currency" />
+                                  <svg className="icons calendarNote" />
                                   <div className="containt">
-                                    <span>Unit Price</span>
-                                    <p>$10</p>
+                                    <span>Date</span>
+                                    <p>
+                                      {new Date(
+                                        selectedTransaction?.createdAt,
+                                      ).toLocaleDateString()}
+                                    </p>
                                   </div>
                                 </div>
-                                <div className="date_wrap">
-                                  <svg className="icons noteDocument" />
-                                  <div className="containt">
-                                    <span>Quantity</span>
-                                    <p>1</p>
-                                  </div>
-                                </div>
+
+                                {/* Total Price */}
                                 <div className="date_wrap">
                                   <svg className="icons currency" />
                                   <div className="containt">
                                     <span>Total Price</span>
-                                    <p>$10</p>
+                                    <p>${selectedTransaction?.amount}</p>
                                   </div>
                                 </div>
                               </div>
                             </div>
+
+                            {/* Description */}
                             <div className="rel-user-desc">
-                              <div className="">
+                              <div>
                                 <p className="heading">Discription</p>
-                                <p>
-                                  purchase product ZACH KING SNAPBACK HAT x1
-                                </p>
+
+                                {selectedTransaction?.type === "TIP" ? (
+                                  <p>
+                                    Tip given to @
+                                    {selectedTransaction?.toUser?.displayName}
+                                  </p>
+                                ) : selectedTransaction?.type ===
+                                  "SUBSCRIPTION" ? (
+                                  <p>
+                                    Subscription purchased by @
+                                    {selectedTransaction?.fromUser?.displayName}
+                                  </p>
+                                ) : (
+                                  <p>
+                                    Product purchased by @
+                                    {selectedTransaction?.fromUser?.displayName}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>

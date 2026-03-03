@@ -140,3 +140,4 @@ export const API_GET_PROMOTIONS = "/creator/promotion-get";
 export const API_REQUEST_PAYOUT = "/subscription/request-payout";
 export const API_PAYOUT_ACCOUNTS = "/subscription/payout-accounts";
 export const API_WALLET_SUMMARY = "/subscription/wallet-summary";
+export const API_UNREAD_NOTIFICATIONS = "/post/unread-count";
