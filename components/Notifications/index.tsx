@@ -26,6 +26,8 @@ import {
   showDeclineReason,
 } from "@/utils/alert";
 import { useRouter } from "next/navigation";
+import socket from "@/libs/socket";
+import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 
 const NotificationPage = () => {
   const router = useRouter();
@@ -36,6 +38,9 @@ const NotificationPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [countdownTo, setCountdownTo] = useState<number>(Date.now());
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const isMobile = useDeviceType();
   const desktopStyle: React.CSSProperties = {
     transform: "translate(0px, 0px)",
@@ -81,33 +86,52 @@ const NotificationPage = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (pageNumber = 1) => {
     try {
-      setLoading(true);
+      if (pageNumber === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
 
       const res = await getApiWithOutQuery({
-        url: `${API_GET_NOTIFICATIONS}?page=1&limit=20`,
+        url: `${API_GET_NOTIFICATIONS}?page=${pageNumber}&limit=10`,
       });
 
       if (res?.success) {
-        setNotifications(res.notifications || []);
-      } else {
-        ShowToast("Failed to load notifications", "error");
+        const newData = res.notifications || [];
+
+        if (pageNumber === 1) {
+          setNotifications(newData);
+          socket.emit("markNotificationsRead");
+        } else {
+          setNotifications((prev) => [...prev, ...newData]);
+        }
+
+        // check if more pages exist
+        if (pageNumber >= res.pagination.totalPages) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
       }
     } catch (err) {
       ShowToast("Something went wrong", "error");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications(1);
   }, []);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  const fetchMoreNotifications = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchNotifications(nextPage);
+  };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -219,6 +243,7 @@ const NotificationPage = () => {
 
     router.push(`/profile/${publicId}`);
   };
+
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -228,14 +253,18 @@ const NotificationPage = () => {
               <div className="noti-page-header">
                 <div className="noti-page-title">
                   <h2>Notifications</h2>
-                  {notifications.length > 0 && (
+                  {/* {notifications.length > 0 && (
                     <div className="noti-num-circle">
                       <span>{notifications.length}</span>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
-              <div className="noti-list-wrapper">
+              <div
+                id="notificationScroll"
+                className="noti-list-wrapper"
+                style={{ overflow: "auto", maxHeight: "80vh" }}
+              >
                 {loading && (
                   <div className="loadingtext">
                     {"Loading".split("").map((char, i) => (
@@ -256,79 +285,88 @@ const NotificationPage = () => {
                   </div>
                 )}
 
-                {notifications.map((noti) => (
-                  <div className="noti-item" key={noti._id}>
-                    <div
-                      className="noti-item--icon"
-                      onClick={() =>
-                        goToProfile(
-                          noti.senderId?.publicId ||
-                            noti.postTag?.taggedBy?.publicId,
-                        )
-                      }
-                    >
-                      <img
-                        src={
-                          noti.senderId?.profile ||
-                          "/images/logo/black-logo-square.png"
-                        }
-                        alt="#"
-                      />
-                    </div>
-                    <div className="noti-details-container">
-                      <div className="noti-title-time-wrapper">
-                        <div className="noti-title">
-                          <h4>
-                            @{noti.senderId?.userName} {noti.title}
-                          </h4>
+                {!loading && notifications.length > 0 && (
+                  <InfiniteScrollWrapper
+                    dataLength={notifications.length}
+                    fetchMore={fetchMoreNotifications}
+                    hasMore={hasMore}
+                    scrollableTarget="notificationScroll"
+                  >
+                    {notifications.map((noti) => (
+                      <div className="noti-item" key={noti._id}>
+                        <div
+                          className="noti-item--icon"
+                          onClick={() =>
+                            goToProfile(
+                              noti.senderId?.publicId ||
+                                noti.postTag?.taggedBy?.publicId,
+                            )
+                          }
+                        >
+                          <img
+                            src={
+                              noti.senderId?.profile ||
+                              "/images/logo/black-logo-square.png"
+                            }
+                            alt="#"
+                          />
                         </div>
-                        <div className="noti-time">
-                          <span>{formatTime(noti.createdAt)}</span>
-                        </div>
-                        {noti.postPreview && (
-                          <div className="noti-more-actions iconbtn btntooltip_wrapper">
-                            <button
-                              className="btn-gray viewbtn"
-                              data-tooltip="View Details"
-                              onClick={() => {
-                                setSelectedPost(noti);
-                                setShowModal(true);
-                              }}
-                            >
-                              <Eye size={16} />
-                            </button>
-                            {noti.postTag?.myStatus === "pending" && (
-                              <>
+                        <div className="noti-details-container">
+                          <div className="noti-title-time-wrapper">
+                            <div className="noti-title">
+                              <h4>
+                                @{noti.senderId?.userName} {noti.title}
+                              </h4>
+                            </div>
+                            <div className="noti-time">
+                              <span>{formatTime(noti.createdAt)}</span>
+                            </div>
+                            {noti.postPreview && (
+                              <div className="noti-more-actions iconbtn btntooltip_wrapper">
                                 <button
-                                  className="btn-gray acceptbtn"
-                                  data-tooltip="Accept"
-                                  onClick={() => handleAcceptPost(noti)}
+                                  className="btn-gray viewbtn"
+                                  data-tooltip="View Details"
+                                  onClick={() => {
+                                    setSelectedPost(noti);
+                                    setShowModal(true);
+                                  }}
                                 >
-                                  <Check size={16} />
+                                  <Eye size={16} />
                                 </button>
-                                <button
-                                  className="btn-gray declinebtn"
-                                  data-tooltip="Decline"
-                                  onClick={() => handleRejectPost(noti)}
-                                >
-                                  <X size={16} />
-                                </button>
-                              </>
+                                {noti.postTag?.myStatus === "pending" && (
+                                  <>
+                                    <button
+                                      className="btn-gray acceptbtn"
+                                      data-tooltip="Accept"
+                                      onClick={() => handleAcceptPost(noti)}
+                                    >
+                                      <Check size={16} />
+                                    </button>
+                                    <button
+                                      className="btn-gray declinebtn"
+                                      data-tooltip="Decline"
+                                      onClick={() => handleRejectPost(noti)}
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
+                          <div className="noti-desc">
+                            <p>
+                              {noti.type === 3 &&
+                                "Review this collaboration request and choose to accept or decline."}
+                              {noti.type === 4 &&
+                                "Collaboration response received."}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="noti-desc">
-                        <p>
-                          {noti.type === 3 &&
-                            "Review this collaboration request and choose to accept or decline."}
-                          {noti.type === 4 &&
-                            "Collaboration response received."}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    ))}
+                  </InfiniteScrollWrapper>
+                )}
               </div>
             </div>
           </div>
@@ -353,15 +391,33 @@ const NotificationPage = () => {
                   modules={[Navigation, Pagination, Autoplay]}
                   spaceBetween={20}
                   slidesPerView={1}
-                  navigation
-                  pagination={{ clickable: true }}
-                  autoplay={{ delay: 3000 }}
-                  loop={true}
+                  navigation={selectedPost?.postPreview?.media?.length > 1}
+                  pagination={{
+                    clickable: true,
+                  }}
+                  autoplay={
+                    selectedPost?.postPreview?.media?.length > 1
+                      ? { delay: 3000 }
+                      : false
+                  }
+                  loop={selectedPost?.postPreview?.media?.length > 1}
                 >
                   {selectedPost?.postPreview?.media?.map(
-                    (img: string, i: number) => (
+                    (mediaUrl: string, i: number) => (
                       <SwiperSlide key={i}>
-                        <img src={img} alt="post media" />
+                        {selectedPost?.postPreview?.mediaType === "video" ? (
+                          <video
+                            src={mediaUrl}
+                            controls
+                            style={{ width: "100%", borderRadius: "8px" }}
+                          />
+                        ) : (
+                          <img
+                            src={mediaUrl}
+                            alt="post media"
+                            style={{ width: "100%", borderRadius: "8px" }}
+                          />
+                        )}
                       </SwiperSlide>
                     ),
                   )}

@@ -201,13 +201,34 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
       return true;
     },
 
-    async jwt({ token, user }: { token: any; user: any }) {
+    // async jwt({ token, user }: { token: any; user: any }) {
+    //   if (user) {
+    //     token.sub = user.id;
+    //     token.user = user;
+    //     token.accessToken = user.accessToken;
+    //     token.publicId = user.publicId;
+    //     token.role = user.role;
+    //   }
+
+    //   return token;
+    // },
+
+    async jwt({ token, user, trigger, session }: any) {
+      // 🔥 When user logs in
       if (user) {
         token.sub = user.id;
         token.user = user;
         token.accessToken = user.accessToken;
         token.publicId = user.publicId;
         token.role = user.role;
+      }
+
+      // 🔥 When useSession().update() is called
+      if (trigger === "update" && session?.user) {
+        token.user = {
+          ...token.user,
+          ...session.user,
+        };
       }
 
       return token;

@@ -179,9 +179,9 @@ const Sidebar: React.FC = () => {
                           }
                         }}
                       >
-                        {userProfile?.profile ? (
+                        {session?.user?.profile ? (
                           <img
-                            src={userProfile.profile}
+                            src={session.user.profile}
                             alt="MoneyBoy Social Profile Avatar"
                             onError={(e) => {
                               <NoProfileSvg />;
@@ -243,12 +243,9 @@ const Sidebar: React.FC = () => {
                     >
                       <div className="profile-card__name-badge">
                         <div className="profile-card__name">
-                          {profileLoading
-                            ? "Loading..."
-                            : userProfile?.displayName ||
-                              userProfile?.name ||
-                              session?.user?.name ||
-                              "Corey Bergson"}
+                          {session?.user?.displayName ||
+                            `${session?.user?.firstName ?? ""} ${session?.user?.lastName ?? ""}` ||
+                            "User"}
                         </div>
                         {session?.user?.role === 2 && (
                           <div className="profile-card__badge">
@@ -260,13 +257,7 @@ const Sidebar: React.FC = () => {
                         )}
                       </div>
                       <div className="profile-card__username">
-                        {profileLoading
-                          ? "@loading"
-                          : `@${
-                              userProfile?.username ||
-                              session?.user?.username ||
-                              "coreybergson"
-                            }`}
+                     @{session?.user?.userName || "username"}
                       </div>
                     </div>
                   </a>
