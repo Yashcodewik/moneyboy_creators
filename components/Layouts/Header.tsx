@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_CREATOR_PROFILE, API_USER_PROFILE } from "@/utils/api/APIConstant";
+import { API_CREATOR_PROFILE, API_UNREAD_NOTIFICATIONS, API_USER_PROFILE } from "@/utils/api/APIConstant";
 import PromoteModal from "../FeedPage/PromoteModal";
 import NoProfileSvg from "../common/NoProfileSvg";
 import socket from "@/libs/socket";
@@ -228,7 +228,7 @@ const Header = () => {
 
       try {
         const res = await getApiWithOutQuery({
-          url: "/post/unread-count",
+          url:API_UNREAD_NOTIFICATIONS,
         });
 
         if (res?.success) {
