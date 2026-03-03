@@ -337,7 +337,7 @@ const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
         unlockPost.isUnlocked = true;
         setShowUnlockModal(false);
         setUnlockPost(null);
-        router.push(`/post?page&publicId=${unlockPost.publicId}`);
+        router.push(`/purchased-media?publicId=${unlockPost.publicId}`);
       } else {
         alert(res?.message || "Failed to unlock post");
       }

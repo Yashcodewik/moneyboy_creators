@@ -14,7 +14,7 @@ export const bodyTypeOptions = [
   { label: "Stocky", value: "stocky" },
   { label: "Bear", value: "bear" },
   { label: "Twink", value: "twink" },
-  { label: "Otter", value: "otter" },
+  // { label: "Otter", value: "otter" },
 ];
 
 
@@ -130,31 +130,31 @@ export const genderOptions = [
   // { label: "Other", value: "Other" },
 ];
 
-export const categoryOptions = [
-  { label: "All Categories", value: "all" },
-  // { label: "Lifestyle", value: "lifestyle" },
-  // { label: "Fitness", value: "fitness" },
-  // { label: "Fashion", value: "fashion" },
-  // { label: "Underwear", value: "underwear" },
-  // { label: "Swimwear", value: "swimwear" },
-  // { label: "Artistic", value: "artistic" },
-  // { label: "Casual", value: "casual" },
-  // { label: "Fetish", value: "fetish" },
-  // { label: "Adult", value: "adult" },
-  // { label: "Exclusive", value: "exclusive" },
-  // { label: "Behind the Scenes", value: "behind_the_scenes" },
+  export const categoryOptions = [
+    { label: "All Categories", value: "all" },
+    // { label: "Lifestyle", value: "lifestyle" },
+    // { label: "Fitness", value: "fitness" },
+    // { label: "Fashion", value: "fashion" },
+    // { label: "Underwear", value: "underwear" },
+    // { label: "Swimwear", value: "swimwear" },
+    // { label: "Artistic", value: "artistic" },
+    // { label: "Casual", value: "casual" },
+    // { label: "Fetish", value: "fetish" },
+    // { label: "Adult", value: "adult" },
+    // { label: "Exclusive", value: "exclusive" },
+    // { label: "Behind the Scenes", value: "behind_the_scenes" },
 
-  { label: "Slim", value: "slim" },
-  { label: "Athletic", value: "athletic" },
-  { label: "Muscular", value: "muscular" },
-  { label: "Average", value: "average" },
-  { label: "Stocky", value: "stocky" },
-  { label: "Bear", value: "bear" },
-  { label: "Twink", value: "twink" },
-  // { label: "Otter", value: "otter" },
+    { label: "Slim", value: "slim" },
+    { label: "Athletic", value: "athletic" },
+    { label: "Muscular", value: "muscular" },
+    { label: "Average", value: "average" },
+    { label: "Stocky", value: "stocky" },
+    { label: "Bear", value: "bear" },
+    { label: "Twink", value: "twink" },
+    // { label: "Otter", value: "otter" },
 
 
-];
+  ];
 
 
 // Feature/Status options
