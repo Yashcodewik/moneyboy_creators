@@ -320,11 +320,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     <>
       <div className="moneyboy-post__container card">
         <div className="moneyboy-post__header">
-          <div
-            className="profile-card"
-            onClick={() => handleProfileClick(post.creatorInfo?.publicId)}
-            style={{ cursor: "pointer" }}
-          >
+          <div className="profile-card" onClick={() => handleProfileClick(post.creatorInfo?.publicId)}>
             <div className="profile-card__main">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar">
@@ -477,10 +473,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           </div>
         </div>
 
-        <div
-          className="moneyboy-post__desc"
+        <div className="moneyboy-post__desc"
           onClick={handlePostRedirect}
-          style={{ cursor: "pointer" }}
         >
           {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>
               {post.text}{" "}
