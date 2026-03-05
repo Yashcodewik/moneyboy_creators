@@ -172,9 +172,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: profilePublicId,
-        });
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: profilePublicId,
+          });
 
       return response;
     },
@@ -610,36 +610,112 @@ const ProfilePage = () => {
     };
 
     return (
-      <div className="creator-content-card-container profile_card flex_card" key={post?.publicId}>
+      <div
+        className="creator-content-card-container profile_card flex_card"
+        key={post?.publicId}
+      >
         <div className="creator-content-card">
-          <div className="creator-content-card__media" onClick={() => handlePostClick(post)}>
+          <div
+            className="creator-content-card__media"
+            onClick={() => handlePostClick(post)}
+          >
             <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
               )}
               {mediaType === "video" && firstMedia && (
-                <video preload="metadata" controls={canViewContent} onClick={(e) => { if (!canViewContent) e.preventDefault(); }} style={{ width: "100%" }}><source src={firstMedia} /></video>
+                <video
+                  preload="metadata"
+                  controls={canViewContent}
+                  onClick={(e) => {
+                    if (!canViewContent) e.preventDefault();
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  <source src={firstMedia} />
+                </video>
               )}
             </div>
             {(isSubscriberPost && !isSubscribed) ||
-              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
-              <div className="content-locked-label" onClick={() => { if (!session?.isAuthenticated) { router.push("/login"); return; } if (isOwner) return; if (isPPVPost && (!post.isUnlocked || isOwner)) { setUnlockPost(post); setShowUnlockModal(true); } }}>
+            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+              <div
+                className="content-locked-label"
+                onClick={() => {
+                  if (!session?.isAuthenticated) {
+                    router.push("/login");
+                    return;
+                  }
+                  if (isOwner) return;
+                  if (isPPVPost && (!post.isUnlocked || isOwner)) {
+                    setUnlockPost(post);
+                    setShowUnlockModal(true);
+                  }
+                }}
+              >
                 {isSubscriberPost && !isSubscribed && (
                   <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
-                      <path d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M6.04199 18.3333H15.2087" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M8.54199 11.6667H12.7087" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="21"
+                      height="20"
+                      viewBox="0 0 21 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M14.5413 15.8167H6.70801C6.35801 15.8167 5.96634 15.5417 5.84968 15.2083L2.39968 5.55834C1.90801 4.17501 2.48301 3.75001 3.66634 4.60001L6.91634 6.92501C7.45801 7.30001 8.07468 7.10834 8.30801 6.50001L9.77468 2.59167C10.2413 1.34167 11.0163 1.34167 11.483 2.59167L12.9497 6.50001C13.183 7.10834 13.7997 7.30001 14.333 6.92501L17.383 4.75001C18.683 3.81667 19.308 4.29168 18.7747 5.80001L15.408 15.225C15.283 15.5417 14.8913 15.8167 14.5413 15.8167Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M6.04199 18.3333H15.2087"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M8.54199 11.6667H12.7087"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     <span> Subscribers Only </span>
                   </>
                 )}
                 {isPPVPost && (!post.isUnlocked || isOwner) && (
                   <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
-                      <path d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="21"
+                      height="20"
+                      viewBox="0 0 21 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     <span>${post?.price?.toFixed(2)}</span>
                   </>
@@ -648,16 +724,49 @@ const ProfilePage = () => {
             ) : null}
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
-                <div className="creator-media-card__stats-btn tag-icon"><AtSign size={24} fill="none" /></div>
+                {post?.collaborators?.length > 0 && (
+                  <div className="creator-media-card__stats-btn tag-icon">
+                    <AtSign size={24} fill="none" />
+                  </div>
+                )}
                 {isOwner && post.status === "pending_approval" && (
-                  <div className="creator-media-card__stats-btn badge">Pending</div>
+                  <div className="creator-media-card__stats-btn badge">
+                    Pending
+                  </div>
                 )}
                 {!isOwnProfile && !hideSaveBtn && (
-                  <div className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`} onClick={handleSavePost}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                      <path d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <div
+                    className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`}
+                    onClick={handleSavePost}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="25"
+                      viewBox="0 0 24 25"
+                      fill="none"
+                    >
+                      <path
+                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                      <path
+                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                      <path
+                        d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
                     </svg>
                     {/* <span> 13 </span> */}
                   </div>
@@ -666,25 +775,66 @@ const ProfilePage = () => {
             </div>
           </div>
           <div className="creator-content-card__description">
-            <p>{expandedPosts[post.publicId] ? post.text : `${truncateText(post.text)}${post.text?.length > 50 ? "..." : ""}`}</p>
+            <p>
+              {expandedPosts[post.publicId]
+                ? post.text
+                : `${truncateText(post.text)}${post.text?.length > 50 ? "..." : ""}`}
+            </p>
           </div>
           <div className="creator-content-card__stats">
             {isFreecomment && (
               <>
                 <div className="creator-content-stat-box">
                   <button className="like-button liked" data-like-button="">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
-                      <path d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="21"
+                      height="20"
+                      viewBox="0 0 21 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M11.2665 17.3417C10.9832 17.4417 10.5165 17.4417 10.2332 17.3417C7.8165 16.5167 2.4165 13.075 2.4165 7.24166C2.4165 4.66666 4.4915 2.58333 7.04984 2.58333C8.5665 2.58333 9.90817 3.31666 10.7498 4.45C11.5915 3.31666 12.9415 2.58333 14.4498 2.58333C17.0082 2.58333 19.0832 4.66666 19.0832 7.24166C19.0832 13.075 13.6832 16.5167 11.2665 17.3417Z"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
                     </svg>
                   </button>
                   <span>{post?.likeCount}</span>
                 </div>
                 <div className="creator-content-stat-box post-comment-btn massage-btn active">
                   <button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z" stroke="white" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
-                      <path d="M7 8H17" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                      <path d="M7 13H13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                      <path
+                        d="M7 8H17"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                      <path
+                        d="M7 13H13"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
                     </svg>
                   </button>
                   <span>{post?.commentCount}</span>
@@ -696,9 +846,26 @@ const ProfilePage = () => {
                 {/* views-btn */}
                 <div className="creator-content-stat-box views-btn active">
                   <button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                      <path d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M11.9998 20.27C15.5298 20.27 18.8198 18.19 21.1098 14.59C22.0098 13.18 22.0098 10.81 21.1098 9.39997C18.8198 5.79997 15.5298 3.71997 11.9998 3.71997C8.46984 3.71997 5.17984 5.79997 2.88984 9.39997C1.98984 10.81 1.98984 13.18 2.88984 14.59C5.17984 18.19 8.46984 20.27 11.9998 20.27Z"
+                        stroke="none"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                      <path
+                        d="M15.5799 12C15.5799 13.98 13.9799 15.58 11.9999 15.58C10.0199 15.58 8.41992 13.98 8.41992 12C8.41992 10.02 10.0199 8.42004 11.9999 8.42004C13.9799 8.42004 15.5799 10.02 15.5799 12Z"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
                     </svg>
                   </button>
                   <span>{post?.commentCount}</span>
@@ -706,7 +873,17 @@ const ProfilePage = () => {
                 {/* thumup-btn  */}
                 <div className="creator-content-stat-box thumup-btn active">
                   <button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
                       <path d="M7 10v12" />
                     </svg>
@@ -716,7 +893,10 @@ const ProfilePage = () => {
               </>
             )}
             {isOwner && (
-              <button className="btn-danger icons" onClick={() => handleDeletePost(post._id)}>
+              <button
+                className="btn-danger icons"
+                onClick={() => handleDeletePost(post._id)}
+              >
                 <Trash2 size={28} color="#FFF" />
               </button>
             )}
@@ -739,12 +919,29 @@ const ProfilePage = () => {
     return (
       <div data-multi-tabs-content-tabdata__active data-multi-dem-cards-layout>
         <div className="creator-content-filter-grid-container">
-          <ProfileTab onChangeLayouts={(layout) => setLayoutTab(layout)} onSearchChange={setSearch} onTimeChange={setTimeFilter} />
+          <ProfileTab
+            onChangeLayouts={(layout) => setLayoutTab(layout)}
+            onSearchChange={setSearch}
+            onTimeChange={setTimeFilter}
+          />
           {loading && posts.length === 0 && (
-            <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>
+            <div className="loadingtext">
+              {"Loading".split("").map((char, i) => (
+                <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+                  {char}
+                </span>
+              ))}
+            </div>
           )}
-          <div className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${layoutTab === "list" ? "layout-list" : "layout-grid"}`} data-direct-cards-layout data-layout-toggle-rows={layoutTab === "list" ? true : undefined}>
-            {!postsLoading && filteredPosts?.map((post: any) => (<PostCard key={post.publicId} post={post} />))}
+          <div
+            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${layoutTab === "list" ? "layout-list" : "layout-grid"}`}
+            data-direct-cards-layout
+            data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
+          >
+            {!postsLoading &&
+              filteredPosts?.map((post: any) => (
+                <PostCard key={post.publicId} post={post} />
+              ))}
           </div>
         </div>
       </div>
@@ -798,14 +995,37 @@ const ProfilePage = () => {
           <div className="creator-profile-card-container card">
             <div className="creator-profile-banner">
               {profile?.user?.coverImage && !coverError ? (
-                <img src={profile.user.coverImage} alt="Creator Profile Banner" onError={() => setCoverError(true)} />
+                <img
+                  src={profile.user.coverImage}
+                  alt="Creator Profile Banner"
+                  onError={() => setCoverError(true)}
+                />
               ) : (
                 <div className="noprofile">
-                  <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 66 54"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      className="animate-m"
+                      d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                      fill="url(#paint0_linear_4470_53804)"
+                    />
                     <defs>
-                      <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#FDAB0A" /> <stop offset="0.4" stop-color="#FECE26" /> <stop offset="1" stop-color="#FE990B" />
+                      <linearGradient
+                        id="paint0_linear_4470_53804"
+                        x1="0"
+                        y1="27"
+                        x2="66"
+                        y2="27"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#FDAB0A" />{" "}
+                        <stop offset="0.4" stop-color="#FECE26" />{" "}
+                        <stop offset="1" stop-color="#FE990B" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -819,13 +1039,34 @@ const ProfilePage = () => {
                     <div className="profile-card__avatar-settings">
                       <div className="profile-card__avatar">
                         {profile?.user?.profile && !avatarError ? (
-                          <img src={profile.user.profile} alt={`${profile?.user?.displayName || "User"} Avatar`} onError={() => setAvatarError(true)} />
+                          <img
+                            src={profile.user.profile}
+                            alt={`${profile?.user?.displayName || "User"} Avatar`}
+                            onError={() => setAvatarError(true)}
+                          />
                         ) : (
                           <div className="noprofile">
-                            <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                            <svg
+                              width="40"
+                              height="40"
+                              viewBox="0 0 66 54"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                className="animate-m"
+                                d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                fill="url(#paint0_linear_4470_53804)"
+                              />
                               <defs>
-                                <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                <linearGradient
+                                  id="paint0_linear_4470_53804"
+                                  x1="0"
+                                  y1="27"
+                                  x2="66"
+                                  y2="27"
+                                  gradientUnits="userSpaceOnUse"
+                                >
                                   <stop stop-color="#FDAB0A" />
                                   <stop offset="0.4" stop-color="#FECE26" />
                                   <stop offset="1" stop-color="#FE990B" />
@@ -1190,9 +1431,9 @@ const ProfilePage = () => {
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                            "default",
-                            { month: "long", year: "numeric" },
-                          )
+                              "default",
+                              { month: "long", year: "numeric" },
+                            )
                           : ""}
                       </span>
                     </div>
@@ -1390,20 +1631,53 @@ const ProfilePage = () => {
                       <ul>
                         <li>
                           <div className="subscription-info">
-                            <div className="subscription-label">Monthly Subscription</div>
+                            <div className="subscription-label">
+                              Monthly Subscription
+                            </div>
                             <div className="subscription-price">
-                              <h3>$ {profile?.subscription?.monthlyPrice || "Not Updated yet"}</h3>
+                              <h3>
+                                ${" "}
+                                {profile?.subscription?.monthlyPrice ||
+                                  "Not Updated yet"}
+                              </h3>
                               <span>/month</span>
                             </div>
                           </div>
                           <div className="subscripton-button">
                             {isOwnProfile ? (
-                              <button className="btn-txt-gradient shimmer btn-outline p-sm gap-5" onClick={() => router.push("/edit-profile?tab=pricing")} >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="url(#pencilGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <button
+                                className="btn-txt-gradient shimmer btn-outline p-sm gap-5"
+                                onClick={() =>
+                                  router.push(
+                                    "/creator-edit-profile?tab=pricing",
+                                  )
+                                }
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="url(#pencilGradient)"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
                                   <defs>
-                                    <linearGradient id="pencilGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                    <linearGradient
+                                      id="pencilGradient"
+                                      x1="0"
+                                      y1="0"
+                                      x2="24"
+                                      y2="24"
+                                      gradientUnits="userSpaceOnUse"
+                                    >
                                       <stop offset="0%" stop-color="#FECE26" />
-                                      <stop offset="100%" stop-color="#E5741F" />
+                                      <stop
+                                        offset="100%"
+                                        stop-color="#E5741F"
+                                      />
                                     </linearGradient>
                                   </defs>
                                   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
@@ -1417,23 +1691,64 @@ const ProfilePage = () => {
                         </li>
                         <li>
                           <div className="subscription-info">
-                            <div className="subscription-label">Yearly Subscription</div>
+                            <div className="subscription-label">
+                              Yearly Subscription
+                            </div>
                             <div className="subscription-price">
-                              <h3>$ {profile?.subscription?.yearlyPrice || "Not Updated yet"}</h3>
+                              <h3>
+                                ${" "}
+                                {profile?.subscription?.yearlyPrice ||
+                                  "Not Updated yet"}
+                              </h3>
                               <span>/year</span>
                               <div className="save-txt">
-                                {(() => { const savings = calculateYearlySavings(profile?.subscription?.monthlyPrice, profile?.subscription?.yearlyPrice,); return savings ? (<>(Save {savings}%)</>) : null; })()}
+                                {(() => {
+                                  const savings = calculateYearlySavings(
+                                    profile?.subscription?.monthlyPrice,
+                                    profile?.subscription?.yearlyPrice,
+                                  );
+                                  return savings ? (
+                                    <>(Save {savings}%)</>
+                                  ) : null;
+                                })()}
                               </div>
                             </div>
                           </div>
                           <div className="subscripton-button">
                             {isOwnProfile ? (
-                              <button className="btn-txt-gradient shimmer btn-outline p-sm gap-5" onClick={() => router.push("/edit-profile?tab=pricing")}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="url(#pencilGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <button
+                                className="btn-txt-gradient shimmer btn-outline p-sm gap-5"
+                                onClick={() =>
+                                  router.push(
+                                    "/creator-edit-profile?tab=pricing",
+                                  )
+                                }
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="url(#pencilGradient)"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
                                   <defs>
-                                    <linearGradient id="pencilGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                    <linearGradient
+                                      id="pencilGradient"
+                                      x1="0"
+                                      y1="0"
+                                      x2="24"
+                                      y2="24"
+                                      gradientUnits="userSpaceOnUse"
+                                    >
                                       <stop offset="0%" stop-color="#FECE26" />
-                                      <stop offset="100%" stop-color="#E5741F" />
+                                      <stop
+                                        offset="100%"
+                                        stop-color="#E5741F"
+                                      />
                                     </linearGradient>
                                   </defs>
                                   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
@@ -1585,7 +1900,11 @@ const ProfilePage = () => {
                         href="#"
                         className="premium-btn store-btn"
                         onClick={(e) => {
-                          e.preventDefault(); if (!session?.isAuthenticated) { router.push("/login"); return; }
+                          e.preventDefault();
+                          if (!session?.isAuthenticated) {
+                            router.push("/login");
+                            return;
+                          }
 
                           if (isOwnProfile) {
                             router.push("/store");
@@ -1600,7 +1919,10 @@ const ProfilePage = () => {
                           }
                         }}
                       >
-                        <img src="/images/logo/profile-badge.png" alt="Store Button Icon" />
+                        <img
+                          src="/images/logo/profile-badge.png"
+                          alt="Store Button Icon"
+                        />
                         <span className="lineheight">My Store</span>
                       </a>
                     </div>
