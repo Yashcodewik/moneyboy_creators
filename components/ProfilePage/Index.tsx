@@ -265,35 +265,34 @@ const ProfilePage = () => {
     }
   };
 
-const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
-  if (!profile?.user?._id || subLoading) return;
+  const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
+    if (!profile?.user?._id || subLoading) return;
 
-  setSubLoading(true);
+    setSubLoading(true);
 
-  const res = await apiPost({
-    url: API_SUBSCRIBE_CREATOR,
-    values: {
-      creatorId: profile.user._id,
-      planType,
-    },
-  });
-
-  if (res?.success) {
-    toast.success("Subscribed successfully");
-
-    // ✅ refresh creator profile data
-    queryClient.invalidateQueries({
-      queryKey: ["creator-profile", profilePublicId],
+    const res = await apiPost({
+      url: API_SUBSCRIBE_CREATOR,
+      values: {
+        creatorId: profile.user._id,
+        planType,
+      },
     });
 
-  } else {
-    alert(res?.message || "Subscription failed");
-  }
+    if (res?.success) {
+      toast.success("Subscribed successfully");
 
-  setSubLoading(false);
-};
+      // ✅ refresh creator profile data
+      queryClient.invalidateQueries({
+        queryKey: ["creator-profile", profilePublicId],
+      });
+    } else {
+      alert(res?.message || "Subscription failed");
+    }
+
+    setSubLoading(false);
+  };
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ["creator-posts", profilePublicId, search, timeFilter],
@@ -346,33 +345,32 @@ const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
     }
   };
 
-const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
-  if (!profile?.user?._id || subLoading) return;
+  const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
+    if (!profile?.user?._id || subLoading) return;
 
-  setSubLoading(true);
+    setSubLoading(true);
 
-  const res = await apiPost({
-    url: API_UPGRADE_SUBSCRIPTION,
-    values: {
-      creatorId: profile.user._id,
-      planType,
-    },
-  });
-
-  if (res?.success) {
-    toast.success("Subscription updated");
-
-    // ✅ refresh subscription status
-    queryClient.invalidateQueries({
-      queryKey: ["creator-profile", profilePublicId],
+    const res = await apiPost({
+      url: API_UPGRADE_SUBSCRIPTION,
+      values: {
+        creatorId: profile.user._id,
+        planType,
+      },
     });
 
-  } else {
-    alert(res?.message || "Upgrade failed");
-  }
+    if (res?.success) {
+      toast.success("Subscription updated");
 
-  setSubLoading(false);
-};
+      // ✅ refresh subscription status
+      queryClient.invalidateQueries({
+        queryKey: ["creator-profile", profilePublicId],
+      });
+    } else {
+      alert(res?.message || "Upgrade failed");
+    }
+
+    setSubLoading(false);
+  };
 
   const handleSendTip = async (amount: number) => {
     if (!amount || amount <= 0) {
@@ -526,46 +524,45 @@ const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
     };
     const queryClient = useQueryClient();
     const handleDeletePost = async (postId: string) => {
-  if (!postId) return;
+      if (!postId) return;
 
-  const confirm = await showQuestion(
-    "This action cannot be undone. Delete this post?"
-  );
-  if (!confirm) return;
-
-  try {
-    const res = await apiPost({
-      url: API_DELETE_POST,
-      values: { postId },
-    });
-
-    if (res?.success) {
-      showSuccess("Post deleted successfully");
-
-      queryClient.setQueryData(
-        ["creator-posts", profilePublicId, search, timeFilter],
-        (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            posts: oldData.posts.filter((p: any) => p._id !== postId),
-          };
-        }
+      const confirm = await showQuestion(
+        "This action cannot be undone. Delete this post?",
       );
+      if (!confirm) return;
 
-      // optional safety refetch
-      queryClient.invalidateQueries({
-        queryKey: ["creator-posts"],
-      });
+      try {
+        const res = await apiPost({
+          url: API_DELETE_POST,
+          values: { postId },
+        });
 
-    } else {
-      showError(res?.message || "Failed to delete post");
-    }
-  } catch (err) {
-    console.error("Delete post error:", err);
-    showError("Something went wrong");
-  }
-};
+        if (res?.success) {
+          showSuccess("Post deleted successfully");
+
+          queryClient.setQueryData(
+            ["creator-posts", profilePublicId, search, timeFilter],
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              return {
+                ...oldData,
+                posts: oldData.posts.filter((p: any) => p._id !== postId),
+              };
+            },
+          );
+
+          // optional safety refetch
+          queryClient.invalidateQueries({
+            queryKey: ["creator-posts"],
+          });
+        } else {
+          showError(res?.message || "Failed to delete post");
+        }
+      } catch (err) {
+        console.error("Delete post error:", err);
+        showError("Something went wrong");
+      }
+    };
 
     const dispatch = useDispatch<AppDispatch>();
 
@@ -622,6 +619,24 @@ const handleUpgrade = async (planType: "MONTHLY" | "YEARLY") => {
             className="creator-content-card__media"
             onClick={() => handlePostClick(post)}
           >
+            {isOwner && post.status === "pending_approval" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  left: "10px",
+                  background: "#f59e0b",
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  padding: "4px 8px",
+                  borderRadius: "6px",
+                  zIndex: 5,
+                }}
+              >
+                Pending
+              </div>
+            )}
             <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />

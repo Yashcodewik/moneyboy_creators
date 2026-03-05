@@ -53,12 +53,14 @@ export const fetchMyPaidPosts = createAsyncThunk(
       publicId,
       search = "",
       time = "all_time",
+      type, // ✅ added
     }: {
       page?: number;
       limit?: number;
       publicId?: string;
       search?: string;
       time?: "most_recent" | "today" | "last_7_days" | "last_30_days" | "all_time";
+      type?: "video" | "photo"; // ✅ added
     },
     { rejectWithValue }
   ) => {
@@ -66,6 +68,7 @@ export const fetchMyPaidPosts = createAsyncThunk(
       const url =
         `${API_GET_MY_PAID_POSTS}?page=${page}&limit=${limit}` +
         `&search=${search}&time=${time}` +
+        (type ? `&type=${type}` : "") + // ✅ added
         (publicId ? `&publicId=${publicId}` : "");
 
       const res = await getApiWithOutQuery({ url });

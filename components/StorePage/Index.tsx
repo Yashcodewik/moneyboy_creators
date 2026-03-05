@@ -159,6 +159,7 @@ const StorePage = () => {
           search,
           time,
           publicId: activeStoreOwner.publicId,
+          type: subActiveTab === "videos" ? "video" : "photo",
         }),
       );
 
@@ -183,9 +184,10 @@ const StorePage = () => {
         search,
         time,
         publicId: activeStoreOwner.publicId,
+        type: subActiveTab === "videos" ? "video" : "photo",
       }),
     );
-  }, [dispatch, search, time, activeStoreOwner?.publicId]);
+  }, [dispatch, search, time, activeStoreOwner?.publicId,subActiveTab]);
 
   console.log("-----", time);
 
@@ -248,6 +250,7 @@ const StorePage = () => {
           search,
           time,
           publicId: activeStoreOwner.publicId,
+          type: subActiveTab === "videos" ? "video" : "photo",
         }),
       );
 
