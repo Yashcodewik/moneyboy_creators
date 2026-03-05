@@ -40,9 +40,12 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import ShowToast from "../common/ShowToast";
-import { showQuestion, showSuccess, showError, showTaggedUserList } from "../../utils/alert";
-
-
+import {
+  showQuestion,
+  showSuccess,
+  showError,
+  showTaggedUserList,
+} from "../../utils/alert";
 
 interface User {
   _id: string;
@@ -176,9 +179,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: profilePublicId,
-        });
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: profilePublicId,
+          });
 
       return response;
     },
@@ -665,7 +668,7 @@ const ProfilePage = () => {
               )}
             </div>
             {(isSubscriberPost && !isSubscribed) ||
-              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={() => {
@@ -795,11 +798,19 @@ const ProfilePage = () => {
                   </div>
                 )}
               </div>
-              <div className="creator-media-card__stats bottom">
-                <div className="creator-media-card__stats-btn tag-icon tagged_userlist" onClick={() => showTaggedUserList(post.collaborators)}>
-                  <AtSign size={24} fill="none" />
+              {post?.collaborators?.length > 0 && (
+                <div className="creator-media-card__stats bottom">
+                  <div
+                    className="creator-media-card__stats-btn tag-icon tagged_userlist"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showTaggedUserList(post.collaborators);
+                    }}
+                  >
+                    <AtSign size={24} fill="none" />
+                  </div>
                 </div>
-              </div>
+              )}
               {/* <div className="creator-media-card__stats bottom">
                 {post?.collaborators?.length > 0 && (
                   <div
@@ -1495,9 +1506,9 @@ const ProfilePage = () => {
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                            "default",
-                            { month: "long", year: "numeric" },
-                          )
+                              "default",
+                              { month: "long", year: "numeric" },
+                            )
                           : ""}
                       </span>
                     </div>
