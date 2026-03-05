@@ -7442,6 +7442,22 @@ body {
               }
             }
 
+            &.badge {
+              letter-spacing: 3%;
+              color: #fff;
+              min-width: max-content;
+              font-size: 10px;
+              font-weight: 600;
+              line-height: 20px;
+              border-radius: 9px;
+              background: linear-gradient(103.7deg, #fece26 4.76%, #e5741f 118.16%);
+              -webkit-text-fill-color: transparent;
+              color: #0000;
+              -webkit-background-clip: text;
+              background-clip: text;
+              border-color: #fece26;
+            }
+
             svg {
               width: 20px;
               transition: var(--transition-fast);
