@@ -1,5 +1,7 @@
 import Swal, { SweetAlertIcon } from "sweetalert2";
 import "@/public/styles/style.scss";
+import { X } from "lucide-react";
+import { createRoot } from "react-dom/client";
 
 /* ================= BASE CONFIG ================= */
 const baseConfig = {
@@ -135,130 +137,51 @@ export const showDeclineReason = async (): Promise<string | null> => {
   return null;
 };
 
-// Just Show Timer Modal Start
-// import Swal from "sweetalert2";
+/* ========== TAGGED USER LIST MODAL ========== */
+export const showTaggedUserList = async (collaborators: any[] = []) => {
+  if (!collaborators.length) {
+    showInfo("No tagged users");
+    return;
+  }
 
-// const baseConfig = {
-//     buttonsStyling: false,
-//     allowOutsideClick: false,
-//     reverseButtons: true,
+  const listHtml = collaborators
+    .map((collab: any) => {
+      const user = collab?.user || {};
+      return `
+        <li class="tagged-user-item" data-id="${user.publicId || ""}">
+          <img src="${user.profile || "/images/default-avatar.png"}" class="user_icons" onerror="this.src='/images/default-avatar.png'"/>
+          <span>@${user.userName || "unknown"}</span>
+        </li>
+      `;
+    })
+    .join("");
+  const result = await Swal.fire({
+    ...baseConfig,
+    title: "Tagged Users",
+    showCloseButton: true,
+    closeButtonHtml: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+    showConfirmButton: true,
+    confirmButtonText: `<span>Done</span>`,
+    html: `
+      <div class="tagged_userlist">
+        <div class="user-dropdown">
+          <ul>${listHtml}</ul>
+        </div>
+      </div>
+    `,
+    didOpen: (popup) => {
+      const items = popup.querySelectorAll(".tagged-user-item");
+      items.forEach((item) => {
+        item.addEventListener("click", () => {
+          const element = item as HTMLElement;
+          const id = element.getAttribute("data-id");
+          if (id) {
+            window.location.href = `/profile/${id}`;
+          }
+        });
+      });
+    },
+  });
 
-//     customClass: {
-//         actions: "actionsbtn-wrapper",
-//         confirmButton: "premium-btn active-down-effect",
-//         cancelButton: "btn-danger active-down-effect",
-//     },
-// };
-
-// export const showSuccess = (message: string) => {
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "success",
-//         title: message,
-//         timer: 2000,
-//         showConfirmButton: false, // hide button for auto alerts
-//     });
-// };
-
-// export const showError = (message: string) => {
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "error",
-//         title: message,
-//         timer: 2500,
-//         showConfirmButton: false,
-//     });
-// };
-
-// export const showWarning = (message: string) => {
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "warning",
-//         title: message,
-//         timer: 2500,
-//         showConfirmButton: false,
-//     });
-// };
-
-// /* INFO */
-// export const showInfo = (message: string) => {
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "info",
-//         title: message,
-//         timer: 2500,
-//         showConfirmButton: false,
-//     });
-// };
-
-// export const showQuestion = async (message: string) => {
-//     const result = await Swal.fire({
-//         ...baseConfig,
-//         icon: "question",
-//         title: message,
-//         showCancelButton: true,
-//         showConfirmButton: true,
-//         confirmButtonText: "<span>Yes</span>",
-//         cancelButtonText: "<span>No</span>",
-//     });
-
-//     return result.isConfirmed;
-// };
-
-// Working With Buttons Start
-// import Swal from "sweetalert2";
-
-// const baseConfig = {
-//     buttonsStyling: false,
-//     allowOutsideClick: false,
-//     reverseButtons: true,
-//     customClass: {
-//         actions: "actionsbtn-wrapper",
-//         confirmButton: "premium-btn active-down-effect",
-//         cancelButton: "btn-danger active-down-effect",
-//     },
-// };
-// export const showSuccess = (message: string) =>
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "success",
-//         title: message,
-//         confirmButtonText: "<span>OK</span>",
-//     });
-
-// export const showError = (message: string) =>
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "error",
-//         title: message,
-//         confirmButtonText: "<span>OK</span>",
-//     });
-
-// export const showWarning = (message: string) =>
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "warning",
-//         title: message,
-//         confirmButtonText: "<span>OK</span>",
-//     });
-
-// export const showInfo = (message: string) =>
-//     Swal.fire({
-//         ...baseConfig,
-//         icon: "info",
-//         title: message,
-//         confirmButtonText: "<span>OK</span>",
-//     });
-
-// export const showQuestion = async (message: string) => {
-//     const res = await Swal.fire({
-//         ...baseConfig,
-//         icon: "question",
-//         title: message,
-//         showCancelButton: true,
-//         confirmButtonText: "<span>Yes</span>",
-//         cancelButtonText: "<span>No</span>",
-//     });
-
-//     return res.isConfirmed;
-// };
+  return result;
+};

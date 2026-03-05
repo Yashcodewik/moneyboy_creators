@@ -4,9 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { useDeviceType } from "@/hooks/useDeviceType";
-import { PhotoProvider, PhotoView } from "react-photo-view";
+import { PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, X, CircleQuestionMark, AtSign, } from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
@@ -543,21 +542,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         </div>
         <div className="moneyboy-post__media">
           <div className="moneyboy-post__img">
-            {/* <PhotoProvider
-                            toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible }) => {
-                                if (!visible) return null;
-                                return (
-                                    <div className="toolbar_controller">
-                                        <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
-                                        <span>{index + 1} / {images.length}</span>
-                                        <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
-                                        <button className="btn_icons" onClick={() => onScale(scale + 0.2)}><ZoomIn size={20} /></button>
-                                        <button className="btn_icons" onClick={() => onScale(Math.max(0.5, scale - 0.2))}><ZoomOut size={20} /></button>
-                                        <button className="btn_icons" onClick={() => onRotate(rotate + 90)}><RotateCw size={20} /></button>
-                                        <button className="btn_icons" onClick={onClose}><X size={20} /></button>
-                                    </div>
-                                );
-                            }}> */}
             <Swiper
               slidesPerView={1}
               spaceBetween={15}
@@ -601,14 +585,13 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 </SwiperSlide>
               )}
             </Swiper>
-            {/* </PhotoProvider> */}
           </div>
-          <div className="moneyboy-post__actions">
+          <div className="moneyboy-post__actions tooltip_wrapper">
             <ul>
               {/* Send Tip */}
               <li>
                 <Link
-                  href="#"
+                  href="#" data-tooltip="Send Tip"
                   onClick={(e) => {
                     e.preventDefault();
                     if (!session?.user?.id) {
@@ -667,7 +650,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
               {/* Like */}
               <li>
-                <Link
+                <Link data-tooltip="Like"
                   href="#"
                   className={`post-like-btn ${post.isLiked ? "active" : ""}`}
                   onClick={(e) => {
@@ -695,7 +678,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
               {/* Comment */}
               <li>
-                <Link
+                <Link data-tooltip="Comment"
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
@@ -743,7 +726,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             <ul>
               {/* Share */}
               <li>
-                <Link
+                <Link data-tooltip="Report"
                   href="#"
                   className={isReported ? "active" : ""}
                   onClick={(e) => {
@@ -787,7 +770,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
               {/* Save */}
               <li>
-                <Link
+                <Link data-tooltip="Save"
                   href="#"
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {

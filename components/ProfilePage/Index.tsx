@@ -40,7 +40,9 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import ShowToast from "../common/ShowToast";
-import { showQuestion, showSuccess, showError } from "../../utils/alert";
+import { showQuestion, showSuccess, showError, showTaggedUserList } from "../../utils/alert";
+
+
 
 interface User {
   _id: string;
@@ -174,9 +176,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-            url: API_CREATOR_PROFILE_BY_ID,
-            params: profilePublicId,
-          });
+          url: API_CREATOR_PROFILE_BY_ID,
+          params: profilePublicId,
+        });
 
       return response;
     },
@@ -663,7 +665,7 @@ const ProfilePage = () => {
               )}
             </div>
             {(isSubscriberPost && !isSubscribed) ||
-            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={() => {
@@ -794,9 +796,14 @@ const ProfilePage = () => {
                 )}
               </div>
               <div className="creator-media-card__stats bottom">
+                <div className="creator-media-card__stats-btn tag-icon tagged_userlist" onClick={() => showTaggedUserList(post.collaborators)}>
+                  <AtSign size={24} fill="none" />
+                </div>
+              </div>
+              {/* <div className="creator-media-card__stats bottom">
                 {post?.collaborators?.length > 0 && (
                   <div
-                    className="creator-media-card__stats-btn tag-icon"
+                    className="creator-media-card__stats-btn tag-icon tagged_userlist"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowTaggedUsers((prev) => !prev);
@@ -805,30 +812,30 @@ const ProfilePage = () => {
                     <AtSign size={24} fill="none" />
                   </div>
                 )}
-              </div>
-              {post?.collaborators?.length > 0 && showTaggedUsers && (
-                <div ref={tagMenuRef} className="user-dropdown">
-                  <ul>
-                    {post.collaborators.map((collab: any) => {
-                      const user = collab.user;
+                {post?.collaborators?.length > 0 && showTaggedUsers && (
+                  <div ref={tagMenuRef} className="user-dropdown">
+                    <ul>
+                      {post.collaborators.map((collab: any) => {
+                        const user = collab.user;
 
-                      return (
-                        <li
-                          key={user._id}
-                          onClick={() => handleProfileClick(user.publicId)}
-                        >
-                          <img
-                            src={user.profile}
-                            alt={user.userName}
-                            className="user_icons"
-                          />
-                          <span>@{user.userName}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
+                        return (
+                          <li
+                            key={user._id}
+                            onClick={() => handleProfileClick(user.publicId)}
+                          >
+                            <img
+                              src={user.profile}
+                              alt={user.userName}
+                              className="user_icons"
+                            />
+                            <span>@{user.userName}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div> */}
             </div>
           </div>
           <div className="creator-content-card__description">
@@ -1488,9 +1495,9 @@ const ProfilePage = () => {
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                              "default",
-                              { month: "long", year: "numeric" },
-                            )
+                            "default",
+                            { month: "long", year: "numeric" },
+                          )
                           : ""}
                       </span>
                     </div>
