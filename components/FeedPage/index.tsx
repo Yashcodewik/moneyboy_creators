@@ -343,10 +343,7 @@ const FeedPage = () => {
             </div>
           </div>
           {(!isMobile || showSidebarMobile) && (
-            <aside
-              className={`moneyboy-2x-1x-b-layout scrolling ${isMobile ? "mobile-sidebar" : ""}`}
-              ref={sidebarRef}
-            >
+            <aside className={`moneyboy-2x-1x-b-layout scrolling ${isMobile ? "mobile-sidebar" : ""}`} ref={sidebarRef}>
               <Featuredboys />
             </aside>
           )}

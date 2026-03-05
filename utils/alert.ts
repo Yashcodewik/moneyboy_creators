@@ -66,7 +66,7 @@ export const showAcceptPostConsent = async (): Promise<boolean> => {
       <div class="selectcont_wrap">
         <p>Please confirm before publishing this post.</p>
         <div class="select_wrap">
-          <label class="radio_wrap"><input type="checkbox" name="consent[]" value="accept" id="accept"> I accept the Terms & Conditions</label>
+          <label class="radio_wrap"><input type="checkbox" name="consent[]" value="accept" id="accept"> I accept the <a href="/terms" target="_blank">Terms & Conditions</a></label>
           <label class="radio_wrap"><input type="checkbox" name="consent[]" value="tag" id="tag"> I Allow Myself To Be Tagged In This Post</label>
         </div>
       </div>

@@ -232,7 +232,7 @@ const Dashboard = () => {
                           </div>
                           <div className="user-profile-card__info-container">
                             <div className="user-profile-card__info">
-                              <div className="user-profile-card__name-badge">
+                              <div className="user-profile-card__name-badge w-fit">
                                 <div className="user-profile-card__name">{creator.displayName}</div>
                                 <div className="user-profile-card__badge">
                                   <img src="/images/logo/profile-badge.png" alt="Profile Badge"/>

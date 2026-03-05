@@ -385,7 +385,7 @@ const StorePage = () => {
           <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers">
             <BtnGroupTabs activeTab={activeMainTab} onChange={(value) => { setActiveMainTab(value as "mystore" | "marketplace"); setSelectedCreator(null); }}
               tabs={[
-                { key: "mystore", label: "store", img: "/images/logo/profile-badge.png" },
+                { key: "mystore", label: "My store", img: "/images/logo/profile-badge.png" },
                 { key: "marketplace", label: "Marketplace", },
               ]}
             />
@@ -546,7 +546,7 @@ const StorePage = () => {
                     </div>
                     <div className="store-page-header-tag">
                       <img src="/images/logo/profile-badge.png" alt="Store Button Icon" />
-                      <span>Store</span>
+                      <span>My Store</span>
                     </div>
                   </div>
                 </div>
@@ -607,10 +607,8 @@ const StorePage = () => {
                         </div>
                       </div>
                       <div className="hero-type-card--desc">
-                        <p>
-                          Prices very based on your request. You’ll get a quote
-                          before payment.
-                        </p>
+                        <p>Prices Vary Based on Your Request.</p>
+                        {/* <p>Prices very based on your request. You’ll get a quote before payment.</p> */}
                       </div>
                     </div>
                   </div>

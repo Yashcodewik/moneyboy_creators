@@ -203,11 +203,11 @@ const LikePage = () => {
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout">
         <div className="moneyboy-feed-page-container">
-          <BtnGroupTabs activeTab={topTab} onChange={(value) => { if (!isLoggedIn && value === "following") { router.push("/discover"); return; } setTopTab(value as TopTab); }}
+          <BtnGroupTabs activeTab={contentTab} onChange={(value) => { const tab = value as ContentTab; if (!isLoggedIn && tab === "videos") { router.push("/discover"); return; } setContentTab(tab); setSearchText(""); setTime("all_time"); dispatch(resetLikedPosts()); }}
             tabs={[
-              { key: "feed", label: "Feed" },
-              { key: "following", label: isLoggedIn ? "Following" : "Discover", },
-              { key: "popular", label: "Popular" },
+              { key: "posts", label: "Posts" },
+              { key: "videos", label: isLoggedIn ? "Videos" : "Discover" },
+              { key: "photos", label: "Photos" },
             ]}
           />
           <div className="moneyboy-posts-wrapper">

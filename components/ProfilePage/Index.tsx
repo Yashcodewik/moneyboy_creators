@@ -35,7 +35,7 @@ import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
 import PPVRequestModal from "./PPVRequestModal";
 import UnlockContentModal from "./UnlockContentModal";
-import { AtSign, Trash2 } from "lucide-react";
+import { AtSign, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
@@ -172,9 +172,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-            url: API_CREATOR_PROFILE_BY_ID,
-            params: profilePublicId,
-          });
+          url: API_CREATOR_PROFILE_BY_ID,
+          params: profilePublicId,
+        });
 
       return response;
     },
@@ -655,7 +655,7 @@ const ProfilePage = () => {
               )}
             </div>
             {(isSubscriberPost && !isSubscribed) ||
-            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={() => {
@@ -744,46 +744,18 @@ const ProfilePage = () => {
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
                 {!isOwnProfile && !hideSaveBtn && (
-                  <div
-                    className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`}
-                    onClick={handleSavePost}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="25"
-                      viewBox="0 0 24 25"
-                      fill="none"
-                    >
-                      <path
-                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                        stroke="none"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      ></path>
-                      <path
-                        d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z"
-                        stroke="none"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      ></path>
-                      <path
-                        d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999"
-                        stroke="none"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      ></path>
+                  <div className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`} onClick={handleSavePost}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M16.8203 2.5H7.18031C5.05031 2.5 3.32031 4.24 3.32031 6.36V20.45C3.32031 22.25 4.61031 23.01 6.19031 22.14L11.0703 19.43C11.5903 19.14 12.4303 19.14 12.9403 19.43L17.8203 22.14C19.4003 23.02 20.6903 22.26 20.6903 20.45V6.36C20.6803 4.24 18.9503 2.5 16.8203 2.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M9.25 9.54999C11.03 10.2 12.97 10.2 14.75 9.54999" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
                     {/* <span> 13 </span> */}
                   </div>
                 )}
-                {/* <div className="creator-media-card__stats-btn tag-icon">
-                 <AtSign size={22} fill="none"/>
-                  <span> 13 </span>
-                </div> */}
+                <div className="creator-media-card__stats-btn tag-icon">
+                  <AtSign size={24} fill="none" />
+                </div>
               </div>
             </div>
           </div>
@@ -1444,9 +1416,9 @@ const ProfilePage = () => {
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                              "default",
-                              { month: "long", year: "numeric" },
-                            )
+                            "default",
+                            { month: "long", year: "numeric" },
+                          )
                           : ""}
                       </span>
                     </div>
@@ -1644,50 +1616,59 @@ const ProfilePage = () => {
                       <ul>
                         <li>
                           <div className="subscription-info">
-                            <div className="subscription-label">
-                              Monthly Subscription
-                            </div>
+                            <div className="subscription-label">Monthly Subscription</div>
                             <div className="subscription-price">
-                              <h3>
-                                $
-                                {profile?.subscription?.monthlyPrice ||
-                                  "Not Updated yet"}
-                              </h3>
+                              <h3>$ {profile?.subscription?.monthlyPrice || "Not Updated yet"}</h3>
                               <span>/month</span>
                             </div>
                           </div>
                           <div className="subscripton-button">
-                            {renderSubscriptionButton("MONTHLY")}
+                            {isOwnProfile ? (
+                              <button className="btn-txt-gradient shimmer btn-outline p-sm gap-5" onClick={() => router.push("/edit-profile?tab=pricing")} >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="url(#pencilGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <defs>
+                                    <linearGradient id="pencilGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                      <stop offset="0%" stop-color="#FECE26" />
+                                      <stop offset="100%" stop-color="#E5741F" />
+                                    </linearGradient>
+                                  </defs>
+                                  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                                  <path d="m15 5 4 4" />
+                                </svg>
+                              </button>
+                            ) : (
+                              renderSubscriptionButton("MONTHLY")
+                            )}
                           </div>
                         </li>
                         <li>
                           <div className="subscription-info">
-                            <div className="subscription-label">
-                              Yearly Subscription
-                            </div>
+                            <div className="subscription-label">Yearly Subscription</div>
                             <div className="subscription-price">
-                              <h3>
-                                $
-                                {profile?.subscription?.yearlyPrice ||
-                                  "Not Updated yet"}
-                              </h3>
+                              <h3>$ {profile?.subscription?.yearlyPrice || "Not Updated yet"}</h3>
                               <span>/year</span>
                               <div className="save-txt">
-                                {(() => {
-                                  const savings = calculateYearlySavings(
-                                    profile?.subscription?.monthlyPrice,
-                                    profile?.subscription?.yearlyPrice,
-                                  );
-
-                                  return savings ? (
-                                    <>(Save {savings}%)</>
-                                  ) : null;
-                                })()}
+                                {(() => { const savings = calculateYearlySavings(profile?.subscription?.monthlyPrice, profile?.subscription?.yearlyPrice,); return savings ? (<>(Save {savings}%)</>) : null; })()}
                               </div>
                             </div>
                           </div>
                           <div className="subscripton-button">
-                            {renderSubscriptionButton("YEARLY")}
+                            {isOwnProfile ? (
+                              <button className="btn-txt-gradient shimmer btn-outline p-sm gap-5" onClick={() => router.push("/edit-profile?tab=pricing")}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="url(#pencilGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <defs>
+                                    <linearGradient id="pencilGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                      <stop offset="0%" stop-color="#FECE26" />
+                                      <stop offset="100%" stop-color="#E5741F" />
+                                    </linearGradient>
+                                  </defs>
+                                  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                                  <path d="m15 5 4 4" />
+                                </svg>
+                              </button>
+                            ) : (
+                              renderSubscriptionButton("YEARLY")
+                            )}
                           </div>
                         </li>
                       </ul>
@@ -1830,14 +1811,8 @@ const ProfilePage = () => {
                         href="#"
                         className="premium-btn store-btn"
                         onClick={(e) => {
-                          e.preventDefault();
+                          e.preventDefault(); if (!session?.isAuthenticated) { router.push("/login"); return; }
 
-                          if (!session?.isAuthenticated) {
-                            router.push("/login");
-                            return;
-                          }
-
-                          // 👤 Creator viewing own profile
                           if (isOwnProfile) {
                             router.push("/store");
                             return;
@@ -1851,11 +1826,8 @@ const ProfilePage = () => {
                           }
                         }}
                       >
-                        <img
-                          src="/images/logo/profile-badge.png"
-                          alt="Store Button Icon"
-                        />
-                        <span>Store</span>
+                        <img src="/images/logo/profile-badge.png" alt="Store Button Icon" />
+                        <span className="lineheight">My Store</span>
                       </a>
                     </div>
                   </div>
