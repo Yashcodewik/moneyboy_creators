@@ -113,15 +113,15 @@ const PricingSetting = () => {
                 {subscriptionFormik.touched.yearlyPrice && subscriptionFormik.errors.yearlyPrice && (<span className="error-message">{subscriptionFormik.errors.yearlyPrice}</span>)}
               </div>
               <div className="one">
-              <h5>Minimum price for custom PPV requests. This is the starting amount fans must pay to request personalized content</h5>
-                <label>PPV Request - Custom Photo.</label>
+              {/* <h5>Minimum price for custom PPV requests. This is the starting amount fans must pay to request personalized content</h5> */}
+                <label>PPV Request – Custom Video. (Minimum price)</label>
                 <div className="label-input">
                   <div className="input-placeholder-icon"><DollarSign className="icons svg-icon" /></div>
                   <input type="number" name="ppvVideoPrice" value={subscriptionFormik.values.ppvVideoPrice} onChange={subscriptionFormik.handleChange} />
                 </div>
               </div>
               <div className="one">
-                <label>PPV Request - Custom Photo</label>
+                <label>PPV Request - Custom Photo (Minimum price)</label>
                 <div className="label-input">
                   <div className="input-placeholder-icon"><DollarSign className="icons svg-icon" /></div>
                   <input type="number" name="ppvPhotoPrice" value={subscriptionFormik.values.ppvPhotoPrice} onChange={subscriptionFormik.handleChange} />

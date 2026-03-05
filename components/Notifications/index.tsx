@@ -1,16 +1,10 @@
 "use client";
-
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Featuredboys from "../Featuredboys";
-import { useDeviceType } from "@/hooks/useDeviceType";
 import { BadgeCheck, Check, CircleX, Clock, Eye, X } from "lucide-react";
 import { CgClose } from "react-icons/cg";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
-import {
-  API_APPROVE_POST,
-  API_GET_NOTIFICATIONS,
-  API_REJECT_POST,
-} from "@/utils/api/APIConstant";
+import { API_APPROVE_POST, API_GET_NOTIFICATIONS, API_REJECT_POST, } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
 import FlipClockCountdown from "@leenguyen/react-flip-clock-countdown";
 import "@leenguyen/react-flip-clock-countdown/dist/index.css";
@@ -19,20 +13,13 @@ import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import {
-  showAcceptPostConsent,
-  showSuccess,
-  showError,
-  showDeclineReason,
-} from "@/utils/alert";
+import { showAcceptPostConsent, showDeclineReason, } from "@/utils/alert";
 import { useRouter } from "next/navigation";
 import socket from "@/libs/socket";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 
 const NotificationPage = () => {
   const router = useRouter();
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
@@ -40,99 +27,43 @@ const NotificationPage = () => {
   const [countdownTo, setCountdownTo] = useState<number>(Date.now());
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const isMobile = useDeviceType();
-  const desktopStyle: React.CSSProperties = {
-    transform: "translate(0px, 0px)",
-    opacity: 1,
-    display: "block",
-    overflow: "visible",
-    left: "auto",
-    transition: "all 0.2s ease",
-  };
-  const mobileStyle: React.CSSProperties = {
-    position: "fixed",
-    left: "0%",
-    bottom: "25px",
-    width: "100%",
-    zIndex: 1000,
-    transform: "translate(0px, 0px)",
-    display: "block",
-    overflow: "hidden",
-    transition: "transform 0.25s ease",
-  };
-  useEffect(() => {
-    if (!isMobile) return;
-    const overlay = document.querySelector(".mobile-popup-overlay");
-    if (!overlay) return;
-    if (openMenuId !== null) {
-      overlay.classList.add("active");
-    } else {
-      overlay.classList.remove("active");
-    }
-    return () => {
-      overlay.classList.remove("active");
-    };
-  }, [openMenuId, isMobile]);
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prev) => (prev === id ? null : id));
-  };
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpenMenuId(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+
   const fetchNotifications = async (pageNumber = 1) => {
     try {
-      if (pageNumber === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
-
+      if (pageNumber === 1) setLoading(true);
       const res = await getApiWithOutQuery({
         url: `${API_GET_NOTIFICATIONS}?page=${pageNumber}&limit=10`,
       });
-
       if (res?.success) {
         const newData = res.notifications || [];
-
         if (pageNumber === 1) {
           setNotifications(newData);
           socket.emit("markNotificationsRead");
         } else {
-          setNotifications((prev) => [...prev, ...newData]);
+          setNotifications((prev) => {
+            const map = new Map([...prev, ...newData].map((item) => [item._id, item]));
+            return Array.from(map.values());
+          });
         }
-
-        // check if more pages exist
-        if (pageNumber >= res.pagination.totalPages) {
-          setHasMore(false);
-        } else {
-          setHasMore(true);
-        }
+        setHasMore(pageNumber < (res.pagination?.totalPages || 1));
       }
     } catch (err) {
       ShowToast("Something went wrong", "error");
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
-
   useEffect(() => {
     fetchNotifications(1);
   }, []);
-
   const fetchMoreNotifications = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchNotifications(nextPage);
+    if (!hasMore) return;
+    setPage((prev) => {
+      const next = prev + 1;
+      fetchNotifications(next);
+      return next;
+    });
   };
-
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], {
@@ -141,43 +72,6 @@ const NotificationPage = () => {
       hour12: false,
     });
   };
-
-  const handlePublish = async () => {
-    const accepted = await showAcceptPostConsent();
-    if (!accepted) return;
-    showSuccess("Post published successfully!");
-  };
-
-  // const endTime = new Date().getTime() + 24 * 60 * 60 * 1000;
-
-  const getCountdownEndTime = () => {
-    if (!selectedPost?.createdAt) return Date.now();
-
-    const createdTime = new Date(selectedPost.createdAt).getTime();
-
-    // 24 hours validity window
-    const expiryTime = createdTime + 24 * 60 * 60 * 1000;
-
-    return expiryTime;
-  };
-
-  useEffect(() => {
-    if (!selectedPost?.createdAt) return;
-
-    const created = new Date(selectedPost.createdAt).getTime();
-
-    // expiry after 24 hours
-    const expiry = created + 24 * 60 * 60 * 1000;
-
-    const now = Date.now();
-
-    // if expired → show finished
-    if (expiry <= now) {
-      setCountdownTo(now + 1000); // triggers "Finished"
-    } else {
-      setCountdownTo(expiry);
-    }
-  }, [selectedPost]);
 
   const handleAcceptPost = async (noti: any) => {
     const ok = await showAcceptPostConsent();
@@ -189,20 +83,15 @@ const NotificationPage = () => {
     });
 
     if (res?.success) {
-      // ShowToast(res.message, "success");
-
-      // update UI instantly
       setNotifications((prev) =>
         prev.map((n) =>
           n._id === noti._id
             ? { ...n, postTag: { ...n.postTag, myStatus: "approved" } }
-            : n,
-        ),
+            : n
+        )
       );
 
       setShowModal(false);
-    } else {
-      // ShowToast(res?.message || "Failed", "error");
     }
   };
 
@@ -212,37 +101,36 @@ const NotificationPage = () => {
 
     const res = await apiPost({
       url: API_REJECT_POST,
-      values: {
-        postId: noti.referenceId,
-        reason,
-      },
+      values: { postId: noti.referenceId, reason },
     });
 
     if (res?.success) {
-      // ShowToast(res.message, "success");
-
       setNotifications((prev) =>
         prev.map((n) =>
           n._id === noti._id
             ? { ...n, postTag: { ...n.postTag, myStatus: "rejected" } }
-            : n,
-        ),
+            : n
+        )
       );
 
       setShowModal(false);
-    } else {
-      // ShowToast(res?.message || "Failed", "error");
     }
   };
 
   const goToProfile = (publicId?: string) => {
-    if (!publicId) {
-      console.log("No publicId found");
-      return;
-    }
-
+    if (!publicId) return;
     router.push(`/profile/${publicId}`);
   };
+
+  useEffect(() => {
+    if (!selectedPost?.createdAt) return;
+
+    const created = new Date(selectedPost.createdAt).getTime();
+    const expiry = created + 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    setCountdownTo(expiry <= now ? now + 1000 : expiry);
+  }, [selectedPost]);
 
   return (
     <>
@@ -260,167 +148,68 @@ const NotificationPage = () => {
                   )} */}
                 </div>
               </div>
-              <div
-                id="notificationScroll"
-                className="noti-list-wrapper"
-                style={{ overflow: "auto", maxHeight: "80vh" }}
-              >
-                {loading && (
-                  <div className="loadingtext">
-                    {"Loading".split("").map((char, i) => (
-                      <span
-                        key={i}
-                        style={{ animationDelay: `${(i + 1) * 0.1}s` }}
-                      >
-                        {char}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {!loading && notifications.length === 0 && (
-                  <div className="nofound small">
-                    <h3 className="first">No Notifications Found</h3>
-                    <h3 className="second">No Notifications Found</h3>
-                  </div>
-                )}
-
-                {!loading && notifications.length > 0 && (
-                  <InfiniteScrollWrapper
-                    dataLength={notifications.length}
-                    fetchMore={fetchMoreNotifications}
-                    hasMore={hasMore}
-                    scrollableTarget="notificationScroll"
-                  >
-                    {notifications.map((noti) => (
-                      <div className="noti-item" key={noti._id}>
-                        <div
-                          className="noti-item--icon"
-                          onClick={() =>
-                            goToProfile(
-                              noti.senderId?.publicId ||
-                                noti.postTag?.taggedBy?.publicId,
-                            )
-                          }
-                        >
-                          <img
-                            src={
-                              noti.senderId?.profile ||
-                              "/images/logo/black-logo-square.png"
-                            }
-                            alt="#"
-                          />
+              <div id="feed-scroll-container" className="moneyboy-posts-scroll-container noti-list-wrapper">
+                <InfiniteScrollWrapper dataLength={notifications.length} fetchMore={fetchMoreNotifications} hasMore={hasMore} scrollableTarget="feed-scroll-container">
+                  {notifications.map((noti) => (
+                    <div className="noti-item" key={noti._id}>
+                      <div className="noti-item--icon" onClick={() => goToProfile(noti.senderId?.publicId || noti.postTag?.taggedBy?.publicId)}>
+                        <img src={noti.senderId?.profile || "/images/logo/black-logo-square.png"} alt="profile" onError={(e: any) => { e.currentTarget.src = "/images/logo/black-logo-square.png" }} />
+                      </div>
+                      <div className="noti-details-container">
+                        <div className="noti-title-time-wrapper">
+                          <div className="noti-title">
+                            <h4>@{noti.senderId?.userName} {noti.title}</h4>
+                          </div>
+                          <div className="noti-time"><span>{formatTime(noti.createdAt)}</span></div>
+                          {noti.postPreview && (
+                            <div className="noti-more-actions iconbtn btntooltip_wrapper">
+                              <button className="btn-gray viewbtn" data-tooltip="View Details" onClick={() => { setSelectedPost(noti); setShowModal(true); }}><Eye size={16} /></button>
+                              {noti.postTag?.myStatus === "pending" && (
+                                <>
+                                  <button className="btn-gray acceptbtn" data-tooltip="Accept" onClick={() => handleAcceptPost(noti)}> <Check size={16} /></button>
+                                  <button className="btn-gray declinebtn" data-tooltip="Decline" onClick={() => handleRejectPost(noti)}><X size={16} /></button>
+                                </>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div className="noti-details-container">
-                          <div className="noti-title-time-wrapper">
-                            <div className="noti-title">
-                              <h4>
-                                @{noti.senderId?.userName} {noti.title}
-                              </h4>
-                            </div>
-                            <div className="noti-time">
-                              <span>{formatTime(noti.createdAt)}</span>
-                            </div>
-                            {noti.postPreview && (
-                              <div className="noti-more-actions iconbtn btntooltip_wrapper">
-                                <button
-                                  className="btn-gray viewbtn"
-                                  data-tooltip="View Details"
-                                  onClick={() => {
-                                    setSelectedPost(noti);
-                                    setShowModal(true);
-                                  }}
-                                >
-                                  <Eye size={16} />
-                                </button>
-                                {noti.postTag?.myStatus === "pending" && (
-                                  <>
-                                    <button
-                                      className="btn-gray acceptbtn"
-                                      data-tooltip="Accept"
-                                      onClick={() => handleAcceptPost(noti)}
-                                    >
-                                      <Check size={16} />
-                                    </button>
-                                    <button
-                                      className="btn-gray declinebtn"
-                                      data-tooltip="Decline"
-                                      onClick={() => handleRejectPost(noti)}
-                                    >
-                                      <X size={16} />
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <div className="noti-desc">
-                            <p>
-                              {noti.type === 3 &&
-                                "Review this collaboration request and choose to accept or decline."}
-                              {noti.type === 4 &&
-                                "Collaboration response received."}
-                            </p>
-                          </div>
+                        <div className="noti-desc">
+                          <p> {noti.type === 3 && "Review this collaboration request and choose to accept or decline."} {noti.type === 4 && "Collaboration response received."}</p>
                         </div>
                       </div>
-                    ))}
-                  </InfiniteScrollWrapper>
-                )}
+                    </div>
+                  ))}
+                </InfiniteScrollWrapper>
               </div>
             </div>
           </div>
         </div>
-        <Featuredboys />
+        <aside className="moneyboy-2x-1x-b-layout scrolling">
+          <Featuredboys />
+        </aside>
       </div>
       {showModal && (
-        <div className="modal show" role="dialog">
+        <div className="modal show" role="dialog" aria-modal="true">
           <form className="modal-wrap notipost-modal">
-            <button
-              type="button"
-              className="close-btn"
-              onClick={() => setShowModal(false)}
-            >
-              <CgClose size={22} />
-            </button>
+            <button type="button" className="close-btn" onClick={() => setShowModal(false)}><CgClose size={22} /></button>
             <h3 className="title">Post Details</h3>
             <div className="post_wrap">
               {/* POST IMAGES */}
               <div className="img_wrap">
-                <Swiper
-                  modules={[Navigation, Pagination, Autoplay]}
-                  spaceBetween={20}
-                  slidesPerView={1}
-                  navigation={selectedPost?.postPreview?.media?.length > 1}
-                  pagination={{
-                    clickable: true,
-                  }}
-                  autoplay={
-                    selectedPost?.postPreview?.media?.length > 1
-                      ? { delay: 3000 }
-                      : false
-                  }
-                  loop={selectedPost?.postPreview?.media?.length > 1}
-                >
-                  {selectedPost?.postPreview?.media?.map(
-                    (mediaUrl: string, i: number) => (
-                      <SwiperSlide key={i}>
-                        {selectedPost?.postPreview?.mediaType === "video" ? (
-                          <video
-                            src={mediaUrl}
-                            controls
-                            style={{ width: "100%", borderRadius: "8px" }}
-                          />
-                        ) : (
-                          <img
-                            src={mediaUrl}
-                            alt="post media"
-                            style={{ width: "100%", borderRadius: "8px" }}
-                          />
-                        )}
-                      </SwiperSlide>
-                    ),
-                  )}
+                <Swiper modules={[Navigation, Pagination, Autoplay]} spaceBetween={20} slidesPerView={1} navigation={selectedPost?.postPreview?.media?.length > 1} pagination={{ clickable: true, }}
+                  autoplay={selectedPost?.postPreview?.media?.length > 1 ? { delay: 3000 } : false} loop={selectedPost?.postPreview?.media?.length > 1}>
+                  {selectedPost?.postPreview?.media?.length > 0 &&
+                    selectedPost.postPreview.media.map(
+                      (mediaUrl: string, i: number) => (
+                        <SwiperSlide key={i}>
+                          {selectedPost?.postPreview?.mediaType === "video" ? (
+                            <video src={mediaUrl} controls />
+                          ) : (
+                            <img src={mediaUrl} alt="post media" />
+                          )}
+                        </SwiperSlide>
+                      ),
+                    )}
                 </Swiper>
               </div>
               {/* DETAILS */}
@@ -431,65 +220,34 @@ const NotificationPage = () => {
                   <div className="right_box">
                     {selectedPost?.postPreview?.accessType ===
                       "pay_per_view" && (
-                      <span className="premium-btn">
-                        <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
-                      </span>
-                    )}
-
+                        <span className="premium-btn"><span>{selectedPost?.postTag?.myPercentage ?? 0}%</span></span>
+                      )}
                     {selectedPost?.postPreview?.accessType === "subscriber" && (
-                      <span className="premium-btn success">
-                        <span>Subscription</span>
-                      </span>
+                      <span className="premium-btn success"><span>Subscription</span></span>
                     )}
-
                     {selectedPost?.postPreview?.accessType === "free" && (
-                      <span className="premium-btn gray">
-                        <span>Free</span>
-                      </span>
+                      <span className="premium-btn gray"><span>Free</span></span>
                     )}
                   </div>
                 </div>
                 <p>{selectedPost?.postPreview?.text}</p>
                 <ul>
                   {selectedPost?.postTag?.taggedBy && (
-                    <li
-                      key={selectedPost.postTag.taggedBy._id}
-                      onClick={() =>
-                        goToProfile(selectedPost.postTag.taggedBy?.publicId)
-                      }
-                    >
-                      <img
-                        src={
-                          selectedPost.postTag.taggedBy.profile ||
-                          "/images/logo/black-logo-square.png"
-                        }
-                        alt="Profile Avatar"
-                        className="user_icons"
-                      />
+                    <li key={selectedPost.postTag.taggedBy._id} onClick={() => goToProfile(selectedPost.postTag.taggedBy?.publicId)}>
+                      <img src={selectedPost.postTag.taggedBy.profile || "/images/logo/black-logo-square.png"} alt="Profile Avatar" className="user_icons" />
                       <span>@{selectedPost.postTag.taggedBy.userName}</span>
                     </li>
                   )}
                   {selectedPost?.postTag?.taggedUsers?.map((u: any) => (
-                    <li
-                      key={u.user._id}
-                      onClick={() => goToProfile(u.user?.publicId)}
-                    >
-                      <img
-                        src={
-                          u.user.profile || "/images/logo/black-logo-square.png"
-                        }
-                        alt="Profile Avatar"
-                        className="user_icons"
-                      />
+                    <li key={u.user._id} onClick={() => goToProfile(u.user?.publicId)} >
+                      <img src={u.user.profile || "/images/logo/black-logo-square.png"} alt="Profile Avatar" className="user_icons" />
                       <span>@{u.user.userName}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
-            <div
-              className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}
-            >
+            <div className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}>
               {selectedPost?.postTag?.myStatus === "approved" && (
                 <div className="head">
                   <h3>Post Approved</h3> <BadgeCheck />
@@ -509,15 +267,8 @@ const NotificationPage = () => {
               )}
               {selectedPost?.postTag?.myStatus === "pending" && (
                 <>
-                  <div className="head">
-                    {" "}
-                    <h3>Collaboration Request Pending</h3> <Clock />
-                  </div>
-                  <p className="pending_text">
-                    You have been tagged in this post and invited to
-                    collaborate. Please review the content and choose to accept
-                    or decline before the deadline.
-                  </p>
+                  <div className="head">{" "} <h3>Collaboration Request Pending</h3> <Clock /></div>
+                  <p className="pending_text">You have been tagged in this post and invited to collaborate. Please review the content and choose to accept or decline before the deadline.</p>
                 </>
               )}
             </div>
@@ -525,35 +276,15 @@ const NotificationPage = () => {
             {selectedPost?.postTag?.myStatus === "pending" && (
               <div className="timer_wrap mt-3">
                 <p>Response Deadline</p>
-                <FlipClockCountdown
-                  key={countdownTo}
-                  to={countdownTo}
-                  labels={["", "", "", ""]}
-                  renderMap={[false, true, true, true]}
-                  showSeparators={true}
-                  labelStyle={{ display: "none" }}
-                  digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}
-                >
+                <FlipClockCountdown key={countdownTo} to={countdownTo} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>
                   Finished
                 </FlipClockCountdown>
               </div>
             )}
             {selectedPost?.postTag?.myStatus === "pending" && (
               <div className="actions">
-                <button
-                  type="button"
-                  className="btn-danger active-down-effect"
-                  onClick={() => handleRejectPost(selectedPost)}
-                >
-                  Decline
-                </button>
-                <button
-                  type="button"
-                  className="premium-btn active-down-effect"
-                  onClick={() => handleAcceptPost(selectedPost)}
-                >
-                  <span>Accept</span>
-                </button>
+                <button type="button" className="btn-danger active-down-effect" onClick={() => handleRejectPost(selectedPost)}>Decline</button>
+                <button type="button" className="premium-btn active-down-effect" onClick={() => handleAcceptPost(selectedPost)}><span>Accept</span></button>
               </div>
             )}
           </form>

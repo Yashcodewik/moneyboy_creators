@@ -1627,6 +1627,25 @@ body {
       transform: translateX(-50%) translateY(0);
     }
   }
+  button[data-tooltip][data-position="left"] {
+    &::after {
+      right: calc(100% + 8px);
+      left: auto;
+      top: 50%;
+      transform: translateY(-50%) translateX(6px);
+    }
+    &::before {
+      right: 100%;
+      left: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      border-color: transparent transparent transparent #1f1f1f;
+    }
+    &:hover::after,
+    &:hover::before {
+      transform: translateY(-50%) translateX(0);
+    }
+  }
   button[data-tooltip][data-position="right"] {
     &::after {
       left: calc(100% + 8px);
@@ -1839,6 +1858,9 @@ body {
 .pointer {
   cursor: pointer;
 }
+.w-fit {
+  width: fit-content;
+} 
 .max-w-22 {
   max-width: 22px;
 }
@@ -1914,6 +1936,9 @@ body {
 }
 .block {
   display: block;
+}
+.lineheight {
+  line-height: normal !important;
 }
 .lineclamp1 {
   display: -webkit-box;
@@ -7106,9 +7131,48 @@ body {
     height: calc(100dvh - 140px);
     overflow-y: auto;
     scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
-  &:has(.infinite-scroll-component)::-webkit-scrollbar {
-    display: none;
+  &.noti-list-wrapper {
+    position: relative;
+    &:has(.infinite-scroll-component) {
+      height: calc(100dvh - 135px);
+    }
+    .btntooltip_wrapper {
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      &:hover {
+        button {
+          opacity: 0.4;
+        }
+      }
+      button:hover {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+      button[data-tooltip] {
+        &::after {
+          right: calc(100% + 8px);
+          left: auto;
+          top: 50%;
+          bottom: auto;
+          transform: translateY(-50%) translateX(6px);
+        }
+        &::before {
+          right: 100%;
+          left: auto;
+          top: 50%;
+          bottom: auto;
+          transform: translateY(-50%);
+          border-color: transparent transparent transparent #1f1f1f;
+        }
+        &:hover::after,
+        &:hover::before {
+          transform: translateY(-50%) translateX(0);
+        }
+      }
+    }
   }
   /* mobile */
   @media (max-width: 767px) {

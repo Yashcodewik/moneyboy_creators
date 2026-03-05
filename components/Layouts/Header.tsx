@@ -1480,7 +1480,7 @@ const Header = () => {
                               fill="none"
                             />
                           </svg>
-                          <span>Store</span>
+                          <span>My Store</span>
                         </a>
                       )}
                     </div>
