@@ -139,6 +139,8 @@ const ProfilePage = () => {
   const router = useRouter();
   const params = useParams();
   const profilePublicId = params.id as string;
+  const [showTaggedUsers, setShowTaggedUsers] = useState(false);
+  const tagMenuRef = React.useRef<HTMLDivElement | null>(null);
   const { session, status } = useDecryptedSession();
   const sessionPublicId = session?.user?.publicId;
   const [coverError, setCoverError] = useState(false);
@@ -609,6 +611,30 @@ const ProfilePage = () => {
       }
     };
 
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          tagMenuRef.current &&
+          !tagMenuRef.current.contains(event.target as Node)
+        ) {
+          setShowTaggedUsers(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleProfileClick = (publicId: string) => {
+      if (!session?.user?.id) {
+        router.push("/login");
+        return;
+      }
+
+      router.push(`/profile/${publicId}`);
+    };
+
     return (
       <div
         className="creator-content-card-container profile_card flex_card"
@@ -724,11 +750,6 @@ const ProfilePage = () => {
             ) : null}
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
-                {post?.collaborators?.length > 0 && (
-                  <div className="creator-media-card__stats-btn tag-icon">
-                    <AtSign size={24} fill="none" />
-                  </div>
-                )}
                 {isOwner && post.status === "pending_approval" && (
                   <div className="creator-media-card__stats-btn badge">
                     Pending
@@ -773,8 +794,41 @@ const ProfilePage = () => {
                 )}
               </div>
               <div className="creator-media-card__stats bottom">
-                <div className="creator-media-card__stats-btn tag-icon"><AtSign size={24} fill="none" /></div>
+                {post?.collaborators?.length > 0 && (
+                  <div
+                    className="creator-media-card__stats-btn tag-icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowTaggedUsers((prev) => !prev);
+                    }}
+                  >
+                    <AtSign size={24} fill="none" />
+                  </div>
+                )}
               </div>
+              {post?.collaborators?.length > 0 && showTaggedUsers && (
+                <div ref={tagMenuRef} className="user-dropdown">
+                  <ul>
+                    {post.collaborators.map((collab: any) => {
+                      const user = collab.user;
+
+                      return (
+                        <li
+                          key={user._id}
+                          onClick={() => handleProfileClick(user.publicId)}
+                        >
+                          <img
+                            src={user.profile}
+                            alt={user.userName}
+                            className="user_icons"
+                          />
+                          <span>@{user.userName}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
           <div className="creator-content-card__description">
