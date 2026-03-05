@@ -90,6 +90,7 @@ interface MediaItem {
   }>;
   creator: {
     _id: string;
+    publicId:string;
     displayName: string;
     userName: string;
   };
@@ -616,7 +617,7 @@ const PurchasedMediaPage: React.FC = () => {
                     <div className="pm-page-card-footer vdocard-footer">
                       <div className="profile-card">
                         <Link
-                          href={`/profile/${selectedItem.publicId}`}
+                         href={`/profile/${selectedItem.creator.publicId}`}
                           className="profile-card__main"
                         >
                           <div className="profile-card__avatar-settings">

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -30,6 +30,7 @@ export default function FeaturedContentSlider({
   const dispatch = useDispatch<AppDispatch>();
   const { session } = useDecryptedSession();
   const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const loggedInUserId = session?.user?.id;
   const [mediaErrors, setMediaErrors] = useState<Record<string, boolean>>({});
 
@@ -69,6 +70,21 @@ export default function FeaturedContentSlider({
     }
   };
 
+  const handleVideoHover = (video: HTMLVideoElement) => {
+    video.muted = true;
+    video.currentTime = 0;
+    video.play();
+
+    setTimeout(() => {
+      video.pause();
+      video.currentTime = 0;
+    }, 2500); // 2.5 sec preview
+  };
+
+  const handleVideoLeave = (video: HTMLVideoElement) => {
+    video.pause();
+    video.currentTime = 0;
+  };
   return (
     <Swiper
       modules={[Navigation]}
@@ -98,6 +114,8 @@ export default function FeaturedContentSlider({
                       muted
                       playsInline
                       preload="metadata"
+                      onMouseEnter={(e) => handleVideoHover(e.currentTarget)}
+                      onMouseLeave={(e) => handleVideoLeave(e.currentTarget)}
                       onError={() =>
                         setMediaErrors((prev) => ({
                           ...prev,

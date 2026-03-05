@@ -287,7 +287,6 @@ const ProfilePage = () => {
       queryClient.invalidateQueries({
         queryKey: ["creator-profile", profilePublicId],
       });
-
     } else {
       alert(res?.message || "Subscription failed");
     }
@@ -366,7 +365,6 @@ const ProfilePage = () => {
       queryClient.invalidateQueries({
         queryKey: ["creator-profile", profilePublicId],
       });
-
     } else {
       alert(res?.message || "Upgrade failed");
     }
@@ -529,7 +527,7 @@ const ProfilePage = () => {
       if (!postId) return;
 
       const confirm = await showQuestion(
-        "This action cannot be undone. Delete this post?"
+        "This action cannot be undone. Delete this post?",
       );
       if (!confirm) return;
 
@@ -550,14 +548,13 @@ const ProfilePage = () => {
                 ...oldData,
                 posts: oldData.posts.filter((p: any) => p._id !== postId),
               };
-            }
+            },
           );
 
           // optional safety refetch
           queryClient.invalidateQueries({
             queryKey: ["creator-posts"],
           });
-
         } else {
           showError(res?.message || "Failed to delete post");
         }
@@ -622,6 +619,24 @@ const ProfilePage = () => {
             className="creator-content-card__media"
             onClick={() => handlePostClick(post)}
           >
+            {isOwner && post.status === "pending_approval" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  left: "10px",
+                  background: "#f59e0b",
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  padding: "4px 8px",
+                  borderRadius: "6px",
+                  zIndex: 5,
+                }}
+              >
+                Pending
+              </div>
+            )}
             <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
