@@ -364,7 +364,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     <>
       <div className="moneyboy-post__container card">
         <div className="moneyboy-post__header">
-          <div className="profile-card" style={{ cursor: "pointer" }}>
+          <div className="profile-card">
             <div className="profile-card__main">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar" onClick={() => { handleProfileClick(post.creatorInfo?.publicId); }}>
@@ -514,9 +514,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           </div>
         </div>
         <div
-          className="moneyboy-post__desc"
+          className="moneyboy-post__desc pointer"
           onClick={handlePostRedirect}
-          style={{ cursor: "pointer" }}
         >
           {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>{post.text} {!expanded && (<span className="active-down-effect-2x post-more" onClick={() => setExpanded(true)}>more</span>)}</p> */}
           <p className="post-text">

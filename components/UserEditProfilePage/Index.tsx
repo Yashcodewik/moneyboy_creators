@@ -265,8 +265,7 @@ const UserEditProfilePage = () => {
 
                       <label
                         htmlFor="coverUpload"
-                        className="imgicons"
-                        style={{ cursor: "pointer" }}
+                        className="imgicons pointer"
                       >
                         <TbCamera size="16" />
                       </label>
@@ -303,8 +302,7 @@ const UserEditProfilePage = () => {
 
                                 <label
                                   htmlFor="profileUpload"
-                                  className="imgicons"
-                                  style={{ cursor: "pointer" }}
+                                  className="imgicons pointer"
                                 >
                                   <TbCamera size="16" />
                                 </label>

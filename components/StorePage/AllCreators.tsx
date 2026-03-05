@@ -390,7 +390,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                           </div>
                           <div className="creator-media-card__desc">
                             <h5 className="lineclamp1">{post.text}</h5>
-                            <p style={{ cursor: "pointer" }}  onClick={() => router.push(`/profile/${post.creatorInfo?.publicId}`)}>By {post.creatorInfo?.displayName}</p>
+                            <p className="pointer" onClick={() => router.push(`/profile/${post.creatorInfo?.publicId}`)}>By {post.creatorInfo?.displayName}</p>
                           </div>
                           <div className="creator-media-card__btn mt-auto">
                             {/* hide price for own post */}

@@ -1084,9 +1084,7 @@ const userIdParam = searchParams.get("id");
                         const basePath =
                           follow.role === 2 ? "profile" : "userprofile";
                         router.push(`/${basePath}/${follow.publicId}`);
-                      }}
-                      style={{ cursor: "pointer" }}
-                    >
+                      }}>
                       {follow.profileImage && !avatarErrorMap[follow._id] ? (
                         <img
                           src={follow.profileImage}
