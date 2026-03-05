@@ -648,7 +648,7 @@ const ProfilePage = () => {
             ) : null}
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
-                <div className="creator-media-card__stats-btn tag-icon"><AtSign size={24} fill="none" /></div>
+                {/* <div className="creator-media-card__stats-btn tag-icon"><AtSign size={24} fill="none" /></div> */}
                 {isOwner && post.status === "pending_approval" && (
                   <div className="creator-media-card__stats-btn badge">Pending</div>
                 )}
@@ -662,6 +662,9 @@ const ProfilePage = () => {
                     {/* <span> 13 </span> */}
                   </div>
                 )}
+              </div>
+              <div className="creator-media-card__stats bottom">
+                <div className="creator-media-card__stats-btn tag-icon"><AtSign size={24} fill="none" /></div>
               </div>
             </div>
           </div>

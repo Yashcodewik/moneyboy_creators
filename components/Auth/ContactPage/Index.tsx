@@ -241,10 +241,10 @@ const ContactPage = () => {
               <button type="submit" className="premium-btn" disabled={loading}>
                 {loading ? <span className="loader"></span> : <span>Send</span>}
               </button>
-            </form>
             <p>
               Official contact: <Link href="#">support@moneyboy.com</Link>
             </p>
+            </form>
             <p className="fs-18">
               Please don’t send sensitive data or personal content through this
               form.
