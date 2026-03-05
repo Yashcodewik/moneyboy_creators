@@ -300,95 +300,27 @@ const Header = () => {
 
               {session?.isAuthenticated ? (
                 <>
-                  <div className="header-navigation">
+                  <div className="header-navigation tooltip_wrapper">
                     <nav>
                       <ul>
                         <li className="message-btn">
-                          <Link
-                            href="#"
-                            className={`icon-link ${isMessagePage ? "active" : ""}`}
-                            onClick={handleMessage}
-                          >
-                            <svg
-                              className="svg-icon"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H12"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M15.2 4.62C14.87 3.63 15.26 2.41 16.34 2.07C16.9 1.9 17.6 2.04 18 2.57C18.38 2.02 19.1 1.9 19.66 2.07C20.74 2.4 21.13 3.63 20.8 4.62C20.29 6.19 18.5 7 18 7C17.5 7 15.73 6.2 15.2 4.62Z"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M15.9965 11H16.0054"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M11.9955 11H12.0045"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7.99451 11H8.00349"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
+                          <Link href="#" className={`icon-link ${isMessagePage ? "active" : ""}`} onClick={handleMessage} data-tooltip="Messages" data-position="bottom">
+                            <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                              <path d="M22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H12" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M15.2 4.62C14.87 3.63 15.26 2.41 16.34 2.07C16.9 1.9 17.6 2.04 18 2.57C18.38 2.02 19.1 1.9 19.66 2.07C20.74 2.4 21.13 3.63 20.8 4.62C20.29 6.19 18.5 7 18 7C17.5 7 15.73 6.2 15.2 4.62Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M15.9965 11H16.0054" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M11.9955 11H12.0045" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M7.99451 11H8.00349" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </Link>
                         </li>
                         <li className="noti-btn">
-                          <Link
-                            href="#"
-                            className={`icon-link ${isNotificationsPage ? "active" : ""}`}
-                            onClick={handleNotificationClick}
-                          >
-                            <svg
-                              className="svg-icon"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7 13H12"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M7 17H16"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M14 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V10"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
+                          <Link href="#" className={`icon-link ${isNotificationsPage ? "active" : ""}`} onClick={handleNotificationClick} data-tooltip="Notifications" data-position="bottom">
+                            <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                              <path d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M7 13H12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M7 17H16" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M14 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V10" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </Link>
                           {unreadCount > 0 && (
