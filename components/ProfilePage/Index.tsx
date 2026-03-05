@@ -772,6 +772,9 @@ const ProfilePage = () => {
                   </div>
                 )}
               </div>
+              <div className="creator-media-card__stats bottom">
+                <div className="creator-media-card__stats-btn tag-icon"><AtSign size={24} fill="none" /></div>
+              </div>
             </div>
           </div>
           <div className="creator-content-card__description">
