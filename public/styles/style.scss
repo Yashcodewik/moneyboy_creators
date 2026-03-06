@@ -875,6 +875,7 @@ body {
         gap: 10px;
         display: grid;
         li {
+          cursor: pointer;
           z-index: 3;
           background: #f9f9f9;
           border: 1.5px solid #ebebeb;

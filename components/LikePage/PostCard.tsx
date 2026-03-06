@@ -683,11 +683,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             </Swiper>
             {/* <img src="/images/post-images/post-img-6.jpg" alt="MoneyBoy Post Image"/> */}
           </div>
-          <div className="moneyboy-post__actions">
+          <div className="moneyboy-post__actions tooltip_wrapper">
             <ul>
               <li>
-                <Link
-                  href="#"
+                <Link href="#" data-tooltip="Send Tip"
                   onClick={(e) => {
                     e.preventDefault();
                     setShowTipModal(true);
@@ -742,8 +741,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
 
               <li>
-                <Link
-                  href="#"
+                <Link href="#" data-tooltip="Like"
                   className={`post-like-btn ${post.isLiked ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
@@ -770,8 +768,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
 
               <li>
-                <Link
-                  href="#"
+                <Link href="#" data-tooltip="Comment"
                   onClick={(e) => {
                     e.preventDefault();
                     setShowComment((prev) => {
@@ -819,8 +816,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             </ul>
             <ul>
               <li>
-                <Link
-                  href="#"
+                <Link href="#" data-tooltip="Report"
                   className={isReported ? "active" : ""}
                   onClick={(e) => {
                     e.preventDefault();
@@ -858,8 +854,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
 
               <li>
-                <Link
-                  href="#"
+                <Link href="#" data-tooltip="Wishlist"
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();

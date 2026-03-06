@@ -1187,7 +1187,7 @@ const ProfilePage = () => {
                             href="#"
                             onClick={handleSaveCreator}
                             className={`save-btn ${isSaved ? "active" : ""}`}
-                            data-tooltip="Save profile"
+                            data-tooltip="Wishlist"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

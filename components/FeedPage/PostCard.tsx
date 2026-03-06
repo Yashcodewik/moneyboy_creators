@@ -364,7 +364,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       <div className="moneyboy-post__container card">
         <div className="moneyboy-post__header">
           <div className="profile-card">
-            <div className="profile-card__main">
+            <div className="profile-card__main pointer">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar" onClick={() => { handleProfileClick(post.creatorInfo?.publicId); }}>
                   {post.creatorInfo?.profile && !avatarErrorMap[post.creatorInfo.publicId] ? (
@@ -590,8 +590,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             <ul>
               {/* Send Tip */}
               <li>
-                <Link
-                  href="#" data-tooltip="Send Tip"
+                <Link href="#" data-tooltip="Send Tip"
                   onClick={(e) => {
                     e.preventDefault();
                     if (!session?.user?.id) {
@@ -770,7 +769,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
               {/* Save */}
               <li>
-                <Link data-tooltip="Save"
+                <Link data-tooltip="Wishlist"
                   href="#"
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {
