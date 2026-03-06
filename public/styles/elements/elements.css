@@ -152,32 +152,17 @@
    - Used for actions where the background needs to be flat but the text is vibrant.
    - Achieves gradient text effect using background-clip and text-fill-color properties.
 */
-@keyframes shimmer {
-  0%   { transform: translateX(-150%) skewX(-20deg); }
-  100% { transform: translateX(150%) skewX(-20deg); }
-}
 
-  .btn-txt-gradient {
+.btn-txt-gradient {
     position: relative;
     overflow: hidden;
-    > * {
-      position: relative;
-      z-index: 2;
+
+    >* {
+        position: relative;
+        z-index: 2;
     }
-    &.shimmer::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 60%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-      background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.45) 50%, transparent 80%);
-      transform: translateX(-150%) skewX(-20deg);
-      animation: shimmer 1.4s linear infinite;
-    }
-  }
+}
+
 .btn-txt-gradient {
     background: #000;
     border: none;
@@ -284,29 +269,8 @@
    - Uses multiple pseudo-elements (::before, ::after) to create a layered, "premium" look.
    - Includes a specific variant for a 'store' context.
 */
-@keyframes premiumShimmer {
-  0%   { transform: translateX(-150%) skewX(-20deg); }
-  100% { transform: translateX(150%) skewX(-20deg); }
-}
 
 .premium-btn {
-    &.shimmer {
-        overflow: hidden;
-        &::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 55%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 3;
-          background: linear-gradient( 120deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%);
-          transform: translateX(-150%) skewX(-20deg);
-          animation: premiumShimmer 1.6s linear infinite;
-          mix-blend-mode: screen;
-        }
-      }
 
     /* Store Button Variant */
     &.store-btn {
@@ -374,21 +338,7 @@
             transform: scale(.975);
         }
     }
-    &.store-btn.shimmer {
 
-        &::before {
-          z-index: 3;
-          background: linear-gradient(
-            120deg,
-            transparent 20%,
-            rgba(255,255,255,0.35) 50%,
-            transparent 80%
-          );
-          animation: premiumShimmer 1.6s linear infinite;
-          mix-blend-mode: screen;
-        }
-      
-      }
 
     /* Base Premium Button Styling */
     background: linear-gradient(103.7deg, #FECE26 4.76%, #E5741F 118.16%);
@@ -641,35 +591,35 @@
             font-weight: 500;
             font-size: 13px;
             color: #444444;
-    
+
             &.multi-select {
-              display: flex;
-              align-items: center;
-              flex-wrap: wrap;
-              gap: 6px;
-    
-              .multitext {
-                display: inline-flex;
+                display: flex;
                 align-items: center;
+                flex-wrap: wrap;
                 gap: 6px;
-                padding: 2px 5px;
-                background-color: #eeeeee;
-                border-radius: 6px;
-                font-size: 12px;
-    
-                .multi-remove {
-                  display: inline-flex;
-                  align-items: center;
-                  cursor: pointer;
-    
-                  svg {
-                    width: 14px;
-                    height: 14px;
-                  }
+
+                .multitext {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 2px 5px;
+                    background-color: #eeeeee;
+                    border-radius: 6px;
+                    font-size: 12px;
+
+                    .multi-remove {
+                        display: inline-flex;
+                        align-items: center;
+                        cursor: pointer;
+
+                        svg {
+                            width: 14px;
+                            height: 14px;
+                        }
+                    }
                 }
-              }
             }
-          }
+        }
 
         .custom-select-chevron {
             display: flex;

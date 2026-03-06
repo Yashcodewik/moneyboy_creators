@@ -1,16 +1,4 @@
-import {
-  ChartNoAxesCombined,
-  ChevronLeft,
-  ChevronRight,
-  CircleArrowLeft,
-  CircleArrowRight,
-  FlameIcon,
-  Image,
-  PlayCircle,
-  Sparkle,
-  Sparkles,
-  Video,
-} from "lucide-react";
+import { ChartNoAxesCombined, ChevronLeft, ChevronRight, CircleArrowLeft, CircleArrowRight, FlameIcon, Image, PlayCircle, Sparkle, Sparkles, Video, } from "lucide-react";
 import React, { useRef, useState } from "react";
 import CustomSelect from "../CustomSelect";
 import Link from "next/link";
@@ -126,39 +114,15 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
     return (
       <div className="pagination_wrap">
-        {/* Prev */}
-        <button
-          className="btn-prev"
-          disabled={page === 1}
-          onClick={() => handlePageChange(page - 1)}
-        >
-          <CircleArrowLeft color="#000" />
-        </button>
-
+        <button className="btn-prev" disabled={page === 1} onClick={() => handlePageChange(page - 1)}><CircleArrowLeft color="#000" /></button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <button key={i} className="premium-btn" disabled>
-              <span>…</span>
-            </button>
+            <button key={i} className="premium-btn" disabled><span>…</span></button>
           ) : (
-            <button
-              key={i}
-              className={page === p ? "premium-btn" : "btn-primary"}
-              onClick={() => handlePageChange(p as number)}
-            >
-              <span>{p}</span>
-            </button>
+            <button key={i} className={page === p ? "premium-btn" : "btn-primary"} onClick={() => handlePageChange(p as number)}><span>{p}</span></button>
           ),
         )}
-
-        {/* Next */}
-        <button
-          className="btn-next"
-          disabled={page === totalPages}
-          onClick={() => handlePageChange(page + 1)}
-        >
-          <CircleArrowRight color="#000" />
-        </button>
+        <button className="btn-next" disabled={page === totalPages} onClick={() => handlePageChange(page + 1)}><CircleArrowRight color="#000" /></button>
       </div>
     );
   };
@@ -179,7 +143,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
     player.muted = true;
     player.currentTime = 0;
-    player.play().catch(() => {});
+    player.play().catch(() => { });
   };
 
   const stopPreview = (id: string) => {
@@ -205,255 +169,136 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
     <div>
       <div className="tabs-content-wrapper-layout">
         <div data-multi-dem-cards-layout>
-          <div
-            className="creator-content-filter-grid-container"
-            data-multiple-tabs-section
-          >
+          <div className="creator-content-filter-grid-container" data-multiple-tabs-section>
             <div className="filters-card-wrapper card">
               <div className="search-features-grid-btns has-multi-tabs-btns">
                 <div className="creator-content-search-input">
                   <div className="label-input">
                     <div className="input-placeholder-icon">
-                      <svg
-                        className="svg-icon"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14 5H20"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14 8H17"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                      <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Search by creator or price..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
+                    <input type="text" placeholder="Search by creator or price..." value={search} onChange={(e) => setSearch(e.target.value)} />
                   </div>
                 </div>
                 <div className="creater-content-filters-layouts gap-5">
                   <div className="creator-content-select-filter">
-                    <CustomSelect
-                      className="bg-white p-sm size-sm"
-                      label="Filter By"
-                      searchable={false}
+                    <CustomSelect className="bg-white p-sm size-sm" label="Filter By" searchable={false}
                       options={[
                         { label: "All", value: "" },
                         { label: "Subscriber", value: "subscriber" },
                         { label: "Pay Per View", value: "pay_per_view" },
-                      ]}
-                      onChange={(option: any) => {
-                        console.log("FILTER CHANGED:", option);
-                        setFilter(option);
-                      }}
-                    />
+                      ]} onChange={(option: any) => { console.log("FILTER CHANGED:", option); setFilter(option); }} />
                   </div>
                   <div className="creator-content-select-filter">
-                    <CustomSelect
-                      className="bg-white p-sm size-sm"
-                      label="Sort By"
-                      searchable={false}
+                    <CustomSelect className="bg-white p-sm size-sm" label="Sort By" searchable={false}
                       options={[
                         { label: "All", value: "" },
                         { label: "Price Low → High", value: "price_low" },
                         { label: "Price High → Low", value: "price_high" },
                       ]}
-                      onChange={(option: any) => {
-                        console.log("SORT CHANGED:", option);
-                        setSort(option);
-                      }}
+                      onChange={(option: any) => { console.log("SORT CHANGED:", option); setSort(option); }}
                     />
                   </div>
                 </div>
               </div>
               <div className="creator-content-tabs-btn-wrapper">
                 <div className="multi-tabs-action-buttons">
-                  <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "trending" ? "active" : ""
-                    }`}
-                    onClick={() => setSubActiveTab("trending")}
-                  >
-                    <ChartNoAxesCombined size={18} /> <span>Trending</span>
-                  </button>
-
-                  <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "new" ? "active" : ""
-                    }`}
-                    onClick={() => setSubActiveTab("new")}
-                  >
-                    <Sparkles size={18} /> <span>New</span>
-                  </button>
-
-                  <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "photos" ? "active" : ""
-                    }`}
-                    onClick={() => setSubActiveTab("photos")}
-                  >
-                    <Image size={18} /> <span>Photos</span>
-                  </button>
-
-                  <button
-                    className={`multi-tab-switch-btn ${
-                      subActiveTab === "videos" ? "active" : ""
-                    }`}
-                    onClick={() => setSubActiveTab("videos")}
-                  >
-                    <Video size={18} />
-                    <span>Videos</span>
-                  </button>
+                  <button className={`multi-tab-switch-btn ${subActiveTab === "trending" ? "active" : ""}`} onClick={() => setSubActiveTab("trending")}><ChartNoAxesCombined size={18} /> <span>Trending</span></button>
+                  <button className={`multi-tab-switch-btn ${subActiveTab === "new" ? "active" : ""}`} onClick={() => setSubActiveTab("new")}><Sparkles size={18} /> <span>New</span></button>
+                  <button className={`multi-tab-switch-btn ${subActiveTab === "photos" ? "active" : ""}`} onClick={() => setSubActiveTab("photos")}><Image size={18} /> <span>Photos</span></button>
+                  <button className={`multi-tab-switch-btn ${subActiveTab === "videos" ? "active" : ""}`} onClick={() => setSubActiveTab("videos")}><Video size={18} /> <span>Videos</span></button>
                 </div>
               </div>
             </div>
-            <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout">
+            <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card">
               <div className="creator-content-type-container-wrapper">
                 {loadingPaidContentFeed && (
                   <div className="loadingtext">
                     {"Loading".split("").map((char, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          animationDelay: `${(i + 1) * 0.1}s`,
-                        }}
-                      >
-                        {char}
-                      </span>
+                      <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s`, }}>{char}</span>
                     ))}
                   </div>
                 )}
 
                 <div className="col-4-cards-layout">
-                  {!loadingPaidContentFeed &&
-                    paidContentFeed.map((post) => {const isOwnPost = post.creatorInfo?._id === loggedInUserId;
-                      return (
-                        <div className="creator-media-card card" key={post._id}>
-                          <div className="creator-media-card__media-wrapper">
-                            <div className="creator-media-card__media">
-                              {post.media?.type === "photo" ? (
-                                <img alt="Post Image" src={post.media?.mediaFiles?.[0]}/>
-                              ) : (
-                                <video ref={(el) => {if (el) playersRef.current[post._id] = el;}} src={post.media?.mediaFiles?.[0]} muted loop playsInline/>
-                                // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
-                                //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
-                                // </div>
+                  {!loadingPaidContentFeed && paidContentFeed.map((post) => {
+                    const isOwnPost = post.creatorInfo?._id === loggedInUserId;
+                    return (
+                      <div className="creator-media-card card" key={post._id}>
+                        <div className="creator-media-card__media-wrapper">
+                          <div className="creator-media-card__media">
+                            {post.media?.type === "photo" ? (
+                              <img alt="Post Image" src={post.media?.mediaFiles?.[0]} />
+                            ) : (
+                              <video ref={(el) => { if (el) playersRef.current[post._id] = el; }} src={post.media?.mediaFiles?.[0]} muted loop playsInline />
+                              // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
+                              //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
+                              // </div>
+                            )}
+                            {post.media?.type === "video" && (
+                              <Link href="#" className="ply_btn">
+                                <PlayCircle strokeWidth={1} size={32} />
+                              </Link>
+                            )}
+                          </div>
+                          <div className="creator-media-card__overlay">
+                            <div className="creator-media-card__stats">
+                              {subActiveTab === "trending" && (
+                                <div className="creator-media-card__stats-btn">
+                                  <FlameIcon />
+                                  <span> Trending </span>
+                                </div>
                               )}
-
-                              {post.media?.type === "video" && (
-                                <Link href="#" className="ply_btn">
-                                  <PlayCircle strokeWidth={1} size={32} />
-                                </Link>
+                              {subActiveTab === "new" && (
+                                <div className="creator-media-card__stats-btn">
+                                  <Sparkle fill="none" stroke="white" />
+                                  <span> New </span>
+                                </div>
                               )}
                             </div>
-                            <div className="creator-media-card__overlay">
-                              <div className="creator-media-card__stats">
-                                {subActiveTab === "trending" && (
-                                  <div className="creator-media-card__stats-btn">
-                                    <FlameIcon />
-                                    <span> Trending </span>
-                                  </div>
-                                )}
-                                {subActiveTab === "new" && (
-                                  <div className="creator-media-card__stats-btn">
-                                    <Sparkle fill="none" stroke="white" />
-                                    <span> New </span>
-                                  </div>
-                                )}
+                          </div>
+                        </div>
+                        <div className="creator-media-card__desc">
+                          <h5 className="lineclamp1">{post.text}</h5>
+                          <div className="profile-card">
+                            <Link href="#" className="profile-card__main">
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  <img src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg" alt="MoneyBoy Social Profile Avatar" />
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          <div className="creator-media-card__desc">
-                            <h5 className="lineclamp1">{post.text}</h5>
-                            <p className="pointer" onClick={() => router.push(`/profile/${post.creatorInfo?.publicId}`)}>By {post.creatorInfo?.displayName}</p>
-                          </div>
-                          <div className="creator-media-card__btn mt-auto">
-                            {/* hide price for own post */}
-                            {!isOwnPost &&
-                              post.accessType === "pay_per_view" &&
-                              post.isUnlocked !== true && (
-                                <h5>
-                                  From <span>${post.price}</span>
-                                </h5>
-                              )}
-                            <Link
-                              href="#"
-                              className={`btn-txt-gradient shimmer btn-outline ${
-                                isOwnPost ? "opacity-50 cursor-not-allowed" : ""
-                              }`}
-                              onClick={(e) => {
-                                e.preventDefault();
-
-                                // 🚫 stop if own post
-                                if (isOwnPost) return;
-
-                                // already has access → open content
-                                if (
-                                  (post.accessType === "subscriber" &&
-                                    post.isSubscribed) ||
-                                  (post.accessType === "pay_per_view" &&
-                                    post.isUnlocked)
-                                ) {
-                                  router.push(
-                                    `/purchased-media?publicId=${post.publicId}`,
-                                  );
-                                  return;
-                                }
-
-                                // unlock PPV
-                                if (post.accessType === "pay_per_view") {
-                                  onUnlock(post);
-                                  return;
-                                }
-
-                                // subscribe
-                                if (post.accessType === "subscriber") {
-                                  onSubscribe(post);
-                                  return;
-                                }
-                              }}
-                            >
-                              <span>
-                                {isOwnPost
-                                  ? "Your Post"
-                                  : post.accessType === "subscriber"
-                                    ? post.isSubscribed
-                                      ? "Subscribed"
-                                      : "Subscribe"
-                                    : post.isUnlocked
-                                      ? "Purchased"
-                                      : "Buy"}
-                              </span>
+                              <div className="profile-card__info">
+                                <div className="profile-card__name-badge">
+                                  <div className="profile-card__name">{post.creatorInfo?.displayName}</div>
+                                  <div className="profile-card__badge">
+                                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                                  </div>
+                                  <div className="tagview">
+                                    <ul className="taglist">
+                                      <li><img className="user_icons" alt="zony090" src="https://res.cloudinary.com/drhj03nvv/image/upload/v1771829114/profile/1771829114539-cropped.jpg.jpg" /></li>
+                                      <li><img className="user_icons" alt="zony090" src="https://res.cloudinary.com/drhj03nvv/image/upload/v1768558818/posts/696a10e1e8d7d4fddb05ebd1/1768558817444-post-img-14.jpg.jpg" /></li>
+                                      <li className="more-count">+1</li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
                             </Link>
                           </div>
                         </div>
-                      );
-                    })}
+                        <div className="creator-media-card__btn mt-auto">
+                          {!isOwnPost && post.accessType === "pay_per_view" && post.isUnlocked !== true && (<h5>From <span>${post.price}</span></h5>)}
+                          <Link href="#" className={`btn-txt-gradient shimmer btn-outline ${isOwnPost ? "opacity-50 cursor-not-allowed" : ""}`} onClick={(e) => { e.preventDefault(); if (isOwnPost) return; if ((post.accessType === "subscriber" && post.isSubscribed) || (post.accessType === "pay_per_view" && post.isUnlocked)) { router.push(`/purchased-media?publicId=${post.publicId}`,); return; } if (post.accessType === "pay_per_view") { onUnlock(post); return; } if (post.accessType === "subscriber") { onSubscribe(post); return; } }}>
+                            <span>{isOwnPost ? "Your Post" : post.accessType === "subscriber" ? post.isSubscribed ? "Subscribed" : "Subscribe" : post.isUnlocked ? "Purchased" : "Buy"}</span>
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
                 {renderPagination()}
               </div>
