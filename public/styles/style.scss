@@ -4756,6 +4756,7 @@ body {
   }
   /* ========== Mobile Screen Size ========== */
   @media screen and (max-width: 767px) {
+    padding: 0px;
     .title {
       letter-spacing: 0.7px;
       .icons {
