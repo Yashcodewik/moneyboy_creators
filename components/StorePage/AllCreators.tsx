@@ -434,6 +434,9 @@
                                     muted
                                     loop
                                     playsInline
+                                    onMouseEnter={() => playPreview(post._id)}
+  onMouseLeave={() => stopPreview(post._id)}
+
                                   />
                                   // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
                                   //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
