@@ -130,3 +130,53 @@
          span {}
      }
  }
+
+
+ /* iPhone / iOS Safari only */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 560px) {
+    /* ---------- INPUT FIX (prevents Safari zoom) ---------- */
+    .label-input {
+      border-radius: 12px;
+      height: 40px;
+      .input-placeholder-icon {
+        svg {
+          width: 15px;
+          height: 15px;
+        }
+      }
+      input {
+        height: 40px;
+        min-height: 40px;
+        max-height: 40px;
+        /* iOS Safari zoom fix */
+        font-size: 16px !important;
+        line-height: 1.4;
+        padding: 0 5px 0 32px;
+        overflow: hidden;
+      }
+      input::placeholder {
+        font-size: 16px !important;
+      }
+    }
+    /* ---------- CUSTOM SELECT ---------- */
+    .custom-select-element {
+      .custom-select-label-wrapper {
+        .custom-select-icon-txt span {
+          font-size: 12px;
+        }
+      }
+      .custom-select-options-dropdown-wrapper {
+        .custom-select-options-dropdown-container {
+          .custom-select-options-lists-container {
+            .custom-select-options-list {
+              .custom-select-option span {
+                font-size: 12px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
