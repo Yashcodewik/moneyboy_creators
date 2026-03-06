@@ -2479,6 +2479,7 @@ body {
       height: calc(100vh - 157px);
       max-height: calc(100vh - 157px);
       .cont_wrap {
+        padding: 10px;
         min-height: calc(100vh - 157px);
         overflow-y: auto;
         align-items: start;
