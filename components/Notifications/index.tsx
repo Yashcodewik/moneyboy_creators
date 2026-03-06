@@ -4,7 +4,11 @@ import Featuredboys from "../Featuredboys";
 import { BadgeCheck, Check, CircleX, Clock, Eye, X } from "lucide-react";
 import { CgClose } from "react-icons/cg";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_APPROVE_POST, API_GET_NOTIFICATIONS, API_REJECT_POST, } from "@/utils/api/APIConstant";
+import {
+  API_APPROVE_POST,
+  API_GET_NOTIFICATIONS,
+  API_REJECT_POST,
+} from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
 import FlipClockCountdown from "@leenguyen/react-flip-clock-countdown";
 import "@leenguyen/react-flip-clock-countdown/dist/index.css";
@@ -13,7 +17,7 @@ import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { showAcceptPostConsent, showDeclineReason, } from "@/utils/alert";
+import { showAcceptPostConsent, showDeclineReason } from "@/utils/alert";
 import { useRouter } from "next/navigation";
 import socket from "@/libs/socket";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
@@ -25,6 +29,7 @@ const NotificationPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [countdownTo, setCountdownTo] = useState<number>(Date.now());
+  const [isExpired, setIsExpired] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -41,7 +46,9 @@ const NotificationPage = () => {
           socket.emit("markNotificationsRead");
         } else {
           setNotifications((prev) => {
-            const map = new Map([...prev, ...newData].map((item) => [item._id, item]));
+            const map = new Map(
+              [...prev, ...newData].map((item) => [item._id, item]),
+            );
             return Array.from(map.values());
           });
         }
@@ -87,8 +94,8 @@ const NotificationPage = () => {
         prev.map((n) =>
           n._id === noti._id
             ? { ...n, postTag: { ...n.postTag, myStatus: "approved" } }
-            : n
-        )
+            : n,
+        ),
       );
 
       setShowModal(false);
@@ -109,8 +116,8 @@ const NotificationPage = () => {
         prev.map((n) =>
           n._id === noti._id
             ? { ...n, postTag: { ...n.postTag, myStatus: "rejected" } }
-            : n
-        )
+            : n,
+        ),
       );
 
       setShowModal(false);
@@ -122,6 +129,16 @@ const NotificationPage = () => {
     router.push(`/profile/${publicId}`);
   };
 
+  // useEffect(() => {
+  //   if (!selectedPost?.createdAt) return;
+
+  //   const created = new Date(selectedPost.createdAt).getTime();
+  //   const expiry = created + 24 * 60 * 60 * 1000;
+  //   const now = Date.now();
+
+  //   setCountdownTo(expiry <= now ? now + 1000 : expiry);
+  // }, [selectedPost]);
+
   useEffect(() => {
     if (!selectedPost?.createdAt) return;
 
@@ -130,8 +147,8 @@ const NotificationPage = () => {
     const now = Date.now();
 
     setCountdownTo(expiry <= now ? now + 1000 : expiry);
+    setIsExpired(now >= expiry);
   }, [selectedPost]);
-
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -148,33 +165,94 @@ const NotificationPage = () => {
                   )} */}
                 </div>
               </div>
-              <div id="feed-scroll-container" className="moneyboy-posts-scroll-container noti-list-wrapper">
-                <InfiniteScrollWrapper dataLength={notifications.length} fetchMore={fetchMoreNotifications} hasMore={hasMore} scrollableTarget="feed-scroll-container">
+              <div
+                id="feed-scroll-container"
+                className="moneyboy-posts-scroll-container noti-list-wrapper"
+              >
+                <InfiniteScrollWrapper
+                  dataLength={notifications.length}
+                  fetchMore={fetchMoreNotifications}
+                  hasMore={hasMore}
+                  scrollableTarget="feed-scroll-container"
+                >
                   {notifications.map((noti) => (
                     <div className="noti-item" key={noti._id}>
-                      <div className="noti-item--icon" onClick={() => goToProfile(noti.senderId?.publicId || noti.postTag?.taggedBy?.publicId)}>
-                        <img src={noti.senderId?.profile || "/images/logo/black-logo-square.png"} alt="profile" onError={(e: any) => { e.currentTarget.src = "/images/logo/black-logo-square.png" }} />
+                      <div
+                        className="noti-item--icon"
+                        onClick={() =>
+                          goToProfile(
+                            noti.senderId?.publicId ||
+                              noti.postTag?.taggedBy?.publicId,
+                          )
+                        }
+                      >
+                        <img
+                          src={
+                            noti.senderId?.profile ||
+                            "/images/logo/black-logo-square.png"
+                          }
+                          alt="profile"
+                          onError={(e: any) => {
+                            e.currentTarget.src =
+                              "/images/logo/black-logo-square.png";
+                          }}
+                        />
                       </div>
                       <div className="noti-details-container">
                         <div className="noti-title-time-wrapper">
                           <div className="noti-title">
-                            <h4>@{noti.senderId?.userName} {noti.title}</h4>
+                            <h4>
+                              @{noti.senderId?.userName} {noti.title}
+                            </h4>
                           </div>
-                          <div className="noti-time"><span>{formatTime(noti.createdAt)}</span></div>
+                          <div className="noti-time">
+                            <span>{formatTime(noti.createdAt)}</span>
+                          </div>
                           {noti.postPreview && (
                             <div className="noti-more-actions iconbtn btntooltip_wrapper">
-                              <button className="btn-gray viewbtn" data-tooltip="View Details" onClick={() => { setSelectedPost(noti); setShowModal(true); }}><Eye size={16} /></button>
-                              {noti.postTag?.myStatus === "pending" && (
-                                <>
-                                  <button className="btn-gray acceptbtn" data-tooltip="Accept" onClick={() => handleAcceptPost(noti)}> <Check size={16} /></button>
-                                  <button className="btn-gray declinebtn" data-tooltip="Decline" onClick={() => handleRejectPost(noti)}><X size={16} /></button>
-                                </>
-                              )}
+                              <button
+                                className="btn-gray viewbtn"
+                                data-tooltip="View Details"
+                                onClick={() => {
+                                  setSelectedPost(noti);
+                                  setShowModal(true);
+                                }}
+                              >
+                                <Eye size={16} />
+                              </button>
+                              {noti.postTag?.myStatus === "pending" &&
+                                Date.now() <
+                                  new Date(noti.createdAt).getTime() +
+                                    24 * 60 * 60 * 1000 && (
+                                  <>
+                                    <button
+                                      className="btn-gray acceptbtn"
+                                      data-tooltip="Accept"
+                                      onClick={() => handleAcceptPost(noti)}
+                                    >
+                                      {" "}
+                                      <Check size={16} />
+                                    </button>
+                                    <button
+                                      className="btn-gray declinebtn"
+                                      data-tooltip="Decline"
+                                      onClick={() => handleRejectPost(noti)}
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </>
+                                )}
                             </div>
                           )}
                         </div>
                         <div className="noti-desc">
-                          <p> {noti.type === 3 && "Review this collaboration request and choose to accept or decline."} {noti.type === 4 && "Collaboration response received."}</p>
+                          <p>
+                            {" "}
+                            {noti.type === 3 &&
+                              "Review this collaboration request and choose to accept or decline."}{" "}
+                            {noti.type === 4 &&
+                              "Collaboration response received."}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -191,13 +269,30 @@ const NotificationPage = () => {
       {showModal && (
         <div className="modal show" role="dialog" aria-modal="true">
           <form className="modal-wrap notipost-modal">
-            <button type="button" className="close-btn" onClick={() => setShowModal(false)}><CgClose size={22} /></button>
+            <button
+              type="button"
+              className="close-btn"
+              onClick={() => setShowModal(false)}
+            >
+              <CgClose size={22} />
+            </button>
             <h3 className="title">Post Details</h3>
             <div className="post_wrap">
               {/* POST IMAGES */}
               <div className="img_wrap">
-                <Swiper modules={[Navigation, Pagination, Autoplay]} spaceBetween={20} slidesPerView={1} navigation={selectedPost?.postPreview?.media?.length > 1} pagination={{ clickable: true, }}
-                  autoplay={selectedPost?.postPreview?.media?.length > 1 ? { delay: 3000 } : false} loop={selectedPost?.postPreview?.media?.length > 1}>
+                <Swiper
+                  modules={[Navigation, Pagination, Autoplay]}
+                  spaceBetween={20}
+                  slidesPerView={1}
+                  navigation={selectedPost?.postPreview?.media?.length > 1}
+                  pagination={{ clickable: true }}
+                  autoplay={
+                    selectedPost?.postPreview?.media?.length > 1
+                      ? { delay: 3000 }
+                      : false
+                  }
+                  loop={selectedPost?.postPreview?.media?.length > 1}
+                >
                   {selectedPost?.postPreview?.media?.length > 0 &&
                     selectedPost.postPreview.media.map(
                       (mediaUrl: string, i: number) => (
@@ -220,34 +315,63 @@ const NotificationPage = () => {
                   <div className="right_box">
                     {selectedPost?.postPreview?.accessType ===
                       "pay_per_view" && (
-                        <span className="premium-btn"><span>{selectedPost?.postTag?.myPercentage ?? 0}%</span></span>
-                      )}
+                      <span className="premium-btn">
+                        <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
+                      </span>
+                    )}
                     {selectedPost?.postPreview?.accessType === "subscriber" && (
-                      <span className="premium-btn success"><span>Subscription</span></span>
+                      <span className="premium-btn success">
+                        <span>Subscription</span>
+                      </span>
                     )}
                     {selectedPost?.postPreview?.accessType === "free" && (
-                      <span className="premium-btn gray"><span>Free</span></span>
+                      <span className="premium-btn gray">
+                        <span>Free</span>
+                      </span>
                     )}
                   </div>
                 </div>
                 <p>{selectedPost?.postPreview?.text}</p>
                 <ul>
                   {selectedPost?.postTag?.taggedBy && (
-                    <li key={selectedPost.postTag.taggedBy._id} onClick={() => goToProfile(selectedPost.postTag.taggedBy?.publicId)}>
-                      <img src={selectedPost.postTag.taggedBy.profile || "/images/logo/black-logo-square.png"} alt="Profile Avatar" className="user_icons" />
+                    <li
+                      key={selectedPost.postTag.taggedBy._id}
+                      onClick={() =>
+                        goToProfile(selectedPost.postTag.taggedBy?.publicId)
+                      }
+                    >
+                      <img
+                        src={
+                          selectedPost.postTag.taggedBy.profile ||
+                          "/images/logo/black-logo-square.png"
+                        }
+                        alt="Profile Avatar"
+                        className="user_icons"
+                      />
                       <span>@{selectedPost.postTag.taggedBy.userName}</span>
                     </li>
                   )}
                   {selectedPost?.postTag?.taggedUsers?.map((u: any) => (
-                    <li key={u.user._id} onClick={() => goToProfile(u.user?.publicId)} >
-                      <img src={u.user.profile || "/images/logo/black-logo-square.png"} alt="Profile Avatar" className="user_icons" />
+                    <li
+                      key={u.user._id}
+                      onClick={() => goToProfile(u.user?.publicId)}
+                    >
+                      <img
+                        src={
+                          u.user.profile || "/images/logo/black-logo-square.png"
+                        }
+                        alt="Profile Avatar"
+                        className="user_icons"
+                      />
                       <span>@{u.user.userName}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
-            <div className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}>
+            <div
+              className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}
+            >
               {selectedPost?.postTag?.myStatus === "approved" && (
                 <div className="head">
                   <h3>Post Approved</h3> <BadgeCheck />
@@ -267,8 +391,15 @@ const NotificationPage = () => {
               )}
               {selectedPost?.postTag?.myStatus === "pending" && (
                 <>
-                  <div className="head">{" "} <h3>Collaboration Request Pending</h3> <Clock /></div>
-                  <p className="pending_text">You have been tagged in this post and invited to collaborate. Please review the content and choose to accept or decline before the deadline.</p>
+                  <div className="head">
+                    {" "}
+                    <h3>Collaboration Request Pending</h3> <Clock />
+                  </div>
+                  <p className="pending_text">
+                    You have been tagged in this post and invited to
+                    collaborate. Please review the content and choose to accept
+                    or decline before the deadline.
+                  </p>
                 </>
               )}
             </div>
@@ -276,15 +407,35 @@ const NotificationPage = () => {
             {selectedPost?.postTag?.myStatus === "pending" && (
               <div className="timer_wrap mt-3">
                 <p>Response Deadline</p>
-                <FlipClockCountdown key={countdownTo} to={countdownTo} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>
+                <FlipClockCountdown
+                  key={countdownTo}
+                  to={countdownTo}
+                  labels={["", "", "", ""]}
+                  renderMap={[false, true, true, true]}
+                  showSeparators={true}
+                  labelStyle={{ display: "none" }}
+                  digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}
+                >
                   Finished
                 </FlipClockCountdown>
               </div>
             )}
-            {selectedPost?.postTag?.myStatus === "pending" && (
+            {selectedPost?.postTag?.myStatus === "pending" && !isExpired && (
               <div className="actions">
-                <button type="button" className="btn-danger active-down-effect" onClick={() => handleRejectPost(selectedPost)}>Decline</button>
-                <button type="button" className="premium-btn active-down-effect" onClick={() => handleAcceptPost(selectedPost)}><span>Accept</span></button>
+                <button
+                  type="button"
+                  className="btn-danger active-down-effect"
+                  onClick={() => handleRejectPost(selectedPost)}
+                >
+                  Decline
+                </button>
+                <button
+                  type="button"
+                  className="premium-btn active-down-effect"
+                  onClick={() => handleAcceptPost(selectedPost)}
+                >
+                  <span>Accept</span>
+                </button>
               </div>
             )}
           </form>
