@@ -164,6 +164,7 @@ const ProfilePage = () => {
   const [profileStats, setProfileStats] = useState({
     followerCount: 0,
     followingCount: 0,
+    postCount: 0,
   });
 
   const dispatch = useDispatch<AppDispatch>();
@@ -204,6 +205,7 @@ const ProfilePage = () => {
       setProfileStats({
         followerCount: profile.followerCount || 0,
         followingCount: profile.followingCount || 0,
+        postCount: profile.postCount || 0,
       });
     }
   }, [profile]);
@@ -499,6 +501,12 @@ const ProfilePage = () => {
 
     const hasMedia = Boolean(realMedia);
     const handlePostClick = (post: any) => {
+      if (
+        post.status === "pending_approval" ||
+        post.status === "creator_approval_pending"
+      ) {
+        return;
+      }
       // OWNER viewing own content
       if (isOwner) {
         router.push(`/post?page&publicId=${post.publicId}`);
@@ -755,11 +763,13 @@ const ProfilePage = () => {
             ) : null}
             <div className="creator-media-card__overlay">
               <div className="creator-media-card__stats">
-                {isOwner && post.status === "pending_approval" && (
-                  <div className="creator-media-card__stats-btn badge">
-                    Pending
-                  </div>
-                )}
+                {isOwner &&
+                  (post.status === "pending_approval" ||
+                    post.status === "creator_approval_pending") && (
+                    <div className="creator-media-card__stats-btn badge">
+                      Pending
+                    </div>
+                  )}
                 {!isOwnProfile && !hideSaveBtn && (
                   <div
                     className={`creator-media-card__stats-btn wishlist-icon ${isPostSaved ? "active" : ""}`}
@@ -1522,7 +1532,7 @@ const ProfilePage = () => {
                         onClick={() => setActiveTab("posts")}
                       >
                         <div className="profile-card__stats-num">
-                          {postCount.toLocaleString()}
+                          {profileStats.postCount.toLocaleString()}
                         </div>
                         <div className="profile-card__stats-label">
                           <svg
