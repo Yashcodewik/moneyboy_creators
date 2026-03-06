@@ -15,6 +15,20 @@ interface Creator {
   publicId: string;
   profile?: string;
 }
+interface TaggedUser {
+  user: {
+    _id: string;
+    userName: string;
+    displayName?: string;
+    publicId: string;
+    profile?: string;
+  };
+}
+
+interface Collaboration {
+  taggedBy?: any;
+  taggedUsers?: TaggedUser[] | null;
+}
 
 interface PaidPost {
   _id: string;
@@ -29,6 +43,7 @@ interface PaidPost {
   isSaved?: boolean;
   creatorInfo: Creator;
   publicId: string;
+  collaboration?: Collaboration;
 }
 
 interface FeaturedPost extends PaidPost {
