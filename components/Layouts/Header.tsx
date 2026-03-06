@@ -68,76 +68,85 @@ const Header = () => {
 
   const isNotificationsPage = pathname === "/notifications";
   const isMessagePage = pathname === "/message";
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!session?.isAuthenticated) {
-        setProfileLoading(false);
-        return;
+useEffect(() => {
+  const fetchUserProfile = async () => {
+    if (!session?.isAuthenticated) {
+      setProfileLoading(false);
+      return;
+    }
+
+    const publicId = session?.user?.publicId;
+
+    if (!publicId) {
+      console.error("Public ID missing in session");
+      setProfileLoading(false);
+      return;
+    }
+
+    try {
+      setProfileLoading(true);
+
+      let apiUrl = `${API_USER_PROFILE}/${publicId}`;
+
+      if (session?.user?.role === 2) {
+        apiUrl = API_CREATOR_PROFILE;
       }
 
-      try {
-        setProfileLoading(true);
-        let apiUrl = API_USER_PROFILE;
+      const response = await getApiWithOutQuery({ url: apiUrl });
+
+      console.log("Profile API Response:", response);
+
+      if (response) {
+        let userData;
 
         if (session?.user?.role === 2) {
-          apiUrl = API_CREATOR_PROFILE;
-        }
+          if (response.user) {
+            userData = {
+              displayName: response.user.displayName,
+              username: response.user.userName,
+              firstName: response.user.firstName,
+              lastName: response.user.lastName,
+              email: response.user.email,
+              profile: response.user.profile,
 
-        const response = await getApiWithOutQuery({ url: apiUrl });
-
-        console.log("Profile API Response:", response);
-
-        if (response) {
-          let userData;
-
-          if (session?.user?.role === 2) {
-            if (response.user) {
-              userData = {
-                displayName: response.user.displayName,
-                username: response.user.userName,
-                firstName: response.user.firstName,
-                lastName: response.user.lastName,
-                email: response.user.email,
-                profile: response.user.profile,
-
-                walletBalance: response.user?.walletBalance ?? 0,
-                totalSubscribers: response.totalSubscribers ?? 0,
-                totalSubscriptions: response.totalSubscriptions ?? 0,
-                totalSpent: response.summary?.totalSpent ?? 0,
-                totalEarned: response.summary?.totalEarned ?? 0,
-              };
-            }
-          } else {
-            if (response.success && response.data) {
-              userData = {
-                displayName: response.data.displayName,
-                username: response.data.userName,
-                firstName: response.data.firstName,
-                lastName: response.data.lastName,
-                email: response.data.email,
-                profile: response.data.profile,
-
-                walletBalance: response.user?.walletBalance ?? 0,
-                totalSubscribers: response.totalSubscribers ?? 0,
-                totalSubscriptions: response.totalSubscriptions ?? 0,
-                totalSpent: response.summary?.totalSpent ?? 0,
-              };
-            }
+              walletBalance: response.user?.walletBalance ?? 0,
+              totalSubscribers: response.totalSubscribers ?? 0,
+              totalSubscriptions: response.totalSubscriptions ?? 0,
+              totalSpent: response.summary?.totalSpent ?? 0,
+              totalEarned: response.summary?.totalEarned ?? 0,
+            };
           }
+        } else {
+          if (response.success && response.data) {
+            userData = {
+              displayName: response.data.displayName,
+              username: response.data.userName,
+              firstName: response.data.firstName,
+              lastName: response.data.lastName,
+              email: response.data.email,
+              profile: response.data.profile,
 
-          if (userData) {
-            setUserProfile(userData);
+              walletBalance: response.user?.walletBalance ?? 0,
+              totalSubscribers: response.totalSubscribers ?? 0,
+              totalSubscriptions: response.totalSubscriptions ?? 0,
+              totalSpent: response.summary?.totalSpent ?? 0,
+            };
           }
         }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setProfileLoading(false);
+
+        if (userData) {
+          setUserProfile(userData);
+        }
       }
-    };
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
-    fetchUserProfile();
-  }, [session?.isAuthenticated, session?.user?.role]);
+  fetchUserProfile();
+}, [session?.isAuthenticated, session?.user?.role, session?.user?.publicId]);
   const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);

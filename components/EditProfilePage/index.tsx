@@ -77,14 +77,18 @@ const EditProfilePage = () => {
     fetchProfile();
   }, []);
 
-  const fetchProfile = async () => {
-    const res = await getApiWithOutQuery({ url: API_CREATOR_PROFILE_INFO });
+const fetchProfile = async () => {
+  const res = await getApiWithOutQuery({ url: API_CREATOR_PROFILE_INFO });
 
-    if (res?.user && res?.creator) {
-      const merged = { ...res.user, ...res.creator };
-      setFormData(merged);
-    }
-  };
+  if (res?.user) {
+    const merged = {
+      ...res.user,
+      ...(res.creator || {}), // handles null creator
+    };
+
+    setFormData(merged);
+  }
+};
 
   const formik = useFormik({
     initialValues: {
