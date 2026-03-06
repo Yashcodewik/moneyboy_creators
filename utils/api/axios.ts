@@ -39,7 +39,7 @@ defaultAxios.interceptors.response.use(
     ) {
       ShowToast(error.response?.data?.message || "Network error", "error");
       await signOut({ redirect: false });
-      // window.location.href = "/";
+      window.location.href = "/";
     }
     return Promise.reject(error);
   }

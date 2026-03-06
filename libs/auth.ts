@@ -96,7 +96,7 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
       version: "2.0",
       authorization: {
         params: {
-          scope: "users.read tweet.read",
+          scope: "users.read tweet.read users.email"
         },
       },
     }),
@@ -126,6 +126,9 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
           user,
         );
 
+       if (!user?.email) {
+  user.email = `${account.providerAccountId}@twitter.oauth`;
+}
         const accessToken = existingToken?.accessToken as string | undefined;
         try {
           let res;
