@@ -22,6 +22,7 @@ import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { showError, showSuccess } from "@/utils/alert";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -52,29 +53,51 @@ const UserEditProfilePage = () => {
     confirmPassword: "",
   });
 
+  const { session } = useDecryptedSession();
+
   useEffect(() => {
-    setLoading(true);
     const fetchProfile = async () => {
-      const res = await getApiWithOutQuery({ url: API_USER_PROFILE });
-      setLoading(false);
-      if (res.success) {
-        setUserProfile(res.data);
-        setFormData({
-          firstName: res.data.firstName,
-          lastName: res.data.lastName,
-          displayName: res.data.displayName,
-          userName: res.data.userName,
-          gender: res.data.gender,
-          dob: res.data.dob,
-          country: res.data.country,
-          city: res.data.city,
-          bio: res.data.bio,
-          email: res.data.email,
+      if (!session?.isAuthenticated) return;
+
+      const publicId = session?.user?.publicId;
+
+      if (!publicId) {
+        console.error("Public ID missing in session");
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const res = await getApiWithOutQuery({
+          url: `${API_USER_PROFILE}/${publicId}`,
         });
+
+        if (res?.success) {
+          setUserProfile(res.data);
+
+          setFormData({
+            firstName: res.data.firstName,
+            lastName: res.data.lastName,
+            displayName: res.data.displayName,
+            userName: res.data.userName,
+            gender: res.data.gender,
+            dob: res.data.dob,
+            country: res.data.country,
+            city: res.data.city,
+            bio: res.data.bio,
+            email: res.data.email,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchProfile();
-  }, []);
+  }, [session?.isAuthenticated, session?.user?.publicId]);
 
   const handleUpdateProfile = async () => {
     const payload = new FormData();
@@ -103,7 +126,7 @@ const UserEditProfilePage = () => {
         showSuccess("Profile updated successfully");
       }
     } catch (error: any) {
-     showError(error?.error || "Failed to update profile");
+      showError(error?.error || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -240,14 +263,13 @@ const UserEditProfilePage = () => {
                 <>
                   <div className="creator-profile-card-container card">
                     <div className="creator-profile-banner">
-                      {userProfile?.coverImage ? (
+                      {coverFile ? (
                         <img
-                          src={userProfile.coverImage}
-                          alt="MoneyBoy Social Profile Avatar"
-                          onError={(e) => {
-                            <NoProfileSvg />;
-                          }}
+                          src={URL.createObjectURL(coverFile)}
+                          alt="cover preview"
                         />
+                      ) : userProfile?.coverImage ? (
+                        <img src={userProfile.coverImage} alt="cover" />
                       ) : (
                         <NoProfileSvg />
                       )}
@@ -263,10 +285,7 @@ const UserEditProfilePage = () => {
                         }}
                       />
 
-                      <label
-                        htmlFor="coverUpload"
-                        className="imgicons pointer"
-                      >
+                      <label htmlFor="coverUpload" className="imgicons pointer">
                         <TbCamera size="16" />
                       </label>
                     </div>
@@ -277,13 +296,15 @@ const UserEditProfilePage = () => {
                           <div className="profile-card__main">
                             <div className="profile-card__avatar-settings">
                               <div className="profile-card__avatar">
-                                {userProfile?.profile ? (
+                                {profileFile ? (
+                                  <img
+                                    src={URL.createObjectURL(profileFile)}
+                                    alt="profile preview"
+                                  />
+                                ) : userProfile?.profile ? (
                                   <img
                                     src={userProfile.profile}
-                                    alt="MoneyBoy Social Profile Avatar"
-                                    onError={(e) => {
-                                      <NoProfileSvg />;
-                                    }}
+                                    alt="profile"
                                   />
                                 ) : (
                                   <NoProfileSvg />

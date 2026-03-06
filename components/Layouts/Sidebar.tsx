@@ -78,73 +78,89 @@ const Sidebar: React.FC = () => {
     router.push(href);
   };
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      if (!session?.isAuthenticated) {
-        setProfileLoading(false);
-        return;
+useEffect(() => {
+  const fetchAllData = async () => {
+    if (!session?.isAuthenticated) {
+      setProfileLoading(false);
+      return;
+    }
+
+    const publicId = session?.user?.publicId;
+
+    if (!publicId) {
+      console.error("Public ID missing in session");
+      setProfileLoading(false);
+      return;
+    }
+
+    try {
+      setProfileLoading(true);
+
+      let apiUrl = `${API_USER_PROFILE}/${publicId}`;
+
+      if (session?.user?.role === 2) {
+        apiUrl =API_CREATOR_PROFILE;;
       }
 
-      try {
-        setProfileLoading(true);
-        let apiUrl = API_USER_PROFILE;
+      const profileResponse = await getApiWithOutQuery({ url: apiUrl });
+
+      if (profileResponse) {
+        let userData;
 
         if (session?.user?.role === 2) {
-          apiUrl = API_CREATOR_PROFILE;
-        }
-
-        const profileResponse = await getApiWithOutQuery({ url: apiUrl });
-
-        if (profileResponse) {
-          let userData;
-          if (session?.user?.role === 2) {
-            if (profileResponse.user) {
-              userData = {
-                displayName: profileResponse.user.displayName,
-                username: profileResponse.user.userName,
-                firstName: profileResponse.user.firstName,
-                lastName: profileResponse.user.lastName,
-                email: profileResponse.user.email,
-                profile: profileResponse.user.profile,
-              };
-            }
-          } else {
-            if (profileResponse.success && profileResponse.data) {
-              userData = {
-                displayName: profileResponse.data.displayName,
-                username: profileResponse.data.userName,
-                firstName: profileResponse.data.firstName,
-                lastName: profileResponse.data.lastName,
-                email: profileResponse.data.email,
-                profile: profileResponse.data.profile,
-              };
-            }
+          if (profileResponse.user) {
+            userData = {
+              displayName: profileResponse.user.displayName,
+              username: profileResponse.user.userName,
+              firstName: profileResponse.user.firstName,
+              lastName: profileResponse.user.lastName,
+              email: profileResponse.user.email,
+              profile: profileResponse.user.profile,
+            };
           }
-          if (userData) setUserProfile(userData);
+        } else {
+          if (profileResponse.success && profileResponse.data) {
+            userData = {
+              displayName: profileResponse.data.displayName,
+              username: profileResponse.data.userName,
+              firstName: profileResponse.data.firstName,
+              lastName: profileResponse.data.lastName,
+              email: profileResponse.data.email,
+              profile: profileResponse.data.profile,
+            };
+          }
         }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setProfileLoading(false);
+
+        if (userData) setUserProfile(userData);
       }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
 
-      try {
-        const countsResponse = await getApiWithOutQuery({
-          url: API_FOLLOWER_COUNT,
-        });
-        if (countsResponse?.success && countsResponse.data) {
-          setPostCount(countsResponse.data.postCount || 0); // <-- set posts
-        }
-      } catch (err) {
-        console.error("Error fetching counts:", err);
+    try {
+      const countsResponse = await getApiWithOutQuery({
+        url: API_FOLLOWER_COUNT,
+      });
+
+      if (countsResponse?.success && countsResponse.data) {
+        setPostCount(countsResponse.data.postCount || 0);
       }
+    } catch (err) {
+      console.error("Error fetching counts:", err);
+    }
 
-      // Fetch follower counts FROM REDUX
-      dispatch(fetchFollowerCounts());
-    };
+    dispatch(fetchFollowerCounts());
+  };
 
-    fetchAllData();
-  }, [session?.isAuthenticated, session?.user?.role, dispatch]);
+  fetchAllData();
+}, [
+  session?.isAuthenticated,
+  session?.user?.role,
+  session?.user?.publicId,
+  dispatch,
+]);
 
   const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();

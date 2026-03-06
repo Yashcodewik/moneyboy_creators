@@ -158,6 +158,12 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
             user.accessToken = res.token;
             user.publicId = res.user.publicId;
             user.role = res.user.role;
+            user.firstName = res.user.firstName;
+            user.lastName = res.user.lastName;
+            user.displayName = res.user.displayName;
+            user.userName = res.user.userName;
+            user.profile = res.user.profile;
+            user.coverImage = res.user.coverImage;
             return true;
           }
 
@@ -189,6 +195,15 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
             user.accessToken = res.token;
             user.publicId = res.user.publicId;
             user.role = res.user.role;
+
+            // 🔥 ADD THESE LINES
+            user.firstName = res.user.firstName;
+            user.lastName = res.user.lastName;
+            user.displayName = res.user.displayName;
+            user.userName = res.user.userName;
+            user.email = res.user.email;
+            user.profile = res.user.profile;
+            user.coverImage = res.user.coverImage;
           }
 
           return true;
