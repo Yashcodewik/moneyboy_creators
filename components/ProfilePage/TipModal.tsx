@@ -21,8 +21,10 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
     },
     validationSchema: Yup.object({
       amount: Yup.number()
+        .typeError("Amount must be a number")
         .required("Amount is required")
-        .min(1, "Tip amount must be at least $1"),
+        .min(1, "Tip amount must be at least $1")
+        .max(999, "Maximum tip amount is $999"),
     }),
     onSubmit: async (values) => {
       await onConfirm(Number(values.amount));
@@ -111,7 +113,14 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
               placeholder="Amount ($)"
               name="amount"
               value={formik.values.amount}
-              onChange={formik.handleChange}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                // allow only up to 3 digits
+                if (value.length <= 3) {
+                  formik.setFieldValue("amount", value);
+                }
+              }}
               onBlur={formik.handleBlur}
             />
             {formik.touched.amount && formik.errors.amount && (

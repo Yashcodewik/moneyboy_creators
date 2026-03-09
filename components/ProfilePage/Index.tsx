@@ -692,7 +692,8 @@ const ProfilePage = () => {
             (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
-                onClick={() => {
+                onClick={(e) => {
+                   e.stopPropagation();
                   if (!session?.isAuthenticated) {
                     router.push("/login");
                     return;
@@ -784,7 +785,8 @@ const ProfilePage = () => {
                 )}
               </div>
             ) : null}
-            <div className="creator-media-card__overlay">
+            <div className="creator-media-card__overlay"
+            onClick={(e) => e.stopPropagation()} >
               <div className="creator-media-card__stats">
                 {isOwner &&
                   (post.status === "pending_approval" ||

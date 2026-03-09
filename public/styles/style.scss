@@ -7390,6 +7390,9 @@ body {
           }
         }
       }
+      .content-locked-label {
+        z-index: 3;
+      }
       .creator-media-card__overlay {
         position: absolute;
         top: 12px;
@@ -7539,6 +7542,7 @@ body {
           max-height: 82%;
           display: flex;
           flex-direction: column;
+          z-index: 0;
           .creator-media-card__stats.bottom {
             margin-top: auto;
           }
