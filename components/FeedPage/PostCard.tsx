@@ -16,7 +16,7 @@ import "plyr-react/plyr.css";
 interface PostCardProps {
   post: any;
   onLike: (postId: string) => void;
-  onSave: (postId: string, isSaved: boolean) => void;
+  onSave: (post: any) => void;
   onCommentAdded?: (postId: string) => void;
 }
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -772,10 +772,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 <Link data-tooltip="Wishlist"
                   href="#"
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onSave(post._id, post.isSaved);
-                  }}
+                 onClick={(e) => {
+  e.preventDefault();
+  onSave(post);
+}}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

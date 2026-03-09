@@ -6,6 +6,9 @@ import {
 } from "@/utils/api/APIConstant";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 
+/* ✅ NEW IMPORT */
+import { savePost, unsavePost } from "../other/savedPostsSlice";
+
 interface FeedPostsState {
   posts: Record<string, any>;
   feedPage: number;
@@ -44,16 +47,15 @@ export const fetchFeedPosts = createAsyncThunk(
       values: { userId, page, limit },
     });
 
-   const posts = res?.posts || [];
+    const posts = res?.posts || [];
 
-return {
-  posts,
-  page: res.page,
-  total: res.total,
-  totalPages: res.totalPages,
-  source: "feed",
-};
-
+    return {
+      posts,
+      page: res.page,
+      total: res.total,
+      totalPages: res.totalPages,
+      source: "feed",
+    };
   }
 );
 
@@ -146,21 +148,20 @@ const feedPostsSlice = createSlice({
         state.loading = true;
       })
 
-     .addCase(fetchFeedPosts.fulfilled, (state, action) => {
-      state.loading = false;
+      .addCase(fetchFeedPosts.fulfilled, (state, action) => {
+        state.loading = false;
 
-      action.payload.posts.forEach((post: any) => {
-        state.posts[post._id] = {
-          ...post,
-          source: "feed",
-        };
-      });
+        action.payload.posts.forEach((post: any) => {
+          state.posts[post._id] = {
+            ...post,
+            source: "feed",
+          };
+        });
 
-      state.feedPage = action.payload.page;
-      state.totalFeed = action.payload.total;
-      state.totalPagesFeed = action.payload.totalPages;
-    })
-
+        state.feedPage = action.payload.page;
+        state.totalFeed = action.payload.total;
+        state.totalPagesFeed = action.payload.totalPages;
+      })
 
       .addCase(fetchFollowingPosts.fulfilled, (state, action) => {
         action.payload.posts.forEach((post: any) => {
@@ -184,6 +185,28 @@ const feedPostsSlice = createSlice({
 
         state.popularPage = action.payload.page;
         state.hasMorePopular = action.payload.hasMore;
+      })
+
+      /* ✅ NEW: HANDLE SAVE CREATOR POSTS */
+      .addCase(savePost.fulfilled, (state, action: any) => {
+        const { creatorUserId } = action.meta.arg;
+
+        Object.values(state.posts).forEach((post: any) => {
+          if (post.creatorInfo?._id === creatorUserId) {
+            post.isSaved = true;
+          }
+        });
+      })
+
+      /* ✅ NEW: HANDLE UNSAVE CREATOR POSTS */
+      .addCase(unsavePost.fulfilled, (state, action: any) => {
+        const { creatorUserId } = action.meta.arg;
+
+        Object.values(state.posts).forEach((post: any) => {
+          if (post.creatorInfo?._id === creatorUserId) {
+            post.isSaved = false;
+          }
+        });
       })
 
       .addCase(fetchFeedPosts.rejected, (state, action) => {

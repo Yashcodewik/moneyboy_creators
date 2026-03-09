@@ -86,18 +86,18 @@ const savedFreeCreatorsSlice = createSlice({
     },
 
     /* 🔥 Optimistic toggle (used if needed) */
-    updateSavedFreeCreatorState(
-      state,
-      action: PayloadAction<{ creatorUserId: string; isSaved: boolean }>
-    ) {
-      const creator = state.creators.find(
-        (c) => c.creatorUserId === action.payload.creatorUserId
-      );
+updateSavedFreeCreatorState(
+  state,
+  action: PayloadAction<{ creatorUserId: string; isSaved: boolean }>
+) {
+  const { creatorUserId, isSaved } = action.payload;
 
-      if (creator) {
-        creator.isSaved = action.payload.isSaved;
-      }
-    },
+  state.creators = state.creators.map((creator) =>
+    creator.creatorUserId === creatorUserId
+      ? { ...creator, isSaved }
+      : creator
+  );
+},
 
     /* 🔥 Optimistic REMOVE (instant UI) */
     removeSavedFreeCreator(

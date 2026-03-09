@@ -320,7 +320,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     <>
       <div className="moneyboy-post__container card">
         <div className="moneyboy-post__header">
-          <div className="profile-card" onClick={() => handleProfileClick(post.creatorInfo?.publicId)}>
+          <div
+            className="profile-card"
+            onClick={() => handleProfileClick(post.creatorInfo?.publicId)}
+          >
             <div className="profile-card__main">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar">
@@ -387,10 +390,27 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                       <li><Link href="" className="taglink">@sam</Link></li>
                   </ul> */}
                   {post.taggedCreators?.length > 0 && (
-                    <button type="button" ref={tagButtonRef} className="active-down-effect" onClick={() => setShowTaggedUsers(prev => !prev)}>
+                    <button
+                      type="button"
+                      ref={tagButtonRef}
+                      className="active-down-effect"
+                      onClick={() => setShowTaggedUsers((prev) => !prev)}
+                    >
                       <ul className="taglist">
-                        {post.taggedCreators.slice(0, 3).map((user: any) => (<li key={user._id}><img src={user.profile} className="user_icons" alt={user.userName} /></li>))}
-                        {post.taggedCreators.length > 3 && (<li className="more-count">+{post.taggedCreators.length - 3}</li>)}
+                        {post.taggedCreators.slice(0, 3).map((user: any) => (
+                          <li key={user._id}>
+                            <img
+                              src={user.profile}
+                              className="user_icons"
+                              alt={user.userName}
+                            />
+                          </li>
+                        ))}
+                        {post.taggedCreators.length > 3 && (
+                          <li className="more-count">
+                            +{post.taggedCreators.length - 3}
+                          </li>
+                        )}
                       </ul>
                     </button>
                   )}
@@ -473,9 +493,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           </div>
         </div>
 
-        <div className="moneyboy-post__desc"
-          onClick={handlePostRedirect}
-        >
+        <div className="moneyboy-post__desc" onClick={handlePostRedirect}>
           {/* <p className={`post-text ${expanded ? "expanded" : ""}`}>
               {post.text}{" "}
               {!expanded && (
@@ -686,7 +704,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           <div className="moneyboy-post__actions tooltip_wrapper">
             <ul>
               <li>
-                <Link href="#" data-tooltip="Send Tip"
+                <Link
+                  href="#"
+                  data-tooltip="Send Tip"
                   onClick={(e) => {
                     e.preventDefault();
                     setShowTipModal(true);
@@ -741,7 +761,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
 
               <li>
-                <Link href="#" data-tooltip="Like"
+                <Link
+                  href="#"
+                  data-tooltip="Like"
                   className={`post-like-btn ${post.isLiked ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
@@ -768,7 +790,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
 
               <li>
-                <Link href="#" data-tooltip="Comment"
+                <Link
+                  href="#"
+                  data-tooltip="Comment"
                   onClick={(e) => {
                     e.preventDefault();
                     setShowComment((prev) => {
@@ -816,7 +840,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             </ul>
             <ul>
               <li>
-                <Link href="#" data-tooltip="Report"
+                <Link
+                  href="#"
+                  data-tooltip="Report"
                   className={isReported ? "active" : ""}
                   onClick={(e) => {
                     e.preventDefault();
@@ -854,11 +880,21 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
 
               <li>
-                <Link href="#" data-tooltip="Wishlist"
-                  className={`post-save-btn ${post.isSaved ? "active" : ""}`}
-                  onClick={(e) => {
+                <Link
+                  href="#"
+                  data-tooltip="Wishlist"
+                  className={`post-save-btn ${saved ? "active" : ""}`}
+                  onClick={async (e) => {
                     e.preventDefault();
-                    onSave(post._id, post.isSaved);
+
+                    const newValue = !saved;
+                    setSaved(newValue); // instant UI update
+
+                    try {
+                      await onSave(post._id, saved);
+                    } catch {
+                      setSaved(!newValue); // revert if API fails
+                    }
                   }}
                 >
                   <svg
