@@ -297,26 +297,30 @@ const UserProfilepage = () => {
 
   /* ================= SAVE / UNSAVE ================= */
 
-  const handleSave = async (postId: string, isSaved: boolean) => {
-    if (!isLoggedIn) return router.push("/login");
-    if (saveLoading[postId]) return;
+const handleSave = async (post: any) => {
+  if (!isLoggedIn) return router.push("/login");
 
-    setSaveLoading((p) => ({ ...p, [postId]: true }));
+  const postId = post._id;
+  const isSaved = post.isSaved;
 
-    dispatch(updateFeedPost({ postId, data: { isSaved: !isSaved } }));
+  if (saveLoading[postId]) return;
 
-    try {
-      if (isSaved) {
-        await dispatch(unsavePost({ postId })).unwrap();
-      } else {
-        await dispatch(savePost({ postId })).unwrap();
-      }
-    } catch {
-      dispatch(updateFeedPost({ postId, data: { isSaved } }));
-    } finally {
-      setSaveLoading((p) => ({ ...p, [postId]: false }));
+  setSaveLoading((p) => ({ ...p, [postId]: true }));
+
+  dispatch(updateFeedPost({ postId, data: { isSaved: !isSaved } }));
+
+  try {
+    if (isSaved) {
+      await dispatch(unsavePost({ postId })).unwrap();
+    } else {
+      await dispatch(savePost({ postId })).unwrap();
     }
-  };
+  } catch {
+    dispatch(updateFeedPost({ postId, data: { isSaved } }));
+  } finally {
+    setSaveLoading((p) => ({ ...p, [postId]: false }));
+  }
+};
 
   /* ================= COMMENTS ================= */
 
