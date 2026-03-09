@@ -400,6 +400,7 @@ const UserEditProfilePage = () => {
                                   userName: e.target.value,
                                 })
                               }
+                              disabled
                             />
                           </div>
 

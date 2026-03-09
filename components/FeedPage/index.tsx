@@ -187,26 +187,57 @@ const FeedPage = () => {
   };
 
   /* ================= SAVE / UNSAVE ================= */
-  const handleSave = async (postId: string, isSaved: boolean) => {
-    if (!isLoggedIn) return router.push("/login");
-    if (saveLoading[postId]) return;
+const handleSave = async (post: any) => {
+  if (!isLoggedIn) return router.push("/login");
 
-    setSaveLoading((p) => ({ ...p, [postId]: true }));
+  const postId = post._id;
+  const creatorUserId = post.userId;
+  const isSaved = post.isSaved;
 
-    dispatch(updateFeedPost({ postId, data: { isSaved: !isSaved } }));
+  if (saveLoading[postId]) return;
 
-    try {
-      if (isSaved) {
-        await dispatch(unsavePost({ postId })).unwrap();
-      } else {
-        await dispatch(savePost({ postId })).unwrap();
-      }
-    } catch {
-      dispatch(updateFeedPost({ postId, data: { isSaved } }));
-    } finally {
-      setSaveLoading((p) => ({ ...p, [postId]: false }));
+  setSaveLoading((p) => ({ ...p, [postId]: true }));
+
+  const nextState = !isSaved;
+
+  // update all posts from this creator
+  Object.values(posts).forEach((p: any) => {
+    if (p.userId === creatorUserId) {
+      dispatch(
+        updateFeedPost({
+          postId: p._id,
+          data: { isSaved: nextState },
+        })
+      );
     }
-  };
+  });
+
+  try {
+    if (nextState) {
+      await dispatch(
+        savePost({ creatorUserId })
+      ).unwrap();
+    } else {
+      await dispatch(
+        unsavePost({ creatorUserId })
+      ).unwrap();
+    }
+  } catch {
+    // rollback
+    Object.values(posts).forEach((p: any) => {
+      if (p.userId === creatorUserId) {
+        dispatch(
+          updateFeedPost({
+            postId: p._id,
+            data: { isSaved },
+          })
+        );
+      }
+    });
+  }
+
+  setSaveLoading((p) => ({ ...p, [postId]: false }));
+};
 
   /* ================= COMMENTS ================= */
   const incrementCommentCount = (postId: string) => {

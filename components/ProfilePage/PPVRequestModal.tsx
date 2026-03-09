@@ -6,6 +6,22 @@ import { apiPost } from "@/utils/endpoints/common";
 import { useState } from "react";
 import { API_CREATE_PPV_REQUEST } from "@/utils/api/APIConstant";
 import { CircleDollarSign } from "lucide-react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+
+const validationSchema = Yup.object({
+  requestType: Yup.string().required("Request type is required"),
+
+  description: Yup.string()
+    .min(10, "Description must be at least 10 characters")
+    .required("Description is required"),
+
+  offerPrice: Yup.number()
+    .typeError("Price must be a number")
+    .min(20, "Minimum price is 20$")
+    .required("Price is required"),
+});
+
 interface PPVRequestModalProps {
   onClose: () => void;
   creator: {
@@ -16,7 +32,6 @@ interface PPVRequestModalProps {
   };
   post: any;
   onSuccess: (payload: { amount: number; threadPublicId: string }) => void;
-
 }
 const PPVRequestModal = ({
   onClose,
@@ -30,41 +45,43 @@ const PPVRequestModal = ({
   const [requestType, setRequestType] = useState<"VIDEO" | "PHOTO">("VIDEO");
   const [file, setFile] = useState<File | null>(null);
 
-  const handleSendRequest = async () => {
-    if (!offerPrice || offerPrice < 20) {
-      // alert("Minimum request price is 20€");
-      return;
-    }
+  const formik = useFormik({
+    initialValues: {
+      requestType: "VIDEO",
+      description: "",
+      offerPrice: "",
+    },
 
-    setLoading(true);
+    validationSchema,
 
-    const formData = new FormData();
-    // formData.append("postId", post._id);
-    formData.append("creatorId", creator.userId);
-    formData.append("type", requestType);
-    formData.append("price", offerPrice.toString());
-    formData.append("description", description);
+    onSubmit: async (values) => {
+      setLoading(true);
 
-    if (file) {
-      formData.append("file", file);
-    }
+      const formData = new FormData();
+      formData.append("creatorId", creator.userId);
+      formData.append("type", values.requestType);
+      formData.append("price", values.offerPrice.toString());
+      formData.append("description", values.description);
 
-    const res = await apiPost({
-      url: API_CREATE_PPV_REQUEST,
-      values: formData,
-    });
+      if (file) {
+        formData.append("file", file);
+      }
 
-    setLoading(false);
+      const res = await apiPost({
+        url: API_CREATE_PPV_REQUEST,
+        values: formData,
+      });
 
-    if (res?.success) {
-      onSuccess({
-    amount: offerPrice as number,
-    threadPublicId: res.threadPublicId,
+      setLoading(false);
+
+      if (res?.success) {
+        onSuccess({
+          amount: Number(values.offerPrice),
+          threadPublicId: res.threadPublicId,
+        });
+      }
+    },
   });
-    } else {
-      // alert(res?.message || "Failed to send PPV request");
-    }
-  };
 
   return (
     <>
@@ -151,23 +168,31 @@ const PPVRequestModal = ({
             <CustomSelect
               searchable={false}
               label="Request type"
-              value={requestType}
-              onChange={(value) => setRequestType(value as "VIDEO" | "PHOTO")}
+              value={formik.values.requestType}
+              onChange={(value) => formik.setFieldValue("requestType", value)}
               options={[
                 { label: "Video", value: "VIDEO" },
                 { label: "Photo", value: "PHOTO" },
               ]}
             />
+            {formik.touched.requestType && formik.errors.requestType && (
+              <span className="error-message">{formik.errors.requestType}</span>
+            )}
           </div>
           <div>
-            <label>Request type</label>
+            <label>Desctiption</label>
             <textarea
               rows={3}
               placeholder="Describe what you’d like (tone, outfit, duration, etc.)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={formik.values.description}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              name="description"
             />
           </div>
+          {formik.touched.description && formik.errors.description && (
+            <span className="error-message">{formik.errors.description}</span>
+          )}
           <div>
             <label>Upload reference file</label>
 
@@ -200,18 +225,23 @@ const PPVRequestModal = ({
               className="form-input"
               type="number"
               placeholder="20.00"
-              value={offerPrice}
-              onChange={(e) => setOfferPrice(Number(e.target.value))}
+              value={formik.values.offerPrice}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              name="offerPrice"
             />
           </div>
+          {formik.touched.offerPrice && formik.errors.offerPrice && (
+            <span className="error-message">{formik.errors.offerPrice}</span>
+          )}
           <div className="">
-            <p className="boldblack">Minimum request price: 20$</p>
+            {/* <p className="boldblack">Minimum request price: 20$</p> */}
             <p>Final price will be confirmed by the creator before payment.</p>
           </div>
           <div className="actions">
             <button
               className="premium-btn active-down-effect"
-              onClick={handleSendRequest}
+              onClick={() => formik.handleSubmit()}
               disabled={loading}
             >
               <span>{loading ? "Sending..." : "Send Request"}</span>

@@ -152,7 +152,7 @@ const ProfilePage = () => {
   const [avatarError, setAvatarError] = useState(false);
 
   const copyProfileLink = async () => {
-    const profileLink = `${window.location.origin}/profile/${profilePublicId}`;
+    const profileLink = `${window.location.origin}/profile/${profile?.user?.publicId}`;
     try {
       await navigator.clipboard.writeText(profileLink);
       toast.success("Profile link copied!");
@@ -472,6 +472,10 @@ const ProfilePage = () => {
 
   const PostCard = ({ post }: { post: any }) => {
     const isOwner = session?.user?.publicId === profile?.user?.publicId;
+    const sessionUserId = session?.user?.id;
+    const isTaggedUser = post?.collaborators?.some(
+      (collab: any) => collab?.user?._id === sessionUserId,
+    );
 
     // const isSubscribed =
     //   !!profile?.subscriptionStatus?.isSubscribed;
@@ -492,7 +496,11 @@ const ProfilePage = () => {
     const canViewPPVPost = isPPVPost && post.isUnlocked;
 
     const canViewContent =
-      isOwner || isFree || canViewSubscriberPost || canViewPPVPost;
+      isOwner ||
+      isTaggedUser ||
+      isFree ||
+      canViewSubscriberPost ||
+      canViewPPVPost;
     const mediaType = post?.media?.[0]?.type;
 
     const realMedia = post?.media?.[0]?.mediaFiles?.[0] || null;
@@ -507,31 +515,36 @@ const ProfilePage = () => {
       ) {
         return;
       }
-      // OWNER viewing own content
+
+      // OWNER
       if (isOwner) {
         router.push(`/post?page&publicId=${post.publicId}`);
         return;
       }
 
-      // FREE POSTS → normal open
+      // TAGGED USER
+      if (isTaggedUser) {
+        router.push(`/post?page&publicId=${post.publicId}`);
+        return;
+      }
+
+      // FREE POST
       if (isFree) {
         router.push(`/post?page&publicId=${post.publicId}`);
         return;
       }
 
-      // SUBSCRIBER POSTS
+      // SUBSCRIBER POST
       if (isSubscriberPost) {
         if (isSubscribed) {
-          // ✅ redirect to purchased media
           router.push(`/purchased-media?publicId=${post.publicId}`);
         }
         return;
       }
 
-      // PPV POSTS
+      // PPV POST
       if (isPPVPost) {
         if (post.isUnlocked) {
-          // ✅ redirect to purchased media
           router.push(`/purchased-media?publicId=${post.publicId}`);
         }
         return;
@@ -684,10 +697,20 @@ const ProfilePage = () => {
                     router.push("/login");
                     return;
                   }
+
                   if (isOwner) return;
+
+                  // 🔓 Subscriber content
+                  if (isSubscriberPost && !isSubscribed) {
+                    openSubscriptionModal("MONTHLY", "subscribe");
+                    return;
+                  }
+
+                  // 💰 PPV content
                   if (isPPVPost && (!post.isUnlocked || isOwner)) {
                     setUnlockPost(post);
                     setShowUnlockModal(true);
+                    return;
                   }
                 }}
               >
@@ -1698,7 +1721,7 @@ const ProfilePage = () => {
                         </svg>
                         <span>
                           {" "}
-                          {`${window.location.origin}/${profile?.user?.userName}`}{" "}
+                          {`${window.location.origin}/profile/${profile?.user?.publicId}`}{" "}
                         </span>
                       </a>
                     </div>
