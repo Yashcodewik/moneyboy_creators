@@ -43,14 +43,36 @@ const messageSlice = createSlice({
     },
 
     addSocketMessage: (state, action: PayloadAction<any>) => {
-      if (action.payload.threadId !== state.activeThreadId) return;
+        console.log("📩 REDUX SOCKET MESSAGE:", action.payload);
+  console.log("📩 ACTIVE THREAD:", state.activeThreadId);
+      if (action.payload.threadId !== state.activeThreadId) {
+    console.log("❌ THREAD NOT MATCH");
+    return;
+  }
       const exists = state.messages.some(
         (msg) => msg._id === action.payload._id
       );
       if (!exists) {
+        console.log("✅ MESSAGE ADDED");
         state.messages.push(action.payload);
       }
     },
+    updatePPVStatus: (state, action: PayloadAction<{ ppvId: string; status: string; deliveredMedia?: string[] }>) => {
+  const { ppvId, status, deliveredMedia } = action.payload;
+  state.messages = state.messages.map((msg) => {
+    if (msg.ppvRequestId && msg.ppvRequestId._id?.toString() === ppvId.toString()) {
+      return {
+        ...msg,
+        ppvRequestId: {
+          ...msg.ppvRequestId,
+          status,
+          ...(deliveredMedia ? { deliveredMedia } : {}),
+        },
+      };
+    }
+    return msg;
+  });
+},
 
     markMessagesRead: (state) => {
       state.messages = state.messages.map((msg) => ({
@@ -216,6 +238,7 @@ export const {
   setActiveThread,
   setActiveUser,
   addSocketMessage,
+  updatePPVStatus,
   markMessagesRead,
   markMessagesReadFromSocket,
   clearMessages,
