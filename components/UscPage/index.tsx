@@ -1,3 +1,66 @@
+// "use client";
+// import { API_GET_CMS_PAGE } from "@/utils/api/APIConstant";
+// import { getApiByParams } from "@/utils/endpoints/common";
+// import { useRouter } from "next/navigation";
+// import React, { useEffect, useState } from "react";
+
+// const UscPage = () => {
+//   const router = useRouter();
+//   const [cmsData, setCmsData] = useState<any>(null);
+
+//   const getCmsPage = async () => {
+//     const res = await getApiByParams({
+//       url: API_GET_CMS_PAGE,
+//       params: "usc2257",
+//     });
+
+//     if (res?.success) {
+//       setCmsData(res?.data);
+//     }
+//   };
+
+//   useEffect(() => {
+//     getCmsPage();
+//   }, []);
+
+//   return (
+//     <div className="container">
+//       <div className="moneyboy-main-asides-layout-container">
+//         <div className="moneyboy-page-content-container">
+//           <main className="moneyboy-dynamic-content-layout">
+//             <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
+
+//               <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+//                 <button
+//                   className="cate-back-btn active-down-effect"
+//                   onClick={() => router.push("/")}
+//                 >
+//                   <span className="icons arrowLeft"></span>
+//                 </button>
+
+//                 <button className="page-content-type-button active-down-effect active">
+//                   {cmsData?.title || "U.S.C 2257"}
+//                 </button>
+//               </div>
+
+//               <div className="card main_contwrap">
+//                 <div
+//                   dangerouslySetInnerHTML={{
+//                     __html: cmsData?.content || "",
+//                   }}
+//                 />
+//               </div>
+
+//             </div>
+//           </main>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default UscPage;
+
 "use client";
 import { useRouter } from 'next/navigation';
 import React from 'react'

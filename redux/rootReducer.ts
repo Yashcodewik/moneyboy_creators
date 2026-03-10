@@ -15,6 +15,7 @@ import creatorsReducer from "@/redux/store/Slice";
 import subscriptionReducer from "@/redux/Subscription/Slice";
 import subscriptionListReducer from "@/redux/SubscriptionList/Slice";
 import messageReducer from "@/redux/message/messageSlice";
+import walletReducer from "@/redux/wallet/Slice";
 
 
 
@@ -34,6 +35,7 @@ const rootReducer = combineReducers({
    subscription: subscriptionReducer,
    SubscriptionList: subscriptionListReducer,
    message: messageReducer,
+    wallet: walletReducer,
 
 });
 

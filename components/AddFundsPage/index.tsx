@@ -16,6 +16,9 @@ import {
   API_GET_WALLET,
 } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { addWalletFunds, fetchWallet } from "@/redux/wallet/Action";
 
 const CreditCard = dynamic(
   () => import("credit-card-ui-react").then((m) => m.CreditCard),
@@ -30,10 +33,14 @@ const AddFundsPage = () => {
   const [tab, setTab] = useState(tabParam === "addfunds" ? 2 : 1);
   const [amount, setAmount] = useState<number | "">("");
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const [balance, setBalance] = useState<number>(0);
-  const [loadingAddMoney, setLoadingAddMoney] = useState(false);
+
   const [amountError, setAmountError] = useState<string>("");
   const [flipped, setFlipped] = useState(false);
+const dispatch = useDispatch<AppDispatch>();
+
+const { balance, loading, addingFunds } = useSelector(
+  (state: RootState) => state.wallet
+);
 
   const [cardData, setCardData] = useState({
     name: "",
@@ -133,53 +140,34 @@ const AddFundsPage = () => {
     }
   };
 
-  const handleAddMoney = async () => {
-    if (!amount || Number(amount) < 10) {
-      // ShowToast("Minimum top up amount $10", "error");
-      return;
-    }
+const handleAddMoney = () => {
+  if (!amount || Number(amount) < 10) {
+    setAmountError("Minimum top up amount is $10");
+    return;
+  }
 
-    if (!selectedCard) {
-      ShowToast("Please select payment method", "error");
-      return;
-    }
+  if (!selectedCard) {
+    ShowToast("Please select payment method", "error");
+    return;
+  }
 
-    setLoadingAddMoney(true);
+  dispatch(
+    addWalletFunds({
+      amount: Number(amount),
+      paymentMethod: selectedCard,
+    })
+  );
 
-    const res = await apiPost({
-      url: API_ADD_WALLET,
-      values: {
-        amount: Number(amount),
-        paymentMethod: selectedCard,
-      },
-    });
+  setAmount("");
+  setSelectedCard(null);
+  setAmountError("");
+};
 
-    if (res?.success) {
-      ShowToast(res.message, "success");
-      setBalance(res.balance);
-      setAmount("");
-      setSelectedCard(null);
-      setAmountError("");
-    } else {
-      ShowToast(res?.message || "Failed to add money", "error");
-    }
 
-    setLoadingAddMoney(false);
-  };
-
-  const fetchWalletBalance = async () => {
-    const res = await getApiWithOutQuery({
-      url: API_GET_WALLET,
-    });
-
-    if (res?.success) {
-      setBalance(res.balance);
-    }
-  };
-  useEffect(() => {
-    fetchCards();
-    fetchWalletBalance();
-  }, []);
+ useEffect(() => {
+  fetchCards();
+  dispatch(fetchWallet());
+}, [dispatch]);
   const calculatedTotal =
     balance + (amount && !isNaN(Number(amount)) ? Number(amount) : 0);
   return (
@@ -488,10 +476,10 @@ const AddFundsPage = () => {
                           <button
                             className="btn-txt-gradient"
                             onClick={handleAddMoney}
-                            disabled={loadingAddMoney}
+                            disabled={addingFunds}
                           >
                             <span>
-                              {loadingAddMoney ? "Processing..." : "Buy Now"}
+                              {addingFunds ? "Processing..." : "Buy Now"}
                             </span>
                           </button>
                         </div>
