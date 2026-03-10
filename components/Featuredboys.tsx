@@ -60,10 +60,9 @@ const Featuredboys = () => {
     }
   };
 
-  const handleProfileClick = (publicId: string) => {
-
-    router.push(`/profile/${publicId}`);
-  };
+const handleProfileClick = (username: string) => {
+  router.push(`/${username}`);
+};
 
   return (
     <aside className="moneyboy-2x-1x-b-layout">
@@ -100,7 +99,7 @@ const Featuredboys = () => {
 
             {!loading &&
               featured.map((item) => (
-                <div className="featured-profile__card" key={item._id} onClick={() => handleProfileClick(item.publicId)}>
+                <div className="featured-profile__card" key={item._id} onClick={() => handleProfileClick(item.userName)}>
                   <div className="featured-profile__info-wrapper">
                     <div className="profile-card featured-profile-card">
                       <div className="profile-card__bg-img">

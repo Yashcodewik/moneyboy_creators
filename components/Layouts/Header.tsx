@@ -709,7 +709,7 @@ useEffect(() => {
                             );
                           } else if (session?.user?.role === 2) {
                             console.log(" role 2");
-                            router.push(`/profile/${session?.user?.publicId}`);
+                            router.push(`/${session?.user?.userName}`);
                           } else {
                             router.push("/profile");
                           }

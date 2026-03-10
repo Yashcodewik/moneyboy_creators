@@ -77,10 +77,9 @@ const WishlistPage = () => {
     (state: any) => state.savedFreeCreators.creators
   );
 
-  const handleProfileClick = (publicId: string) => {
-    router.push(`/profile/${publicId}`);
-  };
-
+const handleProfileClick = (userName: string) => {
+  router.push(`/${userName}`);
+};
   const [modalAction, setModalAction] =
     useState<"subscribe" | "upgrade" | "renew">("subscribe");
 
@@ -397,7 +396,7 @@ const handleToggleSaveCreator = async (creator: SavedCreator) => {
                               className="user-profile-card-wrapper user-profile-card-small"
                               data-creator-profile-card
                               onClick={() =>
-                                handleProfileClick(creator.publicId)
+                                handleProfileClick(creator.userName)
                               }
                             >
                               <div className="user-profile-card-container">

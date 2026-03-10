@@ -2285,7 +2285,7 @@
              border: 1.5px solid #e5e5e506;
              padding: 6px 6px 6px 14px;
  
-             &:hover {
+             &:hover, &.active, &:active {
                background-color: #000000;
  
                .subscription-info {

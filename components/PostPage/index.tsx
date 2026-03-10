@@ -338,14 +338,14 @@ const PostPage = () => {
             {/* ================= Post ================= */}
             <div className="moneyboy-post__container card">
               <div className="moneyboy-post__header">
-                <a
-                  href={`/profile/${post?.creatorInfo?.publicId}`}
-                  className="profile-card"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    router.push(`/profile/${post?.creatorInfo?.publicId}`);
-                  }}
-                >
+               <a
+  href={`/${post?.creatorInfo?.userName}`}
+  className="profile-card"
+  onClick={(e) => {
+    e.preventDefault();
+    router.push(`/${post?.creatorInfo?.userName}`);
+  }}
+>
                   <div className="profile-card__main">
                     <div className="profile-card__avatar-settings">
                       <div className="profile-card__avatar">

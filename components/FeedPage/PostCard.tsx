@@ -259,13 +259,13 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     });
   };
 
-  const handleProfileClick = (publicId: string) => {
+  const handleProfileClick = (username: string) => {
     if (!session?.user?.id) {
       router.push("/login");
       return;
     }
 
-    router.push(`/profile/${publicId}`);
+      router.push(`/${username}`);
   };
 
   const handlePostRedirect = () => {
@@ -366,7 +366,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           <div className="profile-card">
             <div className="profile-card__main pointer">
               <div className="profile-card__avatar-settings">
-                <div className="profile-card__avatar" onClick={() => { handleProfileClick(post.creatorInfo?.publicId); }}>
+                <div className="profile-card__avatar" onClick={() => { handleProfileClick(post.creatorInfo?.userName); }}>
                   {post.creatorInfo?.profile && !avatarErrorMap[post.creatorInfo.publicId] ? (
                     <img src={post.creatorInfo.profile} alt="MoneyBoy Social Profile Avatar" onError={() => setAvatarErrorMap((prev) => ({ ...prev, [post.creatorInfo.publicId]: true, }))} />
                   ) : (
@@ -386,7 +386,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 </div>
               </div>
               <div className="profile-card__info">
-                <div className="profile-card__name-badge" onClick={() => { handleProfileClick(post.creatorInfo?.publicId); }}>
+                <div className="profile-card__name-badge" onClick={() => { handleProfileClick(post.creatorInfo?.userName); }}>
                   <div className="profile-card__name">{post.creatorInfo?.userName}</div>
                   <div className="profile-card__badge">
                     <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
@@ -426,7 +426,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                         {post.taggedCreators.map((user: any) => (
                           <li
                             key={user._id}
-                            onClick={() => handleProfileClick(user.publicId)}
+                            onClick={() => handleProfileClick(user.userName)}
                           >
                             <img
                               src={user.profile}

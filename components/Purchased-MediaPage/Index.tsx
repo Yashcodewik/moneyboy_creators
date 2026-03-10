@@ -617,7 +617,7 @@ const PurchasedMediaPage: React.FC = () => {
                     <div className="pm-page-card-footer vdocard-footer">
                       <div className="profile-card">
                         <Link
-                         href={`/profile/${selectedItem.creator.publicId}`}
+                         href={`/${selectedItem.creator.userName}`}
                           className="profile-card__main"
                         >
                           <div className="profile-card__avatar-settings">

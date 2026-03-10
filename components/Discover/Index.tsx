@@ -131,10 +131,9 @@ const Dashboard = () => {
     dispatch(updateCreatorSavedState({ creatorId, saved: false }));
     dispatch(unsavePost({ creatorUserId: creatorId }) as any);
   };
-
-  const handleProfileClick = (publicId: string) => {
-    router.push(`/profile/${publicId}`);
-  };
+const handleProfileClick = (username: string) => {
+  router.push(`/${username}`);
+};
 
   // const renderPagination = () => {
   //   if (totalPages <= 1) return null;
@@ -276,7 +275,7 @@ const Dashboard = () => {
                       key={creator.creatorUserId}
                       className="user-profile-card-wrapper"
                       data-creator-profile-card
-                      onClick={() => handleProfileClick(creator.publicId)}
+                      onClick={() => handleProfileClick(creator.userName)}
                     >
                       <div className="user-profile-card-container">
                         <div className="user-profile-card__img">

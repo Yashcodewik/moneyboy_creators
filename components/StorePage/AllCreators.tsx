@@ -469,7 +469,7 @@
                               <h5 className="lineclamp1">{post.text}</h5>
                               <div className="profile-card">
                                 <Link
-                                  href={`/profile/${post.creatorInfo?.publicId}`}
+                                 href={`/${post.creatorInfo?.userName}`}
                                   className="profile-card__main"
                                 >
                                   <div className="profile-card__avatar-settings">
