@@ -10,6 +10,9 @@ import { API_CREATOR_PROFILE, API_UNREAD_NOTIFICATIONS, API_USER_PROFILE } from 
 import PromoteModal from "../FeedPage/PromoteModal";
 import NoProfileSvg from "../common/NoProfileSvg";
 import socket from "@/libs/socket";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchWallet } from "@/redux/wallet/Action";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +29,11 @@ const Header = () => {
   useEffect(() => {
     console.log("showPromoteModal:", showPromoteModal);
   }, [showPromoteModal]);
+const dispatch = useDispatch<AppDispatch>();
 
+const { balance } = useSelector(
+  (state: RootState) => state.wallet
+);
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     signOut({ callbackUrl: "/" });
@@ -147,6 +154,7 @@ useEffect(() => {
 
   fetchUserProfile();
 }, [session?.isAuthenticated, session?.user?.role, session?.user?.publicId]);
+
   const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);
@@ -250,6 +258,12 @@ useEffect(() => {
 
     fetchUnread();
   }, [session?.isAuthenticated]);
+  
+  useEffect(() => {
+  if (session?.isAuthenticated) {
+    dispatch(fetchWallet());
+  }
+}, [session?.isAuthenticated, dispatch]);
 
   return (
     <>
@@ -529,7 +543,7 @@ useEffect(() => {
                         <div className="menu-profile-stats-txt">
                           <div className="stats-label"> Wallet </div>
                           <div className="stats-value">
-                            <span> {userProfile?.walletBalance} </span>
+                           <span>${balance?.toFixed(2)}</span>
                             <Link
                               href="/add-funds?tab=addfunds"
                               className="load-wallet-btn"

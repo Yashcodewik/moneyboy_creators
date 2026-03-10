@@ -10,6 +10,9 @@ import { IoArrowBackOutline } from 'react-icons/io5';
 import ShowToast from "@/components/common/ShowToast";
 import { apiPost, getApiWithOutQuery } from '@/utils/endpoints/common';
 import { API_PAYOUT_ACCOUNTS, API_REQUEST_PAYOUT, API_WALLET_SUMMARY } from '@/utils/api/APIConstant';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/redux/store';
+import { fetchWallet } from '@/redux/wallet/Action';
 
 
 const RequestPayoutPage = () => {
@@ -25,7 +28,7 @@ const RequestPayoutPage = () => {
   pendingPayout: 0,
   totalWithdrawn: 0,
 });
-
+const dispatch = useDispatch<AppDispatch>();
   
   useEffect(() => {
     loadAccounts();
@@ -82,6 +85,7 @@ const RequestPayoutPage = () => {
       setNote("");
       setSelectedMethod(null);
       loadSummary();
+      dispatch(fetchWallet());
     } else {
       ShowToast(res?.message || "Failed", "error");
     }
