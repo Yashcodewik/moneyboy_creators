@@ -20,7 +20,7 @@ import NoProfileSvg from "../common/NoProfileSvg";
 import { CgClose } from "react-icons/cg";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { deleteThread, fetchMessages, fetchSidebar, reportThread, sendMessageAction } from "@/redux/message/messageActions";
-import { addSocketMessage, markMessagesReadFromSocket, setActiveThread, setThreadDetails } from "@/redux/message/messageSlice";
+import { addSocketMessage, markMessagesReadFromSocket, setActiveThread, setThreadDetails, updatePPVStatus } from "@/redux/message/messageSlice";
 import { useSelector } from "react-redux";
 import CustomAudioPlayer from "../common/CustomAudioPlayer";
 
@@ -105,6 +105,7 @@ useEffect(() => {
 
 useEffect(() => {
   const handler = (msg: any) => {
+     console.log("🔥 SOCKET MESSAGE RECEIVED:", msg);
     dispatch(addSocketMessage(msg));
   };
 
@@ -124,6 +125,13 @@ useEffect(() => {
     dispatch(fetchMessages(activeThreadId));
   }
 }, [activeThreadId, dispatch]);
+useEffect(() => {
+  const handler = ({ ppvId, status, deliveredMedia }: any) => {
+    dispatch(updatePPVStatus({ ppvId, status, deliveredMedia }));
+  };
+  socket.on("ppvUpdated", handler);
+  return () => { socket.off("ppvUpdated", handler); };
+}, [dispatch]);
 
 
   useEffect(() => {
@@ -196,14 +204,25 @@ useEffect(() => {
     };
   }, [activeThreadId, session?.user?.id]);
 
-  useEffect(() => {
-    if (!activeThreadId) {
-      console.log("⚠️ No active chat to join");
-      return;
-    }
+useEffect(() => {
+  if (!activeThreadId) return;
+
+  const joinRoom = () => {
     console.log("🚪 Joining thread room:", activeThreadId);
     socket.emit("joinThread", activeThreadId);
-  }, [activeThreadId]);
+  };
+
+  if (socket.connected) {
+    joinRoom();
+  }
+
+  socket.on("connect", joinRoom);
+
+  return () => {
+    socket.off("connect", joinRoom);
+  };
+
+}, [activeThreadId]);
 
 useEffect(() => {
   if (!session?.user?.id) return;
@@ -482,14 +501,14 @@ const sendMessage = () => {
     );
   };
 
-  const handleAcceptPPV = async (ppvId: string) => {
-    await apiPost({
-      url: `subscription/accept/${ppvId}`,
-      values: {},
-    });
-
-    // refetch();
-  };
+const handleAcceptPPV = async (ppvId: string) => {
+  try {
+    await apiPost({ url: `subscription/accept/${ppvId}`, values: {} });
+    toast.success("PPV accepted!");
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || "Failed to accept");
+  }
+};
 
   const handleUploadPPVMedia = async (
     ppvId: string,
@@ -1184,23 +1203,28 @@ const stopRecording = () => {
 
                                             <div className="right">
                                               {/* CREATOR SIDE - PENDING */}
-                                              {isCreator &&
-                                                msg.ppvRequestId.status ===
-                                                "PENDING" && (
-                                                  <>
-                                                    <button
-                                                      className="btn-txt-gradient"
-                                                      onClick={() =>
-                                                        handleRejectPPV(
-                                                          msg.ppvRequestId._id,
-                                                          "Not Interested",
-                                                        )
+                                             {isCreator && msg.ppvRequestId.status === "PENDING" && (
+                                                <>
+                                                  <button
+                                                    className="btn-txt-gradient"
+                                                    onClick={() => {
+                                                      if (!msg.ppvRequestId.deliveredMedia?.length) {
+                                                        toast.error("Please upload media first");
+                                                        return;
                                                       }
-                                                    >
-                                                      <span>Decline</span>
-                                                    </button>
-                                                  </>
-                                                )}
+                                                      handleAcceptPPV(msg.ppvRequestId._id);
+                                                    }}
+                                                  >
+                                                    <span>Accept</span>
+                                                  </button>
+                                                  <button
+                                                    className="btn-txt-gradient"
+                                                    onClick={() => handleRejectPPV(msg.ppvRequestId._id, "Not Interested")}
+                                                  >
+                                                    <span>Decline</span>
+                                                  </button>
+                                                </>
+                                              )}
 
                                               {/* CREATOR SIDE - MEDIA UPLOADED → APPROVE */}
                                               {isCreator &&
@@ -1214,7 +1238,7 @@ const stopRecording = () => {
                                                       )
                                                     }
                                                   >
-                                                    <span>Approve</span>
+                                                    <span>Send</span>
                                                   </button>
                                                 )}
                                             </div>
