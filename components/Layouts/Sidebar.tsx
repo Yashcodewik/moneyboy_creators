@@ -31,37 +31,49 @@ const Sidebar: React.FC = () => {
 
   const pathname = usePathname();
   const router = useRouter();
+  
 
-  useEffect(() => {
-    const pathToPageMap: Record<string, string> = {
-      "/": "feed",
-      "/discover": "discover",
-      "/feed": "feed",
-      "/like": "likes",
-      "/wishlist": "wishlist",
-      "/subscriptions": "subscriptions",
-      "/purchased-media": "purchased-media",
-      "/store": "store",
-      "/notifications": "notifications",
-      "/message": "message",
-      "/profile": "profile",
-      "/userprofile": "userprofile",
-      "/follower": "follower",
-      "/creator-edit-profile": "creator-edit-profile",
-      "/user-edit-profile": "user-edit-profile",
-      "/blacklist": "blacklist",
-      "/block-countries": "block-countries",
-    };
+useEffect(() => {
+  const pathToPageMap: Record<string, string> = {
+    "/": "feed",
+    "/discover": "discover",
+    "/feed": "feed",
+    "/like": "likes",
+    "/wishlist": "wishlist",
+    "/subscriptions": "subscriptions",
+    "/purchased-media": "purchased-media",
+    "/store": "store",
+    "/notifications": "notifications",
+    "/message": "message",
+    "/profile": "profile",
+    "/userprofile": "userprofile",
+    "/follower": "follower",
+    "/creator-edit-profile": "creator-edit-profile",
+    "/user-edit-profile": "user-edit-profile",
+    "/blacklist": "blacklist",
+    "/block-countries": "block-countries",
+  };
 
-    const currentPage = Object.keys(pathToPageMap).find(
-      (path) => pathname === path || pathname.startsWith(`${path}/`),
-    );
+  const currentPage = Object.keys(pathToPageMap).find(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
 
-    if (currentPage) {
-      setActivePage(pathToPageMap[currentPage]);
+  if (currentPage) {
+    setActivePage(pathToPageMap[currentPage]);
+  } else {
+    // ✅ detect username profile route
+    if (
+      pathname !== "/" &&
+      !pathname.includes("/feed") &&
+      !pathname.includes("/discover") &&
+      !pathname.includes("/like") &&
+      !pathname.includes("/wishlist") &&
+      !pathname.includes("/store")
+    ) {
+      setActivePage("profile");
     }
-  }, [pathname]);
-
+  }
+}, [pathname]);
   const handleNavClick = (page: string, href: string, e: React.MouseEvent) => {
     e.preventDefault();
     setActivePage(page);
@@ -167,9 +179,9 @@ useEffect(() => {
     router.push(`/follower?tab=${tab}&q=${session && session?.user?.id}`);
   };
 
-  const handleProfileClick = (publicId: string) => {
-    router.push(`/profile/${publicId}`);
-  };
+const handleProfileClick = (username: string) => {
+  router.push(`/profile/${username}`);
+};
 
   return (
     <>
@@ -189,7 +201,7 @@ useEffect(() => {
                               `/userprofile/${session?.user?.publicId}`,
                             );
                           } else if (session?.user?.role === 2) {
-                            router.push(`/profile/${session?.user?.publicId}`);
+                            router.push(`/${session?.user?.userName}`);
                           } else {
                             router.push("/profile");
                           }
@@ -251,7 +263,7 @@ useEffect(() => {
                             `/userprofile/${session?.user?.publicId}`,
                           );
                         } else if (session?.user?.role === 2) {
-                          router.push(`/profile/${session?.user?.publicId}`);
+                          router.push(`/profile/${session?.user?.userName}`);
                         } else {
                           router.push("/profile");
                         }

@@ -90,8 +90,8 @@ const FollowersPage = () => {
   const [reportMessage, setReportMessage] = useState("");
 
   const session = useSession();
-const currentUserRole = Number(session?.data?.user?.role);
-const currentUserId = session?.data?.user?.id;
+  const currentUserRole = Number(session?.data?.user?.role);
+  const currentUserId = session?.data?.user?.id;
 
   const openReportModal = (user: Follower) => {
     setReportedUserName(user.userName);
@@ -182,7 +182,7 @@ const currentUserId = session?.data?.user?.id;
   }, []);
 
   // const userIdParam = searchParams.get("q");
-const userIdParam = searchParams.get("id");
+  const userIdParam = searchParams.get("id");
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -292,7 +292,7 @@ const userIdParam = searchParams.get("id");
       });
 
       if (res?.success) {
-   setFollowing(res.data);
+        setFollowing(res.data);
         setFollowingPage(pageNo);
         const total = res.meta?.total || 0;
         const limit = res.meta?.limit || 10;
@@ -677,9 +677,11 @@ const userIdParam = searchParams.get("id");
                     <div
                       className="profile-card__avatar"
                       onClick={() => {
-                        const basePath =
-                          follower.role === 2 ? "profile" : "userprofile";
-                        router.push(`/${basePath}/${follower.publicId}`);
+                        if (follower.role === 2) {
+                          router.push(`/${follower.userName}`);
+                        } else {
+                          router.push(`/userprofile/${follower.publicId}`);
+                        }
                       }}
                     >
                       {follower.profileImage &&
@@ -751,110 +753,113 @@ const userIdParam = searchParams.get("id");
             </div>
             <div className="rel-user-actions">
               <div className="rel-user-action-btn">
-               {follower._id !== currentUserId &&
-                !(currentUserRole === 1 && follower.role === 1) && (
-                <button
-                  className={buttonProps.className}
-                  onClick={() =>
-                    handleFollowToggle(
-                      follower._id,
-                      follower.isFollowing,
-                      "followers",
-                    )
-                  }
-                  onMouseEnter={(e) => {
-                    if (follower.isFollowing) {
-                      e.currentTarget.querySelector("span")!.textContent =
-                        "Unfollow";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (follower.isFollowing) {
-                      e.currentTarget.querySelector("span")!.textContent =
-                        "Following";
-                    }
-                  }}
-                >
-                  <span>{buttonProps.text}</span>
-                </button>
-                )}
+                {follower._id !== currentUserId &&
+                  !(currentUserRole === 1 && follower.role === 1) && (
+                    <button
+                      className={buttonProps.className}
+                      onClick={() =>
+                        handleFollowToggle(
+                          follower._id,
+                          follower.isFollowing,
+                          "followers",
+                        )
+                      }
+                      onMouseEnter={(e) => {
+                        if (follower.isFollowing) {
+                          e.currentTarget.querySelector("span")!.textContent =
+                            "Unfollow";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (follower.isFollowing) {
+                          e.currentTarget.querySelector("span")!.textContent =
+                            "Following";
+                        }
+                      }}
+                    >
+                      <span>{buttonProps.text}</span>
+                    </button>
+                  )}
               </div>
               {follower._id == currentUserId && (
-              <div
-                className="rel-user-more-opts-wrapper"
-                data-more-actions-toggle-element
-              >
-                <button
-                  className="rel-user-more-opts-trigger-icon"
-                  onClick={() => toggleMore(follower._id)}
+                <div
+                  className="rel-user-more-opts-wrapper"
+                  data-more-actions-toggle-element
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="25"
-                    viewBox="0 0 24 25"
-                    fill="none"
+                  <button
+                    className="rel-user-more-opts-trigger-icon"
+                    onClick={() => toggleMore(follower._id)}
                   >
-                    <path
-                      d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                      stroke="none"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                      stroke="none"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                      stroke="none"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                </button>
-                {openMoreId === follower._id && (
-                  <div className="rel-users-more-opts-popup-wrapper">
-                    <div className="rel-users-more-opts-popup-container">
-                      <ul>
-                        <li
-                          onClick={() =>
-                            handleShareProfile(follower.publicId, follower.role)
-                          }
-                        >
-                          <div className="icon share-icon">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M16.4405 8.90002C20.0405 9.21002 21.5105 11.06 21.5105 15.11V15.24C21.5105 19.71 19.7205 21.5 15.2505 21.5H8.74047C4.27047 21.5 2.48047 19.71 2.48047 15.24V15.11C2.48047 11.09 3.93047 9.24002 7.47047 8.91002"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M12 15V3.62"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M15.3484 5.85L11.9984 2.5L8.64844 5.85"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <span>Share @{follower.userName}</span>
-                        </li>
-                        {/* <li>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="25"
+                      viewBox="0 0 24 25"
+                      fill="none"
+                    >
+                      <path
+                        d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                  </button>
+                  {openMoreId === follower._id && (
+                    <div className="rel-users-more-opts-popup-wrapper">
+                      <div className="rel-users-more-opts-popup-container">
+                        <ul>
+                          <li
+                            onClick={() =>
+                              handleShareProfile(
+                                follower.publicId,
+                                follower.role,
+                              )
+                            }
+                          >
+                            <div className="icon share-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M16.4405 8.90002C20.0405 9.21002 21.5105 11.06 21.5105 15.11V15.24C21.5105 19.71 19.7205 21.5 15.2505 21.5H8.74047C4.27047 21.5 2.48047 19.71 2.48047 15.24V15.11C2.48047 11.09 3.93047 9.24002 7.47047 8.91002"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12 15V3.62"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M15.3484 5.85L11.9984 2.5L8.64844 5.85"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Share @{follower.userName}</span>
+                          </li>
+                          {/* <li>
                             <div className="icon mute-icon">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -902,144 +907,146 @@ const userIdParam = searchParams.get("id");
                             </div>
                             <span>Mute</span>
                           </li> */}
-                        <li onClick={() => handleRemoveFollower(follower._id)}>
-                          <div className="icon remove-icon">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M19.0319 16.94L16.9219 19.05"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M16.9414 16.96L19.0614 19.07"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <span>Remove this follower</span>
-                        </li>
-                        <li onClick={() => handleBlockUser(follower._id)}>
-                          <div className="icon block-icon">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M20.5 15.5001L15.5 20.5001"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <span>Block @{follower.userName}</span>
-                        </li>
-                        <li
-                          onClick={() => {
-                            if (follower.isReported) return;
-                            openReportModal(follower);
-                          }}
-                        >
-                          <div className="icon report-icon">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M5.14844 2V22"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M5.14844 4H16.3484C19.0484 4 19.6484 5.5 17.7484 7.4L16.5484 8.6C15.7484 9.4 15.7484 10.7 16.5484 11.4L17.7484 12.6C19.6484 14.5 18.9484 16 16.3484 16H5.14844"
-                                stroke="none"
-                                strokeWidth="1.5"
-                                strokeMiterlimit="10"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <span>
-                            {follower.isReported
-                              ? `Reported @${follower.userName}`
-                              : `Report @${follower.userName}`}
-                          </span>
-                        </li>
-                      </ul>
+                          <li
+                            onClick={() => handleRemoveFollower(follower._id)}
+                          >
+                            <div className="icon remove-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M19.0319 16.94L16.9219 19.05"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M16.9414 16.96L19.0614 19.07"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Remove this follower</span>
+                          </li>
+                          <li onClick={() => handleBlockUser(follower._id)}>
+                            <div className="icon block-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M20.5 15.5001L15.5 20.5001"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>Block @{follower.userName}</span>
+                          </li>
+                          <li
+                            onClick={() => {
+                              if (follower.isReported) return;
+                              openReportModal(follower);
+                            }}
+                          >
+                            <div className="icon report-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M5.14844 2V22"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M5.14844 4H16.3484C19.0484 4 19.6484 5.5 17.7484 7.4L16.5484 8.6C15.7484 9.4 15.7484 10.7 16.5484 11.4L17.7484 12.6C19.6484 14.5 18.9484 16 16.3484 16H5.14844"
+                                  stroke="none"
+                                  strokeWidth="1.5"
+                                  strokeMiterlimit="10"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <span>
+                              {follower.isReported
+                                ? `Reported @${follower.userName}`
+                                : `Report @${follower.userName}`}
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-      )}
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {/* {follower.bio && (
@@ -1081,10 +1088,13 @@ const userIdParam = searchParams.get("id");
                     <div
                       className="profile-card__avatar"
                       onClick={() => {
-                        const basePath =
-                          follow.role === 2 ? "profile" : "userprofile";
-                        router.push(`/${basePath}/${follow.publicId}`);
-                      }}>
+                        if (follow.role === 2) {
+                          router.push(`/${follow.userName}`);
+                        } else {
+                          router.push(`/userprofile/${follow.publicId}`);
+                        }
+                      }}
+                    >
                       {follow.profileImage && !avatarErrorMap[follow._id] ? (
                         <img
                           src={follow.profileImage}
@@ -1152,33 +1162,33 @@ const userIdParam = searchParams.get("id");
               </div>
             </div>
             <div className="rel-user-action-btn">
-            {follow._id !== currentUserId &&
-             !(currentUserRole === 1 && follow.role === 1) && (
-              <button
-                className={buttonProps.className}
-                onClick={() =>
-                  handleFollowToggle(
-                    follow._id,
-                    follow.isFollowing,
-                    "following",
-                  )
-                }
-                onMouseEnter={(e) => {
-                  if (follow.isFollowing) {
-                    e.currentTarget.querySelector("span")!.textContent =
-                      "Unfollow";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (follow.isFollowing) {
-                    e.currentTarget.querySelector("span")!.textContent =
-                      "Following";
-                  }
-                }}
-              >
-                <span>{buttonProps.text}</span>
-              </button>
-              )}
+              {follow._id !== currentUserId &&
+                !(currentUserRole === 1 && follow.role === 1) && (
+                  <button
+                    className={buttonProps.className}
+                    onClick={() =>
+                      handleFollowToggle(
+                        follow._id,
+                        follow.isFollowing,
+                        "following",
+                      )
+                    }
+                    onMouseEnter={(e) => {
+                      if (follow.isFollowing) {
+                        e.currentTarget.querySelector("span")!.textContent =
+                          "Unfollow";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (follow.isFollowing) {
+                        e.currentTarget.querySelector("span")!.textContent =
+                          "Following";
+                      }
+                    }}
+                  >
+                    <span>{buttonProps.text}</span>
+                  </button>
+                )}
             </div>
           </div>
           {/* {follow.bio && (
@@ -1613,39 +1623,39 @@ const userIdParam = searchParams.get("id");
 
                       <div className="rel-user-actions">
                         <div className="rel-user-action-btn">
-                       {creator._id !== currentUserId &&
-                      !(currentUserRole === 1 && creator.role === 1) && (
-                          <button
-                            className={`btn-txt-gradient ${
-                              creator.isFollowing ? "btn-grey" : ""
-                            }`}
-                            onClick={() =>
-                              handleFollowToggle(
-                                creator._id,
-                                creator.isFollowing,
-                                "creators",
-                              )
-                            }
-                            onMouseEnter={(e) => {
-                              if (creator.isFollowing) {
-                                e.currentTarget.querySelector(
-                                  "span",
-                                )!.textContent = "Unfollow";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (creator.isFollowing) {
-                                e.currentTarget.querySelector(
-                                  "span",
-                                )!.textContent = "Following";
-                              }
-                            }}
-                          >
-                            <span>
-                              {creator.isFollowing ? "Following" : "Follow"}
-                            </span>
-                          </button>
-                        )}
+                          {creator._id !== currentUserId &&
+                            !(currentUserRole === 1 && creator.role === 1) && (
+                              <button
+                                className={`btn-txt-gradient ${
+                                  creator.isFollowing ? "btn-grey" : ""
+                                }`}
+                                onClick={() =>
+                                  handleFollowToggle(
+                                    creator._id,
+                                    creator.isFollowing,
+                                    "creators",
+                                  )
+                                }
+                                onMouseEnter={(e) => {
+                                  if (creator.isFollowing) {
+                                    e.currentTarget.querySelector(
+                                      "span",
+                                    )!.textContent = "Unfollow";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (creator.isFollowing) {
+                                    e.currentTarget.querySelector(
+                                      "span",
+                                    )!.textContent = "Following";
+                                  }
+                                }}
+                              >
+                                <span>
+                                  {creator.isFollowing ? "Following" : "Follow"}
+                                </span>
+                              </button>
+                            )}
                         </div>
                       </div>
                     </div>

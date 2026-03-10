@@ -124,10 +124,10 @@ const NotificationPage = () => {
     }
   };
 
-  const goToProfile = (publicId?: string) => {
-    if (!publicId) return;
-    router.push(`/profile/${publicId}`);
-  };
+const goToProfile = (publicId?: string) => {
+  if (!publicId) return;
+  router.push(`/${publicId}`);
+};
 
   // useEffect(() => {
   //   if (!selectedPost?.createdAt) return;
@@ -181,8 +181,8 @@ const NotificationPage = () => {
                         className="noti-item--icon"
                         onClick={() =>
                           goToProfile(
-                            noti.senderId?.publicId ||
-                              noti.postTag?.taggedBy?.publicId,
+                            noti.senderId?.userName ||
+                              noti.postTag?.taggedBy?.userName,
                           )
                         }
                       >
@@ -337,7 +337,7 @@ const NotificationPage = () => {
                     <li
                       key={selectedPost.postTag.taggedBy._id}
                       onClick={() =>
-                        goToProfile(selectedPost.postTag.taggedBy?.publicId)
+                        goToProfile(selectedPost.postTag.taggedBy?.userName)
                       }
                     >
                       <img
@@ -354,7 +354,7 @@ const NotificationPage = () => {
                   {selectedPost?.postTag?.taggedUsers?.map((u: any) => (
                     <li
                       key={u.user._id}
-                      onClick={() => goToProfile(u.user?.publicId)}
+                      onClick={() => goToProfile(u.user?.userName)}
                     >
                       <img
                         src={

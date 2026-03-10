@@ -217,14 +217,15 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     router.push(`/post?page&publicId=${post.publicId}`);
   };
 
-  const handleProfileClick = (publicId: string) => {
+  const handleProfileClick = (username: string) => {
     if (!session?.user?.id) {
       router.push("/login");
       return;
     }
 
-    router.push(`/profile/${publicId}`);
+      router.push(`/${username}`);
   };
+
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
@@ -322,7 +323,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         <div className="moneyboy-post__header">
           <div
             className="profile-card"
-            onClick={() => handleProfileClick(post.creatorInfo?.publicId)}
+            onClick={() => handleProfileClick(post.creatorInfo?.userName)}
           >
             <div className="profile-card__main">
               <div className="profile-card__avatar-settings">

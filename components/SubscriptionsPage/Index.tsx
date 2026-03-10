@@ -257,7 +257,7 @@ const SubscriptionsPage = () => {
                                   <Link
                                     href={
                                       item?.subscriber?.role === 2
-                                        ? `/profile/${item?.subscriber?.publicId}`
+                                        ? `/${item?.subscriber?.userName}`
                                         : `/userprofile/${item?.subscriber?.publicId}`
                                     }
                                     className="profile-card__main"
@@ -354,7 +354,7 @@ const SubscriptionsPage = () => {
                             <div className="user-subbox" key={item._id}>
                               <div className="rel-user-profile">
                                 <div className="profile-card">
-                                  <Link href={`/profile/${item.creator.publicId}`} className="profile-card__main">
+                                  <Link href={`/${item.creator.userName}`} className="profile-card__main">
                                     <div className="profile-card__avatar-settings">
                                       <div className="profile-card__avatar">
                                         {item.creator.profile ? (
