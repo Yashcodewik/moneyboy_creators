@@ -1,16 +1,30 @@
+"use client";
+
 import React, { useState } from "react";
 import { CgClose } from "react-icons/cg";
-import CustomSelect from "./CustomSelect";
-import ShowToast from "./common/ShowToast";
+
 import { apiPost } from "@/utils/endpoints/common";
 import { API_REPOET_POST } from "@/utils/api/APIConstant";
 import * as yup from "yup";
 import { useFormik } from "formik";
+import ShowToast from "./common/ShowToast";
+import VideoPlayer from "./Purchased-MediaPage/VideoPlayer";
+import CustomSelect from "./CustomSelect";
+
+interface MediaItem {
+  _id: string;
+  publicId: string;
+  watchedSeconds: number;
+  videoDuration: number;
+  media: {
+    type: "video" | "photo";
+    mediaFiles: string[];
+  }[];
+}
 
 interface ReportModalProps {
   onClose: (reported?: boolean) => void;
-  postId: string;
-  imageUrl?: string;
+  post: MediaItem;
 }
 
 export const reportSchema = yup.object().shape({
@@ -19,7 +33,8 @@ export const reportSchema = yup.object().shape({
     .required("Please select a report reason")
     .notOneOf(["Select Report Option"], "Please select a valid reason"),
 });
-const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) => {
+
+const ReportModal: React.FC<ReportModalProps> = ({ onClose, post }) => {
   const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
@@ -37,7 +52,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) 
           values: {
             title: values.title,
             description: values.description,
-            postId,
+            postId: post._id,
           },
         });
 
@@ -54,6 +69,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) 
       }
     },
   });
+
   return (
     <div
       className="modal show"
@@ -62,16 +78,41 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) 
       aria-labelledby="age-modal-title"
     >
       <form className="modal-wrap report-modal" onSubmit={formik.handleSubmit}>
-        <button className="close-btn" onClick={() => onClose(false)}>
+        <button
+          type="button"
+          className="close-btn"
+          onClick={() => onClose(false)}
+        >
           <CgClose size={22} />
         </button>
+
         <h3 className="title">Report Pop-Up</h3>
-        <div className="img_wrap">
-          <img
-            src={imageUrl || "/images/profile-avatars/profile-avatar-1.png"}
-            alt="Post Image"
-          />
+
+        {/* ===== MEDIA PREVIEW ===== */}
+        <div className="post_wrap">
+          {post.media?.[0]?.type === "video" ? (
+            <VideoPlayer
+              src={post.media[0].mediaFiles[0]}
+              publicId={post.publicId}
+              watchedSeconds={post.watchedSeconds}
+              postId={post._id}
+              duration={post.videoDuration}
+            />
+          ) : (
+            <>
+              {post.media?.[0]?.mediaFiles?.[0] ? (
+                <img
+                  src={post.media[0].mediaFiles[0]}
+                  alt={post.publicId}
+                />
+              ) : (
+                <div className="nomedia" />
+              )}
+            </>
+          )}
         </div>
+
+        {/* ===== REPORT TITLE ===== */}
         <div>
           <label>
             Title <span>*</span>
@@ -116,6 +157,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) 
             <span className="error-message">{formik.errors.title}</span>
           )}
         </div>
+
+        {/* ===== DESCRIPTION ===== */}
         <div className="input-wrap">
           <label>Description</label>
           <textarea
@@ -125,8 +168,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) 
             onChange={formik.handleChange}
             name="description"
           />
-          <label className="right">0/300</label>
+          <label className="right">
+            {formik.values.description.length}/300
+          </label>
         </div>
+
+        {/* ===== SUBMIT BUTTON ===== */}
         <div className="actions">
           <button
             type="submit"
