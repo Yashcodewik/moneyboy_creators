@@ -919,6 +919,34 @@ body {
             overflow: hidden;
             text-overflow: ellipsis;
           }
+          .nomedia {
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            color: #FFFF;
+            font-size: 13px;
+            font-weight: 400;
+            display: grid;
+            place-items: center;
+            background-color: #000;
+            flex-shrink: 0;
+            &::before {
+              display: none;
+            }
+            span {
+              max-width: max-content;
+              color: #0000;
+              transition: var(--transition-fast);
+              background: linear-gradient(103.7deg, #fece26 4.76%, #e5741f 118.16%);
+              -webkit-background-clip: text;
+              background-clip: text;
+              font-size: 13px;
+              line-height: 100%;
+              font-weight: 500;
+              letter-spacing: .25px;
+              font-family: var(--font-family-heading);
+            }
+          }
         }
       }
     }
@@ -8480,7 +8508,6 @@ body {
   }
 }
 
-
 .voice-recorder-icon-btn.recording {
   background: red;
   animation: pulse 1s infinite;
@@ -8535,7 +8562,7 @@ body {
                 &:first-child {
                   margin-left: 0;
                 }
-            
+          
                 .user_icons {
                   width: 24px;
                   height: 24px;
@@ -8545,7 +8572,32 @@ body {
                   transition: transform 0.3s ease;
                   border: 2px solid #fff;
                 }
-            
+                .nomedia {
+                    border-radius: 50%;
+                    width: 24px;
+                    height: 24px;
+                    color: #FFFF;
+                    font-size: 13px;
+                    font-weight: 400;
+                    display: grid;
+                    place-items: center;
+                    background-color: #000;
+                    &::before {
+                      display: none;
+                    }
+                    span {
+                      color: #0000;
+                      transition: var(--transition-fast);
+                      background: linear-gradient(103.7deg, #fece26 4.76%, #e5741f 118.16%);
+                      -webkit-background-clip: text;
+                      background-clip: text;
+                      font-size: 13px;
+                      line-height: 100%;
+                      font-weight: 500;
+                      letter-spacing: .25px;
+                      font-family: var(--font-family-heading);
+                    }
+                }
                 &:hover .user_icons {
                   transform: scale(1.1);
                 }

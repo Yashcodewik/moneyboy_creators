@@ -139,17 +139,16 @@ export const showDeclineReason = async (): Promise<string | null> => {
 
 /* ========== TAGGED USER LIST MODAL ========== */
 export const showTaggedUserList = async (collaborators: any[] = []) => {
-  if (!collaborators.length) {
-    showInfo("No tagged users");
-    return;
-  }
-
+  if (!collaborators.length) { showInfo("No tagged users"); return; }
   const listHtml = collaborators
     .map((collab: any) => {
       const user = collab?.user || {};
       return `
         <li class="tagged-user-item" data-username="${user.userName || ""}">
-          <img src="${user.profile || "/images/default-avatar.png"}" class="user_icons" onerror="this.src='/images/default-avatar.png'"/>
+          ${user.profile
+            ? `<img src="${user.profile}" class="user_icons" alt="${user.userName || "user"}"  onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"/>`
+            : `<div class="nomedia"><span>${(user.userName || "U").charAt(0).toUpperCase()}</span></div>`
+          }
           <span>@${user.userName || "unknown"}</span>
         </li>
       `;

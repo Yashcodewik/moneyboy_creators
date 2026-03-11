@@ -35,12 +35,7 @@ export default function InfiniteScrollWrapper({
       hasMore={hasMore}
       loader={loader}
       scrollThreshold={0.85}
-      scrollableTarget={scrollableTarget}
-      endMessage={
-        <div className="nodeta">
-          <span>You're all Caught Up</span>
-        </div>
-      }>
+      scrollableTarget={scrollableTarget}>
       {children}
     </InfiniteScroll>
   );
