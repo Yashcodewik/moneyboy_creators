@@ -1156,18 +1156,13 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       </div> */}
 
       {showReportModal && (
-        <ReportModal
-          postId={post._id}
-          imageUrl={
-            post.media?.[0]?.mediaFiles?.[0] || post.creatorInfo?.profile
-          }
-          onClose={(reported = false) => {
-            if (reported) {
-              setIsReported(true);
-            }
-            setShowReportModal(false);
-          }}
-        />
+      <ReportModal
+  post={post}
+  onClose={(reported?: boolean) => {
+    if (reported) setIsReported(true);
+    setShowReportModal(false);
+  }}
+/>
       )}
     </>
   );

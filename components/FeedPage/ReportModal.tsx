@@ -57,7 +57,7 @@ const [description, setDescription] = useState("");
             <CgClose size={22} />
           </button>
           <h3 className="title">Report Pop-Up</h3>
-        <div className="video_wrap">
+        <div className="post_wrap">
           {post.media?.[0]?.type === "video" ? (
             <>
                <VideoPlayer 

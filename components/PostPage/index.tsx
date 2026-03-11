@@ -940,19 +940,13 @@ const PostPage = () => {
               )}
 
               {showReportModal && (
-                <ReportModal
-                  postId={post._id}
-                  imageUrl={
-                    post.media?.[0]?.mediaFiles?.[0] ||
-                    post.creatorInfo?.profile
-                  }
-                  onClose={(reported = false) => {
-                    if (reported) {
-                      setIsReported(true);
-                    }
-                    setShowReportModal(false);
-                  }}
-                />
+               <ReportModal
+  post={post}
+  onClose={(reported?: boolean) => {
+    if (reported) setIsReported(true);
+    setShowReportModal(false);
+  }}
+/>
               )}
             {showComment && (
               <div className="flex flex-column gap-20">
