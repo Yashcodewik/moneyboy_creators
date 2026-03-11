@@ -124,10 +124,10 @@ const NotificationPage = () => {
     }
   };
 
-const goToProfile = (publicId?: string) => {
-  if (!publicId) return;
-  router.push(`/${publicId}`);
-};
+  const goToProfile = (publicId?: string) => {
+    if (!publicId) return;
+    router.push(`/${publicId}`);
+  };
 
   // useEffect(() => {
   //   if (!selectedPost?.createdAt) return;
@@ -351,21 +351,24 @@ const goToProfile = (publicId?: string) => {
                       <span>@{selectedPost.postTag.taggedBy.userName}</span>
                     </li>
                   )}
-                  {selectedPost?.postTag?.taggedUsers?.map((u: any) => (
-                    <li
-                      key={u.user._id}
-                      onClick={() => goToProfile(u.user?.userName)}
-                    >
-                      <img
-                        src={
-                          u.user.profile || "/images/logo/black-logo-square.png"
-                        }
-                        alt="Profile Avatar"
-                        className="user_icons"
-                      />
-                      <span>@{u.user.userName}</span>
-                    </li>
-                  ))}
+                  {selectedPost?.postTag?.taggedUsers
+                    ?.filter((u: any) => u?.user)
+                    .map((u: any) => (
+                      <li
+                        key={u.user?._id}
+                        onClick={() => goToProfile(u.user?.userName)}
+                      >
+                        <img
+                          src={
+                            u.user?.profile ||
+                            "/images/logo/black-logo-square.png"
+                          }
+                          alt="Profile Avatar"
+                          className="user_icons"
+                        />
+                        <span>@{u.user?.userName}</span>
+                      </li>
+                    ))}
                 </ul>
               </div>
             </div>
