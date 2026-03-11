@@ -223,7 +223,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       return;
     }
 
-      router.push(`/${username}`);
+    router.push(`/${username}`);
   };
 
 
@@ -414,6 +414,25 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                         )}
                       </ul>
                     </button>
+                  )}
+                  {post.taggedCreators?.length > 0 && showTaggedUsers && (
+                    <div ref={tagMenuRef} className="user-dropdown">
+                      <ul>
+                        {post.taggedCreators.map((user: any) => (
+                          <li
+                            key={user._id}
+                            onClick={() => handleProfileClick(user.userName)}
+                          >
+                            <img
+                              src={user.profile}
+                              alt={user.userName}
+                              className="user_icons"
+                            />
+                            <span>@{user.userName}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </div>
               </div>
