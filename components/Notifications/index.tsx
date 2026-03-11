@@ -37,7 +37,7 @@ const NotificationPage = () => {
     try {
       if (pageNumber === 1) setLoading(true);
       const res = await getApiWithOutQuery({
-        url: `${API_GET_NOTIFICATIONS}?page=${pageNumber}&limit=10`,
+        url: `${API_GET_NOTIFICATIONS}?page=${pageNumber}&limit=15`,
       });
       if (res?.success) {
         const newData = res.notifications || [];

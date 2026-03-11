@@ -1355,25 +1355,25 @@ useEffect(() => {
                                               href="#"
                                               className="profile-card__main"
                                             >
-                                              <div className="profile-card__avatar-settings">
+                                              {/* <div className="profile-card__avatar-settings">
                                                 <div className="profile-card__avatar">
                                                   <img
                                                     src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
                                                     alt="MoneyBoy Social Profile Avatar"
                                                   />
                                                 </div>
-                                              </div>
+                                              </div> */}
                                               <div className="profile-card__info">
                                                 <div className="profile-card__name-badge">
                                                   <div className="profile-card__name">
                                                     {post.text}
                                                   </div>
-                                                  <div className="profile-card__badge">
+                                                  {/* <div className="profile-card__badge">
                                                     <img
                                                       src="/images/logo/profile-badge.png"
                                                       alt="MoneyBoy Social Profile Badge"
                                                     />
-                                                  </div>
+                                                  </div> */}
                                                   {taggedUsers.length > 0 && (
                                                     <div
                                                       className="tagview"
@@ -1696,25 +1696,25 @@ useEffect(() => {
                                             href="#"
                                             className="profile-card__main"
                                           >
-                                            <div className="profile-card__avatar-settings">
+                                            {/* <div className="profile-card__avatar-settings">
                                               <div className="profile-card__avatar">
                                                 <img
                                                   src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
                                                   alt="MoneyBoy Social Profile Avatar"
                                                 />
                                               </div>
-                                            </div>
+                                            </div> */}
                                             <div className="profile-card__info">
                                               <div className="profile-card__name-badge">
                                                 <div className="profile-card__name">
                                                   {post.text}
                                                 </div>
-                                                <div className="profile-card__badge">
+                                                {/* <div className="profile-card__badge">
                                                   <img
                                                     src="/images/logo/profile-badge.png"
                                                     alt="MoneyBoy Social Profile Badge"
                                                   />
-                                                </div>
+                                                </div> */}
                                                 {taggedUsers.length > 0 && (
                                                   <div
                                                     className="tagview"

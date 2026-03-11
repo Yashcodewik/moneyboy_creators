@@ -148,7 +148,7 @@ export const showTaggedUserList = async (collaborators: any[] = []) => {
     .map((collab: any) => {
       const user = collab?.user || {};
       return `
-        <li class="tagged-user-item" data-id="${user.publicId || ""}">
+        <li class="tagged-user-item" data-username="${user.userName || ""}">
           <img src="${user.profile || "/images/default-avatar.png"}" class="user_icons" onerror="this.src='/images/default-avatar.png'"/>
           <span>@${user.userName || "unknown"}</span>
         </li>
@@ -174,9 +174,9 @@ export const showTaggedUserList = async (collaborators: any[] = []) => {
       items.forEach((item) => {
         item.addEventListener("click", () => {
           const element = item as HTMLElement;
-          const id = element.getAttribute("data-id");
-          if (id) {
-            window.location.href = `/profile/${id}`;
+          const username = element.getAttribute("data-username");
+          if (username) {
+            window.location.href = `/${username}`;
           }
         });
       });
