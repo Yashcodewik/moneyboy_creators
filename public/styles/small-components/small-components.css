@@ -765,7 +765,7 @@
                     }
 
                     &:hover,
-                    &:focus,
+                    /* &:focus, */
                     &.active {
                         svg {
                             path {

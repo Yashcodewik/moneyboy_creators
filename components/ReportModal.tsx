@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "./CustomSelect";
-import ShowToast from "./common/ShowToast";
+import { showSuccess, showError } from "../utils/alert";
 import { apiPost } from "@/utils/endpoints/common";
 import { API_REPOET_POST } from "@/utils/api/APIConstant";
 import * as yup from "yup";
@@ -42,17 +42,17 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, postId, imageUrl }) 
         });
 
         if (res?.error) {
-          ShowToast(res.error, "error");
+          showError(res.error);
         } else {
-          ShowToast("Report submitted successfully", "success");
+          showSuccess("Report submitted successfully");
           onClose(true);
         }
       } catch (err: any) {
-        ShowToast(err?.message || "Something went wrong", "error");
+        showError(err?.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
-    },
+    }
   });
   return (
     <div
