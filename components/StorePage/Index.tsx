@@ -1622,27 +1622,18 @@ const StorePage = () => {
                                                       }}
                                                     >
                                                       <ul className="taglist">
-                                                        {taggedUsers
-                                                          .slice(0, 2)
-                                                          .map(
-                                                            (
-                                                              tag: any,
-                                                              index: number,
-                                                            ) => (
-                                                              <li key={index}>
-                                                                <img className="user_icons" src={tag?.user?.profile || "/images/default-avatar.png"} alt={tag?.user?.userName || "user"} />
-                                                              </li>
-                                                            ),
-                                                          )}
-
-                                                        {taggedUsers.length >
-                                                          2 && (
-                                                            <li className="more-count">
-                                                              +
-                                                              {taggedUsers.length -
-                                                                2}
-                                                            </li>
-                                                          )}
+                                                        {taggedUsers.slice(0, 2).map((tag: any, index: number) => (
+                                                          <li key={index}>
+                                                            {tag?.user?.profile ? (
+                                                              <img className="user_icons" src={tag.user.profile} alt={tag?.user?.userName || "user"} onError={(e: any) => {e.currentTarget.style.display = "none";}}/>
+                                                            ) : (
+                                                              <div className="nomedia"><span>{(tag?.user?.userName || "U").charAt(0).toUpperCase()}</span></div>
+                                                            )}
+                                                          </li>
+                                                        ))}
+                                                        {taggedUsers.length > 2 && (
+                                                          <li className="more-count">+{taggedUsers.length - 2}</li>
+                                                        )}
                                                       </ul>
                                                     </div>
                                                   )}
