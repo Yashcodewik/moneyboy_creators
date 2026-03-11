@@ -19,12 +19,7 @@ export default function InfiniteScrollWrapper({
   children,
   loader = (
     <div className="loadingtext">
-      <img src="/images/micons.png" alt="M" className="loading-letter-img" />
-      {"oneyBoy".split("").map((char, i) => (
-        <span key={i} style={{ animationDelay: `${(i + 2) * 0.1}s` }}>
-          {char}
-        </span>
-      ))}
+      <img src="/images/micons.png" alt="M" className="loading-letter-img" /> {"oneyBoy".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 2) * 0.1}s` }}>{char}</span>))}
     </div>
   ),
   scrollableTarget,
@@ -41,7 +36,11 @@ export default function InfiniteScrollWrapper({
       loader={loader}
       scrollThreshold={0.85}
       scrollableTarget={scrollableTarget}
-    >
+      endMessage={
+        <div className="nodeta">
+          <span>You're all Caught Up</span>
+        </div>
+      }>
       {children}
     </InfiniteScroll>
   );
