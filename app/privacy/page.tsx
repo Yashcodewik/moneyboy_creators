@@ -1,11 +1,11 @@
 import Header from "@/components/Layouts/Header";
-import PrivacyPage from "@/components/PrivacyPage/index";
+import CmsPage from "@/components/CmsPage";
 
 const Index = () => {
   return (
     <div className="moneyboy-layout-container">
       <Header />
-      <PrivacyPage />
+      <CmsPage slug="privacy policy" defaultTitle="Privacy Policy" />
     </div>
   );
 };

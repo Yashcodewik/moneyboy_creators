@@ -1,11 +1,11 @@
-import DmcaPage from "@/components/DmcaPage/index";
 import Header from "@/components/Layouts/Header";
+import CmsPage from "@/components/CmsPage";
 
 const Index = () => {
   return (
     <div className="moneyboy-layout-container">
       <Header />
-      <DmcaPage />
+      <CmsPage slug="dmca" defaultTitle="DMCA" />
     </div>
   );
 };

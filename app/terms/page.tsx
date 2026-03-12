@@ -1,11 +1,11 @@
 import Header from "@/components/Layouts/Header";
-import TermsPage from "@/components/TermsPage/index";
+import CmsPage from "@/components/CmsPage";
 
 const Index = () => {
   return (
     <div className="moneyboy-layout-container">
       <Header />
-      <TermsPage />
+      <CmsPage slug="terms-of-service" defaultTitle="Terms of Service" />
     </div>
   );
 };

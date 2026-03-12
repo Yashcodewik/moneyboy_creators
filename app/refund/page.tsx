@@ -1,11 +1,11 @@
-import RefundPage from "@/components/RefundPage/index";
 import Header from "@/components/Layouts/Header";
+import CmsPage from "@/components/CmsPage";
 
 const Index = () => {
   return (
     <div className="moneyboy-layout-container">
       <Header />
-      <RefundPage />
+      <CmsPage slug="refund & cancellation policy" defaultTitle="Refund & Cancellation Policy"/>
     </div>
   );
 };
