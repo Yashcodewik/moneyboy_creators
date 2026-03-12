@@ -851,7 +851,7 @@ const CreatorSignupPage = () => {
               payload?.reviewStatus === "completed"
             ) {
               setTimeout(() => {
-                router.push("/login");
+                router.push("/waiting");
               }, 1500);
             }
           }}

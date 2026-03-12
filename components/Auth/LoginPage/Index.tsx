@@ -47,15 +47,25 @@ const LoginPage = () => {
 
       setSubmitting(false);
 
-     if (res?.error) {
-  let message = "Invalid email or password";
+if (res?.error) {
 
-  if (res.error.includes("banned")) {
-    message =
-      "Your account has been banned by the administrator. Please contact support.";
+  // 🚫 banned user
+  if (res.error.toLowerCase().includes("banned")) {
+    ShowToast(
+      "Your account has been banned by the administrator. Please contact support.",
+      "error"
+    );
+    return;
   }
 
-  ShowToast(message, "error");
+  // ⏳ creator waiting for admin approval
+  if (res.error.toLowerCase().includes("admin review")) {
+    router.push("/waiting");
+    return;
+  }
+
+  // ❌ wrong credentials
+  ShowToast("Invalid email or password", "error");
   return;
 }
 
