@@ -5,6 +5,7 @@ import CustomSelect from "../CustomSelect";
 import { useState } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
+import { BsBank2 } from "react-icons/bs";
 interface TipModalProps {
   onClose: () => void;
   onConfirm: (amount: number) => Promise<void>;
@@ -31,14 +32,13 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
     },
   });
 
+  const [cards, setCards] = useState<any[]>([]);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+
   return (
     <>
-      <div
-        className="modal show"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap tip-modal">
           <button className="close-btn">
             <CgClose size={22} onClick={onClose} />
@@ -105,41 +105,44 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
             </div>
           </div>
           <h3 className="title">Thanks for the Tip</h3>
+          <h4 className="payment_title">Payment Method</h4>
+          <div className="select_wrap">
+            <label className="radio_wrap">
+              <input type="radio" name="payment" />
+              <img src="/images/icons/wallet_icons.svg" alt="wallet" className="icons" />
+              <p>Pay With Wallet</p>
+            </label>
+            <label className="radio_wrap">
+              <input type="radio" name="payment" />
+              <img src="/images/icons/card_icons.svg" alt="card" className="icons" />
+              <p>Pay With Credit/Debit Card</p>
+            </label>
+          </div>
+          <div>
+            <label className="small">Choose Payment Method*</label>
+            <CustomSelect
+              label="Select a Payment Card"
+              placeholder="Select a Payment Card"
+              value={selectedCard}
+              options={cards.map((card) => ({
+                label: `${card.cardholderName} - **** ${card.cardNumber}`,
+                value: card._id,
+              }))}
+              onChange={(val: any) => {
+                console.log("SELECTED VALUE:", val);
+                setSelectedCard(val);
+              }}
+            />
+          </div>
           <div className="text-center">
             <label className="orange">Enter The Amount</label>
-            <input
-              className="form-input number-input"
-              type="number"
-              placeholder="Amount ($)"
-              name="amount"
-              value={formik.values.amount}
-              onChange={(e) => {
-                const value = e.target.value;
-
-                // allow only up to 3 digits
-                if (value.length <= 3) {
-                  formik.setFieldValue("amount", value);
-                }
-              }}
-              onBlur={formik.handleBlur}
-            />
+            <input className="form-input number-input" type="number" placeholder="Amount ($)" name="amount" value={formik.values.amount} onChange={(e) => { const value = e.target.value; if (value.length <= 3) { formik.setFieldValue("amount", value); } }} onBlur={formik.handleBlur} />
             {formik.touched.amount && formik.errors.amount && (
-              <div
-                className="error-text"
-                style={{ color: "red", marginTop: "5px" }}
-              >
-                {formik.errors.amount}
-              </div>
+              <div className="error-text" style={{ color: "red", marginTop: "5px" }}>{formik.errors.amount}</div>
             )}
           </div>
           <div className="actions">
-            <button
-              className="premium-btn active-down-effect"
-              onClick={() => formik.handleSubmit()}
-              type="button"
-            >
-              <span>Send Tip</span>
-            </button>
+            <button className="premium-btn active-down-effect" onClick={() => formik.handleSubmit()} type="button"><span>Send Tip</span></button>
           </div>
         </div>
       </div>

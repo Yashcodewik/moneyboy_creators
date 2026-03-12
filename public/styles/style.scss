@@ -2500,6 +2500,40 @@ body {
       }
     }
   }
+  &.waiting_wrap {
+    .cont_wrap {
+      justify-content: center;
+      .main_cont {
+        align-items: center;
+        .Waitinggif {
+          mix-blend-mode: darken;
+          margin: 15px 0;
+          width: 100%;
+          max-width: 80%;
+        }
+        h3 {
+          color: var(--color-text-active);
+          font-size: 22px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 100%;
+          font-family: var(--font-family-heading);
+        }
+        p {
+          color: #505050;
+          font-size: 14px;
+          line-height: 23px;
+          font-weight: 400;
+          letter-spacing: 3%;
+          font-style: Medium;
+          font-family: var(--font-family-base);
+          &:last-child {
+            margin-bottom: 0px;
+          }
+        }
+      }
+    }
+  }
   /* ========== Mobile Screen Size ========== */
   @media screen and (max-width: 767px) {
     flex-direction: column;
@@ -2592,6 +2626,33 @@ body {
       line-height: 18px;
       margin-bottom: 10px;
     }
+    &.waiting_wrap {
+    min-height: calc(100dvh - 157px);
+    .cont_wrap {
+      padding: 0;
+      align-items: center;
+      justify-content: center;
+      height: auto;
+      .main_cont {
+        text-align: center;
+        align-items: center;
+        gap: 12px;
+        .Waitinggif {
+          width: 100%;
+          max-width: 260px;
+          margin: 10px auto;
+        }
+        h3 {
+          font-size: 20px;
+          line-height: 26px;
+        }
+        p {
+          font-size: 14px;
+          line-height: 20px;
+        }
+      }
+    }
+  }
   }
   /* ========== Tablet Screen Size ========== */
   @media screen and (min-width: 768px) and (max-width: 1024px) {
@@ -3813,7 +3874,7 @@ body {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-width: 480px;
+      max-width: 550px;
       .close-btn {
         position: absolute;
         top: 20px;
@@ -3836,6 +3897,10 @@ body {
         letter-spacing: 0px;
         margin-bottom: 12px;
         display: block;
+        &.small {
+          font-size: 13px;
+          margin-bottom: 3px;
+        }
       }
       input.number-input {
         max-width: 60%;
@@ -3848,6 +3913,37 @@ body {
         &::-webkit-outer-spin-button {
           opacity: 1;
           -webkit-appearance: auto;
+        }
+      }
+      .select_wrap {
+        display: inline-flex;
+        // flex-wrap: wrap;
+        gap: 15px;
+        .radio_wrap {
+          padding: 9px 12px;
+          border-radius: 12px;
+          border: 1.5px solid #f1f1f1;
+          min-width: fit-content;
+          display: inline-flex;
+          margin-bottom: 0px;
+          &:last-child {
+            width: -webkit-fill-available;
+          }
+          input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            min-height: 16px;
+          }
+          .icons {
+            width: 18px;
+            height: 18px;
+          }
+          p {
+            color: #444444;
+            font-weight: 500;
+            font-size: 12px;
+            line-height: 100%;
+          }
         }
       }
       .actions {
@@ -3890,6 +3986,7 @@ body {
       flex-direction: column;
       gap: 10px;
       max-width: 550px;
+      overflow: visible;
       .close-btn {
         position: absolute;
         top: 20px;
@@ -3934,6 +4031,16 @@ body {
         padding: 0px;
         .profile-card__main {
           justify-content: start;
+          .select_wrap {
+            margin-left: auto;
+              gap: 8px;
+              display: flex;
+              align-items: center;
+            label {
+              border-radius: 8px !important;
+              padding: 8px 12px !important;
+            }
+          }
         }
       }
       .actions {
@@ -5015,6 +5122,13 @@ body {
         }
         input.number-input {
           max-width: 100%;
+        }
+        .select_wrap {
+          flex-wrap: wrap;
+          gap: 15px;
+          .radio_wrap {
+            width: 100%;
+          }
         }
         .actions {
           order: 4;

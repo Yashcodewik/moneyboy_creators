@@ -15,10 +15,10 @@ interface SubscriptionModalProps {
     profile?: string;
   };
 
-subscription?: {
-  monthlyPrice?: number;
-  yearlyPrice?: number;
-};
+  subscription?: {
+    monthlyPrice?: number;
+    yearlyPrice?: number;
+  };
 
 }
 
@@ -32,30 +32,25 @@ const SubscriptionModal = ({
   subscription,
 }: SubscriptionModalProps) => {
 
-const finalPrice =
-  plan === "MONTHLY"
-    ? subscription?.monthlyPrice
-    : subscription?.yearlyPrice;
+  const finalPrice =
+    plan === "MONTHLY"
+      ? subscription?.monthlyPrice
+      : subscription?.yearlyPrice;
 
-    const savings =
-  subscription?.monthlyPrice &&
-  subscription?.yearlyPrice
-    ? Math.round(
+  const savings =
+    subscription?.monthlyPrice &&
+      subscription?.yearlyPrice
+      ? Math.round(
         ((subscription.monthlyPrice * 12 -
           subscription.yearlyPrice) /
           (subscription.monthlyPrice * 12)) *
-          100
+        100
       )
-    : null;
+      : null;
 
   return (
     <>
-     <div
-        className="modal show"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
+      <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
         <div className="modal-wrap subscription-modal">
           <button className="close-btn">
             <CgClose size={22} onClick={onClose} />
@@ -85,10 +80,14 @@ const finalPrice =
                 </div>
                 <div className="profile-card__username">@{creator?.userName || "Unknown User"}</div>
               </div>
+              <div className="select_wrap">
+                <label className="radio_wrap box_select"><input type="radio" name="payment" value="wallet" /> month</label>
+                <label className="radio_wrap box_select"><input type="radio" name="payment" value="card" /> year</label>
+              </div>
             </div>
           </div>
           <h3 className="title">
-           {plan === "MONTHLY" ? "Monthly" : "Yearly"} {action}{" "} <span className="gradinttext">{finalPrice ? `$${finalPrice}` : "Not Updated yet"}</span>{" "}
+            {plan === "MONTHLY" ? "Monthly" : "Yearly"} {action}{" "} <span className="gradinttext">{finalPrice ? `$${finalPrice}` : "Not Updated yet"}</span>{" "}
             <sub>
               /{plan === "MONTHLY" ? "month" : "year"}
               {plan === "YEARLY" && savings && (
@@ -115,13 +114,13 @@ const finalPrice =
               ]}
             />
             <button className="premium-btn active-down-effect" onClick={onConfirm}>
-               <span>
-                  {action === "upgrade"
-                    ? "Upgrade"
-                    : action === "renew"
+              <span>
+                {action === "upgrade"
+                  ? "Upgrade"
+                  : action === "renew"
                     ? "Renew"
                     : "Subscribe"}
-                </span>
+              </span>
             </button>
           </div>
           <p className="note">

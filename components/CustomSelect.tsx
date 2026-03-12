@@ -17,7 +17,6 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label = "Select", options, 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   const selectedOptions = Array.isArray(internalValue)
     ? options.filter((o) => internalValue.includes(o.value))
     : options.find((o) => o.value === internalValue);
@@ -25,22 +24,18 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label = "Select", options, 
   const filteredOptions = searchable
     ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
     : options;
-
   const handleSelect = (val: string) => {if (!multiple) {setInternalValue(val); onChange?.(val); setOpen(false); return;}
-
     const current = Array.isArray(internalValue) ? internalValue : [];
     const updated = current.includes(val) ? current.filter((v) => v !== val) : [...current, val];
     setInternalValue(updated);
     onChange?.(updated);
   };
-
   const handleRemove = (val: string) => {
     if (!Array.isArray(internalValue)) return;
     const updated = internalValue.filter((v) => v !== val);
     setInternalValue(updated);
     onChange?.(updated);
   };
-
   useEffect(() => {
   if (!open) {
     setSearch(""); 
@@ -67,7 +62,6 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label = "Select", options, 
           <svg className="icons chevronDown svg-icon" />
         </div>
       </div>
-
       {open && (
         <div className="custom-select-options-dropdown-wrapper">
           <div className="custom-select-options-dropdown-container">
@@ -81,7 +75,6 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label = "Select", options, 
                 </div>
               </div>
             )}
-
             <div className="custom-select-options-lists-container">
               <ul className="custom-select-options-list" data-custom-select-options-list>
                 {filteredOptions.map((opt) => (
@@ -89,9 +82,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label = "Select", options, 
                     <span>{opt.label}</span>
                   </li>
                 ))}
-
                 {!filteredOptions.length && (
-                  <li className="custom-select-option">
+                  <li className="custom-select-option text-center">
                     <span>No options found</span>
                   </li>
                 )}

@@ -6,7 +6,6 @@ import { BsBank2 } from "react-icons/bs";
 import { useRouter } from 'next/navigation';
 import { IoArrowBackOutline } from 'react-icons/io5';
 
-
 import ShowToast from "@/components/common/ShowToast";
 import { apiPost, getApiWithOutQuery } from '@/utils/endpoints/common';
 import { API_PAYOUT_ACCOUNTS, API_REQUEST_PAYOUT, API_WALLET_SUMMARY } from '@/utils/api/APIConstant';
@@ -17,19 +16,17 @@ import { fetchWallet } from '@/redux/wallet/Action';
 
 const RequestPayoutPage = () => {
   const router = useRouter();
-
   const [options, setOptions] = useState<any[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<any>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
-
   const [summary, setSummary] = useState({
-  walletBalance: 0,
-  pendingPayout: 0,
-  totalWithdrawn: 0,
-});
-const dispatch = useDispatch<AppDispatch>();
-  
+    walletBalance: 0,
+    pendingPayout: 0,
+    totalWithdrawn: 0,
+  });
+  const dispatch = useDispatch<AppDispatch>();
+
   useEffect(() => {
     loadAccounts();
   }, []);
@@ -41,7 +38,7 @@ const dispatch = useDispatch<AppDispatch>();
 
     if (res?.success) {
       const data = res.data;
-      const opts:any[] = [];
+      const opts: any[] = [];
 
       if (data.bank) {
         opts.push({
@@ -91,34 +88,34 @@ const dispatch = useDispatch<AppDispatch>();
     }
   };
   const loadSummary = async () => {
-  const res = await getApiWithOutQuery({
-    url: API_WALLET_SUMMARY,
-  });
+    const res = await getApiWithOutQuery({
+      url: API_WALLET_SUMMARY,
+    });
 
-  if (res?.success) {
-    setSummary(res.data);
-  }
-};
+    if (res?.success) {
+      setSummary(res.data);
+    }
+  };
 
   useEffect(() => {
-  loadAccounts();
-  loadSummary();
-}, []);
+    loadAccounts();
+    loadSummary();
+  }, []);
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-            
-            <div className="moneyboy-feed-page-cate-buttons card hide_mobile" id="posts-tabs-btn-card">
-              <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}><IoArrowBackOutline className="icons" /></button>
-              <button className="page-content-type-button active-down-effect active max-w-50">Request a Payout</button>
-            </div>
 
-            <div className="tabs-content-wrapper-layout">
-              <div data-multi-dem-cards-layout>
-                <div className="creator-content-filter-grid-container">
-                  <div className="card filters-card-wrapper">
-                   <div className="creator-content-cards-wrapper rqstpayout_containt">
+          <div className="moneyboy-feed-page-cate-buttons card hide_mobile" id="posts-tabs-btn-card">
+            <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}><IoArrowBackOutline className="icons" /></button>
+            <button className="page-content-type-button active-down-effect active max-w-50">Request a Payout</button>
+          </div>
+
+          <div className="tabs-content-wrapper-layout">
+            <div data-multi-dem-cards-layout>
+              <div className="creator-content-filter-grid-container">
+                <div className="card filters-card-wrapper">
+                  <div className="creator-content-cards-wrapper rqstpayout_containt">
 
                     <div className="history_wrap">
                       <div className="rline">
@@ -127,7 +124,7 @@ const dispatch = useDispatch<AppDispatch>();
                       </div>
                       <div className="rline">
                         <p>Withdraw Review</p>
-                         <h3>$ {summary.pendingPayout.toFixed(2)}</h3>
+                        <h3>$ {summary.pendingPayout.toFixed(2)}</h3>
                       </div>
                       <div>
                         <p>Wallet Balance</p>
@@ -142,7 +139,7 @@ const dispatch = useDispatch<AppDispatch>();
                           type="number"
                           placeholder="Enter the Value"
                           value={amount}
-                          onChange={(e)=>setAmount(e.target.value)}
+                          onChange={(e) => setAmount(e.target.value)}
                         />
                       </div>
                     </div>
@@ -154,20 +151,20 @@ const dispatch = useDispatch<AppDispatch>();
                           rows={3}
                           placeholder="Lorem ipsum"
                           value={note}
-                          onChange={(e)=>setNote(e.target.value)}
+                          onChange={(e) => setNote(e.target.value)}
                         ></textarea>
                       </div>
                     </div>
 
                     <div>
-                    <CustomSelect
-                      label="Banking"
-                      placeholder="Select payout method"
-                      icon={<BsBank2 size={14} />}
-                      options={options}
-                      value={selectedMethod}
-                      onChange={(val:any)=>setSelectedMethod(val)}
-                    />
+                      <CustomSelect
+                        label="Banking"
+                        placeholder="Select payout method"
+                        icon={<BsBank2 size={14} />}
+                        options={options}
+                        value={selectedMethod}
+                        onChange={(val: any) => setSelectedMethod(val)}
+                      />
                     </div>
 
                     <div className="btm_btn">
@@ -179,11 +176,11 @@ const dispatch = useDispatch<AppDispatch>();
                       </button> */}
                     </div>
 
-                   </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
         </div>
       </div>
 
