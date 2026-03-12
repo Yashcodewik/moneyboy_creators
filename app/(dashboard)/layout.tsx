@@ -3,6 +3,7 @@
 import React from "react";
 import Header from "@/components/Layouts/Header";
 import Sidebar from "@/components/Layouts/Sidebar";
+import RoleRouteGuard from "@/components/RouteGuard";
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,7 @@ export default function DashboardLayout({
 }) {
   return (
     <>
+    <RoleRouteGuard>
       <div className="moneyboy-layout-container">
         <Header />
         <div className="container">
@@ -24,6 +26,7 @@ export default function DashboardLayout({
         </div>
       </div>
       <div className="mobile-popup-overlay" />
+      </RoleRouteGuard>
     </>
   );
 }
