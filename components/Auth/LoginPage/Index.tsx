@@ -47,10 +47,17 @@ const LoginPage = () => {
 
       setSubmitting(false);
 
-      if (res?.error) {
-        setFieldError("password", "Invalid email or password");
-        return;
-      }
+     if (res?.error) {
+  let message = "Invalid email or password";
+
+  if (res.error.includes("banned")) {
+    message =
+      "Your account has been banned by the administrator. Please contact support.";
+  }
+
+  ShowToast(message, "error");
+  return;
+}
 
       router.push("/feed");
     },
