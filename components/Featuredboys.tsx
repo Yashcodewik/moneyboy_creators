@@ -39,10 +39,15 @@ const Featuredboys = () => {
       setLoading(false);
     }
   };
+useEffect(() => {
+  fetchFeatured(page);
 
-  useEffect(() => {
+  const interval = setInterval(() => {
     fetchFeatured(page);
-  }, [page, session?.user?.publicId]);
+  }, 60000); // 1 minute
+
+  return () => clearInterval(interval);
+}, [page, session?.user?.publicId]);
 
   const handleRefresh = () => {
     fetchFeatured(page);
