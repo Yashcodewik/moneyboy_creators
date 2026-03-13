@@ -85,34 +85,10 @@ const HelpPage = () => {
             <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
 
               {/* Tabs */}
-              <div
-                className="moneyboy-feed-page-cate-buttons card"
-                id="posts-tabs-btn-card"
-              >
-                <button
-                  className="cate-back-btn active-down-effect"
-                  onClick={() => router.push("/feed")}
-                >
-                  <span className="icons arrowLeft"></span>
-                </button>
-
-                <button
-                  className={`page-content-type-button active-down-effect ${
-                    activeTab === "all" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveTab("all")}
-                >
-                  Help & Support
-                </button>
-
-                <button
-                  className={`page-content-type-button active-down-effect ${
-                    activeTab === "guides" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveTab("guides")}
-                >
-                  Platform Information & Guides
-                </button>
+              <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+                <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}><span className="icons arrowLeft"></span></button>
+                <button className={`page-content-type-button active-down-effect ${activeTab === "all" ? "active" : ""}`}onClick={() => setActiveTab("all")}>Help & Support</button>
+                <button className={`page-content-type-button active-down-effect ${activeTab === "guides" ? "active" : ""}`} onClick={() => setActiveTab("guides")}>Platform Information & Guides</button>
               </div>
 
               {/* Content */}
@@ -120,7 +96,7 @@ const HelpPage = () => {
                 {loading && <p>Loading...</p>}
 
                 {!loading && activeTab === "all" && cmsData && (
-                  <div
+                  <div className="main_contwrap p-0"
                     dangerouslySetInnerHTML={{
                       __html: cmsData.content,
                     }}
@@ -128,7 +104,7 @@ const HelpPage = () => {
                 )}
 
                 {!loading && activeTab === "guides" && guidesSection && (
-                  <div
+                  <div className="main_contwrap p-0"
                     dangerouslySetInnerHTML={{
                       __html: guidesSection,
                     }}

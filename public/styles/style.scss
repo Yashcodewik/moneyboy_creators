@@ -607,6 +607,10 @@ body {
     padding: clamp(20px, 3vw, 32px);
     min-height: clamp(140px, 25vw, 220px);
   }
+  &.h-full {
+    margin: 10px;
+    height: calc(100dvh - 20px);
+  }
 }
 .noprofile {
   width: 40px;

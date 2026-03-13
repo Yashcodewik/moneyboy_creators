@@ -1,13 +1,11 @@
-import HelpPage from "@/components/HelpPage";
 import Header from "@/components/Layouts/Header";
+import CmsPage from "@/components/CmsPage";
 
-const Index = () => {
+export default function Page() {
   return (
     <div className="moneyboy-layout-container">
       <Header />
-      <HelpPage />
+      <CmsPage slug="help & support" defaultTitle="Help & Support" showGuidesTab/>
     </div>
   );
-};
-
-export default Index;
+}
