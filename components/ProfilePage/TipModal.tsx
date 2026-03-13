@@ -140,7 +140,7 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
             )}
           </div>
 
-                    <h4 className="payment_title">Payment Method</h4>
+          <h4 className="payment_title">Payment Method</h4>
           <div className="select_wrap">
             <label className="radio_wrap">
               <input

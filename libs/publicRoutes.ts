@@ -52,13 +52,9 @@ creator: [
 "/add-funds",
 "/blacklist",
 "/userprofile",
-
-
 "/banking",
 "/block-countries",
 "/creator-edit-profile",
 "/request-payout",
-
-
 ],
 };
