@@ -7,6 +7,7 @@ interface SubscriptionModalProps {
   onClose: () => void;
   onConfirm: () => void;
   plan: "MONTHLY" | "YEARLY";
+  setPlan: (plan: "MONTHLY" | "YEARLY") => void;
   action: "subscribe" | "upgrade" | "renew" | null;
 
   creator: {
@@ -19,7 +20,6 @@ interface SubscriptionModalProps {
     monthlyPrice?: number;
     yearlyPrice?: number;
   };
-
 }
 
 
@@ -27,6 +27,7 @@ const SubscriptionModal = ({
   onClose,
   onConfirm,
   plan,
+  setPlan,
   action,
   creator,
   subscription,
@@ -80,10 +81,31 @@ const SubscriptionModal = ({
                 </div>
                 <div className="profile-card__username">@{creator?.userName || "Unknown User"}</div>
               </div>
-              <div className="select_wrap">
-                <label className="radio_wrap box_select"><input type="radio" name="payment" value="wallet" /> month</label>
-                <label className="radio_wrap box_select"><input type="radio" name="payment" value="card" /> year</label>
-              </div>
+            <div className="select_wrap">
+  <label
+    className={`radio_wrap box_select ${plan === "MONTHLY" ? "active" : ""}`}
+  >
+    <input
+      type="radio"
+      name="plan"
+      checked={plan === "MONTHLY"}
+      onChange={() => setPlan("MONTHLY")}
+    />
+    month
+  </label>
+
+  <label
+    className={`radio_wrap box_select ${plan === "YEARLY" ? "active" : ""}`}
+  >
+    <input
+      type="radio"
+      name="plan"
+      checked={plan === "YEARLY"}
+      onChange={() => setPlan("YEARLY")}
+    />
+    year
+  </label>
+</div>
             </div>
           </div>
           <h3 className="title">

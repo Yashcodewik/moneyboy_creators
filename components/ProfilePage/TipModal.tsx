@@ -8,7 +8,7 @@ import { useFormik } from "formik";
 import { BsBank2 } from "react-icons/bs";
 interface TipModalProps {
   onClose: () => void;
-  onConfirm: (amount: number) => Promise<void>;
+  onConfirm: (amount: number, paymentMethod: "wallet" | "card") => Promise<void>;
   creator: {
     displayName?: string;
     userName?: string;
@@ -27,18 +27,26 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
         .min(1, "Tip amount must be at least $1")
         .max(999, "Maximum tip amount is $999"),
     }),
-    onSubmit: async (values) => {
-      await onConfirm(Number(values.amount));
-    },
+  onSubmit: async (values) => {
+  await onConfirm(Number(values.amount), paymentMethod);
+},
   });
 
   const [cards, setCards] = useState<any[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card">(
+    "wallet",
+  );
 
   return (
     <>
-      <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+      <div
+        className="modal show"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="age-modal-title"
+      >
         <div className="modal-wrap tip-modal">
           <button className="close-btn">
             <CgClose size={22} onClick={onClose} />
@@ -105,19 +113,68 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
             </div>
           </div>
           <h3 className="title">Thanks for the Tip</h3>
-          <h4 className="payment_title">Payment Method</h4>
+
+          <div className="text-center">
+            <label className="orange">Enter The Amount</label>
+            <input
+              className="form-input number-input"
+              type="number"
+              placeholder="Amount ($)"
+              name="amount"
+              value={formik.values.amount}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 3) {
+                  formik.setFieldValue("amount", value);
+                }
+              }}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.amount && formik.errors.amount && (
+              <div
+                className="error-text"
+                style={{ color: "red", marginTop: "5px" }}
+              >
+                {formik.errors.amount}
+              </div>
+            )}
+          </div>
+
+                    <h4 className="payment_title">Payment Method</h4>
           <div className="select_wrap">
             <label className="radio_wrap">
-              <input type="radio" name="payment" />
-              <img src="/images/icons/wallet_icons.svg" alt="wallet" className="icons" />
+              <input
+                type="radio"
+                name="payment"
+                value="wallet"
+                checked={paymentMethod === "wallet"}
+                onChange={() => setPaymentMethod("wallet")}
+              />
+              <img
+                src="/images/icons/wallet_icons.svg"
+                alt="wallet"
+                className="icons"
+              />
               <p>Pay With Wallet</p>
             </label>
+
             <label className="radio_wrap">
-              <input type="radio" name="payment" />
-              <img src="/images/icons/card_icons.svg" alt="card" className="icons" />
+              <input
+                type="radio"
+                name="payment"
+                value="card"
+                checked={paymentMethod === "card"}
+                onChange={() => setPaymentMethod("card")}
+              />
+              <img
+                src="/images/icons/card_icons.svg"
+                alt="card"
+                className="icons"
+              />
               <p>Pay With Credit/Debit Card</p>
             </label>
           </div>
+          {paymentMethod === "card" &&
           <div>
             <label className="small">Choose Payment Method*</label>
             <CustomSelect
@@ -134,15 +191,15 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
               }}
             />
           </div>
-          <div className="text-center">
-            <label className="orange">Enter The Amount</label>
-            <input className="form-input number-input" type="number" placeholder="Amount ($)" name="amount" value={formik.values.amount} onChange={(e) => { const value = e.target.value; if (value.length <= 3) { formik.setFieldValue("amount", value); } }} onBlur={formik.handleBlur} />
-            {formik.touched.amount && formik.errors.amount && (
-              <div className="error-text" style={{ color: "red", marginTop: "5px" }}>{formik.errors.amount}</div>
-            )}
-          </div>
+          }
           <div className="actions">
-            <button className="premium-btn active-down-effect" onClick={() => formik.handleSubmit()} type="button"><span>Send Tip</span></button>
+            <button
+              className="premium-btn active-down-effect"
+              onClick={() => formik.handleSubmit()}
+              type="button"
+            >
+              <span>Send Tip</span>
+            </button>
           </div>
         </div>
       </div>

@@ -1842,6 +1842,7 @@ const StorePage = () => {
           onClose={() => setShowSubscriptionModal(false)}
           onConfirm={handleConfirmSubscription}
           plan={subscriptionPlan}
+          setPlan={setSubscriptionPlan}
           action="subscribe"
           creator={{
             displayName: activeSubscriptionCreator?.displayName,

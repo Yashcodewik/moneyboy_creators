@@ -892,27 +892,29 @@ const handleToggleSaveCreator = async (creator: SavedCreator) => {
           )}
 
           {showSubscriptionModal && selectedCreator && (
-            <SubscriptionModal
-              onClose={() => setShowSubscriptionModal(false)}
-              plan={selectedPlan}
-              action={modalAction}
-              creator={{
-                displayName: selectedCreator.displayName,
-                userName: selectedCreator.userName,
-                profile: selectedCreator.profile,
-              }}
-              subscription={selectedCreator.subscription}
-              onConfirm={async () => {
-                await apiPost({
-                  url: API_SUBSCRIBE_CREATOR,
-                  values: {
-                    creatorId: selectedCreator._id,
-                    planType: selectedPlan,
-                  },
-                });
-                setShowSubscriptionModal(false);
-              }}
-            />
+       <SubscriptionModal
+  onClose={() => setShowSubscriptionModal(false)}
+  plan={selectedPlan}
+  setPlan={setSelectedPlan}
+  action={modalAction}
+  creator={{
+    displayName: selectedCreator.displayName,
+    userName: selectedCreator.userName,
+    profile: selectedCreator.profile,
+  }}
+  subscription={selectedCreator.subscription}
+  onConfirm={async () => {
+    await apiPost({
+      url: API_SUBSCRIBE_CREATOR,
+      values: {
+        creatorId: selectedCreator._id,
+        planType: selectedPlan,
+      },
+    });
+
+    setShowSubscriptionModal(false);
+  }}
+/>
           )}
         </div>
       </div>

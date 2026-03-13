@@ -75,9 +75,11 @@ export const sendTip = createAsyncThunk(
     {
       creatorId,
       amount,
+      paymentMethod,
     }: {
       creatorId: string;
       amount: number;
+      paymentMethod: "wallet" | "card";
     },
     { rejectWithValue }
   ) => {
@@ -85,6 +87,7 @@ export const sendTip = createAsyncThunk(
       const res = await defaultAxios.post(API_SEND_TIP, {
         creatorId,
         amount,
+        paymentMethod,
       });
 
       if (!res?.data?.success) {
@@ -93,7 +96,7 @@ export const sendTip = createAsyncThunk(
         );
       }
 
-      return res.data; // { success, message, transaction }
+      return res.data;
     } catch (error: any) {
       return rejectWithValue(
         error?.response?.data?.message || "Something went wrong"
