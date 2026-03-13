@@ -44,6 +44,7 @@ import {
   RotateCw,
   X,
 } from "lucide-react";
+import { fetchWallet } from "@/redux/wallet/Action";
 const PostPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -211,7 +212,10 @@ const PostPage = () => {
     setSaveLoading(false);
   };
 
-  const handleSendTip = async (amount: number) => {
+const handleSendTip = async (
+  amount: number,
+  paymentMethod: "wallet" | "card"
+) => {
     if (!session?.user?.id) {
       router.push("/login");
       return;
@@ -220,10 +224,16 @@ const PostPage = () => {
     try {
       await dispatch(
         sendTip({
-          creatorId: post.userId, // 👈 important
+          creatorId: post.userId, 
           amount,
+          paymentMethod
         }),
       ).unwrap();
+
+       if (paymentMethod === "wallet") {
+      dispatch(fetchWallet());
+    }
+
 
       setShowTipModal(false);
     } catch (err) {
