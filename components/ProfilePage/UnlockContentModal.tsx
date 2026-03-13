@@ -14,7 +14,7 @@ interface UnlockContentModalProps {
     text: string;
     price: number;
   };
-  onConfirm: () => Promise<void>;
+  onConfirm: (paymentMethod: "wallet" | "card") => Promise<void>;
   loading?: boolean;
 }
 
@@ -111,7 +111,7 @@ const UnlockContentModal = ({
             </div>
           }
           <div className="actions">
-            <button className="premium-btn active-down-effect" onClick={onConfirm} disabled={loading}>
+            <button className="premium-btn active-down-effect" onClick={() => onConfirm(paymentMethod)}disabled={loading}>
               <span>{loading ? "Processing..." : "Confirm to unlock"}</span>
             </button>
           </div>
