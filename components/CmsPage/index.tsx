@@ -55,7 +55,7 @@ const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle }) => {
                 <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}><span className="icons arrowLeft"></span></button>
                 <button className="page-content-type-button active-down-effect active">{cmsData?.title || defaultTitle}</button>
               </div>
-              <div className="card main_contwrap" dangerouslySetInnerHTML={{__html: cmsData?.content || "",}}/>
+              <div className="card main_contwrap" dangerouslySetInnerHTML={{ __html: cmsData?.content || "", }} />
             </div>
           </main>
         </div>

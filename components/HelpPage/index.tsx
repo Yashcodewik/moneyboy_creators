@@ -1,8 +1,7 @@
 "use client";
-import React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getApiByParams } from "@/utils/endpoints/common";
 import { API_GET_CMS_PAGE } from "@/utils/api/APIConstant";
 
@@ -12,42 +11,69 @@ const HelpPage = () => {
 
   const tabParam = searchParams.get("tab") as "all" | "guides" | null;
 
-  const [activeTab, setActiveTab] = React.useState<"all" | "guides">(
-    tabParam || "all",
+  const [activeTab, setActiveTab] = useState<"all" | "guides">(
+    tabParam || "all"
   );
 
-  const [cmsData, setCmsData] = React.useState<any>(null);
-  const [guidesSection, setGuidesSection] = React.useState<string>("");
-  const [loading, setLoading] = React.useState(false);
+  const [cmsData, setCmsData] = useState<any>(null);
+  const [guidesSection, setGuidesSection] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (tabParam) setActiveTab(tabParam);
   }, [tabParam]);
 
-  const fetchCmsPage = async () => {
-    setLoading(true);
+  const cleanHtml = (html: string) => {
+    if (!html) return "";
 
-    const res = await getApiByParams({
-      url: API_GET_CMS_PAGE,
-      params: "help & support",
-    });
-
-    if (res?.success) {
-      setCmsData(res?.data);
-
-      const html = res?.data?.content || "";
-
-      const match = html.match(/5\.[\s\S]*/);
-
-      if (match) {
-        setGuidesSection(match[0]);
-      }
-    }
-
-    setLoading(false);
+    return html
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\u00A0/g, " ")
+      .replace(/<ul>/g, '<ul class="points">')
+      .replace(/<ol>/g, '<ol class="number">')
+      .replace(/<p>\s*<\/p>/g, "")
+      .trim();
   };
 
-  React.useEffect(() => {
+  const fetchCmsPage = async () => {
+    try {
+      setLoading(true);
+
+      const res = await getApiByParams({
+        url: API_GET_CMS_PAGE,
+        params: "help & support",
+      });
+
+      if (res?.success) {
+        const html = cleanHtml(res.data?.content || "");
+
+        setCmsData({
+          ...res.data,
+          content: html,
+        });
+
+        /** Split Guides Section */
+        const split = html.split(
+          "<h3>5. Platform Information &amp; Guides</h3>"
+        );
+
+        if (split.length > 1) {
+          const guides = split[1].replace(
+            /<ul class="points">/g,
+            '<ul class="points link_points">'
+          );
+
+          setGuidesSection(guides);
+        }
+      }
+    } catch (error) {
+      console.error("CMS fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchCmsPage();
   }, []);
 
@@ -57,6 +83,8 @@ const HelpPage = () => {
         <div className="moneyboy-page-content-container">
           <main className="moneyboy-dynamic-content-layout">
             <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
+
+              {/* Tabs */}
               <div
                 className="moneyboy-feed-page-cate-buttons card"
                 id="posts-tabs-btn-card"
@@ -87,14 +115,14 @@ const HelpPage = () => {
                 </button>
               </div>
 
+              {/* Content */}
               <div className="card main_contwrap">
-
                 {loading && <p>Loading...</p>}
 
-                {!loading && cmsData && activeTab === "all" && (
+                {!loading && activeTab === "all" && cmsData && (
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: cmsData?.content || "",
+                      __html: cmsData.content,
                     }}
                   />
                 )}
@@ -106,8 +134,8 @@ const HelpPage = () => {
                     }}
                   />
                 )}
-
               </div>
+
             </div>
           </main>
         </div>
