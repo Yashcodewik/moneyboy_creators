@@ -20,18 +20,31 @@ const slugMap: Record<string, { slug: string; title: string }> = {
   },
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
-   console.log("SLUG:", params.slug);
-  const slug = params.slug?.toLowerCase();
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
   const page = slugMap[slug];
   if (!page) {
-    return <div className="nofound h-full"><h3 className="first">Page not found</h3><h3 className="second">Page not found</h3></div>;
+    return (
+      <div className="nofound h-full">
+        <h3 className="first">Page not found</h3>
+        <h3 className="second">Page not found</h3>
+      </div>
+    );
   }
 
   return (
     <div className="moneyboy-layout-container">
       <Header />
-      <CmsPage slug={page.slug} defaultTitle={page.title} backUrl="/help?tab=guides"/>
+      <CmsPage
+        slug={page.slug}
+        defaultTitle={page.title}
+        backUrl="/help?tab=guides"
+      />
     </div>
   );
 }
