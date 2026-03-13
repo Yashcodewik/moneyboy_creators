@@ -19,6 +19,7 @@ import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
 import { PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
+import { fetchWallet } from "@/redux/wallet/Action";
 
 export interface PostUser {
   name: string;
@@ -261,7 +262,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const topComment = sortedComments[0];
   const hasMoreComments = sortedComments.length > 1;
 
-  const handleSendTip = async (amount: number) => {
+  const handleSendTip = async (
+  amount: number,
+  paymentMethod: "wallet" | "card"
+) => {
     if (!session?.user?.id) {
       router.push("/login");
       return;
@@ -272,8 +276,14 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         sendTip({
           creatorId: post.userId, // 👈 important
           amount,
+          paymentMethod
         }),
       ).unwrap();
+
+       if (paymentMethod === "wallet") {
+      dispatch(fetchWallet());
+    }
+
 
       setShowTipModal(false);
     } catch (err) {

@@ -29,6 +29,7 @@ import ReportModal from "../ReportModal";
 import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
 import ShowToast from "../common/ShowToast";
+import { fetchWallet } from "@/redux/wallet/Action";
 
 const moreUsers = ["alex", "rohan", "meera", "sam", "disha"];
 
@@ -295,7 +296,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     };
   }, [showComment]);
 
-  const handleSendTip = async (amount: number) => {
+  const handleSendTip = async (
+  amount: number,
+  paymentMethod: "wallet" | "card"
+) => {
     if (!session?.user?.id) {
       router.push("/login");
       return;
@@ -311,10 +315,16 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         sendTip({
           creatorId: post.userId,
           amount,
+          paymentMethod
+
         }),
       ).unwrap();
 
       ShowToast("Tip sent successfully ", "success");
+
+      if (paymentMethod === "wallet") {
+  dispatch(fetchWallet());   // refresh wallet instantly
+}
 
       setShowTipModal(false);
     } catch (err) {

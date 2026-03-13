@@ -1,59 +1,65 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { PUBLIC_ROUTES, ROLE_ROUTES } from "@/libs/publicRoutes";
 
-
 export default function RoleRouteGuard({
-children,
+  children,
 }: {
-children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-const { session, status } = useDecryptedSession();
-const router = useRouter();
-const pathname = usePathname();
+  const { session, status } = useDecryptedSession();
+  const router = useRouter();
+  const pathname = usePathname();
 
-useEffect(() => {
-// wait until session loads
-if (status === "loading") return;
+  const [allowed, setAllowed] = useState(false);
 
+  useEffect(() => {
+    if (status === "loading") return;
 
-// allow public routes
-const isPublicRoute =
-  PUBLIC_ROUTES.includes(pathname) ||
-  /^\/[^\/]+$/.test(pathname); // matches /username
+    const ALL_ROLE_ROUTES = Object.values(ROLE_ROUTES).flat();
 
-if (isPublicRoute) return;
+    const isUsernameRoute =
+      /^\/[a-zA-Z0-9_]+$/.test(pathname) &&
+      !PUBLIC_ROUTES.includes(pathname) &&
+      !ALL_ROLE_ROUTES.includes(pathname);
 
-// if not logged in → redirect login
-if (!session?.user) {
-  router.replace("/login");
-  return;
-}
+    const isPublicRoute =
+      PUBLIC_ROUTES.includes(pathname) ||
+      isUsernameRoute;
 
-const role = session.user.role; // 1=user, 2=creator
+    if (isPublicRoute) {
+      setAllowed(true);
+      return;
+    }
 
-const roleKey = role === 1 ? "user" : role === 2 ? "creator" : null;
+    // not logged in
+    if (!session?.user) {
+      router.replace("/login");
+      return;
+    }
 
-if (!roleKey) {
-  router.replace("/login");
-  return;
-}
+    const role = session.user.role;
+    const roleKey = role === 1 ? "user" : role === 2 ? "creator" : null;
 
-const allowedRoutes = ROLE_ROUTES[roleKey];
+    if (!roleKey) {
+      router.replace("/login");
+      return;
+    }
 
-const isAllowed = allowedRoutes.some((route) =>
-  pathname.startsWith(route),
-);
+    const allowedRoutes = ROLE_ROUTES[roleKey];
 
-if (!isAllowed) {
-  router.replace("/feed");
-}
+    if (allowedRoutes.includes(pathname)) {
+      setAllowed(true);
+    } else {
+      router.replace("/feed");
+    }
+  }, [session, status, pathname, router]);
 
+  // block render until verified
+  if (!allowed) return null;
 
-}, [session, status, pathname]);
-
-return <>{children}</>;
+  return <>{children}</>;
 }
