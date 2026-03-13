@@ -201,7 +201,7 @@ const handleToggleSaveCreator = async (creator: SavedCreator) => {
     setShowPPVModal(true);
   };
 
-  const confirmUnlockPost = async () => {
+const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => { 
     if (!selectedPost) return;
 
     try {
@@ -212,12 +212,13 @@ const handleToggleSaveCreator = async (creator: SavedCreator) => {
         values: {
           postId: selectedPost.post._id,
           creatorId: selectedPost.creator._id,
+          paymentMethod
         },
       });
 
       if (res?.success) {
         setShowPPVModal(false);
-        router.push(`/post?publicId=${selectedPost.post.publicId}`);
+        router.push(`/purchased-media?publicId=${selectedPost.post.publicId}`);
       }
     } finally {
       setUnlockLoading(false);
@@ -886,7 +887,7 @@ const handleToggleSaveCreator = async (creator: SavedCreator) => {
               }}
               creator={selectedPost.creator}
               post={selectedPost.post}
-              onConfirm={confirmUnlockPost}
+              onConfirm={(method) => confirmUnlockPost(method)}
               loading={unlockLoading}
             />
           )}

@@ -161,12 +161,15 @@ const StorePage = () => {
 
   const { unlocking } = useSelector((state: RootState) => state.subscription);
 
-  const handleConfirmUnlock = async () => {
+ const handleConfirmUnlock = async (
+  paymentMethod: "wallet" | "card"
+) => {
     if (!unlockModalPost || !activeStoreOwner?.publicId) return;
     const res = await dispatch(
       unlockPost({
         postId: unlockModalPost._id,
         creatorId: unlockModalPost.userId,
+        paymentMethod,
       }),
     );
     if (unlockPost.fulfilled.match(res)) {

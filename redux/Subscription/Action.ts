@@ -9,9 +9,11 @@ export const unlockPost = createAsyncThunk(
     {
       postId,
       creatorId,
+      paymentMethod,
     }: {
       postId: string;
       creatorId: string;
+      paymentMethod: "wallet" | "card";
     },
     { rejectWithValue }
   ) => {
@@ -19,6 +21,7 @@ export const unlockPost = createAsyncThunk(
       const res = await defaultAxios.post(API_UNLOCK_POST, {
         postId,
         creatorId,
+        paymentMethod,
       });
 
       if (!res?.data?.success) {

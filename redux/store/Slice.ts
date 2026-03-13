@@ -6,6 +6,7 @@ import {
   fetchPaidContentFeed,
 } from "./Action";
 import { savePost, unsavePost } from "../other/savedPostsSlice";
+import { unlockPost } from "../Subscription/Action";
 
 /* ---------- Types ---------- */
 interface Creator {
@@ -208,7 +209,21 @@ const creatorsSlice = createSlice({
         update(state.paidPosts);
         update(state.paidContentFeed);
         update(state.featuredPosts);
-      });
+      })
+
+      .addCase(unlockPost.fulfilled, (state, action: any) => {
+  const postId = action.meta.arg.postId;
+
+  const update = (list: PaidPost[]) => {
+    const post = list.find((p) => p._id === postId);
+    if (post) post.isUnlocked = true;
+  };
+
+  update(state.paidPosts);
+  update(state.paidContentFeed);
+  update(state.featuredPosts);
+})
+      
   },
 });
 

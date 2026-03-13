@@ -330,7 +330,7 @@ const ProfilePage = () => {
     setShowTipModal(true);
   };
 
-  const confirmUnlockPost = async () => {
+const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => { 
     if (!unlockPost) return;
 
     try {
@@ -341,6 +341,7 @@ const ProfilePage = () => {
         values: {
           postId: unlockPost._id,
           creatorId: profile?.user?._id,
+          paymentMethod
         },
       });
 
@@ -828,8 +829,8 @@ const ProfilePage = () => {
                     </div>
                   )}
 
-                {!isOwnProfile && !hideSaveBtn && (
-                  <div className="creator-media-card__stats-btn wishlist-icon btntooltip_wrapper">
+                {!isOwnProfile && !hideSaveBtn && !isFree && (
+                  <div className={`creator-media-card__stats-btn wishlist-icon btntooltip_wrapper ${isPostSaved ? "active" : ""}`}>
                     <button
                       data-position="left"
                       data-tooltip="Wishlist"
@@ -2159,7 +2160,7 @@ const ProfilePage = () => {
             profile: profile?.user?.profile,
           }}
           post={unlockPost}
-          onConfirm={confirmUnlockPost}
+           onConfirm={(method) => confirmUnlockPost(method)}
           loading={unlockLoading}
         />
       )}
