@@ -142,3 +142,4 @@ export const API_PAYOUT_ACCOUNTS = "/subscription/payout-accounts";
 export const API_WALLET_SUMMARY = "/subscription/wallet-summary";
 export const API_UNREAD_NOTIFICATIONS = "/post/unread-count";
 export const API_GET_CMS_PAGE = "/auth/cms";
+export const API_GET_ACTIVE_PROMOTION = "/subscription/active-promotion";

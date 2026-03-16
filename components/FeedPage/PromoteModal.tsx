@@ -2,6 +2,7 @@
 
 import { CgClose } from "react-icons/cg";
 import {
+  API_GET_ACTIVE_PROMOTION,
   API_GET_PROMOTIONS,
   API_PROMOTE_PROFILE,
 } from "@/utils/api/APIConstant";
@@ -19,7 +20,7 @@ const PromoteModal = ({ onClose }: { onClose: () => void }) => {
   const totalPrice = selectedPlan
     ? (pricePerDay * Number(duration)).toFixed(2)
     : "0.00";
-
+const [activePromotion, setActivePromotion] = useState<any>(null);
   const handlePromote = async () => {
     setLoading(true);
 
@@ -44,6 +45,7 @@ const PromoteModal = ({ onClose }: { onClose: () => void }) => {
 
   useEffect(() => {
     fetchPromotions();
+    fetchActivePromotion();
   }, []);
 
   const fetchPromotions = async () => {
@@ -61,6 +63,82 @@ const PromoteModal = ({ onClose }: { onClose: () => void }) => {
       ShowToast("Failed to load promotion plans", "error");
     }
   };
+
+  const fetchActivePromotion = async () => {
+  const res = await getApiWithOutQuery({
+    url: API_GET_ACTIVE_PROMOTION,
+  });
+
+  if (res?.success && res.data && Object.keys(res.data).length > 0) {
+    setActivePromotion(res.data);
+  }
+};
+
+const remainingDays = activePromotion
+  ? Math.ceil(
+      (new Date(activePromotion.expiresAt).getTime() - Date.now()) /
+        (1000 * 60 * 60 * 24),
+    )
+  : 0;
+
+  useEffect(() => {
+  if (!activePromotion) return;
+
+  const expiryTime = new Date(activePromotion.expiresAt).getTime();
+
+  const timer = setInterval(() => {
+    const now = Date.now();
+
+    if (now >= expiryTime) {
+      setActivePromotion(null); 
+      fetchActivePromotion(); 
+    }
+  }, 60000);
+
+  return () => clearInterval(timer);
+}, [activePromotion]);
+
+  if (activePromotion) {
+  return (
+    <div className="modal show" role="dialog">
+      <div className="modal-wrap promote-modal">
+        <button className="close-btn" onClick={onClose}>
+          <CgClose size={22} />
+        </button>
+
+        <h3 className="title">Promotion Active 🚀</h3>
+
+        <p>Your profile is currently being promoted.</p>
+
+        <div className="total_wrap">
+          <div>
+            <h3>Promotion Duration</h3>
+            <p>{activePromotion.duration} Days</p>
+          </div>
+          <div>
+            <h2>{remainingDays} Days Left</h2>
+          </div>
+        </div>
+
+        <div className="note">
+          <p>
+            Your profile is visible in the Featured MoneyBoys section until the
+            promotion expires.
+          </p>
+        </div>
+
+        <div className="actions">
+          <button
+            className="premium-btn active-down-effect"
+            onClick={onClose}
+          >
+            <span>Close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
   return (
     <div className="modal show" role="dialog">
       <div className="modal-wrap promote-modal">
