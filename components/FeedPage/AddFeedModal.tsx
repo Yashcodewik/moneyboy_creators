@@ -20,7 +20,7 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
-import { BadgeCheck, CalendarDays, CircleX, Smile, X } from "lucide-react";
+import { BadgeCheck, CalendarDays, CircleAlert, CircleX, Smile, X } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -534,65 +534,22 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
 
   return (
     <>
-      <div
-        className={`modal ${show ? "show" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        onClick={confirmClose}
-      >
-        <form
-          className="modal-wrap post-modal"
-          onClick={(e) => e.stopPropagation()}
-          onSubmit={formik.handleSubmit}
-        >
+      <div className={`modal ${show ? "show" : ""}`} role="dialog" aria-modal="true" onClick={confirmClose}>
+        <form className="modal-wrap post-modal" onClick={(e) => e.stopPropagation()} onSubmit={formik.handleSubmit}>
           <div className="modal_head">
             <h3 className="title">Create New Post</h3>
-            <button type="button" className="close-btn" onClick={confirmClose}>
-              <CgClose size={22} />
-            </button>
+            <button type="button" className="close-btn" onClick={confirmClose}><CgClose size={22} /></button>
           </div>
-
-
           <div className="input-wrap">
             <div className="label-input textarea one">
-              <textarea
-                ref={textareaRef}
-                rows={4}
-                placeholder="Compose new post..."
-                name="text"
-                value={formik.values.text}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) e.stopPropagation();
-                }}
-              />
+              <textarea ref={textareaRef} rows={4} placeholder="Compose new post..." name="text" value={formik.values.text} onChange={formik.handleChange} onBlur={formik.handleBlur} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) e.stopPropagation(); }} />
             </div>
             <span className="right">
-              <button
-                type="button"
-                ref={emojiBtnRef}
-                className="emoji-btn"
-                onClick={() => setShowEmoji((prev) => !prev)}
-              >
-                <Smile
-                  size={20}
-                  stroke="black"
-                  strokeWidth={1}
-                  fill="#fece26"
-                />
-              </button>
+              <button type="button" ref={emojiBtnRef} className="emoji-btn" onClick={() => setShowEmoji((prev) => !prev)}> <Smile size={20} stroke="black" strokeWidth={1} fill="#fece26" /></button>
               {formik.values.text.length}/300
               {showEmoji && (
                 <div ref={emojiRef} className="emoji-picker-wrapper">
-                  <EmojiPicker
-                    onEmojiClick={handleEmojiClick}
-                    autoFocusSearch={false}
-                    skinTonesDisabled
-                    previewConfig={{ showPreview: false }}
-                    height={320}
-                    width={320}
-                  />
+                  <EmojiPicker onEmojiClick={handleEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={320} width={320} />
                 </div>
               )}
             </span>
@@ -601,52 +558,19 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
             <span className="error-message">{formik.errors.text}</span>
           )}
           <div className="select_wrap">
-            <label className="radio_wrap">
-              <input
-                type="radio"
-                name="access"
-                checked={accessType === "subscriber"}
-                onChange={() => handleAccessTypeChange("subscriber")}
-              />{" "}
-              Only for Subscribers
-            </label>
-
-            <label className="radio_wrap">
-              <input
-                type="radio"
-                name="access"
-                checked={accessType === "pay_per_view"}
-                onChange={() => handleAccessTypeChange("pay_per_view")}
-              />{" "}
-              Pay per View
-            </label>
-
-            <label className="radio_wrap">
-              <input
-                type="radio"
-                name="access"
-                checked={accessType === "free"}
-                onChange={() => handleAccessTypeChange("free")}
-              />{" "}
-              Free for Everyone
-            </label>
+            <label className="radio_wrap"><input type="radio" name="access" checked={accessType === "subscriber"} onChange={() => handleAccessTypeChange("subscriber")} />{" "} Only for Subscribers</label>
+            <label className="radio_wrap"><input type="radio" name="access" checked={accessType === "pay_per_view"} onChange={() => handleAccessTypeChange("pay_per_view")} />{" "} Pay per View</label>
+            <label className="radio_wrap"><input type="radio" name="access" checked={accessType === "free"} onChange={() => handleAccessTypeChange("free")} />{" "} Free for Everyone</label>
+          </div>
+          <div className="warningtext">
+            <CircleAlert size={18} className="svgicons" /> Lorem Ipsum is simply dummy text of the printing and typesetting industry.
           </div>
 
           {accessType === "pay_per_view" && (
             <div>
               <label>Price($)</label>
-              <input
-                className="form-input"
-                type="text"
-                name="price"
-                placeholder="10.99 *"
-                value={formik.values.price}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.price && formik.errors.price && (
-                <div className="error-message">{formik.errors.price}</div>
-              )}
+              <input className="form-input" type="text" name="price" placeholder="10.99 *" value={formik.values.price} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+              {formik.touched.price && formik.errors.price && (<div className="error-message">{formik.errors.price}</div>)}
             </div>
           )}
 
@@ -655,19 +579,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
               <div>
                 <label>Schedule?</label>
                 <div className="toggleGroup">
-                  <input
-                    type="checkbox"
-                    id="on-off-switch"
-                    className="checkbox"
-                    name="isScheduled"
-                    checked={isScheduled}
-                    onChange={() => {
-                      const newVal = !isScheduled;
-                      setIsScheduled(newVal);
-                      formik.setFieldValue("isScheduled", newVal);
-                      if (!newVal) formik.setFieldValue("scheduledAt", "");
-                    }}
-                  />
+                  <input type="checkbox" id="on-off-switch" className="checkbox" name="isScheduled" checked={isScheduled} onChange={() => { const newVal = !isScheduled; setIsScheduled(newVal); formik.setFieldValue("isScheduled", newVal); if (!newVal) formik.setFieldValue("scheduledAt", ""); }} />
                   <label htmlFor="on-off-switch" className="label" />
                   <div className="onoffswitch" aria-hidden="true">
                     <div className="onoffswitchLabel">
@@ -682,55 +594,17 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
               {isScheduled && (
                 <div className="mw-fit w-full">
                   <label>Schedule at</label>
-                  <div
-                    className="label-input calendar-dropdown"
-                    ref={dobWrapperRef}
-                  >
-                    <div className="input-placeholder-icon">
-                      <CalendarDays className="icons svg-icon" />
-                    </div>
-                    <input
-                      type="text"
-                      name="scheduledAt"
-                      placeholder="Schedule Date (DD/MM/YYYY) *"
-                      className="form-input"
-                      value={
-                        formik.values.scheduledAt
-                          ? new Date(
-                            formik.values.scheduledAt,
-                          ).toLocaleDateString("en-GB")
-                          : ""
-                      }
-                      readOnly
-                      onFocus={() => setActiveField("schedule")}
-                      onBlur={formik.handleBlur}
-                    />
+                  <div className="label-input calendar-dropdown" ref={dobWrapperRef}>
+                    <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
+                    <input type="text" name="scheduledAt" placeholder="Schedule Date (DD/MM/YYYY) *" className="form-input" value={formik.values.scheduledAt ? new Date(formik.values.scheduledAt,).toLocaleDateString("en-GB") : ""} readOnly onFocus={() => setActiveField("schedule")} onBlur={formik.handleBlur} />
                     {activeField === "schedule" && (
                       <div className="calendar_show">
-                        <DatePicker
-                          inline
-                          selected={
-                            formik.values.scheduledAt
-                              ? new Date(formik.values.scheduledAt)
-                              : null
-                          }
-                          minDate={new Date()}
-                          onChange={(date: Date | null) => {
-                            if (!date) return;
-                            formik.setFieldValue(
-                              "scheduledAt",
-                              date.toISOString(),
-                            );
-                            setActiveField(null);
-                          }}
-                        />
+                        <DatePicker inline selected={formik.values.scheduledAt ? new Date(formik.values.scheduledAt) : null} minDate={new Date()} onChange={(date: Date | null) => { if (!date) return; formik.setFieldValue("scheduledAt", date.toISOString(),); setActiveField(null); }} />
                       </div>
                     )}
                   </div>
                   {formik.touched.scheduledAt && formik.errors.scheduledAt && (
-                    <div className="error-message">
-                      {formik.errors.scheduledAt}
-                    </div>
+                    <div className="error-message">{formik.errors.scheduledAt}</div>
                   )}
                 </div>
               )}
@@ -741,25 +615,11 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
             {mediaPreviews.map((media, index) => (
               <div className="img_wrap" key={index}>
                 {media.type === "image" ? (
-                  <img
-                    src={media.url}
-                    className="img-fluid upldimg"
-                    alt={`preview-${index}`}
-                  />
+                  <img src={media.url} className="img-fluid upldimg" alt={`preview-${index}`} />
                 ) : (
-                  <video
-                    src={media.url}
-                    className="img-fluid upldimg"
-                    controls
-                  />
+                  <video src={media.url} className="img-fluid upldimg" controls />
                 )}
-                <button
-                  type="button"
-                  className="btn-danger"
-                  onClick={() => removeMedia(index)}
-                >
-                  <CircleX size={16} />
-                </button>
+                <button type="button" className="btn-danger" onClick={() => removeMedia(index)}><CircleX size={16} /></button>
               </div>
             ))}
           </div>
@@ -811,7 +671,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                         />
                       )}
                     </div>
-                    <button type="button" className="btn-danger" onClick={() => removeCollaborator(user._id)}><CircleX size={16}/></button>
+                    <button type="button" className="btn-danger" onClick={() => removeCollaborator(user._id)}><CircleX size={16} /></button>
                   </div>
                 </div>
               ))}
@@ -822,159 +682,60 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
 
           {activeTool === "video" && (
             <div className="flex items-center gap-10">
-              <button
-                type="button"
-                className="btn-grey btnicons gap-10"
-                onClick={() => setShowRecorder(true)}
-              >
-                {" "}
-                <FiVideo size={16} /> <span>Start recording</span>
-              </button>
-              <button
-                type="button"
-                className="btn-grey btnicons gap-10"
-                onClick={() => videoInputRef.current?.click()}
-              >
-                {" "}
-                <MdUpload size={16} /> <span>Upload video</span>
-              </button>
-              <input
-                type="file"
-                ref={videoInputRef}
-                hidden
-                accept="video/*"
-                multiple
-                onChange={handleVideoChange}
-              />
+              <button type="button" className="btn-grey btnicons gap-10" onClick={() => setShowRecorder(true)}>{" "}<FiVideo size={16} /> <span>Start recording</span></button>
+              <button type="button" className="btn-grey btnicons gap-10" onClick={() => videoInputRef.current?.click()}>{" "} <MdUpload size={16} /> <span>Upload video</span></button>
+              <input type="file" ref={videoInputRef} hidden accept="video/*" multiple onChange={handleVideoChange} />
             </div>
           )}
 
           {activeTool === "poll" && (
             <div className="duration_wraping">
               <label className="orange">Poll Duration - 7 days</label>
-              <input
-                className="form-input"
-                type="text"
-                placeholder="Question"
-              />
+              <input className="form-input" type="text" placeholder="Question" />
               <label className="pollanw selected">Option 1</label>
               <label className="pollanw">Option 2</label>
-              <Link href="#" className="clear">
-                {" "}
-                Clear Polls
-              </Link>
+              <Link href="#" className="clear">{" "} Clear Polls</Link>
             </div>
           )}
 
-          <input
-            type="file"
-            hidden
-            ref={imageInputRef}
-            accept=".png,.jpeg,.jpg,.wbjpg,.mp4"
-            multiple
-            onChange={handleImageChange}
-          />
-
+          <input type="file" hidden ref={imageInputRef} accept=".png,.jpeg,.jpg,.wbjpg,.mp4" multiple onChange={handleImageChange} />
           <div className="actions tooltip_wrapper">
             <ul>
               <li>
-                <button
-                  type="button"
-                  className="cate-back-btn active-down-effect btn_icons"
-                  data-tooltip="Add Content"
-                  onClick={() => {
-                    setActiveTool("image");
-                    imageInputRef.current?.click();
-                  }}
-                >
-                  {" "}
-                  <FiImage size={20} />
-                </button>
+                <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Add Content" onClick={() => { setActiveTool("image"); imageInputRef.current?.click(); }}>{" "}<FiImage size={20} /></button>
               </li>
               <li>
-                <button
-                  type="button"
-                  className="cate-back-btn active-down-effect btn_icons"
-                  data-tooltip="Add Video"
-                  onClick={() => setActiveTool("video")}
-                >
-                  {" "}
-                  <FiVideo size={20} />
-                </button>
+                <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Add Video" onClick={() => setActiveTool("video")}>{" "} <FiVideo size={20} /></button>
               </li>
               <li>
                 <div className="hline" />
               </li>
               <li className="icontext_wrap">
-                <button
-                  type="button"
-                  className="cate-back-btn active-down-effect btn_icons"
-                  data-tooltip="Tag someone"
-                  disabled={!hasMedia}
-                  onClick={() => setShowTagModal(true)}
-                >
-                  <FiAtSign size={20} />
-                </button>
+                <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Tag someone" disabled={!hasMedia} onClick={() => setShowTagModal(true)}><FiAtSign size={20} /></button>
                 <p>Tag</p>
               </li>
             </ul>
             <div className="right">
               <ul>
                 <li>
-                  <button
-                    type="button"
-                    className="cate-back-btn active-down-effect btn_icons"
-                    data-tooltip="Share on X"
-                    disabled={!hasMedia}
-                  >
-                    <FaXTwitter size={20} />
-                  </button>
+                  <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Share on X" disabled={!hasMedia}> <FaXTwitter size={20} /></button>
                 </li>
               </ul>
-              <button
-                type="submit"
-                data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
-                className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
-                disabled={isSubmitting || !hasMedia}
-              >
-                <span>{isSubmitting ? "Posting..." : "Post"}</span>
-              </button>
+              <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} disabled={isSubmitting || !hasMedia}><span>{isSubmitting ? "Posting..." : "Post"}</span></button>
             </div>
           </div>
         </form>
 
         {showTagModal && (
-          <div
-            className="modal show"
-            role="dialog"
-            aria-modal="true"
-            onClick={confirmClose}
-          >
-            <div
-              className="modal-wrap creators-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <div className="modal show" role="dialog" aria-modal="true" onClick={confirmClose}>
+            <div className="modal-wrap creators-modal" onClick={(e) => e.stopPropagation()}>
               <div className="modal_head">
                 <h3 className="title">Tag Other Creators</h3>
-                <button
-                  type="button"
-                  className="close-btn"
-                  onClick={() => setShowTagModal(false)}
-                >
-                  <CgClose size={22} />
-                </button>
+                <button type="button" className="close-btn" onClick={() => setShowTagModal(false)}><CgClose size={22} /></button>
               </div>
               <div className="label-input search_wrap">
-                <div className="input-placeholder-icon">
-                  <IoSearch size={22} color="#716f6f" />
-                </div>
-                <input
-                  className="form-input"
-                  type="text"
-                  placeholder="Enter Keywords Here"
-                  value={tagSearch}
-                  onChange={(e) => searchTagUsers(e.target.value)}
-                />
+                <div className="input-placeholder-icon"><IoSearch size={22} color="#716f6f" /></div>
+                <input className="form-input" type="text" placeholder="Enter Keywords Here" value={tagSearch} onChange={(e) => searchTagUsers(e.target.value)}/>
               </div>
               <div className="moneyboy-post__header scrollbar">
                 <div className="profile-card">

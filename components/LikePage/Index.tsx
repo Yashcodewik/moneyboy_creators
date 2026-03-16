@@ -2,24 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  API_LIKE_POST,
-  API_UNLIKE_POST,
-} from "@/utils/api/APIConstant";
+import { API_LIKE_POST, API_UNLIKE_POST, } from "@/utils/api/APIConstant";
 import { apiPost } from "@/utils/endpoints/common";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
 import { fetchLikedPosts } from "../../redux/likedPosts/Action";
-import {
-  resetLikedPosts,
-  updateLikedPost,
-} from "@/redux/likedPosts/Slice";
+import { resetLikedPosts, updateLikedPost, } from "@/redux/likedPosts/Slice";
 import { useSession } from "next-auth/react";
-import {
-  incrementFeedPostCommentCount,
-  updateFeedPost,
-} from "@/redux/other/feedPostsSlice";
+import { incrementFeedPostCommentCount, updateFeedPost, } from "@/redux/other/feedPostsSlice";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-
 import CustomSelect from "../CustomSelect";
 import Featuredboys from "../Featuredboys";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
@@ -31,32 +21,25 @@ import "react-photo-view/dist/react-photo-view.css";
 import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
 
 /* ========== TYPES ========== */
-
 type ContentTab = "posts" | "videos" | "photos";
-type TopTab = "feed" | "following" | "popular";
 
 /* ========== COMPONENT ========== */
-
 const LikePage = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { status } = useSession();
   const isLoggedIn = status === "authenticated";
-
-  const [topTab, setTopTab] = useState<TopTab>("feed");
   const [contentTab, setContentTab] = useState<ContentTab>("posts");
   const [time, setTime] = useState("all_time");
   const [searchText, setSearchText] = useState("");
   const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
-
   const { items: posts, pagination, loading } = useAppSelector(
     (state) => state.likedPosts
   );
 
   /* ========== API TYPE ========== */
-
   const apiType =
     contentTab === "videos"
       ? "video"
@@ -65,7 +48,6 @@ const LikePage = () => {
         : "all";
 
   /* ========== FETCH DATA ========== */
-
   useEffect(() => {
     dispatch(resetLikedPosts());
 
@@ -78,10 +60,9 @@ const LikePage = () => {
         type: apiType,
       })
     );
-  }, [contentTab, time, searchText]);
+  }, [contentTab, time, searchText, apiType]);
 
   /* ========== URL SYNC ========== */
-
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "posts" || tab === "videos" || tab === "photos") {
@@ -90,10 +71,8 @@ const LikePage = () => {
   }, [searchParams]);
 
   /* ========== INFINITE SCROLL ========== */
-
   const fetchMore = () => {
     if (!pagination.hasNextPage || loading) return;
-
     dispatch(
       fetchLikedPosts({
         page: pagination.page + 1,
@@ -106,7 +85,6 @@ const LikePage = () => {
   };
 
   /* ========== LIKE HANDLER ========== */
-
   const handleLike = async (postId: string) => {
     if (!isLoggedIn) {
       router.push("/login");
@@ -157,7 +135,6 @@ const LikePage = () => {
   };
 
   /* ========== SAVE HANDLER ========== */
-
   const handleSave = async (postId: string, isSaved: boolean) => {
     if (!isLoggedIn) {
       router.push("/login");
@@ -184,13 +161,11 @@ const LikePage = () => {
   };
 
   /* ========== COMMENT COUNT ========== */
-
   const incrementCommentCount = (postId: string) => {
     dispatch(incrementFeedPostCommentCount(postId));
   };
 
   /* ========== FILTER POSTS ========== */
-
   const filteredPosts = useMemo(() => {
     if (contentTab === "videos") {
       return posts.filter((p: any) => p.media?.[0]?.type === "video");
@@ -204,7 +179,8 @@ const LikePage = () => {
 
   return (
     <PhotoProvider
-      toolbarRender={({images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible,}) => {if (!visible) return null;
+      toolbarRender={({ images, index, onIndexChange, onClose, rotate, onRotate, scale, onScale, visible, }) => {
+        if (!visible) return null;
         return (
           <div className="toolbar_controller">
             <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
@@ -220,16 +196,10 @@ const LikePage = () => {
       <div className="moneyboy-2x-1x-layout-container">
         <div className="moneyboy-2x-1x-a-layout">
           <div className="moneyboy-feed-page-container">
-            <BtnGroupTabs activeTab={contentTab} onChange={(value) => { const tab = value as ContentTab; if (!isLoggedIn && tab === "videos") { router.push("/discover"); return; } setContentTab(tab); setSearchText(""); setTime("all_time"); dispatch(resetLikedPosts()); }}
-              tabs={[
-                { key: "posts", label: "Posts" },
-                { key: "videos", label: isLoggedIn ? "Videos" : "Discover" },
-                { key: "photos", label: "Photos" },
-              ]}
-            />
+            <BtnGroupTabs activeTab={contentTab} onChange={(value) => { const tab = value as ContentTab; if (!isLoggedIn && tab === "videos") { router.push("/discover"); return; } setContentTab(tab); setSearchText(""); setTime("all_time"); dispatch(resetLikedPosts()); }} tabs={[{ key: "posts", label: "Posts" }, { key: "videos", label: isLoggedIn ? "Videos" : "Discover" }, { key: "photos", label: "Photos" },]} />
             <div className="moneyboy-posts-wrapper">
               <div id="feed-scroll-container" className="moneyboy-posts-scroll-container">
-                <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={posts.length} hasMore={pagination.hasNextPage} fetchMore={fetchMore}>
+                <InfiniteScrollWrapper className="moneyboy-posts-wrapper" scrollableTarget="feed-scroll-container" dataLength={filteredPosts.length} hasMore={pagination.hasNextPage} fetchMore={fetchMore}>
                   <div className="creator-content-filter-grid-container">
                     <div className="card filters-card-wrapper">
                       <div className="search-features-grid-btns">
@@ -248,17 +218,7 @@ const LikePage = () => {
                         </div>
                         <div className="creater-content-filters-layouts">
                           <div className="creator-content-select-filter">
-                            <CustomSelect
-                              className="bg-white p-sm size-sm optionsright"
-                              label="All Time"
-                              value={time}
-                              searchable={false}
-                              options={timeOptions}
-                              onChange={(option: any) => {
-                                console.log("SELECTED TIME:", option);
-                                setTime(option);
-                              }}
-                            />
+                            <CustomSelect className="bg-white p-sm size-sm optionsright" label="All Time" value={time} searchable={false} options={timeOptions} onChange={(option: any) => { console.log("SELECTED TIME:", option); setTime(option); }} />
                           </div>
                           {/* <div className="creator-content-grid-layout-options">
                             <button className="creator-content-grid-layout-btn active">
@@ -280,21 +240,20 @@ const LikePage = () => {
                       </div>
                     </div>
                   </div>
-                  {filteredPosts.map((post: any) => (
-                    <PostCard
-                      key={post._id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onCommentAdded={incrementCommentCount}
-                    />
+                  {loading && posts.length === 0 && (
+                    <div className="loadingtext"><img src="/images/micons.png" alt="M" className="loading-letter-img" /> {"oneyBoy".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 2) * 0.1}s` }}>{char}</span>))}</div>
+                  )}
+                  {!loading && filteredPosts.length === 0 && (
+                    <div className="nofound"><h3 className="first">No media found</h3><h3 className="second">No media found</h3></div>
+                  )}
+                  {!loading && filteredPosts.map((post: any) => (
+                    <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount} />
                   ))}
                 </InfiniteScrollWrapper>
               </div>
             </div>
           </div>
         </div>
-
         <aside className="moneyboy-2x-1x-b-layout scrolling">
           <Featuredboys />
         </aside>
