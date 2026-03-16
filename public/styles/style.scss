@@ -2105,7 +2105,7 @@ body {
     flex-direction: column;
     align-self: center;
     padding: 20px 40px 20px;
-    overflow-y: hidden;
+    overflow-y: auto;
     max-height: calc(100vh - 55px);
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -2136,6 +2136,9 @@ body {
         background: #f4f4f4;
         border-radius: 12px;
         transition: var(--transition-fast);
+      }
+      .custom-select-element .custom-select-options-dropdown-wrapper .custom-select-options-dropdown-container .custom-select-options-lists-container {
+        max-height: 100px !important;
       }
       .moneyboy-feed-page-cate-buttons {
         border-radius: 18px;
