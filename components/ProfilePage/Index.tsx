@@ -182,9 +182,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: username,
-        });
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: username,
+          });
 
       return response;
     },
@@ -330,7 +330,7 @@ const ProfilePage = () => {
     setShowTipModal(true);
   };
 
-  const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => {
+const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => { 
     if (!unlockPost) return;
 
     try {
@@ -720,7 +720,7 @@ const ProfilePage = () => {
               )}
             </div>
             {(isSubscriberPost && !isSubscribed) ||
-              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={(e) => {
@@ -818,7 +818,7 @@ const ProfilePage = () => {
             ) : null}
             <div
               className="creator-media-card__overlay"
-            // onClick={(e) => e.stopPropagation()}
+              // onClick={(e) => e.stopPropagation()}
             >
               <div className="creator-media-card__stats">
                 {isOwner &&
@@ -1055,57 +1055,58 @@ const ProfilePage = () => {
   };
 
   // Tab content renderer
-  const renderTabContent = (filterType: "all" | "video" | "photo") => {
-    let filteredPosts = posts;
+const renderTabContent = (filterType: "all" | "video" | "photo") => {
+  let filteredPosts = posts;
 
-    if (filterType === "video") {
-      filteredPosts = videoPosts;
-    } else if (filterType === "photo") {
-      filteredPosts = photoPosts;
-    }
+  if (filterType === "video") {
+    filteredPosts = videoPosts;
+  } else if (filterType === "photo") {
+    filteredPosts = photoPosts;
+  }
 
-    return (
-      <div data-multi-tabs-content-tabdata__active data-multi-dem-cards-layout>
-        <div className="creator-content-filter-grid-container">
-          <ProfileTab
-            onChangeLayouts={(layout) => setLayoutTab(layout)}
-            onSearchChange={setSearch}
-            onTimeChange={setTimeFilter}
-          />
+  return (
+    <div data-multi-tabs-content-tabdata__active data-multi-dem-cards-layout>
+      <div className="creator-content-filter-grid-container">
+        <ProfileTab
+          onChangeLayouts={(layout) => setLayoutTab(layout)}
+          onSearchChange={setSearch}
+          onTimeChange={setTimeFilter}
+        />
 
-          {postsLoading && (
-            <div className="loadingtext">
-              {"Loading".split("").map((char, i) => (
-                <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-                  {char}
-                </span>
-              ))}
+        {postsLoading && (
+          <div className="loadingtext">
+            {"Loading".split("").map((char, i) => (
+              <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+                {char}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div
+          className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${
+            layoutTab === "list" ? "layout-list" : "layout-grid"
+          }`}
+          data-direct-cards-layout
+          data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
+        >
+          {!postsLoading && filteredPosts.length === 0 && (
+            <div className="nofound grid-span-4">
+              <h3 className="first">No media found</h3>
+              <h3 className="second">No media found</h3>
             </div>
           )}
 
-          <div
-            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${layoutTab === "list" ? "layout-list" : "layout-grid"
-              }`}
-            data-direct-cards-layout
-            data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
-          >
-            {!postsLoading && filteredPosts.length === 0 && (
-              <div className="nofound grid-span-4">
-                <h3 className="first">No media found</h3>
-                <h3 className="second">No media found</h3>
-              </div>
-            )}
-
-            {!postsLoading &&
-              filteredPosts.length > 0 &&
-              filteredPosts.map((post: any) => (
-                <PostCard key={post.publicId} post={post} />
-              ))}
-          </div>
+          {!postsLoading &&
+            filteredPosts.length > 0 &&
+            filteredPosts.map((post: any) => (
+              <PostCard key={post.publicId} post={post} />
+            ))}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const calculateYearlySavings = (
     monthly?: number,
@@ -1594,9 +1595,9 @@ const ProfilePage = () => {
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                            "default",
-                            { month: "long", year: "numeric" },
-                          )
+                              "default",
+                              { month: "long", year: "numeric" },
+                            )
                           : ""}
                       </span>
                     </div>
@@ -1787,30 +1788,6 @@ const ProfilePage = () => {
               <div className="creator-profile-description">
                 <p>{profile?.creator?.bio || "No bio available."}</p>
               </div>
-
-              <div className="creator-subscriptions-container">
-                <div className="subscriptions-container">
-                  <ul>
-                      <li>
-                        <div className="subscription-info">
-                          <div className="subscription-label">add subscription</div>
-                          {/* <div className="subscription-price">
-                            <h3>$9.99</h3>
-                            <span>/month</span>
-                              <div className="save-txt">(Save 25%)</div>
-                          </div> */}
-                        </div>
-
-                        <div className="subscripton-button">
-                          <button className="btn-txt-gradient btn-outline p-sm">
-                            <span>Add</span>
-                          </button>
-                        </div>
-                      </li>
-                  </ul>
-                </div>
-              </div>
-
               {session?.isAuthenticated &&
                 profile?.subscription?.monthlyPrice && (
                   <div className="creator-subscriptions-container">
@@ -2195,7 +2172,7 @@ const ProfilePage = () => {
             profile: profile?.user?.profile,
           }}
           post={unlockPost}
-          onConfirm={(method) => confirmUnlockPost(method)}
+           onConfirm={(method) => confirmUnlockPost(method)}
           loading={unlockLoading}
         />
       )}
