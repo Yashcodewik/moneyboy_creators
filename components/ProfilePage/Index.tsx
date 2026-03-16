@@ -1091,7 +1091,7 @@ const renderTabContent = (filterType: "all" | "video" | "photo") => {
           data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
         >
           {!postsLoading && filteredPosts.length === 0 && (
-            <div className="nofound">
+            <div className="nofound grid-span-4">
               <h3 className="first">No media found</h3>
               <h3 className="second">No media found</h3>
             </div>

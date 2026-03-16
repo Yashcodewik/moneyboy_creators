@@ -2045,7 +2045,7 @@ body {
   overflow: hidden;
 }
 .grid-span-4 {
-  grid-column: span 4;
+  grid-column: span 4 !important;
 }
 
 /* Login Page Start */

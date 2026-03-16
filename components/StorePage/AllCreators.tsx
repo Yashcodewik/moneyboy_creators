@@ -253,7 +253,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
     player.muted = true;
     player.currentTime = 0;
-    player.play().catch(() => {});
+    player.play().catch(() => { });
   };
 
   const stopPreview = (id: string) => {
@@ -396,69 +396,37 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
             <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card">
               <div className="creator-content-type-container-wrapper">
                 {loadingPaidContentFeed && (
-                  <div className="loadingtext">
-                    {"Loading".split("").map((char, i) => (
-                      <span
-                        key={i}
-                        style={{ animationDelay: `${(i + 1) * 0.1}s` }}
-                      >
-                        {char}
-                      </span>
-                    ))}
-                  </div>
+                  <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>
                 )}
-
                 <div className="col-4-cards-layout">
                   {!loadingPaidContentFeed &&
-                    paidContentFeed.map((post) => {
-                      const isOwnPost =
-                        post.creatorInfo?._id === loggedInUserId;
-                      const taggedUsers =
-                        post?.collaboration?.taggedUsers ?? [];
-
+                    paidContentFeed.map((post) => {const isOwnPost = post.creatorInfo?._id === loggedInUserId; const taggedUsers = post?.collaboration?.taggedUsers ?? [];
                       return (
                         <div className="creator-media-card card" key={post._id}>
                           <div className="creator-media-card__media-wrapper">
                             <div className="creator-media-card__media">
                               {post.media?.type === "photo" ? (
-                                <img
-                                  alt="Post Image"
-                                  src={post.media?.mediaFiles?.[0]}
-                                />
+                                <img alt="Post Image" src={post.media?.mediaFiles?.[0]}/>
                               ) : (
-                                <video
-                                  ref={(el) => {
-                                    if (el) playersRef.current[post._id] = el;
-                                  }}
-                                  src={post.media?.mediaFiles?.[0]}
-                                  muted
-                                  loop
-                                  playsInline
-                                  onMouseEnter={() => playPreview(post._id)}
-                                  onMouseLeave={() => stopPreview(post._id)}
-                                />
+                                <video ref={(el) => {if (el) playersRef.current[post._id] = el;}} src={post.media?.mediaFiles?.[0]} muted loop playsInline onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}/>
                                 // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
                                 //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
                                 // </div>
                               )}
                               {post.media?.type === "video" && (
-                                <Link href="#" className="ply_btn">
-                                  <PlayCircle strokeWidth={1} size={32} />
-                                </Link>
+                                <Link href="#" className="ply_btn"><PlayCircle strokeWidth={1} size={32} /></Link>
                               )}
                             </div>
                             <div className="creator-media-card__overlay">
                               <div className="creator-media-card__stats">
                                 {subActiveTab === "trending" && (
                                   <div className="creator-media-card__stats-btn">
-                                    <FlameIcon />
-                                    <span> Trending </span>
+                                    <FlameIcon /> <span> Trending </span>
                                   </div>
                                 )}
                                 {subActiveTab === "new" && (
                                   <div className="creator-media-card__stats-btn">
-                                    <Sparkle fill="none" stroke="white" />
-                                    <span> New </span>
+                                    <Sparkle fill="none" stroke="white" /> <span> New </span>
                                   </div>
                                 )}
                               </div>
@@ -467,39 +435,20 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                           <div className="creator-media-card__desc">
                             <h5 className="lineclamp1">{post.text}</h5>
                             <div className="profile-card">
-                              <Link
-                                href={`/${post.creatorInfo?.userName}`}
-                                className="profile-card__main"
-                              >
+                              <Link href={`/${post.creatorInfo?.userName}`} className="profile-card__main">
                                 <div className="profile-card__avatar-settings">
                                   <div className="profile-card__avatar">
-                                    <img
-                                      src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
-                                      alt="MoneyBoy Social Profile Avatar"
-                                    />
+                                    <img src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg" alt="MoneyBoy Social Profile Avatar"/>
                                   </div>
                                 </div>
                                 <div className="profile-card__info">
                                   <div className="profile-card__name-badge">
-                                    <div className="profile-card__name">
-                                      {post.creatorInfo?.displayName}
-                                    </div>
+                                    <div className="profile-card__name">{post.creatorInfo?.displayName}</div>
                                     <div className="profile-card__badge">
-                                      <img
-                                        src="/images/logo/profile-badge.png"
-                                        alt="MoneyBoy Social Profile Badge"
-                                      />
+                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge"/>
                                     </div>
-
                                     {taggedUsers.length > 0 && (
-                                      <div
-                                        className="tagview"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          e.preventDefault();
-                                          showTaggedUserList(taggedUsers);
-                                        }}
-                                      >
+                                      <div className="tagview" onClick={(e) => {e.stopPropagation(); e.preventDefault(); showTaggedUserList(taggedUsers);}}>
                                         <ul className="taglist">
                                           {" "}
                                           {taggedUsers
@@ -532,9 +481,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                               );
                                             })}
                                           {taggedUsers.length > 2 && (
-                                            <li className="more-count">
-                                              +{taggedUsers.length - 2}
-                                            </li>
+                                            <li className="more-count">+{taggedUsers.length - 2}</li>
                                           )}
                                         </ul>
                                       </div>
@@ -545,50 +492,15 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                             </div>
                           </div>
                           <div className="creator-media-card__btn mt-auto">
-                            {!isOwnPost &&
-                              post.accessType === "pay_per_view" &&
-                              post.isUnlocked !== true && (
-                                <h5>
-                                  From <span>${post.price}</span>
-                                </h5>
-                              )}
-                            <Link
-                              href="#"
-                              className={`btn-txt-gradient shimmer btn-outline ${isOwnPost ? "opacity-50 cursor-not-allowed" : ""}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (isOwnPost) return;
-                                if (
-                                  (post.accessType === "subscriber" &&
-                                    post.isSubscribed) ||
-                                  (post.accessType === "pay_per_view" &&
-                                    post.isUnlocked)
-                                ) {
-                                  router.push(
-                                    `/purchased-media?publicId=${post.publicId}`,
-                                  );
-                                  return;
-                                }
-                                if (post.accessType === "pay_per_view") {
-                                  onUnlock(post);
-                                  return;
-                                }
-                                if (post.accessType === "subscriber") {
-                                  onSubscribe(post);
-                                  return;
-                                }
-                              }}
-                            >
+                            {!isOwnPost && post.accessType === "pay_per_view" && post.isUnlocked !== true && (<h5>From <span>${post.price}</span></h5>)}
+                            <Link href="#" className={`btn-txt-gradient shimmer btn-outline ${isOwnPost ? "opacity-50 cursor-not-allowed" : ""}`} onClick={(e) => {
+                              e.preventDefault(); if (isOwnPost) return; if ((post.accessType === "subscriber" && post.isSubscribed) || (post.accessType === "pay_per_view" && post.isUnlocked)
+                              ) { router.push(`/purchased-media?publicId=${post.publicId}`,); return; }
+                              if (post.accessType === "pay_per_view") { onUnlock(post); return; }
+                              if (post.accessType === "subscriber") { onSubscribe(post); return; }
+                            }}>
                               <span>
-                                {isOwnPost
-                                  ? "Your Post"
-                                  : post.accessType === "subscriber"
-                                    ? post.isSubscribed
-                                      ? "Subscribed"
-                                      : "Subscribe"
-                                    : post.isUnlocked
-                                      ? "Purchased"
-                                      : "Buy"}
+                                {isOwnPost ? "Your Post" : post.accessType === "subscriber" ? post.isSubscribed ? "Subscribed" : "Subscribe" : post.isUnlocked ? "Purchased" : "Buy"}
                               </span>
                             </Link>
                           </div>
@@ -596,7 +508,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                       );
                     })}
                   {!loadingPaidContentFeed && paidContentFeed.length === 0 && (
-                    <div className="nofound">
+                    <div className="nofound grid-span-4">
                       <h3 className="first">No media found</h3>
                       <h3 className="second">No media found</h3>
                     </div>

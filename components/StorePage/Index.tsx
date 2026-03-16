@@ -1151,28 +1151,13 @@ const StorePage = () => {
                             </div>
                           </div>
                         </div>
-                        <div
-                          className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card"
-                          data-layout-toggle-rows={
-                            layout === "list" ? true : undefined
-                          }
-                        >
+                        <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card" data-layout-toggle-rows={layout === "list" ? true : undefined}>
                           {subActiveTab === "videos" && (
-                            <div
-                              className="creator-content-type-container-wrapper"
-                              data-multi-tabs-content-tabdata__active
-                            >
+                            <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tabdata__active>
                               {loadingPaidPosts && (
                                 <div className="loadingtext">
                                   {"Loading".split("").map((char, i) => (
-                                    <span
-                                      key={i}
-                                      style={{
-                                        animationDelay: `${(i + 1) * 0.1}s`,
-                                      }}
-                                    >
-                                      {char}
-                                    </span>
+                                    <span key={i} style={{animationDelay: `${(i + 1) * 0.1}s`,}}>{char}</span>
                                   ))}
                                 </div>
                               )}
@@ -1516,15 +1501,9 @@ const StorePage = () => {
                                 )}
                               </div>
                               {renderPagination()}
-
                             </div>
-
                           )}
-
-                          <div
-                            className="creator-content-type-container-wrapper"
-                            data-multi-tabs-content-tab
-                          >
+                          <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tab>
                             {subActiveTab === "photos" && (
                               <>
                                 <div className="col-4-cards-layout">
@@ -1857,15 +1836,8 @@ const StorePage = () => {
           plan={subscriptionPlan}
           setPlan={setSubscriptionPlan}
           action="subscribe"
-          creator={{
-            displayName: activeSubscriptionCreator?.displayName,
-            userName: activeSubscriptionCreator?.userName,
-            profile: activeSubscriptionCreator?.profile,
-          }}
-          subscription={{
-            monthlyPrice: activeSubscriptionCreator?.subscription?.monthlyPrice,
-            yearlyPrice: activeSubscriptionCreator?.subscription?.yearlyPrice,
-          }}
+          creator={{displayName: activeSubscriptionCreator?.displayName, userName: activeSubscriptionCreator?.userName, profile: activeSubscriptionCreator?.profile,}}
+          subscription={{monthlyPrice: activeSubscriptionCreator?.subscription?.monthlyPrice, yearlyPrice: activeSubscriptionCreator?.subscription?.yearlyPrice,}}
         />
       )}
 
@@ -1873,23 +1845,11 @@ const StorePage = () => {
         <UnlockContentModal
           onClose={() => setUnlockModalPost(null)}
           creator={{
-            displayName:
-              unlockModalPost.creatorInfo?.displayName ||
-              unlockModalPost.user?.displayName,
-            userName:
-              unlockModalPost.creatorInfo?.userName ||
-              unlockModalPost.user?.userName,
-            profile:
-              unlockModalPost.creatorInfo?.profile ||
-              unlockModalPost.user?.profile,
+            displayName: unlockModalPost.creatorInfo?.displayName || unlockModalPost.user?.displayName,
+            userName: unlockModalPost.creatorInfo?.userName || unlockModalPost.user?.userName,
+            profile: unlockModalPost.creatorInfo?.profile || unlockModalPost.user?.profile,
           }}
-          post={{
-            publicId: unlockModalPost.publicId,
-            text: unlockModalPost.text,
-            price: unlockModalPost.price,
-          }}
-          onConfirm={handleConfirmUnlock}
-          loading={unlocking}
+          post={{publicId: unlockModalPost.publicId, text: unlockModalPost.text, price: unlockModalPost.price,}} onConfirm={handleConfirmUnlock} loading={unlocking}
         />
       )}
 
