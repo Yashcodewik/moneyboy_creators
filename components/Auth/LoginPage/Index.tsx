@@ -9,11 +9,11 @@ import { signIn } from "next-auth/react";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { useRouter, useSearchParams } from "next/navigation";
 import ShowToast from "@/components/common/ShowToast";
+import SumsubWebSdk from "@sumsub/websdk-react";
 
 const LoginPage = () => {
   const [showPass, setShowPass] = useState(false);
   const router = useRouter();
-
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -34,8 +34,8 @@ const LoginPage = () => {
 
   const formik = useFormik({
     initialValues: {
-      email: "",
-      password: "",
+      email: "sanjayc1@yopmail.com",
+      password: "123456",
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
@@ -46,30 +46,25 @@ const LoginPage = () => {
       });
 
       setSubmitting(false);
-
       if (res?.error) {
-
-        // 🚫 banned user
         if (res.error.toLowerCase().includes("banned")) {
           ShowToast(
             "Your account has been banned by the administrator. Please contact support.",
-            "error"
+            "error",
           );
           return;
         }
 
-        // ⏳ creator waiting for admin approval
-        if (res.error.toLowerCase().includes("admin review")) {
-          router.push("/waiting");
-          return;
+        if (res.error.toLowerCase().includes("account is not completed yet")) {
+          const token = res.error.split("token?=")[1];
+          router.push(`/creator?q=${token}`);
         }
 
-        // ❌ wrong credentials
         ShowToast("Invalid email or password", "error");
         return;
       }
 
-      router.push("/feed");
+      // router.push("/feed");
     },
   });
 
@@ -96,7 +91,10 @@ const LoginPage = () => {
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button className="btn-txt-gradient btn-outline" onClick={() => router.push("/feed")}>
+          <button
+            className="btn-txt-gradient btn-outline"
+            onClick={() => router.push("/feed")}
+          >
             <IoArrowBackOutline className="icons" />
           </button>
         </div>

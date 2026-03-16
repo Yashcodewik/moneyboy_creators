@@ -14,7 +14,6 @@ import TwitterProvider from "next-auth/providers/twitter";
 import { getToken } from "next-auth/jwt";
 import { serverApiPost } from "@/utils/api/serverApi";
 import { NextRequest } from "next/server";
-import ShowToast from "@/components/common/ShowToast";
 
 export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
   providers: [
@@ -55,7 +54,9 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
           throw new Error("credentials_missing");
         }
 
-        console.log("Authorize API response:", res);
+        if (!res?.isVerified) {
+         throw new Error(res?.message || "authentication_failed");
+        }
 
         if (!res?.success) {
           throw new Error(res?.message || "authentication_failed");
@@ -96,7 +97,7 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
       version: "2.0",
       authorization: {
         params: {
-          scope: "users.read tweet.read users.email"
+          scope: "users.read tweet.read users.email",
         },
       },
     }),
@@ -119,16 +120,9 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
           : null;
         const userType = req?.cookies?.get("userType")?.value;
 
-        console.log(
-          userType,
-          "userType=============userType===userType=res=======",
-          account,
-          user,
-        );
-
-       if (!user?.email) {
-  user.email = `${account.providerAccountId}@twitter.oauth`;
-}
+        if (!user?.email) {
+          user.email = `${account.providerAccountId}@twitter.oauth`;
+        }
         const accessToken = existingToken?.accessToken as string | undefined;
         try {
           let res;

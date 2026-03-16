@@ -36,13 +36,11 @@ import { validationSchemaCreator } from "@/libs/validation";
 import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter } from "react-icons/fa6";
 import { signIn } from "next-auth/react";
-import { useDecryptedSession } from "@/libs/useDecryptedSession";
 
 countries.registerLocale(enLocale);
 
 const CreatorSignupPage = () => {
   const router = useRouter();
-  const { session } = useDecryptedSession();
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
@@ -54,6 +52,7 @@ const CreatorSignupPage = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const searchParams = useSearchParams();
   const sumsubToken = searchParams.get("q");
+
   useEffect(() => {
     if (sumsubToken) {
       setToken(sumsubToken);
@@ -196,16 +195,6 @@ const CreatorSignupPage = () => {
     }
 
     return age;
-  };
-
-  const getAgeGroup = (age: number) => {
-    if (age >= 18 && age <= 24) return "18_24";
-    if (age >= 25 && age <= 29) return "25_29";
-    if (age >= 30 && age <= 34) return "30_34";
-    if (age >= 35 && age <= 39) return "35_39";
-    if (age >= 40 && age <= 44) return "40_44";
-    if (age >= 45) return "45_plus";
-    return "";
   };
 
   const months = [
@@ -851,7 +840,7 @@ const CreatorSignupPage = () => {
               payload?.reviewStatus === "completed"
             ) {
               setTimeout(() => {
-                router.push("/waiting");
+                router.push("/login");
               }, 1500);
             }
           }}
