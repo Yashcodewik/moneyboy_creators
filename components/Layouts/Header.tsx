@@ -25,7 +25,23 @@ const Header = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [headerSearch, setHeaderSearch] = useState("");
 
+
+
+useEffect(() => {
+  const delay = setTimeout(() => {
+    if (pathname !== "/discover") return;
+
+    if (!headerSearch.trim()) {
+      router.push("/discover");
+    } else {
+      router.push(`/discover?search=${encodeURIComponent(headerSearch)}`);
+    }
+  }, 500); // wait 500ms after typing
+
+  return () => clearTimeout(delay);
+}, [headerSearch]);
   useEffect(() => {
     console.log("showPromoteModal:", showPromoteModal);
   }, [showPromoteModal]);
@@ -317,7 +333,17 @@ useEffect(() => {
                       />
                     </svg>
                   </div>
-                  <input type="text" placeholder="Search here" />
+<input
+  type="text"
+  placeholder="Search here"
+  value={headerSearch}
+  onChange={(e) => setHeaderSearch(e.target.value)}
+  onFocus={() => {
+    if (pathname !== "/discover") {
+      router.push("/discover");
+    }
+  }}
+/>
                 </div>
               </div>
 
