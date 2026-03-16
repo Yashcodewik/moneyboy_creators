@@ -54,18 +54,22 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
           throw new Error("credentials_missing");
         }
 
-        if (!res?.isVerified) {
-         throw new Error(res?.message || "authentication_failed");
-        }
+        console.log(res, "res=================res");
 
+        if (!res?.isVerified) {
+          throw new Error(res?.message || "authentication_failed");
+        }
+        console.log("1111111111=================res");
         if (!res?.success) {
           throw new Error(res?.message || "authentication_failed");
         }
+        console.log("222222222=================res");
 
         if (!res.token) {
           console.log("OTP verified but token not returned");
           return { stage: "otp_verified", ...res };
         }
+        console.log("33333333=================res");
 
         const userData = {
           id: res.user._id,

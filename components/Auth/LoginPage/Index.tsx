@@ -9,7 +9,6 @@ import { signIn } from "next-auth/react";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { useRouter, useSearchParams } from "next/navigation";
 import ShowToast from "@/components/common/ShowToast";
-import SumsubWebSdk from "@sumsub/websdk-react";
 
 const LoginPage = () => {
   const [showPass, setShowPass] = useState(false);
@@ -34,8 +33,8 @@ const LoginPage = () => {
 
   const formik = useFormik({
     initialValues: {
-      email: "sanjayc1@yopmail.com",
-      password: "123456",
+      email: "",
+      password: "",
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
@@ -63,8 +62,7 @@ const LoginPage = () => {
         ShowToast("Invalid email or password", "error");
         return;
       }
-
-      // router.push("/feed");
+      router.push("/feed");
     },
   });
 
