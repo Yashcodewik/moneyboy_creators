@@ -1788,28 +1788,30 @@ const ProfilePage = () => {
                 <p>{profile?.creator?.bio || "No bio available."}</p>
               </div>
 
-              <div className="creator-subscriptions-container">
-                <div className="subscriptions-container">
-                  <ul>
-                      <li>
-                        <div className="subscription-info">
-                          <div className="subscription-label">add subscription</div>
-                          {/* <div className="subscription-price">
-                            <h3>$9.99</h3>
-                            <span>/month</span>
-                              <div className="save-txt">(Save 25%)</div>
-                          </div> */}
-                        </div>
+{!profile?.subscription && isOwnProfile && (
+  <div className="creator-subscriptions-container">
+    <div className="subscriptions-container">
+      <ul>
+        <li>
+          <div className="subscription-info">
+            <div className="subscription-label">Add Subscription</div>
+          </div>
 
-                        <div className="subscripton-button">
-                          <button className="btn-txt-gradient btn-outline p-sm">
-                            <span>Add</span>
-                          </button>
-                        </div>
-                      </li>
-                  </ul>
-                </div>
-              </div>
+          <div className="subscripton-button">
+            <button
+              className="btn-txt-gradient btn-outline p-sm"
+              onClick={() =>
+                router.push("/creator-edit-profile?tab=pricing")
+              }
+            >
+              <span>Add</span>
+            </button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+)}
 
               {session?.isAuthenticated &&
                 profile?.subscription?.monthlyPrice && (
