@@ -20,7 +20,7 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
-import { BadgeCheck, CalendarDays, CircleX, Smile } from "lucide-react";
+import { BadgeCheck, CalendarDays, CircleX, Smile, X } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -155,6 +155,11 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     name: session?.user?.displayName,
     username: session?.user?.userName,
     profile: session?.user?.profile,
+  };
+
+  const removeCollaborator = (id: string) => {
+    if (id === "creator") return;
+    setSelectedTagUsers((prev) => prev.filter((user) => user._id !== id));
   };
 
   useEffect(() => {
@@ -496,16 +501,16 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const collaborators: (TaggedUserWithShare & { isCreator: boolean })[] =
     selectedTagUsers.length > 0
       ? [
-          {
-            _id: "creator",
-            displayName: creator.name ?? "",
-            userName: creator.username ?? "",
-            profile: creator.profile,
-            percentage: creatorPercentage,
-            isCreator: true,
-          },
-          ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
-        ]
+        {
+          _id: "creator",
+          displayName: creator.name ?? "",
+          userName: creator.username ?? "",
+          profile: creator.profile,
+          percentage: creatorPercentage,
+          isCreator: true,
+        },
+        ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
+      ]
       : [];
 
   const confirmClose = async () => {
@@ -546,7 +551,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
               <CgClose size={22} />
             </button>
           </div>
-          
+
 
           <div className="input-wrap">
             <div className="label-input textarea one">
@@ -692,8 +697,8 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       value={
                         formik.values.scheduledAt
                           ? new Date(
-                              formik.values.scheduledAt,
-                            ).toLocaleDateString("en-GB")
+                            formik.values.scheduledAt,
+                          ).toLocaleDateString("en-GB")
                           : ""
                       }
                       readOnly
@@ -770,33 +775,25 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                     <div className="profile-card__avatar-settings uplview_user">
                       <div className="profile-card__avatar">
                         {user.profile ? (
-                          <img
-                            src={user.profile}
-                            alt={user.displayName}
-                            className="img-fluid"
-                          />
+                          <img src={user.profile} alt={user.displayName} className="img-fluid" />
                         ) : (
                           <NoProfileSVG />
                         )}
                       </div>
                     </div>
-
                     <div className="profile-card__info">
-                      <div className="profile-card__name">
-                        {user.displayName}
-                      </div>
-                      <div className="profile-card__username">
-                        @{user.userName}
-                      </div>
+                      <div className="profile-card__name">{user.displayName}</div>
+                      <div className="profile-card__username">@{user.userName}</div>
                     </div>
-
                     <div className="right_box">
                       {accessType === "free" && (
                         <span className="btn-primary">Free</span>
                       )}
+
                       {accessType === "subscriber" && (
                         <span className="btn-primary">Subscriber</span>
                       )}
+
                       {accessType === "pay_per_view" && (
                         <input
                           type="number"
@@ -814,6 +811,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                         />
                       )}
                     </div>
+                    <button type="button" className="btn-danger" onClick={() => removeCollaborator(user._id)}><CircleX size={16}/></button>
                   </div>
                 </div>
               ))}

@@ -2,6 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import "sweetalert2/dist/sweetalert2.min.css";
+
 body {
   background: #f4f4f4;
 }
@@ -2505,6 +2506,29 @@ body {
     }
   }
   &.waiting_wrap {
+    position: relative;
+    .backicons {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      transform: translate(-0%, -0%);
+      width: max-content;
+      button {
+        width: 45px;
+        height: 45px;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        box-shadow:
+          0 6px 4px -4px #08080816,
+          0 2px 13.5px 1px #08080825;
+        svg {
+          color: #fece26;
+          position: relative;
+          z-index: 1;
+        }
+      }
+    }
     .cont_wrap {
       justify-content: center;
       .main_cont {
@@ -3608,6 +3632,13 @@ body {
                 cursor: pointer;
                 padding: 5px 14px;
               }
+              .form-input {
+                padding: 8px;
+                max-width: 80px;
+              }
+            }
+            .btn-danger {
+              padding: 8px;
             }
           }
         }

@@ -1,11 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Footer from "../Layouts/Footer";
+import { IoArrowBackOutline } from "react-icons/io5";
 
 const WaitingPage = () => {
+  const router = useRouter();
   return (
     <>
       <div className="container login_wrap waiting_wrap">
+        <div className="backicons"><button className="btn-txt-gradient btn-outline" onClick={() => router.push("/feed")}><IoArrowBackOutline className="icons" /></button></div>
         <div className="moneyboy-feed-page-container cont_wrap">
           <div className="main_cont">
             <img src="/images/logo.svg" className="logo_wrap" />

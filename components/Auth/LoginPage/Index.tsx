@@ -47,27 +47,27 @@ const LoginPage = () => {
 
       setSubmitting(false);
 
-if (res?.error) {
+      if (res?.error) {
 
-  // 🚫 banned user
-  if (res.error.toLowerCase().includes("banned")) {
-    ShowToast(
-      "Your account has been banned by the administrator. Please contact support.",
-      "error"
-    );
-    return;
-  }
+        // 🚫 banned user
+        if (res.error.toLowerCase().includes("banned")) {
+          ShowToast(
+            "Your account has been banned by the administrator. Please contact support.",
+            "error"
+          );
+          return;
+        }
 
-  // ⏳ creator waiting for admin approval
-  if (res.error.toLowerCase().includes("admin review")) {
-    router.push("/waiting");
-    return;
-  }
+        // ⏳ creator waiting for admin approval
+        if (res.error.toLowerCase().includes("admin review")) {
+          router.push("/waiting");
+          return;
+        }
 
-  // ❌ wrong credentials
-  ShowToast("Invalid email or password", "error");
-  return;
-}
+        // ❌ wrong credentials
+        ShowToast("Invalid email or password", "error");
+        return;
+      }
 
       router.push("/feed");
     },
@@ -96,10 +96,7 @@ if (res?.error) {
       <div className="img_wrap">
         <img src="/images/loginflowimg.png" className="login_imgwrap" />
         <div className="backicons">
-          <button
-            className="btn-txt-gradient btn-outline"
-            onClick={() => router.push("/feed")}
-          >
+          <button className="btn-txt-gradient btn-outline" onClick={() => router.push("/feed")}>
             <IoArrowBackOutline className="icons" />
           </button>
         </div>
