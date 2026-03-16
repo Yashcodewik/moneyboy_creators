@@ -3,7 +3,7 @@ import { getDecryptedSession } from "@/libs/getDecryptedSession";
 import React, { useEffect, useRef, useState } from "react";
 import Filter from "./Filter";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import {
@@ -18,6 +18,8 @@ const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
   const router = useRouter();
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
+const querySearch = searchParams.get("search");
 
   type FilterType =
     | "category"
@@ -37,7 +39,7 @@ const Dashboard = () => {
     | null;
 
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState(querySearch || "");
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const { creators, page, totalPages, loading } = useSelector(
     (state: any) => state.discoverCreators,
@@ -58,18 +60,18 @@ const Dashboard = () => {
     loadSession();
   }, []);
 
-  useEffect(() => {
-    if (!sessionLoaded) return;
+useEffect(() => {
+  if (!sessionLoaded) return;
 
-    dispatch(
-      fetchDiscoverCreators({
-        page,
-        search,
-        filters: filterValues,
-        ...(session?.user && { userPublicId: session.user.publicId }),
-      }) as any,
-    );
-  }, [page, search, filterValues, sessionLoaded, session?.user?.publicId]);
+  dispatch(
+    fetchDiscoverCreators({
+      page,
+      search: querySearch || search,
+      filters: filterValues,
+      ...(session?.user && { userPublicId: session.user.publicId }),
+    }) as any,
+  );
+}, [page, querySearch, search, filterValues, sessionLoaded, session?.user?.publicId]);
 
   useEffect(() => {
     dispatch(resetCreators());
@@ -93,6 +95,12 @@ const Dashboard = () => {
       });
     };
   }, []);
+
+ useEffect(() => {
+  const newSearch = querySearch || "";
+  setSearch(newSearch);
+  dispatch(setPage(1));
+}, [querySearch, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
