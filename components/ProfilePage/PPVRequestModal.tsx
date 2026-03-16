@@ -8,6 +8,8 @@ import { API_CREATE_PPV_REQUEST } from "@/utils/api/APIConstant";
 import { CircleDollarSign } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useAppDispatch } from "@/redux/store";
+import { fetchWallet } from "@/redux/wallet/Action";
 
 const validationSchema = Yup.object({
   requestType: Yup.string().required("Request type is required"),
@@ -39,11 +41,14 @@ const PPVRequestModal = ({
   post,
   onSuccess,
 }: PPVRequestModalProps) => {
+  const dispatch = useAppDispatch();
   const [description, setDescription] = useState("");
   const [offerPrice, setOfferPrice] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
   const [requestType, setRequestType] = useState<"VIDEO" | "PHOTO">("VIDEO");
   const [file, setFile] = useState<File | null>(null);
+  
+  
 
   const formik = useFormik({
     initialValues: {
@@ -62,6 +67,7 @@ const PPVRequestModal = ({
       formData.append("type", values.requestType);
       formData.append("price", values.offerPrice.toString());
       formData.append("description", values.description);
+      formData.append("paymentMethod", paymentMethod);
 
       if (file) {
         formData.append("file", file);
@@ -74,12 +80,18 @@ const PPVRequestModal = ({
 
       setLoading(false);
 
-      if (res?.success) {
-        onSuccess({
-          amount: Number(values.offerPrice),
-          threadPublicId: res.threadPublicId,
-        });
-      }
+if (res?.success) {
+
+  // refresh wallet instantly if wallet payment
+  if (paymentMethod === "wallet") {
+    dispatch(fetchWallet());
+  }
+
+  onSuccess({
+    amount: Number(values.offerPrice),
+    threadPublicId: res.threadPublicId,
+  });
+}
     },
   });
 

@@ -224,7 +224,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
             >
               <span>{p}</span>
             </button>
-          )
+          ),
         )}
 
         <button
@@ -253,7 +253,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
     player.muted = true;
     player.currentTime = 0;
-    player.play().catch(() => { });
+    player.play().catch(() => {});
   };
 
   const stopPreview = (id: string) => {
@@ -436,7 +436,6 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                   playsInline
                                   onMouseEnter={() => playPreview(post._id)}
                                   onMouseLeave={() => stopPreview(post._id)}
-
                                 />
                                 // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
                                 //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
@@ -493,22 +492,49 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                     </div>
 
                                     {taggedUsers.length > 0 && (
-                                      <div className="tagview" onClick={(e) => { e.stopPropagation(); e.preventDefault(); showTaggedUserList(taggedUsers); }}>
-                                        <ul className="taglist"> {taggedUsers.slice(0, 2).map((tag, index) => {
-                                          const username = tag?.user?.userName || "U";
-                                          return (
-                                            <li key={index}>{tag?.user?.profile ? (
-                                              <img className="user_icons" src={tag.user.profile} alt={username} onError={(e) => { e.currentTarget.style.display = "none"; }} />
-                                            ) : (
-                                              <div className="nomedia">
-                                                <span>{username.charAt(0).toUpperCase()}</span>
-                                              </div>
-                                            )}
-                                            </li>
-                                          );
-                                        })}
+                                      <div
+                                        className="tagview"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          showTaggedUserList(taggedUsers);
+                                        }}
+                                      >
+                                        <ul className="taglist">
+                                          {" "}
+                                          {taggedUsers
+                                            .slice(0, 2)
+                                            .map((tag, index) => {
+                                              const username =
+                                                tag?.user?.userName || "U";
+                                              return (
+                                                <li key={index}>
+                                                  {tag?.user?.profile ? (
+                                                    <img
+                                                      className="user_icons"
+                                                      src={tag.user.profile}
+                                                      alt={username}
+                                                      onError={(e) => {
+                                                        e.currentTarget.style.display =
+                                                          "none";
+                                                      }}
+                                                    />
+                                                  ) : (
+                                                    <div className="nomedia">
+                                                      <span>
+                                                        {username
+                                                          .charAt(0)
+                                                          .toUpperCase()}
+                                                      </span>
+                                                    </div>
+                                                  )}
+                                                </li>
+                                              );
+                                            })}
                                           {taggedUsers.length > 2 && (
-                                            <li className="more-count">+{taggedUsers.length - 2}</li>
+                                            <li className="more-count">
+                                              +{taggedUsers.length - 2}
+                                            </li>
                                           )}
                                         </ul>
                                       </div>
@@ -519,13 +545,40 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                             </div>
                           </div>
                           <div className="creator-media-card__btn mt-auto">
-                            {!isOwnPost && post.accessType === "pay_per_view" && post.isUnlocked !== true && (<h5>From <span>${post.price}</span></h5>)}
-                            <Link href="#" className={`btn-txt-gradient shimmer btn-outline ${isOwnPost ? "opacity-50 cursor-not-allowed" : ""}`} onClick={(e) => {
-                              e.preventDefault(); if (isOwnPost) return;
-                              if ((post.accessType === "subscriber" && post.isSubscribed) || (post.accessType === "pay_per_view" && post.isUnlocked)) { router.push(`/purchased-media?publicId=${post.publicId}`,); return; }
-                              if (post.accessType === "pay_per_view") { onUnlock(post); return; }
-                              if (post.accessType === "subscriber") { onSubscribe(post); return; }
-                            }}>
+                            {!isOwnPost &&
+                              post.accessType === "pay_per_view" &&
+                              post.isUnlocked !== true && (
+                                <h5>
+                                  From <span>${post.price}</span>
+                                </h5>
+                              )}
+                            <Link
+                              href="#"
+                              className={`btn-txt-gradient shimmer btn-outline ${isOwnPost ? "opacity-50 cursor-not-allowed" : ""}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (isOwnPost) return;
+                                if (
+                                  (post.accessType === "subscriber" &&
+                                    post.isSubscribed) ||
+                                  (post.accessType === "pay_per_view" &&
+                                    post.isUnlocked)
+                                ) {
+                                  router.push(
+                                    `/purchased-media?publicId=${post.publicId}`,
+                                  );
+                                  return;
+                                }
+                                if (post.accessType === "pay_per_view") {
+                                  onUnlock(post);
+                                  return;
+                                }
+                                if (post.accessType === "subscriber") {
+                                  onSubscribe(post);
+                                  return;
+                                }
+                              }}
+                            >
                               <span>
                                 {isOwnPost
                                   ? "Your Post"
@@ -542,6 +595,12 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                         </div>
                       );
                     })}
+                  {!loadingPaidContentFeed && paidContentFeed.length === 0 && (
+                    <div className="nofound">
+                      <h3 className="first">No media found</h3>
+                      <h3 className="second">No media found</h3>
+                    </div>
+                  )}
                 </div>
                 {renderPagination()}
               </div>
