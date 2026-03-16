@@ -2044,6 +2044,9 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.grid-span-4 {
+  grid-column: span 4;
+}
 
 /* Login Page Start */
 .login_wrap {
