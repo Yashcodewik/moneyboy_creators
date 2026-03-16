@@ -219,6 +219,14 @@ const StorePage = () => {
   };
   // const selectedCreator = creators?.[0];
 
+  const videoPosts = paidPosts.filter(
+  (post) => getPostMedia(post).type === "video"
+);
+
+const photoPosts = paidPosts.filter(
+  (post) => getPostMedia(post).type === "photo"
+);
+
   const renderPagination = () => {
     if (!totalPages || totalPages <= 1) return null;
 
@@ -1170,12 +1178,7 @@ const StorePage = () => {
                               )}
                               <div className="col-4-cards-layout">
                                 {!loadingPaidPosts &&
-                                  paidPosts
-                                    .filter(
-                                      (post) =>
-                                        getPostMedia(post).type === "video",
-                                    )
-                                    .map((post) => {
+                                 videoPosts.map((post) => {
                                       const media = getPostMedia(post);
                                       const isOwnPost =
                                         isCreator &&
@@ -1505,6 +1508,12 @@ const StorePage = () => {
                                         </div>
                                       );
                                     })}
+                                      {!loadingPaidPosts && videoPosts.length === 0 && (
+    <div className="nofound">
+      <h3 className="first">No media found</h3>
+      <h3 className="second">No media found</h3>
+    </div>
+  )}
                               </div>
                               {renderPagination()}
 
@@ -1519,12 +1528,7 @@ const StorePage = () => {
                             {subActiveTab === "photos" && (
                               <>
                                 <div className="col-4-cards-layout">
-                                  {paidPosts
-                                    .filter(
-                                      (post) =>
-                                        getPostMedia(post).type === "photo",
-                                    )
-                                    .map((post) => {
+                                  {photoPosts.map((post) => {
                                       const media = getPostMedia(post);
                                       const isOwnPost =
                                         isCreator &&
@@ -1824,6 +1828,12 @@ const StorePage = () => {
                                         </div>
                                       );
                                     })}
+                                      {!loadingPaidPosts && photoPosts.length === 0 && (
+    <div className="nofound">
+      <h3 className="first">No media found</h3>
+      <h3 className="second">No media found</h3>
+    </div>
+  )}
                                 </div>
                                 {renderPagination()}
                               </>

@@ -1055,46 +1055,58 @@ const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => {
   };
 
   // Tab content renderer
-  const renderTabContent = (filterType: "all" | "video" | "photo") => {
-    let filteredPosts = posts;
+const renderTabContent = (filterType: "all" | "video" | "photo") => {
+  let filteredPosts = posts;
 
-    if (filterType === "video") {
-      filteredPosts = videoPosts;
-    } else if (filterType === "photo") {
-      filteredPosts = photoPosts;
-    }
+  if (filterType === "video") {
+    filteredPosts = videoPosts;
+  } else if (filterType === "photo") {
+    filteredPosts = photoPosts;
+  }
 
-    return (
-      <div data-multi-tabs-content-tabdata__active data-multi-dem-cards-layout>
-        <div className="creator-content-filter-grid-container">
-          <ProfileTab
-            onChangeLayouts={(layout) => setLayoutTab(layout)}
-            onSearchChange={setSearch}
-            onTimeChange={setTimeFilter}
-          />
-          {loading && posts.length === 0 && (
-            <div className="loadingtext">
-              {"Loading".split("").map((char, i) => (
-                <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-                  {char}
-                </span>
-              ))}
+  return (
+    <div data-multi-tabs-content-tabdata__active data-multi-dem-cards-layout>
+      <div className="creator-content-filter-grid-container">
+        <ProfileTab
+          onChangeLayouts={(layout) => setLayoutTab(layout)}
+          onSearchChange={setSearch}
+          onTimeChange={setTimeFilter}
+        />
+
+        {postsLoading && (
+          <div className="loadingtext">
+            {"Loading".split("").map((char, i) => (
+              <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+                {char}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div
+          className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${
+            layoutTab === "list" ? "layout-list" : "layout-grid"
+          }`}
+          data-direct-cards-layout
+          data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
+        >
+          {!postsLoading && filteredPosts.length === 0 && (
+            <div className="nofound">
+              <h3 className="first">No media found</h3>
+              <h3 className="second">No media found</h3>
             </div>
           )}
-          <div
-            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${layoutTab === "list" ? "layout-list" : "layout-grid"}`}
-            data-direct-cards-layout
-            data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
-          >
-            {!postsLoading &&
-              filteredPosts?.map((post: any) => (
-                <PostCard key={post.publicId} post={post} />
-              ))}
-          </div>
+
+          {!postsLoading &&
+            filteredPosts.length > 0 &&
+            filteredPosts.map((post: any) => (
+              <PostCard key={post.publicId} post={post} />
+            ))}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const calculateYearlySavings = (
     monthly?: number,

@@ -1663,7 +1663,7 @@ const FollowersPage = () => {
                 ))}
 
               {!loading && creators.length === 0 && (
-                <p className="text-center">No creators found</p>
+                <p className="nodeta">No creators found</p>
               )}
             </div>
           </div>
