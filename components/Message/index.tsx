@@ -1,14 +1,32 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import { Smile, Mic, CircleX, BadgeCheck, MessageCircleMore, Loader, Link2, Check, Send, } from "lucide-react";
+import {
+  Smile,
+  Mic,
+  CircleX,
+  BadgeCheck,
+  MessageCircleMore,
+  Loader,
+  Link2,
+  Check,
+  Send,
+} from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import socket from "@/libs/socket";
-import { apiPost, apiPostWithMultiForm, getApi, getApiByParams, } from "@/utils/endpoints/common";
-import { API_MESSAGE_CHAT, API_MESSAGE_CHAT_UPLOAD_MEDIA, } from "@/utils/api/APIConstant";
+import {
+  apiPost,
+  apiPostWithMultiForm,
+  getApi,
+  getApiByParams,
+} from "@/utils/endpoints/common";
+import {
+  API_MESSAGE_CHAT,
+  API_MESSAGE_CHAT_UPLOAD_MEDIA,
+} from "@/utils/api/APIConstant";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
@@ -19,9 +37,20 @@ import Link from "next/link";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { CgClose } from "react-icons/cg";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { deleteThread, fetchMessages, fetchSidebar, reportThread, sendMessageAction } from "@/redux/message/messageActions";
-import { addSocketMessage, markMessagesReadFromSocket, setActiveThread, setThreadDetails, updatePPVStatus } from "@/redux/message/messageSlice";
-import { useSelector } from "react-redux";
+import {
+  deleteThread,
+  fetchMessages,
+  fetchSidebar,
+  reportThread,
+  sendMessageAction,
+} from "@/redux/message/messageActions";
+import {
+  addSocketMessage,
+  markMessagesReadFromSocket,
+  setActiveThread,
+  setThreadDetails,
+  updatePPVStatus,
+} from "@/redux/message/messageSlice";
 import CustomAudioPlayer from "../common/CustomAudioPlayer";
 
 const MessagePage = () => {
@@ -43,7 +72,6 @@ const MessagePage = () => {
   const isTypingRef = useRef(false);
   const [searchText, setSearchText] = useState("");
   const [searchedMessages, setSearchedMessages] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const chatBodyRef = useRef<HTMLDivElement | null>(null);
@@ -51,22 +79,18 @@ const MessagePage = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [reportMessage, setReportMessage] = useState("");
-
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const isMobile = useDeviceType();
-  const { isBlocked } = useAppSelector(
-    (state) => state.message
-  );
+  const { isBlocked } = useAppSelector((state) => state.message);
   const dispatch = useAppDispatch();
   const { messages, chatList, activeThreadId } = useAppSelector(
-    (state) => state.message
+    (state) => state.message,
   );
   useEffect(() => {
     dispatch(fetchSidebar());
   }, [dispatch]);
-
 
   // ✅ LOG: Socket connection
   useEffect(() => {
@@ -130,9 +154,10 @@ const MessagePage = () => {
       dispatch(updatePPVStatus({ ppvId, status, deliveredMedia }));
     };
     socket.on("ppvUpdated", handler);
-    return () => { socket.off("ppvUpdated", handler); };
+    return () => {
+      socket.off("ppvUpdated", handler);
+    };
   }, [dispatch]);
-
 
   useEffect(() => {
     const handler = ({ readerId }: any) => {
@@ -148,13 +173,11 @@ const MessagePage = () => {
     };
   }, [dispatch, session?.user?.id]);
 
-
   useEffect(() => {
     if (!threadPublicIdFromUrl) return;
 
     dispatch(setActiveThread(threadPublicIdFromUrl));
   }, [threadPublicIdFromUrl, dispatch]);
-
 
   useEffect(() => {
     if (!activeThreadId || !session?.user?.id) return;
@@ -178,7 +201,6 @@ const MessagePage = () => {
 
         dispatch(setThreadDetails(res));
         setActiveUser(res?.user || null);
-
       } catch (err) {
         console.error("THREAD DETAILS ERROR:", err);
       }
@@ -221,7 +243,6 @@ const MessagePage = () => {
     return () => {
       socket.off("connect", joinRoom);
     };
-
   }, [activeThreadId]);
 
   useEffect(() => {
@@ -264,7 +285,6 @@ const MessagePage = () => {
 
     setNewComment("");
   };
-
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -460,8 +480,6 @@ const MessagePage = () => {
       return;
     }
 
-    setIsSearching(true);
-
     const res = await getApi({
       url: `/messages/thread/search/${activeThreadId}`,
       page: 1,
@@ -470,7 +488,6 @@ const MessagePage = () => {
     });
 
     setSearchedMessages(res?.data || []);
-    setIsSearching(false);
   };
 
   const handleSearchChange = (value: string) => {
@@ -581,7 +598,7 @@ const MessagePage = () => {
       reportThread({
         threadPublicId: activeThreadId, // now guaranteed string
         message: reportMessage,
-      })
+      }),
     );
 
     if (res.meta.requestStatus === "fulfilled") {
@@ -710,10 +727,23 @@ const MessagePage = () => {
         <div className="moneyboy-2x-1x-a-layout">
           <div className="msg-page-wrapper card">
             <div className="msg-page-container" msg-page-wrapper={true}>
-              <SideBar activeThreadId={activeThreadId} onSelectChat={(thread: any) => { dispatch(setActiveThread(thread.publicId)); router.replace(`/message?threadId=${thread.publicId}`); }} />
+              <SideBar
+                activeThreadId={activeThreadId}
+                onSelectChat={(thread: any) => {
+                  dispatch(setActiveThread(thread.publicId));
+                  router.replace(`/message?threadId=${thread.publicId}`);
+                }}
+              />
               <div className="msg-chats-layout">
-                <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
-                  <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
+                <div
+                  className="msg-chats-rooms-container"
+                  msg-chat-rooms-wrapper=""
+                >
+                  <div
+                    className="msg-chat-room-layout"
+                    msg-chat-room=""
+                    data-active=""
+                  >
                     {!activeThreadId ? (
                       <div className="messages-empty">
                         <div className="messages-empty-card">
@@ -723,8 +753,15 @@ const MessagePage = () => {
                             <span className="ping"></span>
                           </div>
                           <h3>Start a conversation</h3>
-                          <p>Select a creator from the left or discover new ones to begin chatting.</p>
-                          <Link href={"/discover"}><button className="premium-btn active-down-effect"><span>Find creators</span></button></Link>
+                          <p>
+                            Select a creator from the left or discover new ones
+                            to begin chatting.
+                          </p>
+                          <Link href={"/discover"}>
+                            <button className="premium-btn active-down-effect">
+                              <span>Find creators</span>
+                            </button>
+                          </Link>
                           <div className="floating-bubbles">
                             <span></span>
                             <span></span>
@@ -739,18 +776,21 @@ const MessagePage = () => {
                             {/* Profile */}
                             <div className="chat-room-header-profile">
                               <div className="profile-card">
-                                <div className="profile-card__main" onClick={() => {
-                                  if (!activeUser?.publicId && !activeUser?.id)
-                                    return;
-                                  // Prefer publicId if available
-                                  const profileId =
-                                    activeUser?.publicId || activeUser?.id;
-                                  router.push(`/profile/${profileId}`);
-                                }}>
+                                <div
+                                  className="profile-card__main"
+                                  onClick={() => {
+                                    if (!activeUser?.username) return;
+                                    const profileId = activeUser?.username;
+                                    router.push(`/${profileId}`);
+                                  }}
+                                >
                                   <div className="profile-card__avatar-settings">
                                     <div className="profile-card__avatar">
                                       {activeUser?.profile ? (
-                                        <img src={activeUser?.profile} alt="Profile Avatar" />
+                                        <img
+                                          src={activeUser?.profile}
+                                          alt="Profile Avatar"
+                                        />
                                       ) : (
                                         <NoProfileSvg />
                                       )}
@@ -758,12 +798,21 @@ const MessagePage = () => {
                                   </div>
                                   <div className="profile-card__info">
                                     <div className="profile-card__name-badge">
-                                      <div className="profile-card__name">{activeUser?.displayName || activeUser?.username || ""}</div>
+                                      <div className="profile-card__name">
+                                        {activeUser?.displayName ||
+                                          activeUser?.username ||
+                                          ""}
+                                      </div>
                                       <div className="profile-card__badge">
-                                        <img src="/images/logo/profile-badge.png" alt="Profile Badge" />
+                                        <img
+                                          src="/images/logo/profile-badge.png"
+                                          alt="Profile Badge"
+                                        />
                                       </div>
                                     </div>
-                                    <div className="profile-card__username">@{activeUser?.username || ""}</div>
+                                    <div className="profile-card__username">
+                                      @{activeUser?.username || ""}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -773,29 +822,55 @@ const MessagePage = () => {
                               <div
                                 className="btn-txt-gradient"
                                 onClick={() => {
-                                  if (!activeUser?.publicId && !activeUser?.id)
+                                  if (!activeUser?.username && !activeUser?.id)
                                     return;
-                                  const profileId = activeUser?.publicId || activeUser?.id;
-                                  router.push(`/profile/${profileId}`);
+                                  const profileId = activeUser?.username;
+                                  router.push(`/${profileId}`);
                                 }}
                               >
                                 <span>View Profile</span>
                               </div>
                               {/* More Options */}
                               <div className="rel-user-more-opts-wrapper">
-                                <button className="rel-user-more-opts-trigger-icon" aria-label="More options" onClick={toggleMenu}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25">
+                                <button
+                                  className="rel-user-more-opts-trigger-icon"
+                                  aria-label="More options"
+                                  onClick={toggleMenu}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="25"
+                                    viewBox="0 0 24 25"
+                                  >
                                     <path d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z" />
                                     <path d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z" />
                                     <path d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z" />
                                   </svg>
                                 </button>
                                 {/* Popup */}
-                                {isOpen && !showReportModal && !showDeleteModal && (
-                                  <div ref={dropdownRef} className="rel-users-more-opts-popup-wrapper" style={isMobile ? mobileStyle : desktopStyle}>
-                                    <ChatFeatures threadPublicId={activeThreadId} onSearch={handleSearchChange} onReport={() => setShowReportModal(true)} onDelete={() => setShowDeleteModal(true)} />
-                                  </div>
-                                )}
+                                {isOpen &&
+                                  !showReportModal &&
+                                  !showDeleteModal && (
+                                    <div
+                                      ref={dropdownRef}
+                                      className="rel-users-more-opts-popup-wrapper"
+                                      style={
+                                        isMobile ? mobileStyle : desktopStyle
+                                      }
+                                    >
+                                      <ChatFeatures
+                                        threadPublicId={activeThreadId}
+                                        onSearch={handleSearchChange}
+                                        onReport={() =>
+                                          setShowReportModal(true)
+                                        }
+                                        onDelete={() =>
+                                          setShowDeleteModal(true)
+                                        }
+                                      />
+                                    </div>
+                                  )}
                               </div>
                             </div>
                           </div>
@@ -804,17 +879,54 @@ const MessagePage = () => {
                           {isBlocked && (
                             <div className="block_wrap">
                               <div className="icon block-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                                  <path d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                                  <path d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
-                                  <path d="M20.5 15.5001L15.5 20.5001" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"></path>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  ></path>
+                                  <path
+                                    d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  ></path>
+                                  <path
+                                    d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeMiterlimit="10"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  ></path>
+                                  <path
+                                    d="M20.5 15.5001L15.5 20.5001"
+                                    stroke="none"
+                                    strokeWidth="1.5"
+                                    strokeMiterlimit="10"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  ></path>
                                 </svg>
                               </div>
-                              <span>{isBlocked ? "This User blocked" : "Block User"}</span>
+                              <span>
+                                {isBlocked ? "This User blocked" : "Block User"}
+                              </span>
                             </div>
                           )}
-                          <div ref={chatBodyRef} className="chat-room-body-container">
+                          <div
+                            ref={chatBodyRef}
+                            className="chat-room-body-container"
+                          >
                             {messages.map((msg, index) => {
                               const currentDate = new Date(
                                 msg.createdAt,
@@ -822,8 +934,8 @@ const MessagePage = () => {
                               const prevDate =
                                 index > 0
                                   ? new Date(
-                                    messages[index - 1].createdAt,
-                                  ).toDateString()
+                                      messages[index - 1].createdAt,
+                                    ).toDateString()
                                   : null;
                               const showDateDivider = currentDate !== prevDate;
                               const senderId =
@@ -834,16 +946,30 @@ const MessagePage = () => {
                               const isCreator =
                                 msg.ppvRequestId &&
                                 session?.user?.id ===
-                                (typeof msg.ppvRequestId.creatorId === "object"
-                                  ? msg.ppvRequestId.creatorId._id
-                                  : msg.ppvRequestId.creatorId);
+                                  (typeof msg.ppvRequestId.creatorId ===
+                                  "object"
+                                    ? msg.ppvRequestId.creatorId._id
+                                    : msg.ppvRequestId.creatorId);
                               return (
                                 <React.Fragment key={msg._id}>
-                                  {showDateDivider && (<div className="chat-date-divider"><span>{formatDateLabel(msg.createdAt)}</span></div>)}
-                                  <div key={msg._id} className={`chat-msg-wrapper ${isSender ? "outcoming-message" : "incoming-message"}`}>
+                                  {showDateDivider && (
+                                    <div className="chat-date-divider">
+                                      <span>
+                                        {formatDateLabel(msg.createdAt)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div
+                                    key={msg._id}
+                                    className={`chat-msg-wrapper ${isSender ? "outcoming-message" : "incoming-message"}`}
+                                  >
                                     <div className="chat-msg-profile">
-                                      {typeof msg.senderId === "object" && msg.senderId?.profile ? (
-                                        <img src={msg.senderId.profile} alt="User" />
+                                      {typeof msg.senderId === "object" &&
+                                      msg.senderId?.profile ? (
+                                        <img
+                                          src={msg.senderId.profile}
+                                          alt="User"
+                                        />
                                       ) : (
                                         <NoProfileSvg />
                                       )}
@@ -852,7 +978,14 @@ const MessagePage = () => {
                                       {/* TEXT */}
                                       {msg.type === 1 && (
                                         <div className="chat-msg-txt">
-                                          <p dangerouslySetInnerHTML={{ __html: highlightText(msg.message, searchText,), }} />
+                                          <p
+                                            dangerouslySetInnerHTML={{
+                                              __html: highlightText(
+                                                msg.message,
+                                                searchText,
+                                              ),
+                                            }}
+                                          />
                                         </div>
                                       )}
                                       {/* IMAGE */}
@@ -893,7 +1026,9 @@ const MessagePage = () => {
                                       {/* AUDIO */}
                                       {msg.type === 4 && (
                                         <div className="chat-msg-audio">
-                                          <CustomAudioPlayer src={msg.mediaUrl} />
+                                          <CustomAudioPlayer
+                                            src={msg.mediaUrl}
+                                          />
                                         </div>
                                       )}
                                       <div className="chat-msg-details">
@@ -910,11 +1045,26 @@ const MessagePage = () => {
                                         {isSender && (
                                           <div className="chat-msg-check-icon">
                                             {msg.isRead ? (
-                                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z" fill="none" ></path>
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 16 16"
+                                                fill="none"
+                                              >
+                                                <path
+                                                  d="M9.52585 5.53587L3.92585 11.0359C3.7856 11.1737 3.59685 11.2509 3.40023 11.2509C3.20361 11.2509 3.01485 11.1737 2.8746 11.0359L0.474602 8.67899C0.404304 8.60997 0.34829 8.52777 0.309758 8.4371C0.271226 8.34642 0.250931 8.24905 0.250031 8.15053C0.248215 7.95157 0.325511 7.76003 0.464915 7.61805C0.533941 7.54776 0.616137 7.49174 0.706811 7.45321C0.797485 7.41468 0.89486 7.39438 0.993377 7.39348C1.19234 7.39167 1.38388 7.46896 1.52585 7.60837L3.40085 9.44962L8.47523 4.46587C8.61712 4.32646 8.80858 4.24913 9.00748 4.25089C9.20639 4.25265 9.39645 4.33335 9.53585 4.47524C9.67526 4.61713 9.75258 4.80859 9.75083 5.0075C9.74907 5.2064 9.66837 5.39646 9.52648 5.53587H9.52585ZM15.5352 4.47337C15.4662 4.40283 15.3839 4.34662 15.293 4.30796C15.2022 4.2693 15.1046 4.24895 15.0059 4.24808C14.9072 4.24721 14.8093 4.26583 14.7178 4.30288C14.6263 4.33993 14.543 4.39468 14.4727 4.46399L9.40023 9.44962L8.90773 8.96587C8.76584 8.82646 8.57438 8.74913 8.37547 8.75089C8.17657 8.75265 7.98651 8.83335 7.8471 8.97524C7.7077 9.11713 7.63037 9.30859 7.63213 9.5075C7.63389 9.7064 7.71459 9.89646 7.85648 10.0359L8.8746 11.0359C9.01485 11.1737 9.20361 11.2509 9.40023 11.2509C9.59684 11.2509 9.7856 11.1737 9.92585 11.0359L15.5259 5.53587C15.5961 5.46684 15.6521 5.38465 15.6906 5.294C15.7291 5.20334 15.7493 5.10598 15.7502 5.0075C15.7511 4.90901 15.7325 4.81131 15.6957 4.71999C15.6588 4.62866 15.6043 4.5455 15.5352 4.47524V4.47337Z"
+                                                  fill="none"
+                                                ></path>
                                               </svg>
                                             ) : (
-                                              <Check size={14} fill="none" stroke="currentColor" stroke-width="2" className="signal_check"/>
+                                              <Check
+                                                size={14}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                className="signal_check"
+                                              />
                                             )}
                                           </div>
                                         )}
@@ -930,23 +1080,24 @@ const MessagePage = () => {
                                           {/* REJECTED */}
                                           {msg.ppvRequestId.status ===
                                             "REJECTED" && (
-                                              <div className="warning_wrap danger">
-                                                <CircleX size={20} /> PPV request
-                                                rejected
-                                              </div>
-                                            )}
+                                            <div className="warning_wrap danger">
+                                              <CircleX size={20} /> PPV request
+                                              rejected
+                                            </div>
+                                          )}
 
                                           {/* ACCEPTED (before final unlock) */}
                                           {msg.ppvRequestId.status ===
                                             "ACCEPTED" && (
-                                              <div className="warning_wrap success">
-                                                <BadgeCheck size={20} /> Creator
-                                                approved this request
-                                              </div>
-                                            )}
+                                            <div className="warning_wrap success">
+                                              <BadgeCheck size={20} /> Creator
+                                              approved this request
+                                            </div>
+                                          )}
 
                                           {/* PAID (FINAL STATE) */}
-                                          {msg.ppvRequestId.status === "PAID" && (
+                                          {msg.ppvRequestId.status ===
+                                            "PAID" && (
                                             <div className="warning_wrap success">
                                               <BadgeCheck size={20} /> PPV
                                               unlocked successfully
@@ -956,7 +1107,7 @@ const MessagePage = () => {
                                           {/* UPLOAD BOX — CREATOR ONLY + PENDING */}
                                           {isCreator &&
                                             msg.ppvRequestId.status ===
-                                            "PENDING" && (
+                                              "PENDING" && (
                                               <div
                                                 className="upload-box"
                                                 onClick={() =>
@@ -997,13 +1148,16 @@ const MessagePage = () => {
 
                                           <div className="cont_wrap">
                                             <h3>Description</h3>
-                                            <p>{msg.ppvRequestId.description}</p>
+                                            <p>
+                                              {msg.ppvRequestId.description}
+                                            </p>
                                           </div>
 
                                           {/* MEDIA SECTION */}
                                           <div className="cont_wrap">
                                             <h3>
-                                              {msg.ppvRequestId.status === "PAID"
+                                              {msg.ppvRequestId.status ===
+                                              "PAID"
                                                 ? "Delivered Media"
                                                 : "Reference File"}
                                             </h3>
@@ -1022,7 +1176,7 @@ const MessagePage = () => {
                                                       key={index}
                                                     >
                                                       {msg.ppvRequestId.type ===
-                                                        "PHOTO" ? (
+                                                      "PHOTO" ? (
                                                         <img
                                                           src={url}
                                                           className="img-fluid upldimg"
@@ -1044,24 +1198,34 @@ const MessagePage = () => {
                                                     </div>
                                                   ),
                                                 )}
-                                              {msg.ppvRequestId.status !== "PAID" && (
+                                              {msg.ppvRequestId.status !==
+                                                "PAID" && (
                                                 <>
-                                                  {msg.ppvRequestId.referenceFile ? (
+                                                  {msg.ppvRequestId
+                                                    .referenceFile ? (
                                                     <>
-                                                      {msg.ppvRequestId.type === "PHOTO" && (
+                                                      {msg.ppvRequestId.type ===
+                                                        "PHOTO" && (
                                                         <div className="img_wrap">
                                                           <img
-                                                            src={msg.ppvRequestId.referenceFile}
+                                                            src={
+                                                              msg.ppvRequestId
+                                                                .referenceFile
+                                                            }
                                                             className="img-fluid upldimg"
                                                             alt="preview"
                                                           />
                                                         </div>
                                                       )}
 
-                                                      {msg.ppvRequestId.type === "VIDEO" && (
+                                                      {msg.ppvRequestId.type ===
+                                                        "VIDEO" && (
                                                         <div className="img_wrap">
                                                           <video
-                                                            src={msg.ppvRequestId.referenceFile}
+                                                            src={
+                                                              msg.ppvRequestId
+                                                                .referenceFile
+                                                            }
                                                             className="img-fluid upldimg"
                                                             controls
                                                           />
@@ -1070,13 +1234,36 @@ const MessagePage = () => {
                                                     </>
                                                   ) : (
                                                     <div className="noprofile">
-                                                      <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                                                      <svg
+                                                        width="40"
+                                                        height="40"
+                                                        viewBox="0 0 66 54"
+                                                        fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                      >
+                                                        <path
+                                                          className="animate-m"
+                                                          d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                                          fill="url(#paint0_linear_4470_53804)"
+                                                        />
                                                         <defs>
-                                                          <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                                          <linearGradient
+                                                            id="paint0_linear_4470_53804"
+                                                            x1="0"
+                                                            y1="27"
+                                                            x2="66"
+                                                            y2="27"
+                                                            gradientUnits="userSpaceOnUse"
+                                                          >
                                                             <stop stop-color="#FDAB0A" />
-                                                            <stop offset="0.4" stop-color="#FECE26" />
-                                                            <stop offset="1" stop-color="#FE990B" />
+                                                            <stop
+                                                              offset="0.4"
+                                                              stop-color="#FECE26"
+                                                            />
+                                                            <stop
+                                                              offset="1"
+                                                              stop-color="#FE990B"
+                                                            />
                                                           </linearGradient>
                                                         </defs>
                                                       </svg>
@@ -1102,33 +1289,48 @@ const MessagePage = () => {
 
                                             <div className="right">
                                               {/* CREATOR SIDE - PENDING */}
-                                              {isCreator && msg.ppvRequestId.status === "PENDING" && (
-                                                <>
-                                                  <button
-                                                    className="btn-txt-gradient"
-                                                    onClick={() => {
-                                                      if (!msg.ppvRequestId.deliveredMedia?.length) {
-                                                        toast.error("Please upload media first");
-                                                        return;
+                                              {isCreator &&
+                                                msg.ppvRequestId.status ===
+                                                  "PENDING" && (
+                                                  <>
+                                                    <button
+                                                      className="btn-txt-gradient"
+                                                      onClick={() => {
+                                                        if (
+                                                          !msg.ppvRequestId
+                                                            .deliveredMedia
+                                                            ?.length
+                                                        ) {
+                                                          toast.error(
+                                                            "Please upload media first",
+                                                          );
+                                                          return;
+                                                        }
+                                                        handleAcceptPPV(
+                                                          msg.ppvRequestId._id,
+                                                        );
+                                                      }}
+                                                    >
+                                                      <span>Accept</span>
+                                                    </button>
+                                                    <button
+                                                      className="btn-txt-gradient"
+                                                      onClick={() =>
+                                                        handleRejectPPV(
+                                                          msg.ppvRequestId._id,
+                                                          "Not Interested",
+                                                        )
                                                       }
-                                                      handleAcceptPPV(msg.ppvRequestId._id);
-                                                    }}
-                                                  >
-                                                    <span>Accept</span>
-                                                  </button>
-                                                  <button
-                                                    className="btn-txt-gradient"
-                                                    onClick={() => handleRejectPPV(msg.ppvRequestId._id, "Not Interested")}
-                                                  >
-                                                    <span>Decline</span>
-                                                  </button>
-                                                </>
-                                              )}
+                                                    >
+                                                      <span>Decline</span>
+                                                    </button>
+                                                  </>
+                                                )}
 
                                               {/* CREATOR SIDE - MEDIA UPLOADED → APPROVE */}
                                               {isCreator &&
                                                 msg.ppvRequestId.status ===
-                                                "MEDIA_UPLOADED" && (
+                                                  "MEDIA_UPLOADED" && (
                                                   <button
                                                     className="btn-txt-gradient"
                                                     onClick={() =>
@@ -1159,20 +1361,45 @@ const MessagePage = () => {
                                 <div className="bg-bubble bubble3"></div>
                                 {/* Center Card */}
                                 <div className="start-convo-card">
-                                  <div className="start-icon"><MessageCircleMore size={26} /></div>
+                                  <div className="start-icon">
+                                    <MessageCircleMore size={26} />
+                                  </div>
                                   <h2>Start the Conversation</h2>
-                                  <p>Send your first message to{" "} <strong>{activeUser?.username || "user"}</strong> and kick things off.</p>
+                                  <p>
+                                    Send your first message to{" "}
+                                    <strong>
+                                      {activeUser?.username || "user"}
+                                    </strong>{" "}
+                                    and kick things off.
+                                  </p>
                                   <div className="start-actions">
-                                    <button className="btn-primary" onClick={() => textareaRef.current?.focus()}>Start chatting <Send size={22} /></button>
-                                    <button className="hello-btn" onClick={() => {
-                                      if (!activeThreadId || !session?.user?.id || !activeUser?.id) return;
-                                      socket.emit("sendMessage", {
-                                        threadId: activeThreadId,
-                                        senderId: session.user.id,
-                                        receiverId: activeUser.id,
-                                        text: "👋 Hi there",
-                                      });
-                                    }}>👋 Say Hello</button>
+                                    <button
+                                      className="btn-primary"
+                                      onClick={() =>
+                                        textareaRef.current?.focus()
+                                      }
+                                    >
+                                      Start chatting <Send size={22} />
+                                    </button>
+                                    <button
+                                      className="hello-btn"
+                                      onClick={() => {
+                                        if (
+                                          !activeThreadId ||
+                                          !session?.user?.id ||
+                                          !activeUser?.id
+                                        )
+                                          return;
+                                        socket.emit("sendMessage", {
+                                          threadId: activeThreadId,
+                                          senderId: session.user.id,
+                                          receiverId: activeUser.id,
+                                          text: "👋 Hi there",
+                                        });
+                                      }}
+                                    >
+                                      👋 Say Hello
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -1193,13 +1420,35 @@ const MessagePage = () => {
                             <div className="chat-room-footer-container">
                               <div className="chat-file-upload-btn">
                                 <label>
-                                  <input ref={fileInputRef} type="file" hidden accept="image/*,video/*" onChange={handleFileSelect} disabled={uploading || !activeThreadId || !activeUser?.id} />
+                                  <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    hidden
+                                    accept="image/*,video/*"
+                                    onChange={handleFileSelect}
+                                    disabled={
+                                      uploading ||
+                                      !activeThreadId ||
+                                      !activeUser?.id
+                                    }
+                                  />
                                   <span>
                                     {uploading ? (
-                                      <Loader size={22} color="#ebebeb" className="loader imgupld" />
+                                      <Loader
+                                        size={22}
+                                        color="#ebebeb"
+                                        className="loader imgupld"
+                                      />
                                     ) : (
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                        <path d="M12.3297 12.1499L9.85969 14.6199C8.48969 15.9899 8.48969 18.1999 9.85969 19.5699C11.2297 20.9399 13.4397 20.9399 14.8097 19.5699L18.6997 15.6799C21.4297 12.9499 21.4297 8.50992 18.6997 5.77992C15.9697 3.04992 11.5297 3.04992 8.79969 5.77992L4.55969 10.0199C2.21969 12.3599 2.21969 16.1599 4.55969 18.5099"
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M12.3297 12.1499L9.85969 14.6199C8.48969 15.9899 8.48969 18.1999 9.85969 19.5699C11.2297 20.9399 13.4397 20.9399 14.8097 19.5699L18.6997 15.6799C21.4297 12.9499 21.4297 8.50992 18.6997 5.77992C15.9697 3.04992 11.5297 3.04992 8.79969 5.77992L4.55969 10.0199C2.21969 12.3599 2.21969 16.1599 4.55969 18.5099"
                                           stroke="none"
                                           strokeWidth="1.5"
                                           strokeLinecap="round"
@@ -1236,13 +1485,16 @@ const MessagePage = () => {
                                       clearTimeout(typingTimeoutRef.current);
                                     }
 
-                                    typingTimeoutRef.current = setTimeout(() => {
-                                      socket.emit("stopTyping", {
-                                        threadId: activeThreadId,
-                                        userId: session.user.id,
-                                      });
-                                      isTypingRef.current = false;
-                                    }, 1200); // ⏱️ idle delay
+                                    typingTimeoutRef.current = setTimeout(
+                                      () => {
+                                        socket.emit("stopTyping", {
+                                          threadId: activeThreadId,
+                                          userId: session.user.id,
+                                        });
+                                        isTypingRef.current = false;
+                                      },
+                                      1200,
+                                    ); // ⏱️ idle delay
                                   }}
                                 />
                               </div>
@@ -1306,7 +1558,9 @@ const MessagePage = () => {
                                   className={`voice-recorder-icon-btn ${isRecording ? "" : ""}`}
                                   onMouseDown={startRecording}
                                   onMouseUp={stopRecording}
-                                  onMouseLeave={isRecording ? stopRecording : undefined}
+                                  onMouseLeave={
+                                    isRecording ? stopRecording : undefined
+                                  }
                                   onTouchStart={startRecording}
                                   onTouchEnd={stopRecording}
                                 >
@@ -1421,42 +1675,87 @@ const MessagePage = () => {
       </div>
       {/* Modal Start */}
       {showReportModal && (
-        <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-          <form className="modal-wrap rdcnvrstn-modal" onSubmit={handleSubmitReport}>
+        <div
+          className="modal show"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="age-modal-title"
+        >
+          <form
+            className="modal-wrap rdcnvrstn-modal"
+            onSubmit={handleSubmitReport}
+          >
             <button
               type="button"
               className="close-btn"
               onClick={() => setShowReportModal(false)}
-            ><CgClose size={22} />
+            >
+              <CgClose size={22} />
             </button>
             <h3 className="title">Report Conversation</h3>
-            <p className="modal-subtitle">Help us understand the issue. Your report will remain confidential.</p>
+            <p className="modal-subtitle">
+              Help us understand the issue. Your report will remain
+              confidential.
+            </p>
             <div className="input-wrap">
-              <label>Reason <span>*</span></label>
-              <textarea rows={4}
+              <label>
+                Reason <span>*</span>
+              </label>
+              <textarea
+                rows={4}
                 placeholder="Tell us what happened..."
                 name="message"
                 maxLength={300}
                 value={reportMessage}
-                onChange={(e) => setReportMessage(e.target.value)} />
+                onChange={(e) => setReportMessage(e.target.value)}
+              />
               <label className="right">{reportMessage.length}/300</label>
             </div>
             <div className="actions">
-              <button className="btn-danger active-down-effect" type="button" onClick={() => setShowReportModal(false)}><span>Cancel</span></button>
-              <button className="premium-btn active-down-effect" type="submit"><span>Submit</span></button>
+              <button
+                className="btn-danger active-down-effect"
+                type="button"
+                onClick={() => setShowReportModal(false)}
+              >
+                <span>Cancel</span>
+              </button>
+              <button className="premium-btn active-down-effect" type="submit">
+                <span>Submit</span>
+              </button>
             </div>
           </form>
         </div>
       )}
       {showDeleteModal && (
-        <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
+        <div
+          className="modal show"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="age-modal-title"
+        >
           <form className="modal-wrap rdcnvrstn-modal" onSubmit={handleDelete}>
-            <button className="close-btn" onClick={() => setShowDeleteModal(false)}><CgClose size={22} /></button>
+            <button
+              className="close-btn"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              <CgClose size={22} />
+            </button>
             <h3 className="title">Delete Conversation</h3>
-            <p className="modal-subtitle">This will permanently delete the conversation and cannot be undone.</p>
+            <p className="modal-subtitle">
+              This will permanently delete the conversation and cannot be
+              undone.
+            </p>
             <div className="actions">
-              <button className="btn-danger active-down-effect" type="button" onClick={() => setShowDeleteModal(false)}><span>Cancel</span></button>
-              <button className="premium-btn active-down-effect" type="submit"><span>Submit</span></button>
+              <button
+                className="btn-danger active-down-effect"
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                <span>Cancel</span>
+              </button>
+              <button className="premium-btn active-down-effect" type="submit">
+                <span>Submit</span>
+              </button>
             </div>
           </form>
         </div>

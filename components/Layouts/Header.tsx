@@ -740,8 +740,6 @@ useEffect(() => {
                           e.preventDefault();
                           setIsOpen(false);
 
-                          console.log("=============", session?.user?.role);
-
                           if (session?.user?.role === 1) {
                             console.log("role 1");
                             router.push(

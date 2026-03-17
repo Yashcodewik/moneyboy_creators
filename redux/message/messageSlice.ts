@@ -102,7 +102,6 @@ updateUserOnlineStatus: (
   action: { payload: { userId: string; isOnline: boolean } }
 ) => {
   const { userId, isOnline } = action.payload;
-
   state.chatList = state.chatList.map((chat: any) =>
     chat?.user?.id === userId
       ? {

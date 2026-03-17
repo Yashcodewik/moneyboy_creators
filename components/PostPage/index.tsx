@@ -499,7 +499,7 @@ const handleSendTip = async (
                     {post.taggedCreators.map((user: any) => (
                       <li
                         key={user._id}
-                        onClick={() => router.push(`/profile/${user.publicId}`)}
+                        onClick={() => router.push(`/${user.username}`)}
                       >
                         <img
                           src={user.profile}

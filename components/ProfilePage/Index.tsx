@@ -119,9 +119,7 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState<ApiCreatorProfileResponse | null>(
     null,
   );
-  // const [postCount, setPostCount] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+
   const [layoutTab, setLayoutTab] = useState("grid");
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [isFollowLoading, setIsFollowLoading] = useState<boolean>(false);
@@ -716,15 +714,6 @@ const handleSendTip = async (
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
-    const handleProfileClick = (publicId: string) => {
-      if (!session?.user?.id) {
-        router.push("/login");
-        return;
-      }
-
-      router.push(`/profile/${publicId}`);
-    };
 
     return (
       <div
@@ -2116,7 +2105,7 @@ const renderTabContent = (filterType: "all" | "video" | "photo") => {
                           // 👀 Visitor viewing creator profile
                           if (profile?.user?.publicId) {
                             router.push(
-                              `/store?tab=marketplace&creator=${profile.user.publicId}`,
+                              `/store?tab=mystore&creator=${profile.user.publicId}`,
                             );
                           }
                         }}

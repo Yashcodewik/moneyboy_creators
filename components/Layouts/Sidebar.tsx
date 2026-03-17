@@ -180,7 +180,7 @@ useEffect(() => {
   };
 
 const handleProfileClick = (username: string) => {
-  router.push(`/profile/${username}`);
+  router.push(`/${username}`);
 };
 
   return (
@@ -263,7 +263,7 @@ const handleProfileClick = (username: string) => {
                             `/userprofile/${session?.user?.publicId}`,
                           );
                         } else if (session?.user?.role === 2) {
-                          router.push(`/profile/${session?.user?.userName}`);
+                          router.push(`/${session?.user?.userName}`);
                         } else {
                           router.push("/profile");
                         }
@@ -301,7 +301,7 @@ const handleProfileClick = (username: string) => {
                             );
                           } else if (session?.user?.role === 2) {
                             router.push(
-                              `/profile/${session?.user?.publicId}?tab=posts`,
+                              `/${session?.user?.userName}?tab=posts`,
                             );
                           }
                         }}
