@@ -426,7 +426,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
 
         <div className="moneyboy-post__media">
           <div className="moneyboy-post__img">
-            <Swiper slidesPerView={1} spaceBetween={15} navigation modules={[Navigation]} className="post_swiper">
+            <Swiper slidesPerView={1} spaceBetween={15} navigation={post.media?.[0]?.mediaFiles?.length > 1} modules={[Navigation]} className="post_swiper">
               {post.media?.[0]?.mediaFiles?.length > 0 ? (post.media[0].mediaFiles.map((file: string, i: number) => {
                 const isVideo = post.media?.[0]?.type === "video";
                 return (

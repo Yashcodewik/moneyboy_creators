@@ -11,43 +11,55 @@ const Featuredboys = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { session } = useDecryptedSession();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const limit = 6;
   const router = useRouter();
-  const fetchFeatured = async (pageNumber = 1) => {
+const fetchFeatured = async (pageNumber = 1, isBackground = false) => {
+  if (isBackground) {
+    setIsRefreshing(true);
+  } else {
     setLoading(true);
+  }
 
-    try {
-      const res = await apiPost({
-        url: API_GET_FEATURED_MONEYBOYS,
-        values: {
-          page: pageNumber,
-          limit,
-          ...(session?.user?.publicId && {
-            userPublicId: session.user.publicId,
-          }),
-        },
-      });
+  try {
+    const res = await apiPost({
+      url: API_GET_FEATURED_MONEYBOYS,
+      values: {
+        page: pageNumber,
+        limit,
+        ...(session?.user?.publicId && {
+          userPublicId: session.user.publicId,
+        }),
+      },
+    });
 
-      if (res?.success) {
-        setFeatured(res.data || []);
-        setPage(res.pagination?.page || 1);
-        setTotalPages(res.pagination?.totalPages || 1);
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-    } finally {
+    if (res?.success) {
+      setFeatured(res.data || []);
+      setPage(res.pagination?.page || 1);
+      setTotalPages(res.pagination?.totalPages || 1);
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+  } finally {
+    if (isBackground) {
+      setIsRefreshing(false);
+    } else {
       setLoading(false);
     }
-  };
+  }
+};
 useEffect(() => {
-  fetchFeatured(page);
+  fetchFeatured(page); 
 
   const interval = setInterval(() => {
-    fetchFeatured(page);
-  }, 60000); // 1 minute
+    setPage((prev) => {
+      fetchFeatured(prev, true); 
+      return prev;
+    });
+  }, 60000);
 
   return () => clearInterval(interval);
-}, [page, session?.user?.publicId]);
+}, [session?.user?.publicId]);
 
   const handleRefresh = () => {
     fetchFeatured(page);

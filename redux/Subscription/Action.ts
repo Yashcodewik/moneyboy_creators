@@ -1,6 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import defaultAxios from "@/utils/api/axios";
-import { API_UNLOCK_POST, API_SUBSCRIBE_CREATOR, API_SEND_TIP } from "@/utils/api/APIConstant";
+import {
+  API_UNLOCK_POST,
+  API_SUBSCRIBE_CREATOR,
+  API_SEND_TIP,
+} from "@/utils/api/APIConstant";
+import { apiPost } from "@/utils/endpoints/common";
 
 /* ------------------- Unlock Post (PPV) ------------------- */
 export const unlockPost = createAsyncThunk(
@@ -18,20 +22,25 @@ export const unlockPost = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const res = await defaultAxios.post(API_UNLOCK_POST, {
-        postId,
-        creatorId,
-        paymentMethod,
+      const res = await apiPost({
+        url: API_UNLOCK_POST,
+        values: {
+          postId,
+          creatorId,
+          paymentMethod,
+        },
       });
 
-      if (!res?.data?.success) {
-        return rejectWithValue("Failed to unlock post");
+      if (!res?.success) {
+        return rejectWithValue(
+          res?.message || res?.error || "Failed to unlock post"
+        );
       }
 
-      return res.data; // { success, isUnlocked, postId }
+      return res;
     } catch (error: any) {
       return rejectWithValue(
-        error?.response?.data?.message || "Something went wrong"
+        error?.message || "Something went wrong"
       );
     }
   }
@@ -51,27 +60,30 @@ export const subscribeCreator = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const res = await defaultAxios.post(API_SUBSCRIBE_CREATOR, {
-        creatorId,
-        planType,
+      const res = await apiPost({
+        url: API_SUBSCRIBE_CREATOR,
+        values: {
+          creatorId,
+          planType,
+        },
       });
 
-      if (!res?.data?.success) {
+      if (!res?.success) {
         return rejectWithValue(
-          res?.data?.message || "Failed to subscribe"
+          res?.message || res?.error || "Failed to subscribe"
         );
       }
 
-      return res.data; // { success, data: purchase }
+      return res;
     } catch (error: any) {
       return rejectWithValue(
-        error?.response?.data?.message || "Something went wrong"
+        error?.message || "Something went wrong"
       );
     }
   }
 );
 
-
+/* ------------------- Send Tip ------------------- */
 export const sendTip = createAsyncThunk(
   "subscription/sendTip",
   async (
@@ -87,22 +99,25 @@ export const sendTip = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const res = await defaultAxios.post(API_SEND_TIP, {
-        creatorId,
-        amount,
-        paymentMethod,
+      const res = await apiPost({
+        url: API_SEND_TIP,
+        values: {
+          creatorId,
+          amount,
+          paymentMethod,
+        },
       });
 
-      if (!res?.data?.success) {
+      if (!res?.success) {
         return rejectWithValue(
-          res?.data?.message || "Failed to send tip"
+          res?.message || res?.error || "Failed to send tip"
         );
       }
 
-      return res.data;
+      return res;
     } catch (error: any) {
       return rejectWithValue(
-        error?.response?.data?.message || "Something went wrong"
+        error?.message || "Something went wrong"
       );
     }
   }
