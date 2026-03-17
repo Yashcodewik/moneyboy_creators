@@ -3877,6 +3877,56 @@
                                         }
                                     }
                                   }
+                                  .chat-msg-audio {
+                                    .custom-audio-player {
+                                      .rhap_container {
+                                        padding: 6px;
+                                        box-shadow: unset;
+                                        border-radius: 12px;
+                                        background-color: #FFF;
+                                        border: 1.5px solid #ebebeb;
+                                        color: #505050;
+                                        font-weight: 600;
+                                        line-height: 100%;
+                                        font-family: var(--font-family-base);
+
+                                        .rhap_time {
+                                          font-size: 14px;
+                                        }
+
+                                        .rhap_progress-container {
+                                          min-width: 60px;
+
+                                          .rhap_progress-indicator {
+                                            width: 16px;
+                                            height: 16px;
+                                            top: -6px;
+                                          }
+
+                                          .rhap_progress-indicator,
+                                          .rhap_progress-filled {
+                                            background-color: #000 !important;
+                                          }
+                                        }
+
+                                        button {
+                                          max-width: 28px;
+                                          max-height: 28px;
+
+                                          &.rhap_play-pause-button {
+                                            svg {
+                                              width: 100%;
+                                              height: 100%;
+
+                                              path {
+                                                fill: #000;
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
                               }
 
                               /* == */
@@ -3952,6 +4002,11 @@
 
                                         path {
                                           fill: #475569;
+                                        }
+                                        &.signal_check {
+                                          path {
+                                            fill: unset;
+                                          }
                                         }
                                     }
                                   }
