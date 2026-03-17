@@ -555,7 +555,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             <Swiper
               slidesPerView={1}
               spaceBetween={15}
-              navigation
+             navigation={post.media?.[0]?.mediaFiles?.length > 1}
               modules={[Navigation]}
               className="post_swiper"
             >
