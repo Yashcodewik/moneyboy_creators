@@ -29,6 +29,7 @@ import ShowToast from "../common/ShowToast";
 import ImageCropModal from "./ImageCropModal";
 import BtnGroupTabs from "../BtnGroupTabs";
 import { showTaggedUserList } from "@/utils/alert";
+import { fetchWallet } from "@/redux/wallet/Action";
 
 type TimeFilter =
   | "all_time"
@@ -189,6 +190,9 @@ const StorePage = () => {
           limit: 5,
         }),
       );
+       if (paymentMethod === "wallet") {
+        dispatch(fetchWallet());   // refresh wallet instantly
+      }
     }
     setUnlockModalPost(null);
   };
