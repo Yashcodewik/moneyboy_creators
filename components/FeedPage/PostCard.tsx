@@ -397,13 +397,13 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </div>
               <div className="profile-card__info">
                 <div className="profile-card__name-badge" onClick={() => { handleProfileClick(post.creatorInfo?.userName); }}>
-                  <div className="profile-card__name">{post.creatorInfo?.userName}</div>
+                  <div className="profile-card__name">{post.creatorInfo?.displayName}</div>
                   <div className="profile-card__badge">
                     <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                   </div>
                 </div>
                 <div className="profile-card__username tagged_userlist">
-                  @{post.creatorInfo?.displayName}
+                  @{post.creatorInfo?.userName}
 
                   {/* Show tagged creators preview */}
                   {post.taggedCreators?.length > 0 && (
@@ -599,6 +599,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           <div className="moneyboy-post__actions tooltip_wrapper">
             <ul>
               {/* Send Tip */}
+           
               <li>
                 <Link href="#" data-tooltip="Send Tip"
                   onClick={(e) => {
@@ -607,7 +608,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                       router.push("/login");
                       return;
                     }
-                    setShowTipModal(true);
+                   session?.user?.id !== post.userId && setShowTipModal(true);
                   }}
                 >
                   <svg
@@ -657,6 +658,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   <span>Send Tip</span>
                 </Link>
               </li>
+            
               {/* Like */}
               <li>
                 <Link data-tooltip="Like"
@@ -748,7 +750,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
 
                     if (post.isReported) return;
 
-                    setShowReportModal(true);
+                  session?.user?.id !== post.userId && setShowReportModal(true);
                   }}
                 >
                   <svg
@@ -784,7 +786,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    onSave(post);
+                   session?.user?.id !== post.userId && onSave(post);
                   }}
                 >
                   <svg

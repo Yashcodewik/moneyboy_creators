@@ -74,8 +74,6 @@ const FeedPage = () => {
   const [showSidebarMobile, setShowSidebarMobile] = useState(false);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
 
-  console.log(allPosts, "allPosts==============================");
-
   useEffect(() => {
     const container = document.getElementById("feed-scroll-container");
     if (!container) return;
