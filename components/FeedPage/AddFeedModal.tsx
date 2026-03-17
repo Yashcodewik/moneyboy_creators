@@ -330,6 +330,20 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     e.target.value = "";
   };
 
+  const handleShareOnX = () => {
+  if (!hasMedia) return;
+  
+  const text = formik.values.text 
+    ? `${formik.values.text.substring(0, 200)}` 
+    : "Check out my new post!";
+  
+  const profileUrl = `${window.location.origin}/${creator.username}`;
+  
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(profileUrl)}`;
+  
+  window.open(tweetUrl, "_blank", "width=550,height=420,noopener,noreferrer");
+};
+
   const formik = useFormik({
     initialValues: {
       text: "",
@@ -488,7 +502,29 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         }
 
         showSuccess("Post created successfully");
-        onClose();
+
+// Ask user if they want to share on X
+const shareOnX = await showQuestion(
+  "Post created! Would you like to share it on X (Twitter)?",
+  "Share on X",
+  "Skip",
+);
+
+if (shareOnX) {
+  const postPublicId = res?.post?.publicId;
+  const postUrl = postPublicId 
+    ? `${window.location.origin}/post?publicId=${postPublicId}`
+    : `${window.location.origin}/${creator.username}`;
+    
+  const shareText = formik.values.text 
+    ? formik.values.text.substring(0, 200) 
+    : "Check out my latest post!";
+
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(postUrl)}`;
+  window.open(tweetUrl, "_blank", "width=550,height=420,noopener,noreferrer");
+}
+
+onClose();
       } catch (error) {
         console.error(error);
         showError("An error occurred while creating post");
@@ -718,7 +754,15 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
             <div className="right">
               <ul>
                 <li>
-                  <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Share on X" disabled={!hasMedia}> <FaXTwitter size={20} /></button>
+<button 
+  type="button" 
+  className="cate-back-btn active-down-effect btn_icons" 
+  data-tooltip={!hasMedia ? "Add media to share on X" : "Share on X"}
+  disabled={!hasMedia}
+  onClick={handleShareOnX}
+> 
+  <FaXTwitter size={20} />
+</button>
                 </li>
               </ul>
               <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} disabled={isSubmitting || !hasMedia}><span>{isSubmitting ? "Posting..." : "Post"}</span></button>

@@ -414,11 +414,11 @@ const handleSendTip = async (
       res?.message || res?.error || res?.data?.message;
 
     if (!res?.success) {
-      toast.error(errorMessage || "Tip failed");
+      showError(errorMessage || "Tip failed");
       return;
     }
 
-    toast.success("Tip sent successfully");
+   showSuccess("Tip sent successfully");
 
       if (paymentMethod === "wallet") {
       dispatch(fetchWallet()); 
@@ -434,7 +434,7 @@ const handleSendTip = async (
       err?.message ||
       "Something went wrong";
 
-    toast.error(errorMessage);
+    showError(errorMessage);
   }
 };
 
