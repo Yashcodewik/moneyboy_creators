@@ -46,6 +46,7 @@ import {
   showError,
   showTaggedUserList,
 } from "../../utils/alert";
+import { fetchWallet } from "@/redux/wallet/Action";
 
 interface User {
   _id: string;
@@ -389,20 +390,53 @@ const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => {
     }
   };
 
-  const handleSendTip = async (amount: number) => {
-    if (!amount || amount <= 0) {
-      alert("Please enter a valid amount");
-      return;
-    }
-    await apiPost({
+const handleSendTip = async (
+  amount: number,
+  paymentMethod: "wallet" | "card"
+) => {
+  if (!amount || amount <= 0) {
+    toast.error("Please enter a valid amount");
+    return;
+  }
+
+  try {
+    const res = await apiPost({
       url: API_SEND_TIP,
       values: {
         creatorId: profile?.user?._id,
         amount,
+        paymentMethod,
       },
     });
+
+    
+    const errorMessage =
+      res?.message || res?.error || res?.data?.message;
+
+    if (!res?.success) {
+      toast.error(errorMessage || "Tip failed");
+      return;
+    }
+
+    toast.success("Tip sent successfully");
+
+      if (paymentMethod === "wallet") {
+      dispatch(fetchWallet()); 
+    }
     setShowTipModal(false);
-  };
+
+  } catch (err: any) {
+    console.error("Tip error:", err);
+
+    // ✅ Handle axios/fetch errors also
+    const errorMessage =
+      err?.response?.data?.message ||
+      err?.message ||
+      "Something went wrong";
+
+    toast.error(errorMessage);
+  }
+};
 
   const openSubscriptionModal = (
     plan: "MONTHLY" | "YEARLY",
@@ -1054,7 +1088,7 @@ const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => {
     );
   };
 
-  // Tab content renderer
+  
 const renderTabContent = (filterType: "all" | "video" | "photo") => {
   let filteredPosts = posts;
 
