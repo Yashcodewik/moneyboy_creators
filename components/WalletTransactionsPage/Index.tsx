@@ -24,6 +24,7 @@ const WalletTransactionsPage = () => {
 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [selectedCreator, setSelectedCreator] = useState("");
   const [activeField, setActiveField] = useState<"start" | "end" | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
@@ -85,6 +86,7 @@ const WalletTransactionsPage = () => {
       page,
       startDate,
       endDate,
+      selectedCreator,
     ],
     queryFn: () => {
       const params = new URLSearchParams({
@@ -94,7 +96,9 @@ const WalletTransactionsPage = () => {
 
       if (startDate) params.append("startDate", startDate.toISOString());
       if (endDate) params.append("endDate", endDate.toISOString());
-
+      if (selectedCreator) {
+        params.append("creatorId", selectedCreator);
+      }
       return getApi({
         url: `${API_GET_TRANSACTIONS}?${params.toString()}&`,
         page,
@@ -259,7 +263,12 @@ const WalletTransactionsPage = () => {
                             <CustomSelect
                               className="bg-white p-sm size-sm"
                               label="All Creators"
-                              searchable={false}
+                              searchable={true}
+                              value={selectedCreator}
+                              onChange={(val) => {
+                                setSelectedCreator(val as string);
+                                setPage(1);
+                              }}
                               options={
                                 creators?.data?.map((u: any) => ({
                                   label: u.displayName,
