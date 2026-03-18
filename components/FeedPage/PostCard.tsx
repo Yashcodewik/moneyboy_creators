@@ -30,6 +30,8 @@ import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
 import ShowToast from "../common/ShowToast";
 import { fetchWallet } from "@/redux/wallet/Action";
+import VideoPlayer from "../Purchased-MediaPage/VideoPlayer";
+import VideoPlayerFeed from "../VideoPlayerFeed";
 
 const moreUsers = ["alex", "rohan", "meera", "sam", "disha"];
 
@@ -82,6 +84,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     overflow: "hidden",
     transition: "transform 0.25s ease",
   };
+
+  const isOwnPost = session?.user?.id === post.userId;
   const handleCopy = () => {
     const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
     navigator.clipboard.writeText(url);
@@ -563,24 +567,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 post.media[0].mediaFiles.map((file: string, i: number) => {
                   const isVideo = post.media?.[0]?.type === "video";
                   return (
-                    <SwiperSlide key={i}>
+                    <SwiperSlide key={file}>
                       {isVideo ? (
-                        <Plyr
-                          source={{
-                            type: "video",
-                            sources: [{ src: file, type: "video/mp4" }],
-                          }}
-                          options={{
-                            controls: [
-                              "play",
-                              "progress",
-                              "current-time",
-                              "mute",
-                              "volume",
-                              "fullscreen",
-                            ],
-                          }}
-                        />
+                       <VideoPlayerFeed src={file} />
                       ) : (
                         <PhotoView src={file}>
                           <img src={file} alt="Post" />
@@ -604,6 +593,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 <Link href="#" data-tooltip="Send Tip"
                   onClick={(e) => {
                     e.preventDefault();
+                     if (isOwnPost) return; 
                     if (!session?.user?.id) {
                       router.push("/login");
                       return;
@@ -666,6 +656,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   className={`post-like-btn ${post.isLiked ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
+                   
                     onLike(post._id);
                   }}
                 >
@@ -693,6 +684,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
+                
                     if (!session?.user?.id) {
                       router.push("/login"); // ⬅ redirect if not logged in
                       return;
@@ -742,7 +734,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   className={isReported ? "active" : ""}
                   onClick={(e) => {
                     e.preventDefault();
-
+                    if (isOwnPost) return; 
                     if (!session?.user?.id) {
                       router.push("/login"); // ⬅ redirect if not logged in
                       return;
@@ -786,6 +778,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
+                      if (isOwnPost) return; 
                    session?.user?.id !== post.userId && onSave(post);
                   }}
                 >

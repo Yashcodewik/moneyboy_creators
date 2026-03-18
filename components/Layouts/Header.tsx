@@ -394,9 +394,7 @@ useEffect(() => {
                             </svg>
                           </Link>
                           {messageUnreadCount > 0 && (
-                            <span className="message-badge">
-                              {messageUnreadCount}
-                            </span>
+                            <span className="message-badge">{messageUnreadCount}</span>
                           )}
                         </li>
                         <li className="noti-btn">
@@ -409,9 +407,7 @@ useEffect(() => {
                             </svg>
                           </Link>
                           {unreadCount > 0 && (
-                            <span className="notification-badge">
-                              {6}
-                            </span>
+                            <span className="notification-badge">{unreadCount}</span>
                           )}
                         </li>
                       </ul>

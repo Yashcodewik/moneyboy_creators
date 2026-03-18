@@ -330,18 +330,23 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     e.target.value = "";
   };
 
-  const handleShareOnX = () => {
-  if (!hasMedia) return;
-  
-  const text = formik.values.text 
-    ? `${formik.values.text.substring(0, 200)}` 
-    : "Check out my new post!";
-  
-  const profileUrl = `${window.location.origin}/${creator.username}`;
-  
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(profileUrl)}`;
-  
-  window.open(tweetUrl, "_blank", "width=550,height=420,noopener,noreferrer");
+const handleShareOnX = async () => {
+  try {
+    const postUrl = `${window.location.origin}/${creator.username}`;
+
+    const shareText = formik.values.text
+      ? formik.values.text.substring(0, 200)
+      : "Check out my latest post!";
+
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      shareText
+    )}&url=${encodeURIComponent(postUrl)}`;
+
+    window.open(tweetUrl, "_blank", "width=550,height=420");
+
+  } catch (err) {
+    showError("Failed to open X share");
+  }
 };
 
   const formik = useFormik({
