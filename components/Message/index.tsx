@@ -64,6 +64,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import { showError, showSuccess } from "@/utils/alert";
 
 const MessagePage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,6 +99,7 @@ const MessagePage = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const isMobile = useDeviceType();
   const { isBlocked } = useAppSelector((state) => state.message);
+  const { isBlockedByYou, isBlockedByOther, } = useAppSelector((state) => state.message);
   const dispatch = useAppDispatch();
   const { messages, chatList, activeThreadId } = useAppSelector(
     (state) => state.message,
