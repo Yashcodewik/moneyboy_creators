@@ -248,8 +248,15 @@ const NotificationPage = () => {
                         <div className="noti-desc">
                           <p>
                             {" "}
-                            {noti.type === 3 &&
-                              "Review this collaboration request and choose to accept or decline."}{" "}
+                            {noti.type === 3 && (
+                              noti.postTag?.myStatus === "pending"
+                                ? "Review this collaboration request and choose to accept or decline."
+                                : noti.postTag?.myStatus === "approved"
+                                ? "Collaboration request accepted"
+                                : noti.postTag?.myStatus === "rejected"
+                                ? "Collaboration request declined"
+                                : ""
+                            )}
                             {noti.type === 4 &&
                               "Collaboration response received."}
                           </p>
