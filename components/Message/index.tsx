@@ -36,6 +36,7 @@ import ChatFeatures from "./ChatFeatures";
 import Link from "next/link";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { CgClose } from "react-icons/cg";
+import { showError, showSuccess } from "@/utils/alert";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   deleteThread,
@@ -47,6 +48,7 @@ import {
 import {
   addSocketMessage,
   markMessagesReadFromSocket,
+  resetThreadUnread,
   setActiveThread,
   setThreadDetails,
   updatePPVStatus,
@@ -96,7 +98,7 @@ const MessagePage = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const isMobile = useDeviceType();
-  const { isBlocked } = useAppSelector((state) => state.message);
+  const { isBlockedByYou, isBlockedByOther, } = useAppSelector((state) => state.message);
   const dispatch = useAppDispatch();
   const { messages, chatList, activeThreadId } = useAppSelector(
     (state) => state.message,
@@ -191,9 +193,12 @@ const MessagePage = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    const handler = ({ readerId }: any) => {
-      if (readerId === session?.user?.id) return;
-      dispatch(markMessagesReadFromSocket(readerId));
+    const handler = ({ readerId,threadId }: any) => {
+      // if (readerId === session?.user?.id) return;
+
+      dispatch(markMessagesReadFromSocket(threadId));
+      dispatch(resetThreadUnread(threadId));
+
     };
 
     socket.on("messagesRead", handler);
@@ -452,12 +457,12 @@ const MessagePage = () => {
     const isVideo = file.type.startsWith("video/");
 
     if (!isImage && !isVideo) {
-      toast.error("Please select an image or video file");
+      showError("Please select an image or video file");
       return;
     }
 
     if (file.size > 100 * 1024 * 1024) {
-      toast.error("File must be less than 100MB");
+      showError("File must be less than 100MB");
       return;
     }
 
@@ -475,7 +480,7 @@ const MessagePage = () => {
       });
 
       if (!res || res.error) {
-        toast.error(res?.error || "Upload failed");
+        showError(res?.error || "Upload failed");
       }
 
       socket.emit("mediaMessageUploaded", {
@@ -487,7 +492,7 @@ const MessagePage = () => {
         dispatch(addSocketMessage(res));
       }
     } catch (error) {
-      toast.error("Upload failed");
+      showError("Upload failed");
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -541,9 +546,9 @@ const MessagePage = () => {
   const handleAcceptPPV = async (ppvId: string) => {
     try {
       await apiPost({ url: `subscription/accept/${ppvId}`, values: {} });
-      toast.success("PPV accepted!");
+      showSuccess("PPV accepted!");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to accept");
+      showError(err?.response?.data?.message || "Failed to accept");
     }
   };
 
@@ -567,7 +572,7 @@ const MessagePage = () => {
 
       toast.success("Media uploaded");
     } catch (err) {
-      toast.error("Upload failed");
+      showError("Upload failed");
     }
   };
 
@@ -580,7 +585,7 @@ const MessagePage = () => {
 
       toast.success("PPV Rejected");
     } catch (err) {
-      toast.error("Failed");
+      showError("Failed");
     }
   };
 
@@ -588,12 +593,12 @@ const MessagePage = () => {
     e.preventDefault();
 
     if (!activeThreadId) {
-      toast.error("No active conversation");
+      showError("No active conversation");
       return;
     }
 
     if (!reportMessage.trim()) {
-      toast.error("Please enter a reason");
+      showError("Please enter a reason");
       return;
     }
 
@@ -605,21 +610,23 @@ const MessagePage = () => {
     );
 
     if (res.meta.requestStatus === "fulfilled") {
-      toast.success(res.payload?.message || "Report submitted");
+      showSuccess(res.payload?.message || "Report submitted");
       setShowReportModal(false);
       setReportMessage("");
     } else {
-      toast.error("Failed to submit report");
+      showError("Failed to submit report");
     }
   };
 
   const handleDelete = async () => {
     if (!activeThreadId) {
-      toast.error("No active conversation");
+      showError("No active conversation");
       return;
     }
     await dispatch(deleteThread(activeThreadId));
-    toast.success("Conversation deleted");
+
+    showSuccess("Conversation deleted");
+    router.replace("/message");
   };
 
   const uploadVoiceMessage = async (file: File) => {

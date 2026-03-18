@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { deleteThread, fetchMessages, fetchSidebar, fetchThreadDetails, hideThread, muteThread, searchMessages, sendMessageAction, toggleBlockThread } from "./messageActions";
+import { deleteThread, fetchMessages, fetchMessageUnreadCount, fetchSidebar, fetchThreadDetails, hideThread, muteThread, searchMessages, sendMessageAction, toggleBlockThread } from "./messageActions";
 
 
 interface MessageState {
@@ -12,8 +12,12 @@ interface MessageState {
   error: string | null;
   activeThreadDetails: any | null;
   isBlocked: boolean;
+  isBlockedByYou: boolean;
+  isBlockedByOther: boolean;
   hiddenChatList: any[];
   isHidden: boolean;
+  messageUnreadCount: number;
+  currentUserId: string | null;// 👈 Add currentUserId to state
 }
 
 const initialState: MessageState = {
@@ -26,8 +30,12 @@ const initialState: MessageState = {
   error: null,
   activeThreadDetails: null,
   isBlocked: false,
+  isBlockedByYou: false,
+  isBlockedByOther: false,
   hiddenChatList: [],
   isHidden: false,
+  messageUnreadCount: 0,
+  currentUserId: null, // 👈 Initialize currentUserId
 };
 
 const messageSlice = createSlice({
@@ -43,36 +51,60 @@ const messageSlice = createSlice({
     },
 
     addSocketMessage: (state, action: PayloadAction<any>) => {
-        console.log("📩 REDUX SOCKET MESSAGE:", action.payload);
-  console.log("📩 ACTIVE THREAD:", state.activeThreadId);
-      if (action.payload.threadId !== state.activeThreadId) {
-    console.log("❌ THREAD NOT MATCH");
-    return;
-  }
-      const exists = state.messages.some(
-        (msg) => msg._id === action.payload._id
-      );
-      if (!exists) {
-        console.log("✅ MESSAGE ADDED");
-        state.messages.push(action.payload);
+      const msg = action.payload;
+
+      const receiverId =
+        typeof msg.receiverId === "object"
+          ? msg.receiverId._id
+          : msg.receiverId;
+
+      const isReceiver = receiverId === state.currentUserId;
+      const isActiveChat = msg.threadId === state.activeThreadId;
+
+      // ✅ ALWAYS update sidebar for receiver
+      if (isReceiver) {
+        state.chatList = state.chatList.map((chat) => {
+          if (chat.publicId === msg.threadId) {
+            return {
+              ...chat,
+              unreadCount: isActiveChat
+                ? 0 // 👈 if open, keep 0
+                : (chat.unreadCount || 0) + 1,
+            };
+          }
+          return chat;
+        });
+
+        // ✅ only increase global unread if NOT active chat
+        if (!isActiveChat) {
+          state.messageUnreadCount += 1;
+        }
+      }
+
+      // ✅ ALWAYS push message to chat if active
+      if (isActiveChat) {
+        const exists = state.messages.some((m) => m._id === msg._id);
+        if (!exists) {
+          state.messages.push(msg);
+        }
       }
     },
     updatePPVStatus: (state, action: PayloadAction<{ ppvId: string; status: string; deliveredMedia?: string[] }>) => {
-  const { ppvId, status, deliveredMedia } = action.payload;
-  state.messages = state.messages.map((msg) => {
-    if (msg.ppvRequestId && msg.ppvRequestId._id?.toString() === ppvId.toString()) {
-      return {
-        ...msg,
-        ppvRequestId: {
-          ...msg.ppvRequestId,
-          status,
-          ...(deliveredMedia ? { deliveredMedia } : {}),
-        },
-      };
-    }
-    return msg;
-  });
-},
+      const { ppvId, status, deliveredMedia } = action.payload;
+      state.messages = state.messages.map((msg) => {
+        if (msg.ppvRequestId && msg.ppvRequestId._id?.toString() === ppvId.toString()) {
+          return {
+            ...msg,
+            ppvRequestId: {
+              ...msg.ppvRequestId,
+              status,
+              ...(deliveredMedia ? { deliveredMedia } : {}),
+            },
+          };
+        }
+        return msg;
+      });
+    },
 
     markMessagesRead: (state) => {
       state.messages = state.messages.map((msg) => ({
@@ -81,53 +113,72 @@ const messageSlice = createSlice({
       }));
     },
 
+    resetThreadUnread: (state, action: PayloadAction<string>) => {
+  const threadId = action.payload;
+
+  state.chatList = state.chatList.map((chat) =>
+    chat.publicId === threadId
+      ? { ...chat, unreadCount: 0 }
+      : chat
+  );
+},
+
 markMessagesReadFromSocket: (state, action) => {
-  const readerId = action.payload;
+  const threadId = action.payload;
 
   state.messages = state.messages.map((msg: any) => {
-    const receiverId =
-      typeof msg.receiverId === "object"
-        ? msg.receiverId._id
-        : msg.receiverId;
-
-    // Mark read if this person (readerId) was the receiver
-    if (receiverId === readerId) {
+    if (msg.threadId === threadId) {
       return { ...msg, isRead: true };
     }
     return msg;
   });
 },
-updateUserOnlineStatus: (
-  state,
-  action: { payload: { userId: string; isOnline: boolean } }
-) => {
-  const { userId, isOnline } = action.payload;
-  state.chatList = state.chatList.map((chat: any) =>
-    chat?.user?.id === userId
-      ? {
-          ...chat,
-          user: {
-            ...chat.user,
-            isOnline,
-          },
-        }
-      : chat
-  );
-},
+    updateUserOnlineStatus: (
+      state,
+      action: { payload: { userId: string; isOnline: boolean } }
+    ) => {
+      const { userId, isOnline } = action.payload;
+      state.chatList = state.chatList.map((chat: any) =>
+        chat?.user?.id === userId
+          ? {
+            ...chat,
+            user: {
+              ...chat.user,
+              isOnline,
+            },
+          }
+          : chat
+      );
+    },
 
-setThreadDetails: (state, action) => {
-  state.activeThreadDetails = action.payload;
+    setThreadDetails: (state, action) => {
+      state.activeThreadDetails = action.payload;
 
-  const perms = action.payload?.permissions;
-
-  state.isBlocked =
-    perms?.isBlockedByYou || perms?.isBlockedByOther || false;
-    state.isHidden = perms?.isHidden || false;
-},
+      const perms = action.payload?.permissions;
+      state.isBlockedByYou = perms?.isBlockedByYou || false;
+      state.isBlockedByOther = perms?.isBlockedByOther || false;
+      state.isBlocked =
+        perms?.isBlockedByYou || perms?.isBlockedByOther || false;
+      state.isHidden = perms?.isHidden || false;
+    },
 
     clearMessages: (state) => {
       state.messages = [];
     },
+    setMessageUnreadCount: (state, action: PayloadAction<number>) => {
+      state.messageUnreadCount = action.payload;
+    },
+
+    incrementUnread: (state) => {
+      state.messageUnreadCount += 1;
+    },
+
+    resetUnread: (state) => {
+      state.messageUnreadCount = 0;
+    },
+    setCurrentUser: (state, action: PayloadAction<string>) => {
+  state.currentUserId = action.payload;
+},
   },
 
   extraReducers: (builder) => {
@@ -135,8 +186,8 @@ setThreadDetails: (state, action) => {
 
       // Sidebar
       .addCase(fetchSidebar.fulfilled, (state, action) => {
-       state.chatList = action.payload.visible;
-      state.hiddenChatList = action.payload.hidden;
+        state.chatList = action.payload.visible;
+        state.hiddenChatList = action.payload.hidden;
       })
 
       // Messages
@@ -162,74 +213,85 @@ setThreadDetails: (state, action) => {
       })
 
       .addCase(hideThread.fulfilled, (state, action) => {
-      const { threadPublicId, isHidden } = action.payload;
+        const { threadPublicId, isHidden } = action.payload;
 
-      if (isHidden) {
-        // Move from visible → hidden
-        const thread = state.chatList.find(
-          (chat) => chat.publicId === threadPublicId
-        );
-
-        if (thread) {
-          state.hiddenChatList.unshift(thread);
-          state.chatList = state.chatList.filter(
-            (chat) => chat.publicId !== threadPublicId
+        if (isHidden) {
+          // Move from visible → hidden
+          const thread = state.chatList.find(
+            (chat) => chat.publicId === threadPublicId
           );
-        }
-      } else {
-        // Move from hidden → visible
-        const thread = state.hiddenChatList.find(
-          (chat) => chat.publicId === threadPublicId
-        );
 
-        if (thread) {
-          state.chatList.unshift(thread);
-          state.hiddenChatList = state.hiddenChatList.filter(
-            (chat) => chat.publicId !== threadPublicId
+          if (thread) {
+            state.hiddenChatList.unshift(thread);
+            state.chatList = state.chatList.filter(
+              (chat) => chat.publicId !== threadPublicId
+            );
+          }
+        } else {
+          // Move from hidden → visible
+          const thread = state.hiddenChatList.find(
+            (chat) => chat.publicId === threadPublicId
           );
+
+          if (thread) {
+            state.chatList.unshift(thread);
+            state.hiddenChatList = state.hiddenChatList.filter(
+              (chat) => chat.publicId !== threadPublicId
+            );
+          }
         }
-      }
         if (state.activeThreadId === threadPublicId) {
-        state.isHidden = isHidden;
-      }
-    })
+          state.isHidden = isHidden;
+        }
+      })
 
-.addCase(fetchThreadDetails.fulfilled, (state, action) => {
-  state.activeThreadDetails = action.payload;
+      .addCase(fetchThreadDetails.fulfilled, (state, action) => {
+        state.activeThreadDetails = action.payload;
 
-  const perms = action.payload?.permissions;
+        const perms = action.payload?.permissions;
 
-  state.isBlocked =
-    perms?.isBlockedByYou || perms?.isBlockedByOther || false;
-})
+        state.isBlocked =
+          perms?.isBlockedByYou || perms?.isBlockedByOther || false;
+      })
       // Delete
       .addCase(deleteThread.fulfilled, (state, action) => {
-        state.chatList = state.chatList.filter(
-          (chat) => chat.publicId !== action.meta.arg
+          const threadId = action.meta.arg;
+
+          // ✅ remove from sidebar smoothly
+          state.chatList = state.chatList.filter(
+            (chat) => chat.publicId !== threadId
+          );
+
+          // ✅ only clear messages IF it's active thread
+          if (state.activeThreadId === threadId) {
+            state.messages = [];
+            state.activeThreadId = null; // 👈 important
+          }
+        })
+      .addCase(toggleBlockThread.fulfilled, (state, action) => {
+        const { threadPublicId, isBlocked } = action.payload;
+
+        // Update sidebar
+        const thread = state.chatList.find(
+          (t) => t.publicId === threadPublicId
         );
-        state.messages = [];
-      })
-     .addCase(toggleBlockThread.fulfilled, (state, action) => {
-      const { threadPublicId, isBlocked } = action.payload;
 
-      // Update sidebar
-      const thread = state.chatList.find(
-        (t) => t.publicId === threadPublicId
-      );
-
-      if (thread) {
-        thread.isBlocked = isBlocked;
-      }
-
-      // ✅ Update active thread state
-      if (state.activeThreadId === threadPublicId) {
-        state.isBlocked = isBlocked;
-
-        if (state.activeThreadDetails?.permissions) {
-          state.activeThreadDetails.permissions.isBlockedByYou = isBlocked;
+        if (thread) {
+          thread.isBlocked = isBlocked;
         }
-      }
-    });
+
+        // ✅ Update active thread state
+        if (state.activeThreadId === threadPublicId) {
+          state.isBlocked = isBlocked;
+
+          if (state.activeThreadDetails?.permissions) {
+            state.activeThreadDetails.permissions.isBlockedByYou = isBlocked;
+          }
+        }
+      })
+      .addCase(fetchMessageUnreadCount.fulfilled, (state, action) => {
+  state.messageUnreadCount = action.payload;
+});
   },
 });
 
@@ -241,6 +303,11 @@ export const {
   markMessagesRead,
   markMessagesReadFromSocket,
   clearMessages,
+  setMessageUnreadCount,
+  incrementUnread,
+  resetUnread,
+  resetThreadUnread,
+  setCurrentUser,
   updateUserOnlineStatus,
   setThreadDetails
 } = messageSlice.actions;
