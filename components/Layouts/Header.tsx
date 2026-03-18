@@ -13,6 +13,8 @@ import socket from "@/libs/socket";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWallet } from "@/redux/wallet/Action";
+import { setCurrentUser, setMessageUnreadCount } from "@/redux/message/messageSlice";
+import { fetchMessageUnreadCount } from "@/redux/message/messageActions";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,6 +52,35 @@ const dispatch = useDispatch<AppDispatch>();
 const { balance } = useSelector(
   (state: RootState) => state.wallet
 );
+
+const { messageUnreadCount } = useSelector(
+  (state: RootState) => state.message
+);
+
+useEffect(() => {
+  const handleUnread = (data: { count: number }) => {
+    dispatch(setMessageUnreadCount(data.count));
+  };
+
+  socket.on("unreadCount", handleUnread);
+
+  return () => {
+    socket.off("unreadCount", handleUnread);
+  };
+}, [dispatch]);
+
+useEffect(() => {
+  if (session?.user?.id) {
+    dispatch(setCurrentUser(session.user.id));
+  }
+}, [session?.user?.id, dispatch]);
+
+useEffect(() => {
+  if (session?.isAuthenticated) {
+    dispatch(fetchMessageUnreadCount());
+  }
+}, [session?.isAuthenticated, dispatch]);
+
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     signOut({ callbackUrl: "/" });
@@ -362,6 +393,11 @@ useEffect(() => {
                               <path d="M7.99451 11H8.00349" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           </Link>
+                          {messageUnreadCount > 0 && (
+                            <span className="message-badge">
+                              {messageUnreadCount}
+                            </span>
+                          )}
                         </li>
                         <li className="noti-btn">
                           <Link href="#" className={`icon-link ${isNotificationsPage ? "active" : ""}`} onClick={handleNotificationClick} data-tooltip="Notifications" data-position="bottom">
@@ -374,7 +410,7 @@ useEffect(() => {
                           </Link>
                           {unreadCount > 0 && (
                             <span className="notification-badge">
-                              {unreadCount}
+                              {6}
                             </span>
                           )}
                         </li>

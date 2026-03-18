@@ -4,7 +4,7 @@ import { getApi } from "@/utils/endpoints/common";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/store";
-import { updateUserOnlineStatus } from "@/redux/message/messageSlice";
+import { resetThreadUnread, updateUserOnlineStatus } from "@/redux/message/messageSlice";
 
 const SideBar = ({ onSelectChat, activeThreadId }: any) => {
   const router = useRouter();
@@ -138,7 +138,10 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
                 <div
                   key={chat.publicId}
                   className="msg-contact-box"
-                  onClick={() => onSelectChat(chat)}
+                 onClick={() => {
+  dispatch(resetThreadUnread(chat.publicId)); // 🔥 ADD THIS
+  onSelectChat(chat);
+}}
                 >
                   <div className="contact-item">
                     <div className="contact-avatar-wrapper">
