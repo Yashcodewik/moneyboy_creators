@@ -192,3 +192,11 @@ export const fetchThreadDetails = createAsyncThunk(
     }
   }
 );
+
+export const fetchMessageUnreadCount = createAsyncThunk(
+  "message/fetchUnreadCount",
+  async () => {
+    const res = await getApi({ url: "/messages/unread-count" });
+    return res.unreadCount;
+  }
+);
