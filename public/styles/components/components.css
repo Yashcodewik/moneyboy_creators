@@ -113,7 +113,7 @@
                    transform: scale(0.95);
                  }
                }
-               &.noti-btn {
+               &.noti-btn, &.message-btn {
                 position: relative;
                 display: inline-block;
                 span {
@@ -3959,6 +3959,11 @@
                               padding: 10px 12px;
                               gap: 10px;
                               flex-wrap: wrap;
+
+                              &:has(.ppvrequest_wrap) {
+                                width: 100%;
+                                max-width: 300px;
+                              }
 
                               &:has(.chat-msg-image) {
                                   padding: 5px 5px 12px;

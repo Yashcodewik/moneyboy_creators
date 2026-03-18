@@ -5,11 +5,12 @@ import CustomSelect from "../CustomSelect";
 import { apiPost } from "@/utils/endpoints/common";
 import { useState } from "react";
 import { API_CREATE_PPV_REQUEST } from "@/utils/api/APIConstant";
-import { CircleDollarSign } from "lucide-react";
+import { CircleDollarSign, CircleX } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAppDispatch } from "@/redux/store";
 import { fetchWallet } from "@/redux/wallet/Action";
+import { useRouter } from "next/navigation";
 
 const validationSchema = Yup.object({
   requestType: Yup.string().required("Request type is required"),
@@ -46,10 +47,39 @@ const PPVRequestModal = ({
   const [offerPrice, setOfferPrice] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
   const [requestType, setRequestType] = useState<"VIDEO" | "PHOTO">("VIDEO");
-  const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<{
+  file: File;
+  url: string;
+  type: "image" | "video";
+} | null>(null);
   
   
+const router = useRouter();
 
+const handleRequestSuccess = async (receiverId: string) => {
+  try {
+    const res = await apiPost({
+      url: "/messages/thread",
+      values: { receiverId },
+    });
+
+    const threadId = res?.publicId;
+
+    if (threadId) {
+      router.push(`/message?threadId=${threadId}`);
+    }
+  } catch (err) {
+    console.error("Thread create failed", err);
+  }
+};
+
+const removeMedia = () => {
+  if (mediaPreview?.url) {
+    URL.revokeObjectURL(mediaPreview.url);
+  }
+  setMediaPreview(null);
+};
   const formik = useFormik({
     initialValues: {
       requestType: "VIDEO",
@@ -69,10 +99,9 @@ const PPVRequestModal = ({
       formData.append("description", values.description);
       formData.append("paymentMethod", paymentMethod);
 
-      if (file) {
-        formData.append("file", file);
+     if (mediaPreview?.file) {
+        formData.append("file", mediaPreview.file);
       }
-
       const res = await apiPost({
         url: API_CREATE_PPV_REQUEST,
         values: formData,
@@ -80,18 +109,19 @@ const PPVRequestModal = ({
 
       setLoading(false);
 
-if (res?.success) {
+    if (res?.success) {
 
-  // refresh wallet instantly if wallet payment
-  if (paymentMethod === "wallet") {
-    dispatch(fetchWallet());
-  }
+      // refresh wallet instantly if wallet payment
+      if (paymentMethod === "wallet") {
+        dispatch(fetchWallet());
+      }
 
-  onSuccess({
-    amount: Number(values.offerPrice),
-    threadPublicId: res.threadPublicId,
-  });
-}
+      onSuccess({
+        amount: Number(values.offerPrice),
+        threadPublicId: res.threadPublicId,
+      });
+     router.push(`/message?threadId=${res.threadPublicId}`);
+    }
     },
   });
 
@@ -211,6 +241,27 @@ if (res?.success) {
               <label>Upload reference file</label>
 
               <div className="upload-wrapper">
+                {mediaPreview && (
+                <div className="img_wrap">
+                  {mediaPreview.type === "image" ? (
+                    <img
+                      src={mediaPreview.url}
+                      className="img-fluid upldimg"
+                      alt="preview"
+                    />
+                  ) : (
+                    <video
+                      src={mediaPreview.url}
+                      className="img-fluid upldimg"
+                      controls
+                    />
+                  )}
+                  <button type="button" className="btn-danger" onClick={removeMedia}>
+                    <CircleX size={16} />
+                  </button>
+                </div>
+              )}
+                {!mediaPreview && (
                 <div className="img_wrap">
                   {/* SVG stays unchanged */}
                   <svg
@@ -219,18 +270,35 @@ if (res?.success) {
                       document.getElementById("ppv-file-input")?.click()
                     }
                   />
-                  <input
+                  
+                </div>
+                  )}
+                 <input
                     id="ppv-file-input"
                     type="file"
                     accept="image/*,video/*"
                     style={{ display: "none" }}
                     onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setFile(e.target.files[0]);
-                      }
-                    }}
+                    const selectedFile = e.target.files?.[0];
+                    if (!selectedFile) return;
+
+                    const isImage = selectedFile.type.startsWith("image/");
+                    const isVideo = selectedFile.type.startsWith("video/");
+
+                    if (!isImage && !isVideo) {
+                      alert("Only image or video allowed");
+                      return;
+                    }
+
+                    const previewUrl = URL.createObjectURL(selectedFile);
+
+                    setMediaPreview({
+                      file: selectedFile,
+                      url: previewUrl,
+                      type: isImage ? "image" : "video",
+                    });
+                  }}
                   />
-                </div>
               </div>
             </div>
             <div>

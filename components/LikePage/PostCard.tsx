@@ -20,6 +20,7 @@ import { sendTip } from "@/redux/Subscription/Action";
 import { PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
 import { fetchWallet } from "@/redux/wallet/Action";
+import VideoPlayerFeed from "../VideoPlayerFeed";
 
 export interface PostUser {
   name: string;
@@ -337,13 +338,13 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </div>
               <div className="profile-card__info">
                 <div className="profile-card__name-badge">
-                  <div className="profile-card__name">{post.creatorInfo?.userName}</div>
+                  <div className="profile-card__name">{post.creatorInfo?.displayName}</div>
                   <div className="profile-card__badge">
                     <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                   </div>
                 </div>
                 <div className="profile-card__username tagged_userlist">
-                  @{post.creatorInfo?.displayName}
+                  @{post.creatorInfo?.userName}
                   {/* <ul className="taglist">
                       <li><Link href="" className="taglink">@alex</Link></li>
                       <li><Link href="" className="taglink">@rohan</Link></li>
@@ -430,9 +431,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               {post.media?.[0]?.mediaFiles?.length > 0 ? (post.media[0].mediaFiles.map((file: string, i: number) => {
                 const isVideo = post.media?.[0]?.type === "video";
                 return (
-                  <SwiperSlide key={i}>
+                  <SwiperSlide key={file}>
                     {isVideo ? (
-                      <Plyr source={{ type: "video", sources: [{ src: file, type: "video/mp4" }], }} options={{ controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",], }} />
+                       <VideoPlayerFeed src={file} />
                     ) : (
                       <PhotoView src={file}>
                         <img src={file} alt="Post" />

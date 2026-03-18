@@ -13,14 +13,13 @@ async function getPost(publicId: string) {
   }
 }
 
-export async function generateMetadata({ searchParams }: any): Promise<Metadata> {
-  const publicId = searchParams.publicId;
+export async function generateMetadata({ params }: any): Promise<Metadata> {
+  const publicId = params.publicId;
 
   if (!publicId) return {};
 
   const post = await getPost(publicId);
 
-  // 🔥 VERY IMPORTANT (match your structure)
   const image =
     post?.media?.[0]?.mediaFiles?.[0] ||
     "https://yourdomain.com/default.jpg";
@@ -33,7 +32,7 @@ export async function generateMetadata({ searchParams }: any): Promise<Metadata>
     openGraph: {
       title: text,
       description: text,
-      url: `https://yourdomain.com/post?publicId=${publicId}`,
+      url: `https://yourdomain.com/post/${publicId}`, // ✅ updated
       images: [
         {
           url: image,
