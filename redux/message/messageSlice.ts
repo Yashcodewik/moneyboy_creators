@@ -12,6 +12,8 @@ interface MessageState {
   error: string | null;
   activeThreadDetails: any | null;
   isBlocked: boolean;
+    isBlockedByYou: boolean;
+  isBlockedByOther: boolean;
   hiddenChatList: any[];
   isHidden: boolean;
 }
@@ -26,6 +28,8 @@ const initialState: MessageState = {
   error: null,
   activeThreadDetails: null,
   isBlocked: false,
+  isBlockedByYou: false,
+  isBlockedByOther: false,
   hiddenChatList: [],
   isHidden: false,
 };
@@ -119,7 +123,8 @@ setThreadDetails: (state, action) => {
   state.activeThreadDetails = action.payload;
 
   const perms = action.payload?.permissions;
-
+state.isBlockedByYou = perms?.isBlockedByYou || false;
+state.isBlockedByOther = perms?.isBlockedByOther || false;
   state.isBlocked =
     perms?.isBlockedByYou || perms?.isBlockedByOther || false;
     state.isHidden = perms?.isHidden || false;

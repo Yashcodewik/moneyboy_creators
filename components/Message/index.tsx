@@ -83,7 +83,7 @@ const MessagePage = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const isMobile = useDeviceType();
-  const { isBlocked } = useAppSelector((state) => state.message);
+  const { isBlockedByYou, isBlockedByOther, } = useAppSelector((state) => state.message);
   const dispatch = useAppDispatch();
   const { messages, chatList, activeThreadId } = useAppSelector(
     (state) => state.message,
@@ -876,7 +876,7 @@ const MessagePage = () => {
                           </div>
                         </div>
                         <div className="chat-room-body-layout">
-                          {isBlocked && (
+                          {(isBlockedByYou || isBlockedByOther) && (
                             <div className="block_wrap">
                               <div className="icon block-icon">
                                 <svg
@@ -919,7 +919,9 @@ const MessagePage = () => {
                                 </svg>
                               </div>
                               <span>
-                                {isBlocked ? "This User blocked" : "Block User"}
+                                {isBlockedByYou
+        ? "You blocked this user"
+        : "You cannot message this user"}
                               </span>
                             </div>
                           )}
@@ -1415,7 +1417,7 @@ const MessagePage = () => {
                             )}
                           </div>
                         </div>
-                        {!isBlocked && messages.length > 0 && (
+                       {messages.length > 0 && !isBlockedByOther && !isBlockedByYou && (
                           <div className="chat-room-footer-layout">
                             <div className="chat-room-footer-container">
                               <div className="chat-file-upload-btn">
