@@ -281,6 +281,9 @@ useEffect(() => {
   }
 }, [session?.isAuthenticated, dispatch]);
 
+
+console.log(session ,"session=============================");
+
   return (
     <>
       <header className="header-main">
