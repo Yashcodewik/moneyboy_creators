@@ -639,7 +639,9 @@ const MessagePage = () => {
       return;
     }
     await dispatch(deleteThread(activeThreadId));
-    toast.success("Conversation deleted");
+    setShowDeleteModal(false)
+    showSuccess("Conversation deleted");
+    router.replace("/message");
   };
 
   const uploadVoiceMessage = async (file: File) => {
@@ -884,7 +886,7 @@ const MessagePage = () => {
 
                           {/* ── Body ── */}
                           <div className="chat-room-body-layout">
-                            {isBlocked && (
+                            {(isBlockedByYou || isBlockedByOther) && (
                               <div className="block_wrap">
                                 <div className="icon block-icon">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -894,7 +896,11 @@ const MessagePage = () => {
                                     <path d="M20.5 15.5001L15.5 20.5001" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                 </div>
-                                <span>{isBlocked ? "This User blocked" : "Block User"}</span>
+                                 <span>
+                                {isBlockedByYou
+        ? "You blocked this user"
+        : "You cannot message this user"}
+                              </span>
                               </div>
                             )}
 
@@ -1205,7 +1211,7 @@ const MessagePage = () => {
                                                                 .deliveredMedia
                                                                 ?.length
                                                             ) {
-                                                              toast.error(
+                                                              showError(
                                                                 "Please upload media first",
                                                               );
                                                               return;
@@ -1294,7 +1300,7 @@ const MessagePage = () => {
                           </div>
 
                           {/* ── Footer ── */}
-                          {!isBlocked && messages.length > 0 && (
+                          {messages.length > 0 && !isBlockedByOther && !isBlockedByYou && (
                             <div className="chat-room-footer-layout">
                               <div className="chat-room-footer-container">
                                 {/* File upload */}
