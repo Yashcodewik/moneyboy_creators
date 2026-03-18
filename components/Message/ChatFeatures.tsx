@@ -95,13 +95,7 @@ const handleSearch = async () => {
                   <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <input
-                type="text"
-                placeholder="Search Message"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
+              <input type="text" placeholder="Search Message" value={searchText} onChange={(e) => setSearchText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSearch()}/>
             </div>
           </div>
         </li>
