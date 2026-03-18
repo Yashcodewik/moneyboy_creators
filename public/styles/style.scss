@@ -8397,7 +8397,7 @@ body {
             .chat-room-body-layout {
               .chat-room-body-container {
                 .ppvrequest_wrap {
-                  padding: 15px;
+                  padding: 0px;
                   width: 100%;
                   max-width: 100%;
                   margin: 0px auto;
@@ -8474,6 +8474,7 @@ body {
                     }
                   }
                   .upload-wrapper {
+                    width: 100%;
                     display: flex;
                     flex-direction: row;
                     flex-wrap: wrap;
@@ -8490,15 +8491,26 @@ body {
                     font-weight: 500;
                     letter-spacing: 0px;
                     font-family: var(--font-family-base);
+                    aspect-ratio: 617 / 415;
+                    border-radius: 16px;
+                    position: relative;
+                    overflow: hidden;
+                    max-width: 300px;
+                    &:has(.noprofile) {
+                      aspect-ratio: 2 / 1;
+                    }
+                    .noprofile {
+                      width: 100%;
+                      height: 100%;
+                      svg {
+                        max-width: 80px;
+                      }
+                    }
                     .img_wrap {
                       background-color: #f4f4f4;
                       border: 1.5px solid #ebebeb;
-                      border-radius: 15px;
-                      width: 60px;
-                      height: 60px;
-                      min-width: 60px;
-                      display: grid;
-                      place-items: center;
+                      width: 100%;
+                      height: 100%;
                       position: relative;
                       left: 0px;
                       margin-right: 0px;
@@ -8507,11 +8519,20 @@ body {
                         width: 32px;
                         height: 32px;
                       }
-                      .upldimg {
-                        border-radius: 15px;
-                        // min-width: 80px;
-                        aspect-ratio: 1;
+                      .plyr.plyr--video {
+                        width: 100%;
+                        height: 100%;
+                        display: block;
                         object-fit: cover;
+                        object-position: center center;
+                        transition: var(--transition-fast);
+                      }
+                      .upldimg {
+                        border-radius: 16px;
+                        object-fit: cover;
+                        object-position: center center;
+                        width: 100%;
+                        height: 100%;
                         width: 100%;
                         height: 100%;
                       }
@@ -8523,10 +8544,7 @@ body {
                         position: absolute;
                         top: 3px;
                         right: 3px;
-                        box-shadow:
-                          0 6px 4px -4px #08080803,
-                          0 2px 1.5px -4px #0808080a,
-                          0 4px 4px #00000017;
+                        box-shadow: 0 6px 4px -4px #08080803, 0 2px 1.5px -4px #0808080a, 0 4px 4px #00000017;
                         transition: var(--transition-fast);
                         svg {
                           width: 16px;
@@ -8577,6 +8595,12 @@ body {
                       padding: 10px 0;
                       span {
                         font-size: 13px;
+                      }
+                      &:hover {
+                        background: #000;
+                        span {
+                          color: var(--color-secondary);
+                        }
                       }
                     }
                   }

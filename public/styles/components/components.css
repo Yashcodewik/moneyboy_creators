@@ -3960,6 +3960,11 @@
                               gap: 10px;
                               flex-wrap: wrap;
 
+                              &:has(.ppvrequest_wrap) {
+                                width: 100%;
+                                max-width: 300px;
+                              }
+
                               &:has(.chat-msg-image) {
                                   padding: 5px 5px 12px;
                               }
