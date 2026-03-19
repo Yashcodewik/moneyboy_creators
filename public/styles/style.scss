@@ -7,6 +7,17 @@ body {
   background: #f4f4f4;
 }
 
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #f5ad24;
+  box-shadow: 0 0 0 2px rgba(254, 206, 38, 0.3);
+}
+
+.theam_link {
+  color: #f5ad24;
+}
+
 .cusscrolling {}
 
 .label-input input:disabled {
@@ -295,12 +306,10 @@ body {
   50% { transform: translateY(-20px); }
   100% { transform: translateY(0px); }
 }
-
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.08); }
@@ -1806,12 +1815,8 @@ body {
   background: #fdfdfd;
 }
 
-.moneyboy-feed-page-container
-  .moneyboy-feed-page-cate-buttons
-  .page-content-type-button:hover,
-.moneyboy-feed-page-container
-  .moneyboy-feed-page-cate-buttons
-  .page-content-type-button.active {
+.moneyboy-feed-page-container .moneyboy-feed-page-cate-buttons .page-content-type-button:hover,
+.moneyboy-feed-page-container .moneyboy-feed-page-cate-buttons .page-content-type-button.active {
   color: #fece26;
   background-color: #010405;
 }
@@ -3678,10 +3683,14 @@ body {
               .btn-primary {
                 cursor: pointer;
                 padding: 5px 14px;
+                font-size: 14px;
               }
               .form-input {
                 padding: 8px;
                 max-width: 80px;
+                &:focus {
+                  outline: red;
+                }
               }
             }
             .btn-danger {
@@ -4928,13 +4937,23 @@ body {
             height: 18px;
           }
         }
+        // &.approved {
+        //   color: #1a7f4b !important;
+        //   background: #e6f7ee;
+        //   border: 1.5px solid #008000;
+        //   .head {
+        //     * {
+        //       color: #1a7f4b !important;
+        //     }
+        //   }
+        // }
         &.approved {
-          color: #1a7f4b !important;
-          background: #e6f7ee;
-          border: 1.5px solid #008000;
+          color: #f5ad24 !important;
+          background: #fff6e5;
+          border: 1.5px solid #f5ad24;
           .head {
             * {
-              color: #1a7f4b !important;
+              color: #f5ad24 !important;
             }
           }
         }
@@ -8563,7 +8582,7 @@ body {
                     gap: 8px;
                     display: flex;
                     flex-wrap: wrap;
-                    align-items: center;
+                    align-items: end;
                     .text-gradiant {
                       font-size: 16px;
                       line-height: 100%;
@@ -8587,6 +8606,7 @@ body {
                       display: flex;
                       flex-wrap: wrap;
                       align-items: center;
+                      margin-top: auto;
                     }
                     button {
                       border-radius: 12px;
@@ -9015,12 +9035,6 @@ body {
 .voice-recorder-icon-btn.recording {
   background: red;
   animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
 }
 
 .store_card {

@@ -2074,6 +2074,52 @@
                             color: #000;
                         }
                     }
+                    &.active {
+                        .icon {
+                            svg {
+                            path {
+                                stroke: #f5ad24;
+                            }
+                            }
+
+                            &.share-icon svg path:nth-child(1),
+                            &.mute-icon svg path:nth-child(1),
+                            &.mute-icon svg path:nth-child(2),
+                            &.remove-icon svg path:nth-child(1),
+                            &.remove-icon svg path:nth-child(2),
+                            &.block-icon svg path:nth-child(1),
+                            &.block-icon svg path:nth-child(2),
+                            &.report-icon svg path {
+                            fill: #f5ad24;
+                            }
+
+                            &.hide-icon svg path:nth-child(1),
+                            &.hide-icon svg path:nth-child(3) {
+                            fill: #f5ad24;
+                            }
+
+                            &.hide-icon svg path:nth-child(2) {
+                            fill: #fff;
+                            }
+
+                            &.delete-icon svg path:nth-child(3) {
+                            fill: #f5ad24;
+                            }
+
+                            &.delete-icon svg path:nth-child(4),
+                            &.delete-icon svg path:nth-child(5) {
+                            stroke: #fff;
+                            }
+
+                            &.copy-link-icon svg path {
+                            stroke: #f5ad24;
+                            }
+                        }
+
+                        span {
+                            /* color: #f5ad24; */
+                        }
+                    }
                 }
             }
         }

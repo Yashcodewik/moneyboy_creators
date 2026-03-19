@@ -1048,18 +1048,9 @@ const MessagePage = () => {
                                         {msg.type === 5 &&
                                           msg.ppvRequestId && (
                                             <div className="ppvrequest_wrap">
-                                              <button className="premium-btn active-down-effect ppvbtn">
-                                                <span>PPV Request</span>
-                                              </button>
-
+                                              <button className="premium-btn active-down-effect ppvbtn"><span>PPV Request</span></button>
                                               {/* STATUS MESSAGES */}
-                                              {msg.ppvRequestId.status ===
-                                                "REJECTED" && (
-                                                  <div className="warning_wrap danger">
-                                                    <CircleX size={20} /> PPV
-                                                    request rejected
-                                                  </div>
-                                                )}
+                                              {msg.ppvRequestId.status === "REJECTED" && (<div className="warning_wrap danger"><CircleX size={20} /> PPV request rejected</div>)}
 
                                               {msg.ppvRequestId.status ===
                                                 "ACCEPTED" && (

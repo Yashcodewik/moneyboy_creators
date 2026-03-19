@@ -582,7 +582,7 @@ onClose();
             <button type="button" className="close-btn" onClick={confirmClose}><CgClose size={22} /></button>
           </div>
           <div className="input-wrap">
-            <div className="label-input textarea one">
+            <div className="label-input textarea one mb-5">
               <textarea ref={textareaRef} rows={4} placeholder="Compose new post..." name="text" value={formik.values.text} onChange={formik.handleChange} onBlur={formik.handleBlur} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) e.stopPropagation(); }} />
             </div>
             <span className="right">
