@@ -354,7 +354,20 @@ const WalletTransactionsPage = () => {
                           <>
                             <div className="history_wrap">
                               <div className="rline">
-                                <p>Total Earned</p>
+                                <p>
+                                  Total{" "}
+                                  {mode === "expenses"
+                                    ? "Spent"
+                                    : mode === "sales"
+                                      ? "Sold"
+                                    : mode === "purchases"
+                                      ? "Purchased"
+                                    : mode === "received"
+                                      ? "Received"
+                                    : mode === "sent"
+                                      ? "Sent"
+                                      : "Earned"}
+                                </p>
                                 <h3>
                                   $ {summary?.totalEarned?.toFixed(2) || "0.00"}
                                 </h3>
