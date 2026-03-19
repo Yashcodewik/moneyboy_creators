@@ -11,6 +11,7 @@ import * as Yup from "yup";
 import { useAppDispatch } from "@/redux/store";
 import { fetchWallet } from "@/redux/wallet/Action";
 import { useRouter } from "next/navigation";
+import { showError } from "@/utils/alert";
 
 const validationSchema = Yup.object({
   requestType: Yup.string().required("Request type is required"),
@@ -285,8 +286,14 @@ const removeMedia = () => {
                     const isImage = selectedFile.type.startsWith("image/");
                     const isVideo = selectedFile.type.startsWith("video/");
 
-                    if (!isImage && !isVideo) {
-                      alert("Only image or video allowed");
+                    // 🔥 strict validation based on request type
+                    if (formik.values.requestType === "PHOTO" && !isImage) {
+                      showError("You selected Request type Photo. Please upload an image for Photo request");
+                      return;
+                    }
+
+                    if (formik.values.requestType === "VIDEO" && !isVideo) {
+                      showError("You selected Request type Video. Please upload a video for Video request");
                       return;
                     }
 
