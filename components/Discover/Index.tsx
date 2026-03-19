@@ -274,12 +274,12 @@ useEffect(() => {
                     <img src="/images/micons.png" alt="M" className="loading-letter-img" /> {"oneyBoy".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 2) * 0.1}s` }}>{char}</span>))}
                   </div>
                 )}
-                {!loading && creators.length === 0 && (
+                {/* {!loading && creators.length === 0 && (
                   <div className="nofound grid-span-4">
                     <h3 className="first">No media found</h3>
                     <h3 className="second">No media found</h3>
                   </div>
-                )}
+                )} */}
                 {!loading &&
                   creators.length > 0 &&
                   creators.map((creator: any) => {

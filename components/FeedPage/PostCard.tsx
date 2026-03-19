@@ -32,6 +32,7 @@ import ShowToast from "../common/ShowToast";
 import { fetchWallet } from "@/redux/wallet/Action";
 import VideoPlayer from "../Purchased-MediaPage/VideoPlayer";
 import VideoPlayerFeed from "../VideoPlayerFeed";
+import { showError, showSuccess } from "@/utils/alert";
 
 const moreUsers = ["alex", "rohan", "meera", "sam", "disha"];
 
@@ -300,42 +301,44 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     };
   }, [showComment]);
 
-  const handleSendTip = async (
-    amount: number,
-    paymentMethod: "wallet" | "card"
-  ) => {
-    if (!session?.user?.id) {
-      router.push("/login");
-      return;
+const handleSendTip = async (
+  amount: number,
+  paymentMethod: "wallet" | "card"
+) => {
+  if (!session?.user?.id) {
+    router.push("/login");
+    return;
+  }
+
+  if (session.user.id === post.userId) {
+    await showError("You cannot send tip to yourself"); // ✅ replaced
+    return;
+  }
+
+  try {
+    await dispatch(
+      sendTip({
+        creatorId: post.userId,
+        amount,
+        paymentMethod
+      }),
+    ).unwrap();
+
+    await showSuccess("Tip sent successfully ❤️"); // ✅ replaced
+
+    if (paymentMethod === "wallet") {
+      dispatch(fetchWallet()); // refresh wallet instantly
     }
 
-    if (session.user.id === post.userId) {
-      ShowToast("You cannot send tip to yourself", "error");
-      return;
-    }
+    setShowTipModal(false);
+ } catch (err: any) {
+  console.error("Tip failed:", err);
 
-    try {
-      await dispatch(
-        sendTip({
-          creatorId: post.userId,
-          amount,
-          paymentMethod
-
-        }),
-      ).unwrap();
-
-      ShowToast("Tip sent successfully ", "success");
-
-      if (paymentMethod === "wallet") {
-        dispatch(fetchWallet());   // refresh wallet instantly
-      }
-
-      setShowTipModal(false);
-    } catch (err) {
-      console.error("Tip failed:", err);
-    }
-  };
-
+  await showError(
+    err?.data?.message || err?.message || "Failed to send tip"
+  );
+}
+};
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       const target = e.target as Node;

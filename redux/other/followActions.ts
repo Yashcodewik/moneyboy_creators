@@ -16,6 +16,7 @@ export const fetchFollowerCounts = createAsyncThunk(
         dispatch(setFollowCounts({
           followerCount: response.data.followerCount || 0,
           followingCount: response.data.followingCount || 0,
+            postCount: response.data.postCount || 0, 
         }));
       }
       return response?.data || { followerCount: 0, followingCount: 0 };

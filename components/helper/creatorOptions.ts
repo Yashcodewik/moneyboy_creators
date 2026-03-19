@@ -241,6 +241,25 @@ export const creatorsOptions = [
   { label: "option 4", value: "option 4" },
   { label: "option 5", value: "option 5" },
 ];
+
+
+
+
+export const WalletTransactiontypeformate = (type: string) => {
+  switch (type) {
+    case "UNLOCKED_POST":
+      return "Unlock post";
+
+    case "TIP":
+      return "Tip";
+
+    case "PPV_VIDEO":
+      return "Pay per view video";
+
+    default:
+      return type;
+  }
+};
 // Helper functions
 export const getLabelFromValue = (
   value: string,

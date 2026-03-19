@@ -202,12 +202,12 @@ useEffect(() => {
   fetchUserProfile();
 }, [session?.isAuthenticated, session?.user?.role, session?.user?.publicId]);
 
-  const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
-    e.preventDefault();
-    setIsOpen(false);
+const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
+  e.preventDefault();
+  setIsOpen(false);
 
-    router.push(`/like?tab=${tab}`);
-  };
+  router.push(`/${session?.user?.userName}?tab=${tab}`);
+};
   const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);

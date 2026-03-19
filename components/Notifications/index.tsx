@@ -21,6 +21,8 @@ import { showAcceptPostConsent, showDeclineReason } from "@/utils/alert";
 import { useRouter } from "next/navigation";
 import socket from "@/libs/socket";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
+import { useDispatch } from "react-redux";
+import { updatePostCount } from "@/redux/other/followSlice";
 
 const NotificationPage = () => {
   const router = useRouter();
@@ -32,6 +34,7 @@ const NotificationPage = () => {
   const [isExpired, setIsExpired] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const dispatch = useDispatch();
 
   const fetchNotifications = async (pageNumber = 1) => {
     try {
@@ -97,6 +100,8 @@ const NotificationPage = () => {
             : n,
         ),
       );
+
+      dispatch(updatePostCount(1));
 
       setShowModal(false);
     }

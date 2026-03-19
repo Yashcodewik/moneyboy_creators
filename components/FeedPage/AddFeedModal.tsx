@@ -292,24 +292,29 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     setMediaFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const remainingSlots = 10 - imageCount;
-    if (remainingSlots <= 0) {
-      showError("You can upload maximum 10 photos");
-      return;
-    }
-    const selected = files.slice(0, remainingSlots);
-    setMediaFiles((prev) => [...prev, ...selected]);
-    setMediaPreviews((prev) => [
-      ...prev,
-      ...selected.map((file) => ({
-        url: URL.createObjectURL(file),
-        type: "image" as const,
-      })),
-    ]);
-    e.target.value = "";
-  };
+const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = Array.from(e.target.files || []);
+  const remainingSlots = 10 - imageCount;
+
+  if (remainingSlots <= 0) {
+    showError("You can upload maximum 10 photos");
+    return;
+  }
+
+  const selected = files.slice(0, remainingSlots);
+
+  setMediaFiles((prev) => [...prev, ...selected]);
+
+  setMediaPreviews((prev) => [
+    ...prev,
+    ...selected.map((file) => ({
+      url: URL.createObjectURL(file),
+     type: (file.type.startsWith("video") ? "video" : "image") as "image" | "video",
+    })),
+  ]);
+
+  e.target.value = "";
+};
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);

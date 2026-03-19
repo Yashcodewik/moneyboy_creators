@@ -87,6 +87,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const postComments = commentsState.comments[post._id] || [];
   const tagMenuRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useDeviceType();
+  const isOwnPost = session?.user?.userName === post.creatorInfo?.userName;
   const dispatch = useAppDispatch();
   const desktopStyle: React.CSSProperties = {
     transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
@@ -453,7 +454,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
           <div className="moneyboy-post__actions tooltip_wrapper">
             <ul>
               <li>
-                <Link href="#" data-tooltip="Send Tip" onClick={(e) => { e.preventDefault(); setShowTipModal(true); }}>
+                <Link href="#" data-tooltip="Send Tip" onClick={(e) => { e.preventDefault();  if (isOwnPost) return;  setShowTipModal(true); }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                     <path d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -487,7 +488,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
             </ul>
             <ul>
               <li>
-                <Link href="#" data-tooltip="Report" className={isReported ? "active" : ""} onClick={(e) => { e.preventDefault(); if (post.isReported) return; setShowReportModal(true); }}>
+                <Link href="#" data-tooltip="Report" className={isReported ? "active" : ""} onClick={(e) => { e.preventDefault();  if (isOwnPost) return;  if (post.isReported) return; setShowReportModal(true); }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M5.15002 2V22" stroke="white" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
                     <path d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002" stroke="white" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -496,7 +497,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               </li>
 
               <li>
-                <Link href="#" data-tooltip="Wishlist" className={`post-save-btn ${saved ? "active" : ""}`} onClick={async (e) => { e.preventDefault(); const newValue = !saved; setSaved(newValue); try { await onSave(post._id, saved); } catch { setSaved(!newValue); } }}>
+                <Link href="#" data-tooltip="Wishlist" className={`post-save-btn ${saved ? "active" : ""}`} onClick={async (e) => { e.preventDefault();  if (isOwnPost) return; const newValue = !saved; setSaved(newValue); try { await onSave(post._id, saved); } catch { setSaved(!newValue); } }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                     <path d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
