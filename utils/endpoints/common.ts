@@ -20,6 +20,10 @@ interface ApiParamsQuery {
 interface postParams {
   url: string;
   values: any;
+  onUploadProgress?: (progressEvent: {
+    loaded: number;
+    total?: number;
+  }) => void;
 }
 
 export const getApiWithOutQuery = async ({ url }: ApiParams): Promise<any> => {
@@ -102,6 +106,7 @@ export const apiPost = async ({ url, values }: postParams): Promise<any> => {
 export const apiPostWithMultiForm = async ({
   url,
   values,
+  onUploadProgress,
 }: postParams): Promise<any> => {
   try {
     const res = await defaultAxios.post(url, values, {
@@ -109,6 +114,7 @@ export const apiPostWithMultiForm = async ({
         Accept: "application/json",
         "Content-Type": "multipart/form-data",
       },
+      onUploadProgress,
     });
     // ShowToast(res.data?.message, "success");
     return res.data;

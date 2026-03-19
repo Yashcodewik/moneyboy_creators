@@ -1,7 +1,7 @@
 // redux/rootReducer.ts
 import { combineReducers } from "@reduxjs/toolkit";
 
-import followReducer from "./other/followSlice"; 
+import followReducer from "./other/followSlice";
 import commentReducer from "./other/commentSlice";
 import savedPostsReducer from "./other/savedPostsSlice";
 import feedPostsReducer from "./other/feedPostsSlice";
@@ -17,26 +17,22 @@ import subscriptionListReducer from "@/redux/SubscriptionList/Slice";
 import messageReducer from "@/redux/message/messageSlice";
 import walletReducer from "@/redux/wallet/Slice";
 
-
-
 const rootReducer = combineReducers({
- 
   follow: followReducer,
-  comments: commentReducer, 
-  savedPosts: savedPostsReducer, 
+  comments: commentReducer,
+  savedPosts: savedPostsReducer,
   feedPosts: feedPostsReducer,
-   discoverCreators: discoverCreatorsReducer,
-   purchasedMedia: purchasedMediaReducer,
-   savedFreeCreators: savedFreeCreatorsReducer, 
-   feed: feedReducer,
-   likedPosts: likedPostsReducer, 
-   savedLockedPosts: savedLockedPostsReducer,
-   creators: creatorsReducer,
-   subscription: subscriptionReducer,
-   SubscriptionList: subscriptionListReducer,
-   message: messageReducer,
-    wallet: walletReducer,
-
+  discoverCreators: discoverCreatorsReducer,
+  purchasedMedia: purchasedMediaReducer,
+  savedFreeCreators: savedFreeCreatorsReducer,
+  feed: feedReducer,
+  likedPosts: likedPostsReducer,
+  savedLockedPosts: savedLockedPostsReducer,
+  creators: creatorsReducer,
+  subscription: subscriptionReducer,
+  SubscriptionList: subscriptionListReducer,
+  message: messageReducer,
+  wallet: walletReducer,
 });
 
 export default rootReducer;

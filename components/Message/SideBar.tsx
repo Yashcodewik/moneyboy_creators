@@ -1,10 +1,11 @@
 import socket from "@/libs/socket";
-import { API_MESSAGE_SIDEBAR } from "@/utils/api/APIConstant";
-import { getApi } from "@/utils/endpoints/common";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/store";
-import { resetThreadUnread, updateUserOnlineStatus } from "@/redux/message/messageSlice";
+import {
+  resetThreadUnread,
+  updateUserOnlineStatus,
+} from "@/redux/message/messageSlice";
 
 const SideBar = ({ onSelectChat, activeThreadId }: any) => {
   const router = useRouter();
@@ -32,7 +33,10 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
     });
   };
 
-  const filteredChatList = useMemo(() => filterChats(chatList), [chatList, searchText],);
+  const filteredChatList = useMemo(
+    () => filterChats(chatList),
+    [chatList, searchText],
+  );
 
   const filteredHiddenChatList = useMemo(
     () => filterChats(hiddenChatList),
@@ -138,10 +142,10 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
                 <div
                   key={chat.publicId}
                   className="msg-contact-box"
-                 onClick={() => {
-  dispatch(resetThreadUnread(chat.publicId)); // 🔥 ADD THIS
-  onSelectChat(chat);
-}}
+                  onClick={() => {
+                    dispatch(resetThreadUnread(chat.publicId)); // 🔥 ADD THIS
+                    onSelectChat(chat);
+                  }}
                 >
                   <div className="contact-item">
                     <div className="contact-avatar-wrapper">
@@ -192,7 +196,7 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
                       <div className="contact-header">
                         <h4 className="contact-name">
                           {" "}
-                          {chat?.user?.username}
+                          {chat?.user?.displayName || chat?.user?.username || "Unknown User"}
                         </h4>
                         <span className="contact-time">
                           {new Date(chat?.updatedAt).toLocaleTimeString([], {

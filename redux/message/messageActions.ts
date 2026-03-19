@@ -25,7 +25,7 @@ export const fetchSidebar = createAsyncThunk(
     });
 
     return res;
-  }
+  },
 );
 
 // Fetch Messages
@@ -40,7 +40,7 @@ export const fetchMessages = createAsyncThunk(
     });
 
     return res?.data || [];
-  }
+  },
 );
 
 // Send Message
@@ -63,7 +63,7 @@ export const sendMessageAction = createAsyncThunk(
     });
 
     return res;
-  }
+  },
 );
 
 // Mute
@@ -76,7 +76,7 @@ export const muteThread = createAsyncThunk(
     });
 
     return threadId;
-  }
+  },
 );
 
 // Hide
@@ -94,11 +94,9 @@ export const hideThread = createAsyncThunk(
         ...res, // includes isHidden
       };
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data || "Hide failed"
-      );
+      return rejectWithValue(error.response?.data || "Hide failed");
     }
-  }
+  },
 );
 // Delete
 export const deleteThread = createAsyncThunk(
@@ -110,7 +108,7 @@ export const deleteThread = createAsyncThunk(
     });
 
     return threadId;
-  }
+  },
 );
 
 // Search
@@ -131,7 +129,7 @@ export const searchMessages = createAsyncThunk(
     });
 
     return res?.data || [];
-  }
+  },
 );
 
 export const toggleBlockThread = createAsyncThunk(
@@ -150,17 +148,14 @@ export const toggleBlockThread = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.response?.data || "Block failed");
     }
-  }
+  },
 );
 
 export const reportThread = createAsyncThunk(
   "message/reportThread",
   async (
-    {
-      threadPublicId,
-      message,
-    }: { threadPublicId: string; message: string },
-    { rejectWithValue }
+    { threadPublicId, message }: { threadPublicId: string; message: string },
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiPost({
@@ -172,7 +167,7 @@ export const reportThread = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.response?.data || "Report failed");
     }
-  }
+  },
 );
 
 export const fetchThreadDetails = createAsyncThunk(
@@ -187,10 +182,10 @@ export const fetchThreadDetails = createAsyncThunk(
       return res;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data || "Failed to fetch thread details"
+        error.response?.data || "Failed to fetch thread details",
       );
     }
-  }
+  },
 );
 
 export const fetchMessageUnreadCount = createAsyncThunk(
@@ -198,5 +193,5 @@ export const fetchMessageUnreadCount = createAsyncThunk(
   async () => {
     const res = await getApi({ url: "/messages/unread-count" });
     return res.unreadCount;
-  }
+  },
 );
