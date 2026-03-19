@@ -59,7 +59,7 @@ const LoginPage = () => {
           router.push(`/creator?q=${token}`);
         }
 
-        ShowToast("Invalid email or password", "error");
+        // ShowToast("Invalid email or password", "error");
         return;
       }
       router.push("/feed");

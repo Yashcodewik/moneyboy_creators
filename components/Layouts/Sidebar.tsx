@@ -21,14 +21,14 @@ const Sidebar: React.FC = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [feedShow, setAddFeedShow] = useState(false);
   const { session } = useDecryptedSession();
-  const [postCount, setPostCount] = useState<number>(0);
   const dispatch = useAppDispatch();
   const { counts, loading: countsLoading } = useAppSelector(
     (state) => state.follow,
   );
   const followerCount = counts.followerCount;
   const followingCount = counts.followingCount;
-
+  const postCount = counts.postCount;
+  
   const pathname = usePathname();
   const router = useRouter();
   
@@ -151,17 +151,7 @@ useEffect(() => {
       setProfileLoading(false);
     }
 
-    try {
-      const countsResponse = await getApiWithOutQuery({
-        url: API_FOLLOWER_COUNT,
-      });
 
-      if (countsResponse?.success && countsResponse.data) {
-        setPostCount(countsResponse.data.postCount || 0);
-      }
-    } catch (err) {
-      console.error("Error fetching counts:", err);
-    }
 
     dispatch(fetchFollowerCounts());
   };

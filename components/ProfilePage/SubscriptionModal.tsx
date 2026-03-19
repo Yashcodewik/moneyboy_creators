@@ -91,7 +91,7 @@ const SubscriptionModal = ({
       checked={plan === "MONTHLY"}
       onChange={() => setPlan("MONTHLY")}
     />
-    month
+    Month
   </label>
 
   <label
@@ -103,7 +103,7 @@ const SubscriptionModal = ({
       checked={plan === "YEARLY"}
       onChange={() => setPlan("YEARLY")}
     />
-    year
+    Year
   </label>
 </div>
             </div>
@@ -111,7 +111,7 @@ const SubscriptionModal = ({
           <h3 className="title">
             {plan === "MONTHLY" ? "Monthly" : "Yearly"} {action}{" "} <span className="gradinttext">{finalPrice ? `$${finalPrice}` : "Not Updated yet"}</span>{" "}
             <sub>
-              /{plan === "MONTHLY" ? "month" : "year"}
+              /{plan === "MONTHLY" ? "Month" : "Year"}
               {plan === "YEARLY" && savings && (
                 <span>(Save {savings}%)</span>
               )}

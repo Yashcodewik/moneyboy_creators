@@ -14,6 +14,7 @@ import {
 } from "@/utils/api/APIConstant";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { WalletTransactiontypeformate } from "../helper/creatorOptions";
 
 const WalletTransactionsPage = () => {
   const { session } = useDecryptedSession();
@@ -508,7 +509,7 @@ const WalletTransactionsPage = () => {
                                           )}
                                           {txn.status === "PENDING" && (
                                             <span className="badge pending">
-                                              Pending
+                                              In Review
                                             </span>
                                           )}
                                         </div>
@@ -561,7 +562,7 @@ const WalletTransactionsPage = () => {
                               <div className="rel-user-desc">
                                 <div>
                                   <p className="heading">Discription</p>
-                                  <p>{txn.type}</p>
+                                  <p>{WalletTransactiontypeformate(txn.type)}</p>
                                 </div>
                                 <div className="rel-user-actions">
                                   <button

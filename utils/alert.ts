@@ -68,7 +68,7 @@ export const showAcceptPostConsent = async (): Promise<boolean> => {
       <div class="selectcont_wrap">
         <p>Please confirm before publishing this post.</p>
         <div class="select_wrap">
-          <label class="radio_wrap"><input type="checkbox" name="consent[]" value="accept" id="accept"> I accept the <a href="/terms" target="_blank">Terms & Conditions</a></label>
+          <label class="radio_wrap"><input type="checkbox" name="consent[]" value="accept" id="accept"> I accept the <a href="/terms" target="_blank" class="theam_link">Terms & Conditions</a></label>
           <label class="radio_wrap"><input type="checkbox" name="consent[]" value="tag" id="tag"> I Allow Myself To Be Tagged In This Post</label>
         </div>
       </div>
@@ -137,17 +137,24 @@ export const showDeclineReason = async (): Promise<string | null> => {
   return null;
 };
 
+
 /* ========== TAGGED USER LIST MODAL ========== */
 export const showTaggedUserList = async (collaborators: any[] = []) => {
-  if (!collaborators.length) { showInfo("No tagged users"); return; }
+  if (!collaborators.length) {
+    showInfo("No tagged users");
+    return;
+  }
+
   const listHtml = collaborators
     .map((collab: any) => {
-      const user = collab?.user || {};
+      const user = collab?.user || collab || {};
+
       return `
         <li class="tagged-user-item" data-username="${user.userName || ""}">
-          ${user.profile
-            ? `<img src="${user.profile}" class="user_icons" alt="${user.userName || "user"}"  onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"/>`
-            : `<div class="nomedia"><span>${(user.userName || "U").charAt(0).toUpperCase()}</span></div>`
+          ${
+            user.profile
+              ? `<img src="${user.profile}" class="user_icons" alt="${user.userName || "user"}" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"/>`
+              : `<div class="nomedia"><span>${(user.userName || "U").charAt(0).toUpperCase()}</span></div>`
           }
           <span>@${user.userName || "unknown"}</span>
         </li>
@@ -184,3 +191,49 @@ export const showTaggedUserList = async (collaborators: any[] = []) => {
 
   return result;
 };
+// export const showTaggedUserList = async (collaborators: any[] = []) => {
+//   if (!collaborators.length) { showInfo("No tagged users"); return; }
+//   const listHtml = collaborators
+//     .map((collab: any) => {
+//       const user = collab?.user || {};
+//       return `
+//         <li class="tagged-user-item" data-username="${user.userName || ""}">
+//           ${user.profile
+//             ? `<img src="${user.profile}" class="user_icons" alt="${user.userName || "user"}"  onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"/>`
+//             : `<div class="nomedia"><span>${(user.userName || "U").charAt(0).toUpperCase()}</span></div>`
+//           }
+//           <span>@${user.userName || "unknown"}</span>
+//         </li>
+//       `;
+//     })
+//     .join("");
+//   const result = await Swal.fire({
+//     ...baseConfig,
+//     title: "Tagged Users",
+//     showCloseButton: true,
+//     closeButtonHtml: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+//     showConfirmButton: true,
+//     confirmButtonText: `<span>Done</span>`,
+//     html: `
+//       <div class="tagged_userlist">
+//         <div class="user-dropdown">
+//           <ul>${listHtml}</ul>
+//         </div>
+//       </div>
+//     `,
+//     didOpen: (popup) => {
+//       const items = popup.querySelectorAll(".tagged-user-item");
+//       items.forEach((item) => {
+//         item.addEventListener("click", () => {
+//           const element = item as HTMLElement;
+//           const username = element.getAttribute("data-username");
+//           if (username) {
+//             window.location.href = `/${username}`;
+//           }
+//         });
+//       });
+//     },
+//   });
+
+//   return result;
+// };

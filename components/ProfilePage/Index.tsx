@@ -23,7 +23,7 @@
     } from "@/utils/api/APIConstant";
     import ProfileTab from "./ProfileTab";
     import { useDecryptedSession } from "@/libs/useDecryptedSession";
-    import { useParams, useRouter } from "next/navigation";
+    import { useParams, useRouter, useSearchParams } from "next/navigation";
     import { AppDispatch, RootState } from "../../redux/store";
     import {
       fetchFollowerCounts,
@@ -151,7 +151,13 @@
       const [coverError, setCoverError] = useState(false);
       const [avatarError, setAvatarError] = useState(false);
       const [upgradeLoading, setUpgradeLoading] = useState(false);
-
+      const searchParams = useSearchParams();
+      useEffect(() => {
+  const tab = searchParams.get("tab");
+  if (tab) {
+    setActiveTab(tab);
+  }
+}, [searchParams]);
       const copyProfileLink = async () => {
         const profileLink = `${window.location.origin}/${profile?.user?.userName}`;
         try {
@@ -169,9 +175,10 @@
       });
 
       const dispatch = useDispatch<AppDispatch>();
-      const handleTabClick = (tabName: string) => {
-        setActiveTab(tabName);
-      };
+    const handleTabClick = (tabName: string) => {
+  setActiveTab(tabName);
+  router.push(`/${username}?tab=${tabName}`);
+};
       const isOwnProfile = sessionUsername === username;
       const { data: profileData, refetch } = useQuery({
         queryKey: ["creator-profile", username],
@@ -894,19 +901,40 @@
                       </div>
                     )}
                   </div>
-                  {post?.collaborators?.length > 0 && (
-                    <div className="creator-media-card__stats bottom">
-                      <div
-                        className="creator-media-card__stats-btn tag-icon tagged_userlist"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          showTaggedUserList(post.collaborators);
-                        }}
-                      >
-                        <AtSign size={24} fill="none" />
-                      </div>
-                    </div>
-                  )}
+               {(post?.collaborators?.length > 0 || post?.taggedBy?.user) && (
+  <div className="creator-media-card__stats bottom">
+    <div
+      className="creator-media-card__stats-btn tag-icon tagged_userlist"
+      onClick={(e) => {
+        e.stopPropagation();
+
+        let usersList: any[] = [];
+
+        // ✅ Tagged By
+        if (post?.taggedBy?.user) {
+          usersList.push({
+            ...post.taggedBy.user,
+            type: "taggedBy",
+          });
+        }
+
+        // ✅ Collaborators
+        if (post?.collaborators?.length > 0) {
+          post.collaborators.forEach((c: any) => {
+            usersList.push({
+              ...c.user,
+              type: "collaborator",
+            });
+          });
+        }
+
+        showTaggedUserList(usersList);
+      }}
+    >
+      <AtSign size={24} fill="none" />
+    </div>
+  </div>
+)}
                   {/* <div className="creator-media-card__stats bottom">
                       {post?.collaborators?.length > 0 && (
                         <div
@@ -1829,7 +1857,7 @@
                                     {profile?.subscription?.monthlyPrice ||
                                       "Not Updated yet"}
                                   </h3>
-                                  <span>/month</span>
+                                  <span>/Month</span>
                                 </div>
                               </div>
                               <div className="subscripton-button">
@@ -1891,7 +1919,7 @@
                                     {profile?.subscription?.yearlyPrice ||
                                       "Not Updated yet"}
                                   </h3>
-                                  <span>/year</span>
+                                  <span>/Year</span>
                                   <div className="save-txt">
                                     {(() => {
                                       const savings = calculateYearlySavings(
