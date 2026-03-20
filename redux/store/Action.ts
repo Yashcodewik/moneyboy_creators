@@ -60,7 +60,7 @@ export const fetchMyPaidPosts = createAsyncThunk(
       publicId?: string;
       search?: string;
       time?: "most_recent" | "today" | "last_7_days" | "last_30_days" | "all_time";
-      type?: "video" | "photo"; // ✅ added
+      type?: "all"|"video" | "photo"; // ✅ added
     },
     { rejectWithValue }
   ) => {
