@@ -66,14 +66,14 @@
         }
 
         input {
-            border-color: #cecece;
+            border-color: #f5ad24;
         }
     }
 
     /* Focus State (High Fidelity): Driven by :has(input:focus) on the wrapper */
     &:has(input:focus) {
         input {
-            border-color: #101010;
+            border-color: #f5ad24;
             box-shadow: 0px 6px 4px -4px #0808080a, 0px 2px 13.5px 1px #0808080e;
             /* Prominent elevation */
             color: #101010;
@@ -710,6 +710,19 @@
                 }
             }
         }
+    }
+    &:hover {
+        border-color: #f5ad24;
+    }
+
+    &:focus-within {
+        border-color: #f5ad24;
+        box-shadow: 0px 6px 4px -4px #0808080a, 0px 2px 13.5px 1px #0808080e;
+    }
+
+    &.active {
+        border-color: #f5ad24;
+        box-shadow: 0px 6px 4px -4px #0808080a, 0px 2px 13.5px 1px #0808080e;
     }
 }
 
