@@ -991,6 +991,10 @@ textarea:focus {
         padding: 10px;
         max-width: 48%;
         border-radius: 14px;
+        font-size: 16px;
+        span {
+        font-size: 16px;
+        }
         &:hover {
           transform: translateY(-1px);
           box-shadow: rgba(0, 0, 0, 0.1) 0px 6px 10px;
@@ -3694,7 +3698,7 @@ textarea:focus {
               }
             }
             .btn-danger {
-              padding: 8px;
+              padding: 3px;
             }
           }
         }

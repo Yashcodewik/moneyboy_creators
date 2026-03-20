@@ -5,7 +5,7 @@ import Featuredboys from "../Featuredboys";
 import Link from "next/link";
 import CustomSelect from "../CustomSelect";
 import { BsBank2 } from "react-icons/bs";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 // import {CreditCard, useCreditCard,} from "credit-card-ui-react";
 import "credit-card-ui-react/styles.css";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
@@ -26,21 +26,23 @@ const CreditCard = dynamic(
 );
 
 const AddFundsPage = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [cards, setCards] = useState<any[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
-  const [tab, setTab] = useState(tabParam === "addfunds" ? 2 : 1);
+  const [tab, setTab] = useState(1);
+
   const [amount, setAmount] = useState<number | "">("");
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
   const [amountError, setAmountError] = useState<string>("");
   const [flipped, setFlipped] = useState(false);
-const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<AppDispatch>();
 
-const { balance, loading, addingFunds } = useSelector(
-  (state: RootState) => state.wallet
-);
+  const { balance, loading, addingFunds } = useSelector(
+    (state: RootState) => state.wallet,
+  );
 
   const [cardData, setCardData] = useState({
     name: "",
@@ -48,6 +50,14 @@ const { balance, loading, addingFunds } = useSelector(
     expiry: "",
     cvc: "",
   });
+
+  useEffect(() => {
+    if (tabParam === "addfunds") {
+      setTab(2);
+    } else {
+      setTab(1);
+    }
+  }, [tabParam]);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -140,34 +150,33 @@ const { balance, loading, addingFunds } = useSelector(
     }
   };
 
-const handleAddMoney = () => {
-  if (!amount || Number(amount) < 10) {
-    setAmountError("Minimum top up amount is $10");
-    return;
-  }
+  const handleAddMoney = () => {
+    if (!amount || Number(amount) < 10) {
+      setAmountError("Minimum top up amount is $10");
+      return;
+    }
 
-  if (!selectedCard) {
-    ShowToast("Please select payment method", "error");
-    return;
-  }
+    if (!selectedCard) {
+      ShowToast("Please select payment method", "error");
+      return;
+    }
 
-  dispatch(
-    addWalletFunds({
-      amount: Number(amount),
-      paymentMethod: selectedCard,
-    })
-  );
+    dispatch(
+      addWalletFunds({
+        amount: Number(amount),
+        paymentMethod: selectedCard,
+      }),
+    );
 
-  setAmount("");
-  setSelectedCard(null);
-  setAmountError("");
-};
+    setAmount("");
+    setSelectedCard(null);
+    setAmountError("");
+  };
 
-
- useEffect(() => {
-  fetchCards();
-  dispatch(fetchWallet());
-}, [dispatch]);
+  useEffect(() => {
+    fetchCards();
+    dispatch(fetchWallet());
+  }, [dispatch]);
   const calculatedTotal =
     balance + (amount && !isNaN(Number(amount)) ? Number(amount) : 0);
   return (
@@ -187,14 +196,15 @@ const handleAddMoney = () => {
                 <span className="icons arrowLeft"></span>
               </button> */}
             <button
-              className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""}`}
-              onClick={() => setTab(1)}
+              className={`page-content-type-button ${tabParam !== "addfunds" ? "active" : ""}`}
+              onClick={() => router.push("/add-funds?tab=addcard")}
             >
               Add Payment Method
             </button>
+
             <button
-              className={`page-content-type-button active-down-effect ${tab === 2 ? "active" : ""}`}
-              onClick={() => setTab(2)}
+              className={`page-content-type-button ${tabParam === "addfunds" ? "active" : ""}`}
+              onClick={() => router.push("/add-funds?tab=addfunds")}
             >
               Add funds
             </button>
@@ -391,26 +401,30 @@ const handleAddMoney = () => {
                               type="number"
                               placeholder="Enter Amount"
                               value={amount}
-                           onChange={(e) => {
-  const rawValue = e.target.value;
+                              onChange={(e) => {
+                                const rawValue = e.target.value;
 
-  if (rawValue === "") {
-    setAmount("");
-    setAmountError("Amount is required");
-    return;
-  }
+                                if (rawValue === "") {
+                                  setAmount("");
+                                  setAmountError("Amount is required");
+                                  return;
+                                }
 
-  const value = Number(rawValue);
-  setAmount(value);
+                                const value = Number(rawValue);
+                                setAmount(value);
 
-  if (value < 10) {
-    setAmountError("Minimum top up amount is $10");
-  } else if (value > 1000) {
-    setAmountError("Maximum top up amount is $1000");
-  } else {
-    setAmountError("");
-  }
-}}
+                                if (value < 10) {
+                                  setAmountError(
+                                    "Minimum top up amount is $10",
+                                  );
+                                } else if (value > 1000) {
+                                  setAmountError(
+                                    "Maximum top up amount is $1000",
+                                  );
+                                } else {
+                                  setAmountError("");
+                                }
+                              }}
                             />
                           </div>
 
@@ -428,16 +442,18 @@ const handleAddMoney = () => {
                           <label>Choose Payment Method*</label>
 
                           {loadingCards ? (
-                              <div className="loadingtext">
-                            {"Loading".split("").map((char, i) => (
-                              <span
-                                key={i}
-                                style={{ animationDelay: `${(i + 1) * 0.1}s` }}
-                              >
-                                {char}
-                              </span>
-                            ))}
-                          </div>
+                            <div className="loadingtext">
+                              {"Loading".split("").map((char, i) => (
+                                <span
+                                  key={i}
+                                  style={{
+                                    animationDelay: `${(i + 1) * 0.1}s`,
+                                  }}
+                                >
+                                  {char}
+                                </span>
+                              ))}
+                            </div>
                           ) : cards && cards.length > 0 ? (
                             <CustomSelect
                               label="Select a Payment Card"
