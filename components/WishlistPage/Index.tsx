@@ -28,7 +28,7 @@ const WishlistPage = () => {
   const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState<TopTab>("moneyboys");
   const [layout, setLayout] = useState<"grid" | "list">("grid");
-  const [subActiveTab, setSubActiveTab] = useState<"videos" | "photos">("videos");
+  const [subActiveTab, setSubActiveTab] = useState<"videos" | "photos" | null>(null);
   const [time, setTime] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -65,7 +65,12 @@ const WishlistPage = () => {
           page,
           limit: 9,
           search: searchTerm,
-          type: subActiveTab === "videos" ? "video" : "photo",
+          type:
+  subActiveTab === "videos"
+    ? "video"
+    : subActiveTab === "photos"
+    ? "photo"
+    : undefined,
           time,
         }) as any
       );
@@ -411,7 +416,7 @@ const WishlistPage = () => {
                         </div>
                       </div>
                       <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout" data-multi-child-grid-layout-wishlist={true} {...(layout === "list" ? { "data-layout-toggle-rows": true } : {})}>
-                        {subActiveTab === "videos" && renderMediaCards(true)} {subActiveTab === "photos" && renderMediaCards(false)} {renderPagination()}
+                       {subActiveTab === null && renderMediaCards(false)}  {subActiveTab === "videos" && renderMediaCards(true)} {subActiveTab === "photos" && renderMediaCards(false)} {renderPagination()}
                       </div>
                     </div>
                   </div>

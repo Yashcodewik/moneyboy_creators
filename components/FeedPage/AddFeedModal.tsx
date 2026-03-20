@@ -20,7 +20,14 @@ import {
   API_TAG_USERS_TO_POST,
 } from "@/utils/api/APIConstant";
 import { IoSearch } from "react-icons/io5";
-import { BadgeCheck, CalendarDays, CircleAlert, CircleX, Smile, X } from "lucide-react";
+import {
+  BadgeCheck,
+  CalendarDays,
+  CircleAlert,
+  CircleX,
+  Smile,
+  X,
+} from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -40,6 +47,7 @@ type TagUser = {
 type TaggedUserWithShare = TagUser & {
   percentage: number;
   isCreator?: boolean;
+  manuallySet?: boolean;
 };
 type AccessType = "free" | "subscriber" | "pay_per_view";
 type MediaPreview = { url: string; type: "image" | "video" };
@@ -131,7 +139,8 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const dispatch = useAppDispatch();
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-
+  const [creatorManuallySet, setCreatorManuallySet] = useState(false);
+  const creatorManuallySetRef = useRef(false);
   const [tagSearch, setTagSearch] = useState("");
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
   const [selectedTagUsers, setSelectedTagUsers] = useState<
@@ -178,6 +187,10 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    creatorManuallySetRef.current = creatorManuallySet;
+  }, [creatorManuallySet]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -263,19 +276,97 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const toggleTagUser = (user: TagUser) => {
     setSelectedTagUsers((prev) => {
       const exists = prev.find((u) => u._id === user._id);
-      if (exists) return prev.filter((u) => u._id !== user._id);
-      if (prev.length >= 5) {
-        showError("Maximum 5 creators allowed");
-        return prev;
+      let updated: TaggedUserWithShare[];
+
+      if (exists) {
+        updated = prev.filter((u) => u._id !== user._id);
+      } else {
+        if (prev.length >= 5) {
+          showError("Maximum 5 creators allowed");
+          return prev;
+        }
+        updated = [...prev, { ...user, percentage: 0, manuallySet: false }];
       }
-      return [...prev, { ...user, percentage: 0 }];
+
+      const total = updated.length + 1;
+      const equalShare = Math.floor((100 / total) * 100) / 100;
+
+      setCreatorPercentage(equalShare);
+      creatorPercentageRef.current = equalShare; // ← update ref immediately ✅
+
+      setCreatorManuallySet(false);
+      creatorManuallySetRef.current = false; // ← update ref immediately ✅
+
+      return updated.map((u) => ({
+        ...u,
+        percentage: equalShare,
+        manuallySet: false,
+      }));
     });
   };
 
-  const updateUserPercentage = (id: string, value: number) => {
-    setSelectedTagUsers((prev) =>
-      prev.map((u) => (u._id === id ? { ...u, percentage: value } : u)),
+  const selectedTagUsersRef = useRef(selectedTagUsers);
+  const creatorPercentageRef = useRef(creatorPercentage);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    selectedTagUsersRef.current = selectedTagUsers;
+  }, [selectedTagUsers]);
+
+  useEffect(() => {
+    creatorPercentageRef.current = creatorPercentage;
+  }, [creatorPercentage]);
+
+  const updateUserPercentage = (changedId: string, value: number) => {
+    // ✅ Always read from refs — never from stale closure
+    const latestTagged = selectedTagUsersRef.current;
+    const latestCreatorPct = creatorPercentageRef.current;
+    const latestCreatorManuallySet = creatorManuallySetRef.current; // ← use ref
+
+    // Step 1: Mark the changed person as manually set
+    const updatedTagged = latestTagged.map((u) =>
+      u._id === changedId ? { ...u, percentage: value, manuallySet: true } : u,
     );
+
+    const newCreatorManuallySet =
+      changedId === "creator" ? true : latestCreatorManuallySet; // ← use ref value
+
+    // Step 2: Find all AUTO people (not manually set), excluding changed one
+    const autoTagged = updatedTagged.filter(
+      (u) => u._id !== changedId && !u.manuallySet,
+    );
+    const creatorIsAuto = changedId !== "creator" && !newCreatorManuallySet;
+
+    // Step 3: Sum of all LOCKED (manually set) people excluding the changed one
+    const lockedTotal =
+      updatedTagged
+        .filter((u) => u._id !== changedId && u.manuallySet)
+        .reduce((sum, u) => sum + u.percentage, 0) +
+      (changedId !== "creator" && newCreatorManuallySet ? latestCreatorPct : 0);
+
+    // Step 4: Distribute remaining equally among AUTO people only
+    const remaining = 100 - value - lockedTotal;
+    const autoCount = autoTagged.length + (creatorIsAuto ? 1 : 0);
+    const splitValue =
+      autoCount > 0 ? Math.floor((remaining / autoCount) * 100) / 100 : 0;
+
+    // Step 5: Apply to tagged users
+    setSelectedTagUsers(
+      updatedTagged.map((u) => {
+        if (u._id === changedId) return u;
+        if (!u.manuallySet) return { ...u, percentage: splitValue }; // auto → gets split ✅
+        return u; // manually set → untouched ✅
+      }),
+    );
+
+    // Step 6: Apply to creator
+    if (changedId === "creator") {
+      setCreatorPercentage(value);
+      setCreatorManuallySet(true);
+      creatorManuallySetRef.current = true; // ← update ref immediately
+    } else if (creatorIsAuto) {
+      setCreatorPercentage(splitValue);
+    }
   };
 
   const handleAccessTypeChange = (type: AccessType) => {
@@ -292,29 +383,31 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     setMediaFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = Array.from(e.target.files || []);
-  const remainingSlots = 10 - imageCount;
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const remainingSlots = 10 - imageCount;
 
-  if (remainingSlots <= 0) {
-    showError("You can upload maximum 10 photos");
-    return;
-  }
+    if (remainingSlots <= 0) {
+      showError("You can upload maximum 10 photos");
+      return;
+    }
 
-  const selected = files.slice(0, remainingSlots);
+    const selected = files.slice(0, remainingSlots);
 
-  setMediaFiles((prev) => [...prev, ...selected]);
+    setMediaFiles((prev) => [...prev, ...selected]);
 
-  setMediaPreviews((prev) => [
-    ...prev,
-    ...selected.map((file) => ({
-      url: URL.createObjectURL(file),
-     type: (file.type.startsWith("video") ? "video" : "image") as "image" | "video",
-    })),
-  ]);
+    setMediaPreviews((prev) => [
+      ...prev,
+      ...selected.map((file) => ({
+        url: URL.createObjectURL(file),
+        type: (file.type.startsWith("video") ? "video" : "image") as
+          | "image"
+          | "video",
+      })),
+    ]);
 
-  e.target.value = "";
-};
+    e.target.value = "";
+  };
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -335,24 +428,23 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.target.value = "";
   };
 
-const handleShareOnX = async () => {
-  try {
-    const postUrl = `${window.location.origin}/${creator.username}`;
+  const handleShareOnX = async () => {
+    try {
+      const postUrl = `${window.location.origin}/${creator.username}`;
 
-    const shareText = formik.values.text
-      ? formik.values.text.substring(0, 200)
-      : "Check out my latest post!";
+      const shareText = formik.values.text
+        ? formik.values.text.substring(0, 200)
+        : "Check out my latest post!";
 
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      shareText
-    )}&url=${encodeURIComponent(postUrl)}`;
+      const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        shareText,
+      )}&url=${encodeURIComponent(postUrl)}`;
 
-    window.open(tweetUrl, "_blank", "width=550,height=420");
-
-  } catch (err) {
-    showError("Failed to open X share");
-  }
-};
+      window.open(tweetUrl, "_blank", "width=550,height=420");
+    } catch (err) {
+      showError("Failed to open X share");
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -513,28 +605,32 @@ const handleShareOnX = async () => {
 
         showSuccess("Post created successfully");
 
-// Ask user if they want to share on X
-const shareOnX = await showQuestion(
-  "Post created! Would you like to share it on X (Twitter)?",
-  "Share on X",
-  "Skip",
-);
+        // Ask user if they want to share on X
+        const shareOnX = await showQuestion(
+          "Post created! Would you like to share it on X (Twitter)?",
+          "Share on X",
+          "Skip",
+        );
 
-if (shareOnX) {
-  const postPublicId = res?.post?.publicId;
-  const postUrl = postPublicId 
-    ? `${window.location.origin}/post?publicId=${postPublicId}`
-    : `${window.location.origin}/${creator.username}`;
-    
-  const shareText = formik.values.text 
-    ? formik.values.text.substring(0, 200) 
-    : "Check out my latest post!";
+        if (shareOnX) {
+          const postPublicId = res?.post?.publicId;
+          const postUrl = postPublicId
+            ? `${window.location.origin}/post?publicId=${postPublicId}`
+            : `${window.location.origin}/${creator.username}`;
 
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(postUrl)}`;
-  window.open(tweetUrl, "_blank", "width=550,height=420,noopener,noreferrer");
-}
+          const shareText = formik.values.text
+            ? formik.values.text.substring(0, 200)
+            : "Check out my latest post!";
 
-onClose();
+          const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(postUrl)}`;
+          window.open(
+            tweetUrl,
+            "_blank",
+            "width=550,height=420,noopener,noreferrer",
+          );
+        }
+
+        onClose();
       } catch (error) {
         console.error(error);
         showError("An error occurred while creating post");
@@ -547,16 +643,16 @@ onClose();
   const collaborators: (TaggedUserWithShare & { isCreator: boolean })[] =
     selectedTagUsers.length > 0
       ? [
-        {
-          _id: "creator",
-          displayName: creator.name ?? "",
-          userName: creator.username ?? "",
-          profile: creator.profile,
-          percentage: creatorPercentage,
-          isCreator: true,
-        },
-        ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
-      ]
+          {
+            _id: "creator",
+            displayName: creator.name ?? "",
+            userName: creator.username ?? "",
+            profile: creator.profile,
+            percentage: creatorPercentage,
+            isCreator: true,
+          },
+          ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
+        ]
       : [];
 
   const confirmClose = async () => {
@@ -580,22 +676,64 @@ onClose();
 
   return (
     <>
-      <div className={`modal ${show ? "show" : ""}`} role="dialog" aria-modal="true" onClick={confirmClose}>
-        <form className="modal-wrap post-modal" onClick={(e) => e.stopPropagation()} onSubmit={formik.handleSubmit}>
+      <div
+        className={`modal ${show ? "show" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        onClick={confirmClose}
+      >
+        <form
+          className="modal-wrap post-modal"
+          onClick={(e) => e.stopPropagation()}
+          onSubmit={formik.handleSubmit}
+        >
           <div className="modal_head">
             <h3 className="title">Create New Post</h3>
-            <button type="button" className="close-btn" onClick={confirmClose}><CgClose size={22} /></button>
+            <button type="button" className="close-btn" onClick={confirmClose}>
+              <CgClose size={22} />
+            </button>
           </div>
           <div className="input-wrap">
             <div className="label-input textarea one mb-5">
-              <textarea ref={textareaRef} rows={4} placeholder="Compose new post..." name="text" value={formik.values.text} onChange={formik.handleChange} onBlur={formik.handleBlur} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) e.stopPropagation(); }} />
+              <textarea
+                ref={textareaRef}
+                rows={4}
+                placeholder="Compose new post..."
+                name="text"
+                value={formik.values.text}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) e.stopPropagation();
+                }}
+              />
             </div>
             <span className="right">
-              <button type="button" ref={emojiBtnRef} className="emoji-btn" onClick={() => setShowEmoji((prev) => !prev)}> <Smile size={20} stroke="black" strokeWidth={1} fill="#fece26" /></button>
+              <button
+                type="button"
+                ref={emojiBtnRef}
+                className="emoji-btn"
+                onClick={() => setShowEmoji((prev) => !prev)}
+              >
+                {" "}
+                <Smile
+                  size={20}
+                  stroke="black"
+                  strokeWidth={1}
+                  fill="#fece26"
+                />
+              </button>
               {formik.values.text.length}/300
               {showEmoji && (
                 <div ref={emojiRef} className="emoji-picker-wrapper">
-                  <EmojiPicker onEmojiClick={handleEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={320} width={320} />
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiClick}
+                    autoFocusSearch={false}
+                    skinTonesDisabled
+                    previewConfig={{ showPreview: false }}
+                    height={320}
+                    width={320}
+                  />
                 </div>
               )}
             </span>
@@ -604,19 +742,54 @@ onClose();
             <span className="error-message">{formik.errors.text}</span>
           )}
           <div className="select_wrap">
-            <label className="radio_wrap"><input type="radio" name="access" checked={accessType === "subscriber"} onChange={() => handleAccessTypeChange("subscriber")} />{" "} Only for Subscribers</label>
-            <label className="radio_wrap"><input type="radio" name="access" checked={accessType === "pay_per_view"} onChange={() => handleAccessTypeChange("pay_per_view")} />{" "} Pay per View</label>
-            <label className="radio_wrap"><input type="radio" name="access" checked={accessType === "free"} onChange={() => handleAccessTypeChange("free")} />{" "} Free for Everyone</label>
+            <label className="radio_wrap">
+              <input
+                type="radio"
+                name="access"
+                checked={accessType === "subscriber"}
+                onChange={() => handleAccessTypeChange("subscriber")}
+              />{" "}
+              Only for Subscribers
+            </label>
+            <label className="radio_wrap">
+              <input
+                type="radio"
+                name="access"
+                checked={accessType === "pay_per_view"}
+                onChange={() => handleAccessTypeChange("pay_per_view")}
+              />{" "}
+              Pay per View
+            </label>
+            <label className="radio_wrap">
+              <input
+                type="radio"
+                name="access"
+                checked={accessType === "free"}
+                onChange={() => handleAccessTypeChange("free")}
+              />{" "}
+              Free for Everyone
+            </label>
           </div>
           <div className="warningtext">
-            <CircleAlert size={18} className="svgicons" /> Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+            <CircleAlert size={18} className="svgicons" /> Lorem Ipsum is simply
+            dummy text of the printing and typesetting industry.
           </div>
 
           {accessType === "pay_per_view" && (
             <div>
               <label>Price($)</label>
-              <input className="form-input" type="text" name="price" placeholder="10.99 *" value={formik.values.price} onChange={formik.handleChange} onBlur={formik.handleBlur} />
-              {formik.touched.price && formik.errors.price && (<div className="error-message">{formik.errors.price}</div>)}
+              <input
+                className="form-input"
+                type="text"
+                name="price"
+                placeholder="10.99 *"
+                value={formik.values.price}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.price && formik.errors.price && (
+                <div className="error-message">{formik.errors.price}</div>
+              )}
             </div>
           )}
 
@@ -625,7 +798,19 @@ onClose();
               <div>
                 <label>Schedule?</label>
                 <div className="toggleGroup">
-                  <input type="checkbox" id="on-off-switch" className="checkbox" name="isScheduled" checked={isScheduled} onChange={() => { const newVal = !isScheduled; setIsScheduled(newVal); formik.setFieldValue("isScheduled", newVal); if (!newVal) formik.setFieldValue("scheduledAt", ""); }} />
+                  <input
+                    type="checkbox"
+                    id="on-off-switch"
+                    className="checkbox"
+                    name="isScheduled"
+                    checked={isScheduled}
+                    onChange={() => {
+                      const newVal = !isScheduled;
+                      setIsScheduled(newVal);
+                      formik.setFieldValue("isScheduled", newVal);
+                      if (!newVal) formik.setFieldValue("scheduledAt", "");
+                    }}
+                  />
                   <label htmlFor="on-off-switch" className="label" />
                   <div className="onoffswitch" aria-hidden="true">
                     <div className="onoffswitchLabel">
@@ -640,17 +825,55 @@ onClose();
               {isScheduled && (
                 <div className="mw-fit w-full">
                   <label>Schedule at</label>
-                  <div className="label-input calendar-dropdown" ref={dobWrapperRef}>
-                    <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
-                    <input type="text" name="scheduledAt" placeholder="Schedule Date (DD/MM/YYYY) *" className="form-input" value={formik.values.scheduledAt ? new Date(formik.values.scheduledAt,).toLocaleDateString("en-GB") : ""} readOnly onFocus={() => setActiveField("schedule")} onBlur={formik.handleBlur} />
+                  <div
+                    className="label-input calendar-dropdown"
+                    ref={dobWrapperRef}
+                  >
+                    <div className="input-placeholder-icon">
+                      <CalendarDays className="icons svg-icon" />
+                    </div>
+                    <input
+                      type="text"
+                      name="scheduledAt"
+                      placeholder="Schedule Date (DD/MM/YYYY) *"
+                      className="form-input"
+                      value={
+                        formik.values.scheduledAt
+                          ? new Date(
+                              formik.values.scheduledAt,
+                            ).toLocaleDateString("en-GB")
+                          : ""
+                      }
+                      readOnly
+                      onFocus={() => setActiveField("schedule")}
+                      onBlur={formik.handleBlur}
+                    />
                     {activeField === "schedule" && (
                       <div className="calendar_show">
-                        <DatePicker inline selected={formik.values.scheduledAt ? new Date(formik.values.scheduledAt) : null} minDate={new Date()} onChange={(date: Date | null) => { if (!date) return; formik.setFieldValue("scheduledAt", date.toISOString(),); setActiveField(null); }} />
+                        <DatePicker
+                          inline
+                          selected={
+                            formik.values.scheduledAt
+                              ? new Date(formik.values.scheduledAt)
+                              : null
+                          }
+                          minDate={new Date()}
+                          onChange={(date: Date | null) => {
+                            if (!date) return;
+                            formik.setFieldValue(
+                              "scheduledAt",
+                              date.toISOString(),
+                            );
+                            setActiveField(null);
+                          }}
+                        />
                       </div>
                     )}
                   </div>
                   {formik.touched.scheduledAt && formik.errors.scheduledAt && (
-                    <div className="error-message">{formik.errors.scheduledAt}</div>
+                    <div className="error-message">
+                      {formik.errors.scheduledAt}
+                    </div>
                   )}
                 </div>
               )}
@@ -661,11 +884,25 @@ onClose();
             {mediaPreviews.map((media, index) => (
               <div className="img_wrap" key={index}>
                 {media.type === "image" ? (
-                  <img src={media.url} className="img-fluid upldimg" alt={`preview-${index}`} />
+                  <img
+                    src={media.url}
+                    className="img-fluid upldimg"
+                    alt={`preview-${index}`}
+                  />
                 ) : (
-                  <video src={media.url} className="img-fluid upldimg" controls />
+                  <video
+                    src={media.url}
+                    className="img-fluid upldimg"
+                    controls
+                  />
                 )}
-                <button type="button" className="btn-danger" onClick={() => removeMedia(index)}><CircleX size={16} /></button>
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={() => removeMedia(index)}
+                >
+                  <CircleX size={16} />
+                </button>
               </div>
             ))}
           </div>
@@ -678,18 +915,27 @@ onClose();
               {collaborators.map((user) => (
                 <div className="profile-card upl_card" key={user._id}>
                   <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings uplview_user">
-                      <div className="profile-card__avatar">
+                    <div className="profile-card__avatar-settings uplview_user upload-wrapper">
+                      <div className="profile-card__avatar img_wrap">
                         {user.profile ? (
-                          <img src={user.profile} alt={user.displayName} className="img-fluid" />
+                          <img
+                            src={user.profile}
+                            alt={user.displayName}
+                            className="img-fluid"
+                          />
                         ) : (
                           <NoProfileSVG />
                         )}
+                        <button type="button" className="btn-danger" onClick={() => removeCollaborator(user._id)}><CircleX size={14} /></button>
                       </div>
                     </div>
                     <div className="profile-card__info">
-                      <div className="profile-card__name">{user.displayName}</div>
-                      <div className="profile-card__username">@{user.userName}</div>
+                      <div className="profile-card__name">
+                        {user.displayName}
+                      </div>
+                      <div className="profile-card__username">
+                        @{user.userName}
+                      </div>
                     </div>
                     <div className="right_box">
                       {accessType === "free" && (
@@ -708,16 +954,21 @@ onClose();
                           value={user.percentage || ""}
                           onChange={(e) => {
                             const value = Number(e.target.value);
-                            if (user.isCreator) {
-                              setCreatorPercentage(value);
-                            } else {
-                              updateUserPercentage(user._id, value);
-                            }
+                            updateUserPercentage(
+                              user.isCreator ? "creator" : user._id,
+                              value,
+                            );
                           }}
                         />
                       )}
                     </div>
-                    <button type="button" className="btn-danger" onClick={() => removeCollaborator(user._id)}><CircleX size={16} /></button>
+                    {/* <button
+                      type="button"
+                      className="btn-danger"
+                      onClick={() => removeCollaborator(user._id)}
+                    >
+                      <CircleX size={16} />
+                    </button> */}
                   </div>
                 </div>
               ))}
@@ -728,68 +979,161 @@ onClose();
 
           {activeTool === "video" && (
             <div className="flex items-center gap-10">
-              <button type="button" className="btn-grey btnicons gap-10" onClick={() => setShowRecorder(true)}>{" "}<FiVideo size={16} /> <span>Start recording</span></button>
-              <button type="button" className="btn-grey btnicons gap-10" onClick={() => videoInputRef.current?.click()}>{" "} <MdUpload size={16} /> <span>Upload video</span></button>
-              <input type="file" ref={videoInputRef} hidden accept="video/*" multiple onChange={handleVideoChange} />
+              <button
+                type="button"
+                className="btn-grey btnicons gap-10"
+                onClick={() => setShowRecorder(true)}
+              >
+                {" "}
+                <FiVideo size={16} /> <span>Start recording</span>
+              </button>
+              <button
+                type="button"
+                className="btn-grey btnicons gap-10"
+                onClick={() => videoInputRef.current?.click()}
+              >
+                {" "}
+                <MdUpload size={16} /> <span>Upload video</span>
+              </button>
+              <input
+                type="file"
+                ref={videoInputRef}
+                hidden
+                accept="video/*"
+                multiple
+                onChange={handleVideoChange}
+              />
             </div>
           )}
 
           {activeTool === "poll" && (
             <div className="duration_wraping">
               <label className="orange">Poll Duration - 7 days</label>
-              <input className="form-input" type="text" placeholder="Question" />
+              <input
+                className="form-input"
+                type="text"
+                placeholder="Question"
+              />
               <label className="pollanw selected">Option 1</label>
               <label className="pollanw">Option 2</label>
-              <Link href="#" className="clear">{" "} Clear Polls</Link>
+              <Link href="#" className="clear">
+                {" "}
+                Clear Polls
+              </Link>
             </div>
           )}
 
-          <input type="file" hidden ref={imageInputRef} accept=".png,.jpeg,.jpg,.wbjpg,.mp4" multiple onChange={handleImageChange} />
+          <input
+            type="file"
+            hidden
+            ref={imageInputRef}
+            accept=".png,.jpeg,.jpg,.wbjpg,.mp4"
+            multiple
+            onChange={handleImageChange}
+          />
           <div className="actions tooltip_wrapper">
             <ul>
               <li>
-                <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Add Content" onClick={() => { setActiveTool("image"); imageInputRef.current?.click(); }}>{" "}<FiImage size={20} /></button>
+                <button
+                  type="button"
+                  className="cate-back-btn active-down-effect btn_icons"
+                  data-tooltip="Add Content"
+                  onClick={() => {
+                    setActiveTool("image");
+                    imageInputRef.current?.click();
+                  }}
+                >
+                  {" "}
+                  <FiImage size={20} />
+                </button>
               </li>
               <li>
-                <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Add Video" onClick={() => setActiveTool("video")}>{" "} <FiVideo size={20} /></button>
+                <button
+                  type="button"
+                  className="cate-back-btn active-down-effect btn_icons"
+                  data-tooltip="Add Video"
+                  onClick={() => setActiveTool("video")}
+                >
+                  {" "}
+                  <FiVideo size={20} />
+                </button>
               </li>
               <li>
                 <div className="hline" />
               </li>
               <li className="icontext_wrap">
-                <button type="button" className="cate-back-btn active-down-effect btn_icons" data-tooltip="Tag someone" disabled={!hasMedia} onClick={() => setShowTagModal(true)}><FiAtSign size={20} /></button>
+                <button
+                  type="button"
+                  className="cate-back-btn active-down-effect btn_icons"
+                  data-tooltip="Tag someone"
+                  disabled={!hasMedia}
+                  onClick={() => setShowTagModal(true)}
+                >
+                  <FiAtSign size={20} />
+                </button>
                 <p>Tag</p>
               </li>
             </ul>
             <div className="right">
               <ul>
                 <li>
-<button 
-  type="button" 
-  className="cate-back-btn active-down-effect btn_icons" 
-  data-tooltip={!hasMedia ? "Add media to share on X" : "Share on X"}
-  disabled={!hasMedia}
-  onClick={handleShareOnX}
-> 
-  <FaXTwitter size={20} />
-</button>
+                  <button
+                    type="button"
+                    className="cate-back-btn active-down-effect btn_icons"
+                    data-tooltip={
+                      !hasMedia ? "Add media to share on X" : "Share on X"
+                    }
+                    disabled={!hasMedia}
+                    onClick={handleShareOnX}
+                  >
+                    <FaXTwitter size={20} />
+                  </button>
                 </li>
               </ul>
-              <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`} disabled={isSubmitting || !hasMedia}><span>{isSubmitting ? "Posting..." : "Post"}</span></button>
+              <button
+                type="submit"
+                data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
+                className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
+                disabled={isSubmitting || !hasMedia}
+              >
+                <span>{isSubmitting ? "Posting..." : "Post"}</span>
+              </button>
             </div>
           </div>
         </form>
 
         {showTagModal && (
-          <div className="modal show" role="dialog" aria-modal="true" onClick={confirmClose}>
-            <div className="modal-wrap creators-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal show"
+            role="dialog"
+            aria-modal="true"
+            onClick={confirmClose}
+          >
+            <div
+              className="modal-wrap creators-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="modal_head">
                 <h3 className="title">Tag Other Creators</h3>
-                <button type="button" className="close-btn" onClick={() => setShowTagModal(false)}><CgClose size={22} /></button>
+                <button
+                  type="button"
+                  className="close-btn"
+                  onClick={() => setShowTagModal(false)}
+                >
+                  <CgClose size={22} />
+                </button>
               </div>
               <div className="label-input search_wrap">
-                <div className="input-placeholder-icon"><IoSearch size={22} color="#716f6f" /></div>
-                <input className="form-input" type="text" placeholder="Enter Keywords Here" value={tagSearch} onChange={(e) => searchTagUsers(e.target.value)}/>
+                <div className="input-placeholder-icon">
+                  <IoSearch size={22} color="#716f6f" />
+                </div>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Enter Keywords Here"
+                  value={tagSearch}
+                  onChange={(e) => searchTagUsers(e.target.value)}
+                />
               </div>
               <div className="moneyboy-post__header scrollbar">
                 <div className="profile-card">

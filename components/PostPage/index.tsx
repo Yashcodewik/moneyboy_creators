@@ -817,7 +817,6 @@
                             href="#"
                             onClick={(e) => {
                               e.preventDefault();
-                              if (isOwnPost) return; 
                               setShowComment((prev) => !prev);
                             }}
                           >
