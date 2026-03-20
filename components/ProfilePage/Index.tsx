@@ -859,7 +859,7 @@
                         </div>
                       )}
 
-                    {!isOwnProfile && !hideSaveBtn && !isFree && (
+                    {!isOwnProfile && !isTaggedUser && !hideSaveBtn && !isFree && (
                       <div className={`creator-media-card__stats-btn wishlist-icon btntooltip_wrapper ${isPostSaved ? "active" : ""}`}>
                         <button
                           data-position="left"

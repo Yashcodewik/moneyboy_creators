@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { Plyr } from "plyr-react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { showTaggedUserList } from "@/utils/alert";
+import NoProfileSvg from "../common/NoProfileSvg";
 
 interface AllCreatorsProps {
   onUnlock: (post: any) => void;
@@ -437,9 +438,19 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                             <div className="profile-card">
                               <Link href={`/${post.creatorInfo?.userName}`} className="profile-card__main">
                                 <div className="profile-card__avatar-settings">
-                                  <div className="profile-card__avatar">
-                                    <img src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg" alt="MoneyBoy Social Profile Avatar"/>
-                                  </div>
+                                 <div className="profile-card__avatar">
+  {post.creatorInfo?.profile ? (
+    <img
+      src={post.creatorInfo.profile}
+      alt={post.creatorInfo?.displayName || "User"}
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  ) : (
+    <NoProfileSvg />
+  )}
+</div>
                                 </div>
                                 <div className="profile-card__info">
                                   <div className="profile-card__name-badge">
@@ -448,7 +459,12 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                                       <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge"/>
                                     </div>
                                     {taggedUsers.length > 0 && (
-                                      <div className="tagview" onClick={(e) => {e.stopPropagation(); e.preventDefault(); showTaggedUserList(taggedUsers);}}>
+                                      <div className="tagview" onClick={(e) => {e.stopPropagation(); e.preventDefault(); showTaggedUserList([
+  ...(post?.collaboration?.taggedBy
+    ? [{ user: post.collaboration.taggedBy }]
+    : []),
+  ...(post?.collaboration?.taggedUsers || []),
+]);;}}>
                                         <ul className="taglist">
                                           {" "}
                                           {taggedUsers

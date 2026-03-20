@@ -564,6 +564,7 @@ console.log(session ,"session=============================");
                           <Link
                             href="/wallet-transactions?tab=wallet"
                             className="load-wallet-btn"
+                            onClick={() => setIsOpen(false)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -608,6 +609,7 @@ console.log(session ,"session=============================");
                             <Link
                               href="/add-funds?tab=addfunds"
                               className="load-wallet-btn"
+                              onClick={() => setIsOpen(false)}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
