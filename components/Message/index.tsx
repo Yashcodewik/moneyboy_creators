@@ -336,19 +336,39 @@ const MessagePage = () => {
     };
   }, [session?.user?.id]);
 
-  const sendMessage = () => {
-    if (!newComment.trim()) return;
-    if (!activeThreadId || !session?.user?.id || !activeUser?.id) return;
+const sendMessage = () => {
+  if (!newComment.trim()) return;
+  if (!activeThreadId || !session?.user?.id || !activeUser?.id) return;
 
-    socket.emit("sendMessage", {
-      threadId: activeThreadId,
-      senderId: session.user.id,
-      receiverId: activeUser.id,
-      text: newComment,
-    });
-
-    setNewComment("");
+  // 1. Build an optimistic message immediately
+  const optimisticMsg = {
+    _id: `temp-${Date.now()}`,           // temporary ID
+    threadId: activeThreadId,
+    senderId: {
+      _id: session.user.id,
+      profile: session.user.profile || null,
+    },
+    receiverId: activeUser.id,
+    message: newComment,
+    type: 1,
+    isRead: false,
+    createdAt: new Date().toISOString(),
   };
+
+  // 2. Push it to Redux store instantly (no waiting for socket)
+  dispatch(addSocketMessage(optimisticMsg));
+
+  // 3. Clear input immediately
+  setNewComment("");
+
+  // 4. Emit to socket as before
+  socket.emit("sendMessage", {
+    threadId: activeThreadId,
+    senderId: session.user.id,
+    receiverId: activeUser.id,
+    text: newComment,
+  });
+};
 
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);

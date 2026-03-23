@@ -60,45 +60,54 @@ const messageSlice = createSlice({
       state.activeUser = action.payload;
     },
 
-    addSocketMessage: (state, action: PayloadAction<any>) => {
-      const msg = action.payload;
+addSocketMessage: (state, action: PayloadAction<any>) => {
+  const msg = action.payload;
+  const isActiveChat = msg.threadId === state.activeThreadId;
 
-      const receiverId =
-        typeof msg.receiverId === "object"
-          ? msg.receiverId._id
-          : msg.receiverId;
+  // Replace optimistic message with real one from server
+  // (real messages won't have a temp- prefix, but may match by content+time)
+  if (isActiveChat) {
+    const isTempMessage = msg._id?.startsWith("temp-");
 
-      const isReceiver = receiverId === state.currentUserId;
-      const isActiveChat = msg.threadId === state.activeThreadId;
+    if (!isTempMessage) {
+      // Remove any temp message with same text to avoid duplicates
+      state.messages = state.messages.filter(
+        (m) =>
+          !(
+            m._id?.startsWith("temp-") &&
+            m.message === msg.message &&
+            m.threadId === msg.threadId
+          ),
+      );
+    }
 
-      // ✅ ALWAYS update sidebar for receiver
-      if (isReceiver) {
-        state.chatList = state.chatList.map((chat) => {
-          if (chat.publicId === msg.threadId) {
-            return {
-              ...chat,
-              unreadCount: isActiveChat
-                ? 0 // 👈 if open, keep 0
-                : (chat.unreadCount || 0) + 1,
-            };
-          }
-          return chat;
-        });
+    const exists = state.messages.some((m) => m._id === msg._id);
+    if (!exists) {
+      state.messages.push(msg);
+    }
+  }
 
-        // ✅ only increase global unread if NOT active chat
-        if (!isActiveChat) {
-          state.messageUnreadCount += 1;
-        }
+  // ... rest of your existing sidebar unread count logic unchanged
+  const receiverId =
+    typeof msg.receiverId === "object" ? msg.receiverId._id : msg.receiverId;
+  const isReceiver = receiverId === state.currentUserId;
+
+  if (isReceiver) {
+    state.chatList = state.chatList.map((chat) => {
+      if (chat.publicId === msg.threadId) {
+        return {
+          ...chat,
+          unreadCount: isActiveChat ? 0 : (chat.unreadCount || 0) + 1,
+        };
       }
+      return chat;
+    });
 
-      // ✅ ALWAYS push message to chat if active
-      if (isActiveChat) {
-        const exists = state.messages.some((m) => m._id === msg._id);
-        if (!exists) {
-          state.messages.push(msg);
-        }
-      }
-    },
+    if (!isActiveChat) {
+      state.messageUnreadCount += 1;
+    }
+  }
+},
     updatePPVStatus: (
       state,
       action: PayloadAction<{

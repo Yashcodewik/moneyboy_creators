@@ -71,6 +71,7 @@ import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { access } from "node:fs";
 
 // Define types for the API response
 interface MediaItem {
@@ -684,6 +685,7 @@ const PurchasedMediaPage: React.FC = () => {
                           </div>
                         </Link>
                       </div>
+                      {selectedItem?.accessType !== "PPV Request" && (
                       <div className="meta-bar">
                         {selectedItem.viewCount > 0 && (
                           <div className="meta-item view">
@@ -781,6 +783,7 @@ const PurchasedMediaPage: React.FC = () => {
                           </Link>
                         </div>
                       </div>
+                      )}
                     </div>
                     <div className="pm-page-card-footer vdocard-footer description">
                       <p className="lineclamp4">
