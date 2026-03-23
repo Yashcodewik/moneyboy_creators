@@ -1721,15 +1721,15 @@ textarea:focus {
       font-weight: 500;
       padding: 6px 8px;
       border-radius: 6px;
-      white-space: nowrap;
+      max-width: 220px;
+      width: max-content;
+      white-space: normal;
+      word-break: break-word;
+      text-align: center;
       opacity: 0;
       pointer-events: none;
       transition: var(--transition-normal);
       z-index: 9999;
-      max-width: 220px;           // ✅ ADD THIS
-      width: max-content;        // ✅ helps shrink if small text
-      word-break: break-word;    // ✅ prevent overflow
-      text-align: center;
     }
     &::before {
       content: "";
