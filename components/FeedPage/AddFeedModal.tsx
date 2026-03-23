@@ -661,16 +661,16 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const collaborators: (TaggedUserWithShare & { isCreator: boolean })[] =
     selectedTagUsers.length > 0
       ? [
-          {
-            _id: "creator",
-            displayName: creator.name ?? "",
-            userName: creator.username ?? "",
-            profile: creator.profile,
-            percentage: creatorPercentage,
-            isCreator: true,
-          },
-          ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
-        ]
+        {
+          _id: "creator",
+          displayName: creator.name ?? "",
+          userName: creator.username ?? "",
+          profile: creator.profile,
+          percentage: creatorPercentage,
+          isCreator: true,
+        },
+        ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
+      ]
       : [];
 
   const confirmClose = async () => {
@@ -793,17 +793,14 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
             dummy text of the printing and typesetting industry.
           </div> */}
 
-                   <div className="warningtext">
-  <span>{accessContentMap[accessType].text}</span>
-
-  <div className="tooltip-container">
-    <CircleAlert size={16} className="svgicons info-icon" />
-
-    {/* <div className="tooltip-box">
-      {accessContentMap[accessType].tooltip}
-    </div> */}
-  </div>
-</div>
+          <div className="warningtext">
+            <span>{accessContentMap[accessType].text}</span>
+            <div className="btntooltip_wrapper">
+              <button className="info-btn" data-tooltip={accessContentMap[accessType].tooltip}>
+                <CircleAlert size={16} className="svgicons info-icon" />
+              </button>
+            </div>
+          </div>
 
           {accessType === "pay_per_view" && (
             <div>
@@ -870,8 +867,8 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       value={
                         formik.values.scheduledAt
                           ? new Date(
-                              formik.values.scheduledAt,
-                            ).toLocaleDateString("en-GB")
+                            formik.values.scheduledAt,
+                          ).toLocaleDateString("en-GB")
                           : ""
                       }
                       readOnly

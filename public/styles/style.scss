@@ -1726,6 +1726,10 @@ textarea:focus {
       pointer-events: none;
       transition: var(--transition-normal);
       z-index: 9999;
+      max-width: 220px;           // ✅ ADD THIS
+      width: max-content;        // ✅ helps shrink if small text
+      word-break: break-word;    // ✅ prevent overflow
+      text-align: center;
     }
     &::before {
       content: "";
