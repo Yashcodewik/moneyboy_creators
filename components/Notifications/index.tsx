@@ -226,6 +226,7 @@ const NotificationPage = () => {
                                 <Eye size={16} />
                               </button>
                               {noti.postTag?.myStatus === "pending" &&
+                               noti.type === 3 && 
                                 Date.now() <
                                   new Date(noti.createdAt).getTime() +
                                     24 * 60 * 60 * 1000 && (

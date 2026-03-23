@@ -41,7 +41,7 @@ export const showQuestion = async (
   message: string,
   confirmText = "Yes",
   cancelText = "No",
-  useHtml = false,  // ← add this param
+  useHtml = false, // ← add this param
 ): Promise<boolean> => {
   const result = await Swal.fire({
     ...baseConfig,
@@ -76,13 +76,16 @@ export const showAcceptPostConsent = async (): Promise<boolean> => {
     confirmButtonText: "<span>Accept & Continue</span>",
 
     preConfirm: () => {
-      const selected = document.querySelector(
-        'input[name="consent[]"]:checked',
-      ) as HTMLInputElement | null;
-      if (!selected) {
-        Swal.showValidationMessage("Please select an option");
+      const accept = document.getElementById("accept") as HTMLInputElement;
+      const tag = document.getElementById("tag") as HTMLInputElement;
+
+      if (!accept?.checked || !tag?.checked) {
+        Swal.showValidationMessage(
+          "You must accept Terms & allow tagging to continue",
+        );
         return false;
       }
+
       return true;
     },
   });
@@ -138,7 +141,6 @@ export const showDeclineReason = async (): Promise<string | null> => {
 };
 
 
-/* ========== TAGGED USER LIST MODAL ========== */
 export const showTaggedUserList = async (collaborators: any[] = []) => {
   if (!collaborators.length) {
     showInfo("No tagged users");
