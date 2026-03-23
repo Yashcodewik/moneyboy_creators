@@ -1493,7 +1493,7 @@
             & .header-logo {
                 & a {
                     img {
-                        width: 150px;
+                        width: 120px;
                     }
                 }
             }
@@ -1512,7 +1512,7 @@
 
                             & li {
                                 & a {
-                                    width: 40px;
+                                    width: 38px;
 
                                     svg {
                                         width: 20px;
@@ -1524,10 +1524,10 @@
                 }
 
                 .header-profile-avatar {
-                    border-radius: 15px;
+                    border-radius: 12px;
 
                     .profile-avatar {
-                        width: 44px;
+                        width: 38px;
                         border-radius: inherit;
 
                         img {

@@ -431,13 +431,24 @@ textarea:focus {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  gap: 6px;
   position: relative;
   box-shadow: 0 4px 4px #00000012;
   transition:
-    background-color 0.2s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+  background-color 0.2s ease,
+  transform 0.15s ease,
+  box-shadow 0.15s ease;
   will-change: transform;
+  &.icon {
+    padding: 8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    justify-content: center;
+    span {
+      display: none;
+    }
+  }
   &:hover {
     background-color: #b83636;
     transform: translateY(-1px);
@@ -4350,7 +4361,8 @@ textarea:focus {
       }
       .upload-wrapper {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 10px;
         margin: 0px;
         position: relative;
@@ -4366,15 +4378,17 @@ textarea:focus {
         font-family: var(--font-family-base);
         .img_wrap {
           background-color: #f4f4f4;
+          border: 1.5px solid #ebebeb;
           border-radius: 15px;
-          width: 60px;
-          height: 60px;
-          min-width: 60px;
+          width: 80px;
+          height: 80px;
+          min-width: 80px;
           display: grid;
           place-items: center;
           position: relative;
           left: 0px;
           margin-right: 0px;
+          transition: var(--transition-fast);
           .icons {
             width: 45px;
             height: 45px;
@@ -4391,17 +4405,37 @@ textarea:focus {
               0px 2px 1.5px -4px #0808080a,
               0px 4px 4px 0px #00000017;
           }
+          .upldimg {
+            border-radius: 15px;
+            // min-width: 80px;
+            aspect-ratio: 1;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+          }
           .btn-danger {
-            position: absolute;
-            bottom: 0px;
-            right: 0px;
-            padding: 3px;
+            visibility: hidden;
+            opacity: 0;
             border-radius: 8px;
-            background-color: #fdfdfd;
+            padding: 3px;
+            position: absolute;
+            top: 3px;
+            right: 3px;
             box-shadow:
-              0px 6px 4px -4px #08080803,
-              0px 2px 1.5px -4px #0808080a,
-              0px 4px 4px 0px #00000017;
+              0 6px 4px -4px #08080803,
+              0 2px 1.5px -4px #0808080a,
+              0 4px 4px #00000017;
+            transition: var(--transition-fast);
+            svg {
+              width: 16px;
+              height: 16px;
+            }
+          }
+          &:hover {
+            .btn-danger {
+              visibility: visible;
+              opacity: 1;
+            }
           }
         }
         .btn-primary {
@@ -5413,6 +5447,14 @@ textarea:focus {
           }
           .btn-primary {
             max-width: 100%;
+          }
+        }
+        .select_wrap {
+          flex-wrap: wrap;
+          .radio_wrap {
+            &:last-child {
+              width: fit-content;
+            }
           }
         }
         .actions {
@@ -7239,7 +7281,7 @@ textarea:focus {
   /* ========== Mobile (max-width: 767px) ========== */
   @media (max-width: 767px) {
     button.page-content-type-button {
-      font-size: 12px !important;
+      // font-size: 12px !important;
     }
     &.show_mobail {
       display: inline-flex;

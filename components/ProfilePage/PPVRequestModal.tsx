@@ -240,26 +240,15 @@ const removeMedia = () => {
             )}
             <div>
               <label>Upload reference file</label>
-
               <div className="upload-wrapper">
                 {mediaPreview && (
                 <div className="img_wrap">
                   {mediaPreview.type === "image" ? (
-                    <img
-                      src={mediaPreview.url}
-                      className="img-fluid upldimg"
-                      alt="preview"
-                    />
+                    <img src={mediaPreview.url} className="img-fluid upldimg" alt="preview"/>
                   ) : (
-                    <video
-                      src={mediaPreview.url}
-                      className="img-fluid upldimg"
-                      controls
-                    />
+                    <video src={mediaPreview.url} className="img-fluid upldimg" controls/>
                   )}
-                  <button type="button" className="btn-danger" onClick={removeMedia}>
-                    <CircleX size={16} />
-                  </button>
+                  <button type="button" className="btn-danger" onClick={removeMedia}><CircleX size={16} /></button>
                 </div>
               )}
                 {!mediaPreview && (

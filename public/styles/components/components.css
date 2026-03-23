@@ -135,6 +135,36 @@
                   line-height: 1;
                 }
                }
+               &.search-btn {
+                .icon-link {
+                  svg {
+                    circle, path {
+                      stroke: var(--color-text-active);
+                    }
+                  }
+                  &:hover,
+                  &.active {
+                    svg {
+                      circle, path {
+                        stroke: var(--color-secondary);
+                      }
+                    }
+                  }
+                }
+                .mobile-search-popup {
+                  .search-container {
+                    padding: 6px;
+                    gap: 6px;
+                    display: flex;
+                    margin: 6px 10px;
+                    align-items: center;
+                    border-radius: 14px;
+                    background-color: #fff;
+                    box-shadow: var(--card-shadow);
+                    transition: var(--transition-normal);
+                  }
+                }
+               }
              }
            }
          }

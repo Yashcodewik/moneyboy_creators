@@ -15,6 +15,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchWallet } from "@/redux/wallet/Action";
 import { setCurrentUser, setMessageUnreadCount } from "@/redux/message/messageSlice";
 import { fetchMessageUnreadCount } from "@/redux/message/messageActions";
+import { CircleX, Search } from "lucide-react";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,58 +30,69 @@ const Header = () => {
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [headerSearch, setHeaderSearch] = useState("");
+  const isMobile = useDeviceType();
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const mobileSearchStyle: React.CSSProperties = {
+    position: "fixed",
+    left: 0,
+    top: "var(--header-height)",
+    width: "100%",
+    zIndex: 1001,
+    transform: showMobileSearch ? "translateY(0)" : "translateY(-100%)",
+    opacity: showMobileSearch ? 1 : 0,
+    pointerEvents: showMobileSearch ? "auto" : "none",
+    transition: "all 0.3s ease",
+  };
 
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (pathname !== "/discover") return;
 
+      if (!headerSearch.trim()) {
+        router.push("/discover");
+      } else {
+        router.push(`/discover?search=${encodeURIComponent(headerSearch)}`);
+      }
+    }, 500); // wait 500ms after typing
 
-useEffect(() => {
-  const delay = setTimeout(() => {
-    if (pathname !== "/discover") return;
-
-    if (!headerSearch.trim()) {
-      router.push("/discover");
-    } else {
-      router.push(`/discover?search=${encodeURIComponent(headerSearch)}`);
-    }
-  }, 500); // wait 500ms after typing
-
-  return () => clearTimeout(delay);
-}, [headerSearch]);
+    return () => clearTimeout(delay);
+  }, [headerSearch]);
   useEffect(() => {
     console.log("showPromoteModal:", showPromoteModal);
   }, [showPromoteModal]);
-const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<AppDispatch>();
 
-const { balance } = useSelector(
-  (state: RootState) => state.wallet
-);
+  const { balance } = useSelector(
+    (state: RootState) => state.wallet
+  );
 
-const { messageUnreadCount } = useSelector(
-  (state: RootState) => state.message
-);
+  const { messageUnreadCount } = useSelector(
+    (state: RootState) => state.message
+  );
 
-useEffect(() => {
-  const handleUnread = (data: { count: number }) => {
-    dispatch(setMessageUnreadCount(data.count));
-  };
+  useEffect(() => {
+    const handleUnread = (data: { count: number }) => {
+      dispatch(setMessageUnreadCount(data.count));
+    };
 
-  socket.on("unreadCount", handleUnread);
+    socket.on("unreadCount", handleUnread);
 
-  return () => {
-    socket.off("unreadCount", handleUnread);
-  };
-}, [dispatch]);
+    return () => {
+      socket.off("unreadCount", handleUnread);
+    };
+  }, [dispatch]);
 
-useEffect(() => {
-  if (session?.user?.id) {
-    dispatch(setCurrentUser(session.user.id));
-  }
-}, [session?.user?.id, dispatch]);
+  useEffect(() => {
+    if (session?.user?.id) {
+      dispatch(setCurrentUser(session.user.id));
+    }
+  }, [session?.user?.id, dispatch]);
 
-useEffect(() => {
-  if (session?.isAuthenticated) {
-    dispatch(fetchMessageUnreadCount());
-  }
-}, [session?.isAuthenticated, dispatch]);
+  useEffect(() => {
+    if (session?.isAuthenticated) {
+      dispatch(fetchMessageUnreadCount());
+    }
+  }, [session?.isAuthenticated, dispatch]);
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -122,92 +135,92 @@ useEffect(() => {
 
   const isNotificationsPage = pathname === "/notifications";
   const isMessagePage = pathname === "/message";
-useEffect(() => {
-  const fetchUserProfile = async () => {
-    if (!session?.isAuthenticated) {
-      setProfileLoading(false);
-      return;
-    }
-
-    const publicId = session?.user?.publicId;
-
-    if (!publicId) {
-      console.error("Public ID missing in session");
-      setProfileLoading(false);
-      return;
-    }
-
-    try {
-      setProfileLoading(true);
-
-      let apiUrl = `${API_USER_PROFILE}/${publicId}`;
-
-      if (session?.user?.role === 2) {
-        apiUrl = API_CREATOR_PROFILE;
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!session?.isAuthenticated) {
+        setProfileLoading(false);
+        return;
       }
 
-      const response = await getApiWithOutQuery({ url: apiUrl });
+      const publicId = session?.user?.publicId;
 
-      console.log("Profile API Response:", response);
+      if (!publicId) {
+        console.error("Public ID missing in session");
+        setProfileLoading(false);
+        return;
+      }
 
-      if (response) {
-        let userData;
+      try {
+        setProfileLoading(true);
+
+        let apiUrl = `${API_USER_PROFILE}/${publicId}`;
 
         if (session?.user?.role === 2) {
-          if (response.user) {
-            userData = {
-              displayName: response.user.displayName,
-              username: response.user.userName,
-              firstName: response.user.firstName,
-              lastName: response.user.lastName,
-              email: response.user.email,
-              profile: response.user.profile,
-
-              walletBalance: response.user?.walletBalance ?? 0,
-              totalSubscribers: response.totalSubscribers ?? 0,
-              totalSubscriptions: response.totalSubscriptions ?? 0,
-              totalSpent: response.summary?.totalSpent ?? 0,
-              totalEarned: response.summary?.totalEarned ?? 0,
-            };
-          }
-        } else {
-          if (response.success && response.data) {
-            userData = {
-              displayName: response.data.displayName,
-              username: response.data.userName,
-              firstName: response.data.firstName,
-              lastName: response.data.lastName,
-              email: response.data.email,
-              profile: response.data.profile,
-
-              walletBalance: response.user?.walletBalance ?? 0,
-              totalSubscribers: response.totalSubscribers ?? 0,
-              totalSubscriptions: response.totalSubscriptions ?? 0,
-              totalSpent: response.summary?.totalSpent ?? 0,
-            };
-          }
+          apiUrl = API_CREATOR_PROFILE;
         }
 
-        if (userData) {
-          setUserProfile(userData);
+        const response = await getApiWithOutQuery({ url: apiUrl });
+
+        console.log("Profile API Response:", response);
+
+        if (response) {
+          let userData;
+
+          if (session?.user?.role === 2) {
+            if (response.user) {
+              userData = {
+                displayName: response.user.displayName,
+                username: response.user.userName,
+                firstName: response.user.firstName,
+                lastName: response.user.lastName,
+                email: response.user.email,
+                profile: response.user.profile,
+
+                walletBalance: response.user?.walletBalance ?? 0,
+                totalSubscribers: response.totalSubscribers ?? 0,
+                totalSubscriptions: response.totalSubscriptions ?? 0,
+                totalSpent: response.summary?.totalSpent ?? 0,
+                totalEarned: response.summary?.totalEarned ?? 0,
+              };
+            }
+          } else {
+            if (response.success && response.data) {
+              userData = {
+                displayName: response.data.displayName,
+                username: response.data.userName,
+                firstName: response.data.firstName,
+                lastName: response.data.lastName,
+                email: response.data.email,
+                profile: response.data.profile,
+
+                walletBalance: response.user?.walletBalance ?? 0,
+                totalSubscribers: response.totalSubscribers ?? 0,
+                totalSubscriptions: response.totalSubscriptions ?? 0,
+                totalSpent: response.summary?.totalSpent ?? 0,
+              };
+            }
+          }
+
+          if (userData) {
+            setUserProfile(userData);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setProfileLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setProfileLoading(false);
-    }
+    };
+
+    fetchUserProfile();
+  }, [session?.isAuthenticated, session?.user?.role, session?.user?.publicId]);
+
+  const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
+    e.preventDefault();
+    setIsOpen(false);
+
+    router.push(`/${session?.user?.userName}?tab=${tab}`);
   };
-
-  fetchUserProfile();
-}, [session?.isAuthenticated, session?.user?.role, session?.user?.publicId]);
-
-const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
-  e.preventDefault();
-  setIsOpen(false);
-
-  router.push(`/${session?.user?.userName}?tab=${tab}`);
-};
   const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     setIsOpen(false);
@@ -305,15 +318,15 @@ const handleTabNavigation = (e: React.MouseEvent, tab: string) => {
 
     fetchUnread();
   }, [session?.isAuthenticated]);
-  
+
   useEffect(() => {
-  if (session?.isAuthenticated) {
-    dispatch(fetchWallet());
-  }
-}, [session?.isAuthenticated, dispatch]);
+    if (session?.isAuthenticated) {
+      dispatch(fetchWallet());
+    }
+  }, [session?.isAuthenticated, dispatch]);
 
 
-console.log(session ,"session=============================");
+  console.log(session, "session=============================");
 
   return (
     <>
@@ -322,10 +335,7 @@ console.log(session ,"session=============================");
           <div className="header-container">
             <div className="header-logo">
               <Link href="/">
-                <img
-                  src="/images/logo/moneyboy-logo.png"
-                  alt="MoneyBoy Social Logo"
-                />
+                <img src="/images/logo/moneyboy-logo.png" alt="MoneyBoy Social Logo" />
               </Link>
             </div>
 
@@ -333,51 +343,14 @@ console.log(session ,"session=============================");
               <div className="header-search-input">
                 <div className="label-input">
                   <div className="input-placeholder-icon">
-                    <svg
-                      className="svg-icon"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <path
-                        d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14 5H20"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14 8H17"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                    <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
-<input
-  type="text"
-  placeholder="Search here"
-  value={headerSearch}
-  onChange={(e) => setHeaderSearch(e.target.value)}
-  onFocus={() => {
-    if (pathname !== "/discover") {
-      router.push("/discover");
-    }
-  }}
-/>
+                  <input type="text" placeholder="Search here" value={headerSearch} onChange={(e) => setHeaderSearch(e.target.value)} onFocus={() => { if (pathname !== "/discover") { router.push("/discover"); } }} />
                 </div>
               </div>
 
@@ -386,6 +359,29 @@ console.log(session ,"session=============================");
                   <div className="header-navigation tooltip_wrapper">
                     <nav>
                       <ul>
+                        {isMobile && (
+                          <li className="search-btn">
+                            <Link href="#" className="icon-link" onClick={(e) => { e.preventDefault(); setShowMobileSearch((prev) => !prev); }}><Search /></Link>
+                            {isMobile && (
+                              <div className="mobile-search-popup" style={mobileSearchStyle}>
+                                <div className="search-container">
+                                  <div className="label-input">
+                                    <div className="input-placeholder-icon">
+                                      <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                      </svg>
+                                    </div>
+                                    <input type="text" placeholder="Search here..." value={headerSearch} onChange={(e) => setHeaderSearch(e.target.value)} autoFocus />
+                                  </div>
+                                  <button className="btn-danger icon" onClick={() => setShowMobileSearch(false)}><CircleX size={18} /></button>
+                                </div>
+                              </div>
+                            )}
+                          </li>
+                        )}
                         <li className="message-btn">
                           <Link href="#" className={`icon-link ${isMessagePage ? "active" : ""}`} onClick={handleMessage} data-tooltip="Messages" data-position="bottom">
                             <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -605,7 +601,7 @@ console.log(session ,"session=============================");
                         <div className="menu-profile-stats-txt">
                           <div className="stats-label"> Wallet </div>
                           <div className="stats-value">
-                           <span>${balance?.toFixed(2)}</span>
+                            <span>${balance?.toFixed(2)}</span>
                             <Link
                               href="/add-funds?tab=addfunds"
                               className="load-wallet-btn"
