@@ -57,9 +57,10 @@ const LoginPage = () => {
         if (res.error.toLowerCase().includes("account is not completed yet")) {
           const token = res.error.split("token?=")[1];
           router.push(`/creator?q=${token}`);
+          return;
         }
 
-        // ShowToast("Invalid email or password", "error");
+        ShowToast("Invalid email or password", "error");
         return;
       }
       router.push("/feed");
