@@ -59,7 +59,7 @@ useEffect(() => {
   }, 60000);
 
   return () => clearInterval(interval);
-}, [session?.user?.publicId]);
+}, [session?.user?.publicId,page]);
 
   const handleRefresh = () => {
     fetchFeatured(page);
