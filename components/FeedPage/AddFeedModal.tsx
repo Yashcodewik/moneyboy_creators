@@ -37,6 +37,24 @@ import { showSuccess, showError, showQuestion } from "@/utils/alert";
 import { fetchFeedPosts, resetFeedPosts } from "@/redux/other/feedPostsSlice";
 import { useAppDispatch } from "@/redux/store";
 
+const accessContentMap = {
+  subscriber: {
+    text: "Only visible to your subscribers",
+    tooltip:
+      "This content will be visible only to your subscribers. If you tag other MoneyBoys, they must approve it before it goes live and it will also appear on their profiles.",
+  },
+  pay_per_view: {
+    text: "Sell this content in your store",
+    tooltip:
+      "This content will be available for sale in your store and in the marketplace. If you tag other MoneyBoys, you can split earnings and the content will appear in all participating creators’ stores.",
+  },
+  free: {
+    text: "Public content to get discovered and grow",
+    tooltip:
+      "This content will appear in the feed and help you grow your audience. Tagged MoneyBoys must approve it before publishing and it will appear on their profiles too.",
+  },
+};
+
 type FeedParams = { show: boolean; onClose: () => void };
 type TagUser = {
   _id: string;
@@ -770,10 +788,22 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
               Free for Everyone
             </label>
           </div>
-          <div className="warningtext">
+          {/* <div className="warningtext">
             <CircleAlert size={18} className="svgicons" /> Lorem Ipsum is simply
             dummy text of the printing and typesetting industry.
-          </div>
+          </div> */}
+
+                   <div className="warningtext">
+  <span>{accessContentMap[accessType].text}</span>
+
+  <div className="tooltip-container">
+    <CircleAlert size={16} className="svgicons info-icon" />
+
+    {/* <div className="tooltip-box">
+      {accessContentMap[accessType].tooltip}
+    </div> */}
+  </div>
+</div>
 
           {accessType === "pay_per_view" && (
             <div>
