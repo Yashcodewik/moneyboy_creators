@@ -105,30 +105,35 @@ const CreatorSignupPage = () => {
         });
 
         // ✅ If backend sends success: false
-        if (!res?.success) {
-          if (
-            res?.message?.toLowerCase().includes("email") ||
-            res?.error?.toLowerCase().includes("email")
-          ) {
-            ShowToast(
-              "Email already exists. Please use another email.",
-              "error",
-            );
-          } else {
-            ShowToast(
-              res?.message || res?.error || "Something went wrong",
-              "error",
-            );
-          }
+const message = String(res?.message || res?.error || "").toLowerCase();
 
-          setLoading(false);
-          return;
-        }
+// ❌ HANDLE ERROR FIRST
+if (!res?.success) {
+  if (message.includes("already")) {
+    ShowToast(
+      "Email already exists. Please use another email.",
+      "error"
+    );
+  } else if (message.includes("invalid")) {
+    ShowToast(
+      "Enter a valid email address",
+      "error"
+    );
+  } else {
+    ShowToast(
+      message || "Something went wrong",
+      "error"
+    );
+  }
 
-        // ✅ SUCCESS
-        ShowToast(res.message, "success");
-        setEmailForOtp(values.email);
-        setOtpOpen(true);
+  setLoading(false);
+  return; // ⛔ VERY IMPORTANT (STOP HERE)
+}
+
+// ✅ ONLY SUCCESS CASE BELOW
+ShowToast(res.message, "success");
+setEmailForOtp(values.email);
+setOtpOpen(true);
       } catch (err: any) {
         // ✅ If API throws error (409 / 400)
         if (err?.response?.data?.message?.toLowerCase().includes("email")) {
