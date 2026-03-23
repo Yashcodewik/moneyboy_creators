@@ -335,57 +335,56 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     creatorPercentageRef.current = creatorPercentage;
   }, [creatorPercentage]);
 
-  const updateUserPercentage = (changedId: string, value: number) => {
-    // ✅ Always read from refs — never from stale closure
-    const latestTagged = selectedTagUsersRef.current;
-    const latestCreatorPct = creatorPercentageRef.current;
-    const latestCreatorManuallySet = creatorManuallySetRef.current; // ← use ref
+const updateUserPercentage = (changedId: string, inputValue: number) => {
+  const allUsers = [
+    {
+      _id: "creator",
+      percentage: creatorPercentage,
+      isCreator: true,
+    },
+    ...selectedTagUsers.map((u) => ({
+      _id: u._id,
+      percentage: u.percentage,
+      isCreator: false,
+    })),
+  ];
 
-    // Step 1: Mark the changed person as manually set
-    const updatedTagged = latestTagged.map((u) =>
-      u._id === changedId ? { ...u, percentage: value, manuallySet: true } : u,
-    );
+  // 1. Clamp input (prevent invalid values)
+  const value = Math.max(0, Math.min(100, inputValue));
 
-    const newCreatorManuallySet =
-      changedId === "creator" ? true : latestCreatorManuallySet; // ← use ref value
+  // 2. Replace changed value
+  const updated = allUsers.map((u) =>
+    u._id === changedId ? { ...u, percentage: value } : u
+  );
 
-    // Step 2: Find all AUTO people (not manually set), excluding changed one
-    const autoTagged = updatedTagged.filter(
-      (u) => u._id !== changedId && !u.manuallySet,
-    );
-    const creatorIsAuto = changedId !== "creator" && !newCreatorManuallySet;
+  // 3. Calculate remaining
+  const remaining = 100 - value;
 
-    // Step 3: Sum of all LOCKED (manually set) people excluding the changed one
-    const lockedTotal =
-      updatedTagged
-        .filter((u) => u._id !== changedId && u.manuallySet)
-        .reduce((sum, u) => sum + u.percentage, 0) +
-      (changedId !== "creator" && newCreatorManuallySet ? latestCreatorPct : 0);
+  const others = updated.filter((u) => u._id !== changedId);
+  const split = others.length > 0 ? remaining / others.length : 0;
 
-    // Step 4: Distribute remaining equally among AUTO people only
-    const remaining = 100 - value - lockedTotal;
-    const autoCount = autoTagged.length + (creatorIsAuto ? 1 : 0);
-    const splitValue =
-      autoCount > 0 ? Math.floor((remaining / autoCount) * 100) / 100 : 0;
+  // 4. Distribute equally
+  const final = updated.map((u) =>
+    u._id === changedId
+      ? u
+      : { ...u, percentage: Number(split.toFixed(2)) }
+  );
 
-    // Step 5: Apply to tagged users
-    setSelectedTagUsers(
-      updatedTagged.map((u) => {
-        if (u._id === changedId) return u;
-        if (!u.manuallySet) return { ...u, percentage: splitValue }; // auto → gets split ✅
-        return u; // manually set → untouched ✅
-      }),
-    );
+  // 5. Update states
+  const creator = final.find((u) => u._id === "creator");
+  const tagged = final.filter((u) => u._id !== "creator");
 
-    // Step 6: Apply to creator
-    if (changedId === "creator") {
-      setCreatorPercentage(value);
-      setCreatorManuallySet(true);
-      creatorManuallySetRef.current = true; // ← update ref immediately
-    } else if (creatorIsAuto) {
-      setCreatorPercentage(splitValue);
-    }
-  };
+  setCreatorPercentage(creator?.percentage || 0);
+  setSelectedTagUsers((prev) =>
+    prev.map((u) => {
+      const updatedUser = tagged.find((t) => t._id === u._id);
+      return {
+        ...u,
+        percentage: updatedUser?.percentage || 0,
+      };
+    })
+  );
+};
 
   const handleAccessTypeChange = (type: AccessType) => {
     setAccessType(type);
