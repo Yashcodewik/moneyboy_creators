@@ -179,7 +179,7 @@ const StorePage = () => {
     if (unlockPost.fulfilled.match(res)) {
 
       router.push(`/purchased-media?publicId=${unlockModalPost.publicId}`);
-      
+
       dispatch(
         fetchMyPaidPosts({
           page: 1,
@@ -339,13 +339,13 @@ const StorePage = () => {
     await dispatch(
       post.isSaved
         ? unsavePost({
-            postId: post._id,
-            creatorUserId: post.userId,
-          })
+          postId: post._id,
+          creatorUserId: post.userId,
+        })
         : savePost({
-            postId: post._id,
-            creatorUserId: post.userId,
-          }),
+          postId: post._id,
+          creatorUserId: post.userId,
+        }),
     );
   };
 
@@ -518,13 +518,13 @@ const StorePage = () => {
               tabs={
                 isCreator
                   ? [
-                      {
-                        key: "mystore",
-                        label: "My store",
-                        img: "/images/logo/profile-badge.png",
-                      },
-                      { key: "marketplace", label: "Marketplace" },
-                    ]
+                    {
+                      key: "mystore",
+                      label: "My store",
+                      img: "/images/logo/profile-badge.png",
+                    },
+                    { key: "marketplace", label: "Marketplace" },
+                  ]
                   : [{ key: "marketplace", label: "Marketplace" }]
               }
             />
@@ -567,11 +567,10 @@ const StorePage = () => {
                       {creators.map((creator, index) => (
                         <li
                           key={creator._id}
-                          className={`${
-                            selectedCreator?.publicId === creator.publicId
-                              ? "active"
-                              : ""
-                          }`}
+                          className={`${selectedCreator?.publicId === creator.publicId
+                            ? "active"
+                            : ""
+                            }`}
                         >
                           <div
                             className="icons_wrap"
@@ -975,11 +974,10 @@ const StorePage = () => {
                       )}
                       {(storeImages.profileImage ||
                         activeStoreOwner?.profile) &&
-                      !specialBannerError ? (
+                        !specialBannerError ? (
                         <img
-                          src={`${
-                            storeImages.profileImage || activeStoreOwner.profile
-                          }`}
+                          src={`${storeImages.profileImage || activeStoreOwner.profile
+                            }`}
                           alt={`${activeStoreOwner.displayName || "User"} Profile`}
                         />
                       ) : (
@@ -1264,28 +1262,13 @@ const StorePage = () => {
                             </div>
                           </div>
                         </div>
-                        <div
-                          className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card"
-                          data-layout-toggle-rows={
-                            layout === "list" ? true : undefined
-                          }
-                        >
+                        <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card" data-layout-toggle-rows={layout === "list" ? true : undefined}>
                           {subActiveTab === "all" && (
-                            <div
-                              className="creator-content-type-container-wrapper"
-                              data-multi-tabs-content-tabdata__active
-                            >
+                            <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tabdata__active>
                               {loadingPaidPosts && (
                                 <div className="loadingtext">
                                   {"Loading".split("").map((char, i) => (
-                                    <span
-                                      key={i}
-                                      style={{
-                                        animationDelay: `${(i + 1) * 0.1}s`,
-                                      }}
-                                    >
-                                      {char}
-                                    </span>
+                                    <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s`, }}>{char}</span>
                                   ))}
                                 </div>
                               )}
@@ -1300,46 +1283,24 @@ const StorePage = () => {
                                     const taggedUsers =
                                       post?.collaboration?.taggedUsers ?? [];
                                     return (
-                                      <div
-                                        className="creator-media-card card"
-                                        key={post._id}
-                                      >
+                                      <div className="creator-media-card card" key={post._id}>
                                         <div className="creator-media-card__media-wrapper">
                                           <div className="creator-media-card__media">
                                             {media.type === "video" ? (
                                               media.url &&
-                                              !videoErrors[post._id] ? (
-                                                <Plyr
-                                                  options={{
-                                                    controls: [
-                                                      "play-large",
-                                                      "play",
-                                                      "progress",
-                                                      "current-time",
-                                                      "mute",
-                                                      "fullscreen",
-                                                    ],
-                                                  }}
-                                                  source={{
-                                                    type: "video",
-                                                    sources: [
-                                                      {
-                                                        src: media.url,
-                                                        type: "video/webm",
-                                                      },
-                                                    ],
-                                                  }}
+                                                !videoErrors[post._id] ? (
+                                                // <Plyr options={{controls: ["play", "fullscreen"],}} source={{type: "video", sources: [{src: media.url, type: media.url.endsWith(".mp4") ? "video/mp4" : media.url.endsWith(".webm") ? "video/webm" : "video/mp4",},],}}/>
+                                                <video
+                                                  src={media.url}
+                                                  controls
+                                                  playsInline
+                                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                                 />
                                               ) : (
-                                                <div className="noprofile">
-                                                  No Video
-                                                </div>
+                                                <div className="noprofile">No Video</div>
                                               )
                                             ) : media.type === "photo" ? (
-                                              <img
-                                                src={media.url}
-                                                alt="Post Image"
-                                              />
+                                              <img src={media.url} alt="Post Image" />
                                             ) : (
                                               <div className="noprofile">
                                                 <svg
@@ -1456,12 +1417,12 @@ const StorePage = () => {
                                                         ...(post?.collaboration
                                                           ?.taggedBy
                                                           ? [
-                                                              {
-                                                                user: post
-                                                                  .collaboration
-                                                                  .taggedBy,
-                                                              },
-                                                            ]
+                                                            {
+                                                              user: post
+                                                                .collaboration
+                                                                .taggedBy,
+                                                            },
+                                                          ]
                                                           : []),
                                                         ...(post?.collaboration
                                                           ?.taggedUsers || []),
@@ -1515,12 +1476,12 @@ const StorePage = () => {
                                                         )}
                                                       {taggedUsers.length >
                                                         2 && (
-                                                        <li className="more-count">
-                                                          +
-                                                          {taggedUsers.length -
-                                                            2}
-                                                        </li>
-                                                      )}
+                                                          <li className="more-count">
+                                                            +
+                                                            {taggedUsers.length -
+                                                              2}
+                                                          </li>
+                                                        )}
                                                     </ul>
                                                   </div>
                                                 )}
@@ -1547,7 +1508,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline grey-variant"
@@ -1564,7 +1525,7 @@ const StorePage = () => {
                                             {/* PAY PER VIEW */}
                                             {!post.isUnlocked &&
                                               post.accessType ===
-                                                "pay_per_view" && (
+                                              "pay_per_view" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline"
@@ -1611,7 +1572,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               !post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline grey-variant"
@@ -1757,7 +1718,7 @@ const StorePage = () => {
                                         <div className="creator-media-card__media-wrapper">
                                           <div className="creator-media-card__media">
                                             {media.url &&
-                                            !videoErrors[post._id] ? (
+                                              !videoErrors[post._id] ? (
                                               <Plyr
                                                 options={{
                                                   controls: [
@@ -1895,12 +1856,12 @@ const StorePage = () => {
                                                         ...(post?.collaboration
                                                           ?.taggedBy
                                                           ? [
-                                                              {
-                                                                user: post
-                                                                  .collaboration
-                                                                  .taggedBy,
-                                                              },
-                                                            ]
+                                                            {
+                                                              user: post
+                                                                .collaboration
+                                                                .taggedBy,
+                                                            },
+                                                          ]
                                                           : []),
                                                         ...(post?.collaboration
                                                           ?.taggedUsers || []),
@@ -1954,12 +1915,12 @@ const StorePage = () => {
                                                         )}
                                                       {taggedUsers.length >
                                                         2 && (
-                                                        <li className="more-count">
-                                                          +
-                                                          {taggedUsers.length -
-                                                            2}
-                                                        </li>
-                                                      )}
+                                                          <li className="more-count">
+                                                            +
+                                                            {taggedUsers.length -
+                                                              2}
+                                                          </li>
+                                                        )}
                                                     </ul>
                                                   </div>
                                                 )}
@@ -1986,7 +1947,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline grey-variant"
@@ -2003,7 +1964,7 @@ const StorePage = () => {
                                             {/* PAY PER VIEW */}
                                             {!post.isUnlocked &&
                                               post.accessType ===
-                                                "pay_per_view" && (
+                                              "pay_per_view" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline"
@@ -2050,7 +2011,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               !post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline grey-variant"
@@ -2265,12 +2226,12 @@ const StorePage = () => {
                                                         ...(post?.collaboration
                                                           ?.taggedBy
                                                           ? [
-                                                              {
-                                                                user: post
-                                                                  .collaboration
-                                                                  .taggedBy,
-                                                              },
-                                                            ]
+                                                            {
+                                                              user: post
+                                                                .collaboration
+                                                                .taggedBy,
+                                                            },
+                                                          ]
                                                           : []),
                                                         ...(post?.collaboration
                                                           ?.taggedUsers || []),
@@ -2324,12 +2285,12 @@ const StorePage = () => {
                                                         )}
                                                       {taggedUsers.length >
                                                         2 && (
-                                                        <li className="more-count">
-                                                          +
-                                                          {taggedUsers.length -
-                                                            2}
-                                                        </li>
-                                                      )}
+                                                          <li className="more-count">
+                                                            +
+                                                            {taggedUsers.length -
+                                                              2}
+                                                          </li>
+                                                        )}
                                                     </ul>
                                                   </div>
                                                 )}
@@ -2356,7 +2317,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <a
                                                   className="btn-txt-gradient shimmer btn-outline grey-variant"
                                                   onClick={() =>
@@ -2371,7 +2332,7 @@ const StorePage = () => {
                                               )}
                                             {!post.isUnlocked &&
                                               post.accessType ===
-                                                "pay_per_view" && (
+                                              "pay_per_view" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline"
@@ -2419,7 +2380,7 @@ const StorePage = () => {
                                             {!post.isUnlocked &&
                                               !post.isSubscribed &&
                                               post.accessType ===
-                                                "subscriber" && (
+                                              "subscriber" && (
                                                 <Link
                                                   href="#"
                                                   className="btn-txt-gradient shimmer btn-outline grey-variant"

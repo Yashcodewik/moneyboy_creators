@@ -264,15 +264,8 @@ const fetchProfile = async () => {
               <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft"></span></button>
               <button className="page-content-type-button active">Edit Profile</button>
             </div>
-            <BtnGroupTabs
-              activeTab={tab.toString()}
-              onChange={(key) => setTab(Number(key))}
-              tabs={[
-                { key: "0", label: "Basic information" },
-                { key: "1", label: "Pricing settings" },
-                { key: "2", label: "Account and security" },
-              ]}
-            />
+            <BtnGroupTabs activeTab={tab.toString()} onChange={(key) => setTab(Number(key))}
+              tabs={[{ key: "0", label: "Basic information" }, { key: "1", label: "Pricing settings" }, { key: "2", label: "Account and security" }, ]}/>
 
             <div className="creator-profile-page-container">
               <div className="creator-profile-front-content-container">

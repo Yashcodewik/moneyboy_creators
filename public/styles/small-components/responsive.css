@@ -237,6 +237,28 @@
                 .user-profile-card__info-container {
                     padding: 8px;
                     position: relative;
+                    &.text_iconset {
+                    .user-profile-card__info {
+                        width: calc(100% - 30px);
+                        min-width: calc(100% - 30px);
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        .w-fit {
+                            width: calc(100% - 20px);
+                            .user-profile-card__name {
+                              width: calc(100% - 20px);
+                              overflow: hidden;
+                            }
+                        }
+                    }
+                    .btntooltip_wrapper {
+                        .user-profile-card__wishlist-btn {
+                        right: 0px;
+                        position: relative;
+                        }
+                    }
+                    }
 
                     .user-profile-card__info {
                         .user-profile-card__name-badge {

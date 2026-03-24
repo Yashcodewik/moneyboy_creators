@@ -12,6 +12,7 @@ import {
   API_GET_CONNECTIONS,
 } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 const BlacklistPage = () => {
   const router = useRouter();
@@ -20,6 +21,7 @@ const BlacklistPage = () => {
   const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [reason, setReason] = useState("");
+  const isMobile = useDeviceType();
   useEffect(() => {
     if (isModalOpen) {
       fetchConnections();
@@ -240,6 +242,13 @@ const BlacklistPage = () => {
                                     <p className="heading">Reason</p>
                                     <p>{user.reason}</p>
                                   </div>
+                                  {isMobile && (
+                                    <div className="rel-user-actions">
+                                      <button className="btn-txt-gradient btn-outline" type="button" onClick={() => handleUnblockUser(user._id)}>
+                                        <span>Unblock</span>
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>

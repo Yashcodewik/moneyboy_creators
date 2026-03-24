@@ -1701,7 +1701,7 @@
                                   strokeLinejoin="round"
                                 ></path>
                               </svg>
-                              <span>Posts</span>
+                              <span className="fs_11">Posts</span>
                             </div>
                           </div>
                           {/* Followers */}
@@ -1749,7 +1749,7 @@
                                     strokeLinejoin="round"
                                   ></path>
                                 </svg>
-                                <span>Followers</span>
+                                <span className="fs_11">Followers</span>
                               </div>
                             </div>
                           </Link>
@@ -1784,7 +1784,7 @@
                                     strokeLinejoin="round"
                                   ></path>
                                 </svg>
-                                <span>Following</span>
+                                <span className="fs_11">Following</span>
                               </div>
                             </div>
                           </Link>
@@ -1844,57 +1844,22 @@
                       <div className="creator-subscriptions-container">
                         <div className="subscriptions-container">
                           <ul>
-                            <li
-                              className={currentPlan === "MONTHLY" ? "active" : ""}
-                            >
+                            <li className={currentPlan === "MONTHLY" ? "active" : ""}>
                               <div className="subscription-info">
-                                <div className="subscription-label">
-                                  Monthly Subscription
-                                </div>
+                                <div className="subscription-label">Monthly Subscription</div>
                                 <div className="subscription-price">
-                                  <h3>
-                                    ${" "}
-                                    {profile?.subscription?.monthlyPrice ||
-                                      "Not Updated yet"}
-                                  </h3>
+                                  <h3>${" "} {profile?.subscription?.monthlyPrice || "Not Updated yet"}</h3>
                                   <span>/Month</span>
                                 </div>
                               </div>
                               <div className="subscripton-button">
                                 {isOwnProfile ? (
-                                  <button
-                                    className="btn-txt-gradient shimmer btn-outline p-sm gap-5"
-                                    onClick={() =>
-                                      router.push(
-                                        "/creator-edit-profile?tab=pricing",
-                                      )
-                                    }
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="16"
-                                      height="16"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="url(#pencilGradient)"
-                                      stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                    >
+                                  <button className="btn-txt-gradient shimmer btn-outline p-sm gap-5" onClick={() => router.push("/creator-edit-profile?tab=pricing",)}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="url(#pencilGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                       <defs>
-                                        <linearGradient
-                                          id="pencilGradient"
-                                          x1="0"
-                                          y1="0"
-                                          x2="24"
-                                          y2="24"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
+                                        <linearGradient id="pencilGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
                                           <stop offset="0%" stop-color="#FECE26" />
-                                          <stop
-                                            offset="100%"
-                                            stop-color="#E5741F"
-                                          />
+                                          <stop offset="100%" stop-color="#E5741F"/>
                                         </linearGradient>
                                       </defs>
                                       <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
@@ -1920,7 +1885,7 @@
                                       "Not Updated yet"}
                                   </h3>
                                   <span>/Year</span>
-                                  <div className="save-txt">
+                                  <div className="save-txt fs_10">
                                     {(() => {
                                       const savings = calculateYearlySavings(
                                         profile?.subscription?.monthlyPrice,
