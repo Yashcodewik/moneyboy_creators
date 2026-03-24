@@ -18,6 +18,7 @@ import { buildAuthOptions } from "@/libs/auth";
 import ReduxProvider from "@/redux/ReduxProvider";
 import ScrollToTop from "./ScrollToTop";
 import AgeGate from "./AgeGate";
+import SocketProvider from "./providers/SocketProvider";
 
 export const metadata: Metadata = {
   title: "Moneyboy Creators",
@@ -80,9 +81,12 @@ export default async function RootLayout({
         <ScrollToTop />
         <ReduxProvider>
           <AuthProviders session={session}>
+             <SocketProvider>
             {children}
             <AgeGate />
+            </SocketProvider>
           </AuthProviders>
+          
         </ReduxProvider>
       </body>
     </html>
