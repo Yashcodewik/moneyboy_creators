@@ -7,7 +7,12 @@ import {
   API_REPORT_USER,
   API_TRENDING_CREATORS,
 } from "@/utils/api/APIConstant";
-import { apiPost, getApi, getApiWithOutQuery } from "@/utils/endpoints/common";
+import {
+  apiPost,
+  getApi,
+  getApiByParams,
+  getApiWithOutQuery,
+} from "@/utils/endpoints/common";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "../../redux/store";
@@ -189,8 +194,8 @@ const FollowersPage = () => {
       try {
         await Promise.all([
           fetchCreators(),
-          fetchFollowers(),
-          fetchFollowing(),
+          fetchFollowers(1, "", time), // ✅ PASS TIME
+          fetchFollowing(1, "", time),
         ]);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -200,7 +205,7 @@ const FollowersPage = () => {
     };
 
     fetchAllData();
-  }, [userIdParam]);
+  }, [userIdParam, time]);
 
   const fetchCreators = async (pageNo = 1) => {
     setCreatorsLoading(true);
@@ -252,15 +257,19 @@ const FollowersPage = () => {
     }
   };
 
-  const fetchFollowers = async (pageNo = 1, search = "") => {
+  const fetchFollowers = async (
+    pageNo = 1,
+    search = "",
+    selectedTime?: string,
+  ) => {
     setFollowersLoading(true);
+    const finalTime = selectedTime ?? time ?? "all_time";
+    console.log("FINAL TIME:", finalTime);
+
     try {
-      const res = await getApi({
+      const res = await getApiByParams({
         url: API_GET_FOLLOWERS,
-        page: pageNo,
-        rowsPerPage: 10,
-        searchText: search,
-        id: userIdParam || "",
+        params: `?page=${pageNo}&rowsPerPage=10&q=${search}&id=${userIdParam || ""}&time=${finalTime}`,
       });
 
       if (res?.success) {
@@ -280,15 +289,17 @@ const FollowersPage = () => {
     }
   };
 
-  const fetchFollowing = async (pageNo = 1, search = "") => {
+  const fetchFollowing = async (
+    pageNo = 1,
+    search = "",
+    selectedTime?: string,
+  ) => {
     setFollowingLoading(true);
+    const finalTime = selectedTime ?? time ?? "all_time";
     try {
-      const res = await getApi({
+      const res = await getApiByParams({
         url: API_GET_FOLLOWING,
-        page: pageNo,
-        rowsPerPage: 10,
-        searchText: search,
-        id: userIdParam,
+        params: `?page=${pageNo}&rowsPerPage=10&q=${search}&id=${userIdParam || ""}&time=${finalTime}`,
       });
 
       if (res?.success) {
@@ -1329,6 +1340,20 @@ const FollowersPage = () => {
                               options={timeOptions}
                               value={selectedOption}
                               searchable={false}
+                              onChange={(val: any) => {
+                                console.log("SELECTED:", val);
+
+                                const selectedTime = val; // ✅ FIX
+
+                                setSelectedOption(val.label);
+                                setTime(selectedTime);
+
+                                fetchFollowers(
+                                  1,
+                                  followersSearchQuery,
+                                  selectedTime,
+                                ); // ✅ correct
+                              }}
                             />
                           </div>
                         </div>
@@ -1410,10 +1435,17 @@ const FollowersPage = () => {
                               options={timeOptions}
                               value={time}
                               searchable={false}
-                              // onChange={(val) => {
-                              //   setTime(val);
-                              //   fetchLikedPosts(1);
-                              // }}
+                              onChange={(val: any) => {
+                                const selectedTime = val;
+
+                                setTime(selectedTime);
+
+                                fetchFollowing(
+                                  1,
+                                  followingSearchQuery,
+                                  selectedTime,
+                                );
+                              }}
                             />
                           </div>
                         </div>

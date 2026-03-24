@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { fetchPurchasedMedia, fetchPurchasedMediaCreators, updateVideoProgress, toggleWatchLater } from "./Action";
+import { addPostViewAction } from "../feed/feedAction";
 
 interface Creator {
   _id: string;
@@ -154,7 +155,17 @@ reducers: {
         .addCase(toggleWatchLater.rejected, (state, action) => {
           state.error =
             (action.payload as string) || "Failed to toggle watch later";
-        });
+        })
+
+        .addCase(addPostViewAction.fulfilled, (state, action) => {
+  const { publicId } = action.payload;
+
+  state.items = state.items.map((item) =>
+    item.publicId === publicId
+      ? { ...item, viewCount: (item.viewCount || 0) + 1 }
+      : item
+  );
+});
   },
 });
 

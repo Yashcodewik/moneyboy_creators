@@ -35,7 +35,7 @@
     import TipModal from "./TipModal";
     import PPVRequestModal from "./PPVRequestModal";
     import UnlockContentModal from "./UnlockContentModal";
-    import { AtSign, Pencil, Trash2 } from "lucide-react";
+    import { AtSign, CircleArrowLeft, CircleArrowRight, Pencil, Trash2 } from "lucide-react";
     import toast from "react-hot-toast";
     import Link from "next/link";
     import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
@@ -150,8 +150,11 @@
       const sessionUsername = session?.user?.userName;
       const [coverError, setCoverError] = useState(false);
       const [avatarError, setAvatarError] = useState(false);
+      
       const [upgradeLoading, setUpgradeLoading] = useState(false);
       const searchParams = useSearchParams();
+      const [page, setPage] = useState(1);
+const limit = 12;
       useEffect(() => {
   const tab = searchParams.get("tab");
   if (tab) {
@@ -177,8 +180,14 @@
       const dispatch = useDispatch<AppDispatch>();
     const handleTabClick = (tabName: string) => {
   setActiveTab(tabName);
+   setPage(1); 
   router.push(`/${username}?tab=${tabName}`);
 };
+
+useEffect(() => {
+  setPage(1);
+}, [search, timeFilter, activeTab]);
+
       const isOwnProfile = sessionUsername === username;
       const { data: profileData, refetch } = useQuery({
         queryKey: ["creator-profile", username],
@@ -311,20 +320,25 @@
 
         setSubLoading(false);
       };
+      const typeParam =
+  activeTab === "videos"
+    ? "video"
+    : activeTab === "photos"
+    ? "photo"
+    : "";
 
       const { data: postsData, isLoading: postsLoading } = useQuery({
-        queryKey: ["creator-posts", username, search, timeFilter],
-        queryFn: () =>
-          getApiByParams({
-            url: API_GET_POSTS_BY_CREATOR,
-            params: `${username}?search=${encodeURIComponent(
-              search || "",
-            )}&time=${timeFilter}`,
-          }),
+        queryKey: ["creator-posts", username, search, timeFilter,page,activeTab],
+      queryFn: () =>
+  getApiByParams({
+    url: API_GET_POSTS_BY_CREATOR,
+   params: `${username}?search=${encodeURIComponent(search || "")}&time=${timeFilter}&page=${page}&limit=${limit}&type=${typeParam}`,
+  }),
         enabled: !!username,
       });
 
       const posts = postsData?.posts || [];
+const totalPages = postsData?.meta?.totalPages || 1;
       const photoPosts = posts?.filter((post: any) =>
         post?.media?.some((m: any) => m.type === "photo"),
       );
@@ -394,6 +408,75 @@
           setUpgradeLoading(false);
         }
       };
+const renderPagination = () => {
+  if (!totalPages || totalPages <= 1) return null;
+
+  const pages: (number | string)[] = [];
+
+  const start = Math.max(1, page - 1);
+  const end = Math.min(totalPages, page + 1);
+
+  if (start > 1) {
+    pages.push(1);
+    if (start > 2) pages.push("...");
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  if (end < totalPages) {
+    if (end < totalPages - 1) pages.push("...");
+    pages.push(totalPages);
+  }
+
+  return (
+    <div className="pagination_wrap">
+      {/* PREVIOUS */}
+      <button
+        className="btn-prev"
+        disabled={page === 1 || postsLoading}
+        onClick={() => {
+          if (!postsLoading) setPage((prev) => prev - 1);
+        }}
+      >
+        <CircleArrowLeft color="#000" />
+      </button>
+
+      {/* PAGE NUMBERS */}
+      {pages.map((p, i) =>
+        p === "..." ? (
+          <button key={i} className="premium-btn shimmer" disabled>
+            <span>…</span>
+          </button>
+        ) : (
+          <button
+            key={i}
+            className={page === p ? "premium-btn shimmer" : "btn-primary"}
+            onClick={() => {
+              if (!postsLoading && p !== page) {
+                setPage(p as number);
+              }
+            }}
+          >
+            <span>{p}</span>
+          </button>
+        )
+      )}
+
+      {/* NEXT */}
+      <button
+        className="btn-next"
+        disabled={page === totalPages || postsLoading}
+        onClick={() => {
+          if (!postsLoading) setPage((prev) => prev + 1);
+        }}
+      >
+        <CircleArrowRight color="#000" />
+      </button>
+    </div>
+  );
+};
 
     const handleSendTip = async (
       amount: number,
@@ -1067,7 +1150,7 @@
                           ></path>
                         </svg>
                       </button>
-                      <span>{post?.commentCount}</span>
+                      <span>{post?.viewCount}</span>
                     </div>
                     {/* thumup-btn  */}
                     <div className="creator-content-stat-box thumup-btn active">
@@ -1141,18 +1224,23 @@
               data-direct-cards-layout
               data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
             >
-              {!postsLoading && filteredPosts.length === 0 && (
+              <>
+                            {!postsLoading && filteredPosts.length === 0 && (
                 <div className="nofound grid-span-4">
                   <h3 className="first">No media found</h3>
                   <h3 className="second">No media found</h3>
                 </div>
               )}
 
+
               {!postsLoading &&
                 filteredPosts.length > 0 &&
                 filteredPosts.map((post: any) => (
                   <PostCard key={post.publicId} post={post} />
                 ))}
+                 {renderPagination()}
+                </>
+
             </div>
           </div>
         </div>

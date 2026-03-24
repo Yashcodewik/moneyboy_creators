@@ -43,6 +43,7 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import {
+  addPostViewAction,
   dislikePostAction,
   likePostAction,
   removeReactionAction,
@@ -313,6 +314,7 @@ const PurchasedMediaPage: React.FC = () => {
       );
 
       if (matchedItem) {
+           dispatch(addPostViewAction(matchedItem.publicId)); 
         setSelectedItemId(matchedItem._id);
         setShowVideo(true);
 
@@ -687,11 +689,11 @@ const PurchasedMediaPage: React.FC = () => {
                       </div>
                       {selectedItem?.accessType !== "PPV Request" && (
                       <div className="meta-bar">
-                        {selectedItem.viewCount > 0 && (
+                      
                           <div className="meta-item view">
                             <FaEye /> <span>{selectedItem.viewCount}</span>
                           </div>
-                        )}
+                        
                         <div className="meta-item">
                           <span>{formatDate(selectedItem.createdAt)}</span>
                         </div>
@@ -1016,6 +1018,7 @@ const PurchasedMediaPage: React.FC = () => {
                               key={item._id}
                               item={item}
                               onOpen={(item) => {
+                                 dispatch(addPostViewAction(item.publicId)); 
                                 setShowVideo(false);
 
                                 setTimeout(() => {
