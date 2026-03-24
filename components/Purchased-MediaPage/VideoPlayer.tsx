@@ -29,11 +29,7 @@ const VideoPlayer = memo(function VideoPlayer({
   const progressSenderRef = useRef<any>(null);
 
   /* 👁 View count (publicId based) */
-  useEffect(() => {
-    if (!viewed[publicId]) {
-      dispatch(addPostViewAction(publicId));
-    }
-  }, [publicId]);
+
 
   useEffect(() => {
     progressSenderRef.current = debounce(() => {

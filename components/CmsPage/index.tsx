@@ -42,7 +42,8 @@ const CmsPage: React.FC<CmsPageProps> = ({
     return html
       .replace(/&nbsp;/gi, " ")
       .replace(/\u00A0/g, " ")
-      .replace(/<ul>/g, '<ul class="points">')
+       .replace(/<ul>/g, '<ul class="points link_points">') 
+        // .replace(/<ul>/g, '<ul class="points">')
       .replace(/<ol>/g, '<ol class="number">')
       .replace(/<p>\s*<\/p>/g, "")
       .trim();

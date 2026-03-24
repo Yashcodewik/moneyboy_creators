@@ -19,6 +19,8 @@ import ShowToast from "../common/ShowToast";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { addWalletFunds, fetchWallet } from "@/redux/wallet/Action";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 const CreditCard = dynamic(
   () => import("credit-card-ui-react").then((m) => m.CreditCard),
@@ -44,11 +46,65 @@ const AddFundsPage = () => {
     (state: RootState) => state.wallet,
   );
 
-  const [cardData, setCardData] = useState({
-    name: "",
-    number: "",
-    expiry: "",
-    cvc: "",
+  const cardFormik = useFormik({
+    initialValues: {
+      name: "",
+      number: "",
+      expiry: "",
+      cvc: "",
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Cardholder name required"),
+      number: Yup.string()
+        .required("Card number required")
+        .test("len", "Card number must be 16 digits", (val) => {
+          return val?.replace(/\s/g, "").length === 16;
+        }),
+      expiry: Yup.string()
+        .required("Expiry required")
+        .matches(/^(0[1-9]|1[0-2])\/\d{2}$/, "Invalid expiry (MM/YY)")
+        .test("not-expired", "Card is expired", function (value) {
+          if (!value) return false;
+
+          const [month, year] = value.split("/");
+          const expMonth = parseInt(month, 10);
+          const expYear = parseInt("20" + year, 10);
+
+          const now = new Date();
+          const currentMonth = now.getMonth() + 1;
+          const currentYear = now.getFullYear();
+
+          if (expYear < currentYear) return false;
+          if (expYear === currentYear && expMonth < currentMonth) return false;
+
+          return true;
+        }),
+
+      cvc: Yup.string()
+        .required("CVC required")
+        .matches(/^\d{3}$/, "CVC must be 3 digits"),
+    }),
+    onSubmit: async (values, { resetForm }) => {
+      const [month, year] = values.expiry.split("/");
+
+      const res = await apiPost({
+        url: API_ADD_CARD,
+        values: {
+          cardholderName: values.name,
+          cardNumber: values.number.replace(/\s/g, ""),
+          expMonth: Number(month),
+          expYear: Number("20" + year),
+        },
+      });
+
+      if (res?.success) {
+        ShowToast(res.message, "success");
+        resetForm();
+        fetchCards();
+      } else {
+        ShowToast(res?.message || "Failed", "error");
+      }
+    },
   });
 
   useEffect(() => {
@@ -58,45 +114,6 @@ const AddFundsPage = () => {
       setTab(1);
     }
   }, [tabParam]);
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-
-    if (name === "expiry") {
-      // Allow only numbers
-      let formattedValue = value.replace(/\D/g, "");
-
-      // Add slash automatically after 2 digits
-      if (formattedValue.length >= 3) {
-        formattedValue =
-          formattedValue.slice(0, 2) + "/" + formattedValue.slice(2, 4);
-      }
-
-      // Limit to MM/YY (5 chars)
-      formattedValue = formattedValue.slice(0, 5);
-
-      setCardData((prev) => ({ ...prev, expiry: formattedValue }));
-      return;
-    }
-
-    if (name === "cvc") {
-      // Only numbers, max 4 digits
-      const cvcValue = value.replace(/\D/g, "").slice(0, 4);
-      setCardData((prev) => ({ ...prev, cvc: cvcValue }));
-      return;
-    }
-
-    if (name === "number") {
-      // Only numbers, auto space every 4 digits
-      let cardValue = value.replace(/\D/g, "").slice(0, 16);
-      cardValue = cardValue.replace(/(.{4})/g, "$1 ").trim();
-      setCardData((prev) => ({ ...prev, number: cardValue }));
-      return;
-    }
-
-    // Default behavior (for name field)
-    setCardData((prev) => ({ ...prev, [name]: value }));
-  };
 
   useEffect(() => {
     fetchCards();
@@ -114,40 +131,6 @@ const AddFundsPage = () => {
     }
 
     setLoadingCards(false);
-  };
-
-  const handleAddCard = async (e: any) => {
-    if (!cardData.number || !cardData.expiry) {
-      ShowToast("Enter card details", "error");
-      return;
-    }
-
-    const [month, year] = cardData.expiry.split("/");
-
-    const res = await apiPost({
-      url: API_ADD_CARD,
-      values: {
-        cardholderName: cardData.name,
-        cardNumber: cardData.number.replace(/\s/g, ""),
-        expMonth: Number(month),
-        expYear: Number("20" + year),
-      },
-    });
-
-    if (res?.success) {
-      ShowToast(res.message, "success");
-
-      setCardData({
-        name: "",
-        number: "",
-        expiry: "",
-        cvc: "",
-      });
-
-      fetchCards(); // refresh cards
-    } else {
-      ShowToast(res?.message || "Failed to add card", "error");
-    }
   };
 
   const handleAddMoney = () => {
@@ -227,23 +210,33 @@ const AddFundsPage = () => {
                           <input
                             type="text"
                             name="name"
-                            placeholder="Cardholder Name"
-                            value={cardData.name}
-                            onChange={handleChange}
+                            value={cardFormik.values.name}
+                            onChange={cardFormik.handleChange}
+                            onBlur={cardFormik.handleBlur}
                           />
                         </div>
+                        {cardFormik.touched.name && cardFormik.errors.name && (
+                          <p className="error-message">
+                            {cardFormik.errors.name}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label>Card Number</label>
                         <div className="label-input">
                           <input
-                            type="tel"
+                            type="text"
                             name="number"
-                            placeholder="Card Number"
-                            value={cardData.number}
-                            onChange={handleChange}
+                            maxLength={16}
+                            value={cardFormik.values.number}
+                            onChange={cardFormik.handleChange}
                           />
                         </div>
+                        {cardFormik.errors.number && (
+                          <p className="error-message">
+                            {cardFormik.errors.number}
+                          </p>
+                        )}
                       </div>
                       <div className="grid grid-2">
                         <div>
@@ -252,38 +245,59 @@ const AddFundsPage = () => {
                             <input
                               type="text"
                               name="expiry"
-                              placeholder="MM/YY"
-                              value={cardData.expiry}
-                              onChange={handleChange}
+                              value={cardFormik.values.expiry}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/\D/g, "");
+
+                                if (value.length >= 3) {
+                                  value =
+                                    value.slice(0, 2) + "/" + value.slice(2, 4);
+                                }
+
+                                cardFormik.setFieldValue(
+                                  "expiry",
+                                  value.slice(0, 5),
+                                );
+                              }}
+                              onBlur={cardFormik.handleBlur}
                             />
                           </div>
+                          {cardFormik.touched.expiry &&
+                            cardFormik.errors.expiry && (
+                              <p className="error-message">
+                                {cardFormik.errors.expiry}
+                              </p>
+                            )}
                         </div>
                         <div>
                           <label>CVC</label>
                           <div className="label-input">
                             <input
-                              type="tel"
+                              type="text"
                               name="cvc"
-                              placeholder="CVC"
-                              maxLength={3}
-                              value={cardData.cvc}
+                              value={cardFormik.values.cvc}
                               onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, "");
-                                setCardData((prev) => ({
-                                  ...prev,
-                                  cvc: value,
-                                }));
+                                const value = e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 3);
+                                cardFormik.setFieldValue("cvc", value);
                               }}
-                              onFocus={() => setFlipped(true)}
-                              onBlur={() => setFlipped(false)}
+                              onBlur={cardFormik.handleBlur}
                             />
                           </div>
+
+                          {cardFormik.touched.cvc && cardFormik.errors.cvc && (
+                            <p className="error-message">
+                              {cardFormik.errors.cvc}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="btm_btn">
                         <button
+                          type="button"
                           className="btn-txt-gradient"
-                          onClick={handleAddCard}
+                          onClick={() => cardFormik.handleSubmit()}
                         >
                           <span>Add card</span>
                         </button>
@@ -296,7 +310,7 @@ const AddFundsPage = () => {
                       {/* <img src="/images/cardimg.png" className="img-fluid w-max"/> */}
                       <div className="bankcard_wrapper">
                         {/* Live Preview Card (New Card Being Added) */}
-                        {cardData.number && (
+                        {cardFormik.values.number && (
                           <CreditCard
                             brand="visa"
                             size="sm"
@@ -314,10 +328,10 @@ const AddFundsPage = () => {
                               intensity: 0.35,
                               noise: 0.12,
                             }}
-                            cardNumber={cardData.number}
-                            cardholderName={cardData.name}
-                            expiryDate={cardData.expiry}
-                            cvv={cardData.cvc}
+                            cardNumber={cardFormik.values.number}
+                            cardholderName={cardFormik.values.name}
+                            expiryDate={cardFormik.values.expiry}
+                            cvv={cardFormik.values.cvc}
                             level="gold"
                           />
                         )}
