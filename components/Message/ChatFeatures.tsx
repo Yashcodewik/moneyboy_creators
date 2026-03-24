@@ -25,14 +25,22 @@ const ChatFeatures = ({
 }) => {
   const [searchText, setSearchText] = useState("");
   const router = useRouter();
-  const { isBlocked, isHidden } = useAppSelector((state) => state.message);
+  const { isBlocked, isHidden, isMute } = useAppSelector((state) => state.message);
 
   const dispatch = useAppDispatch();
 
   const handleMute = async () => {
-    await dispatch(muteThread(threadPublicId));
-    toast.success("Conversation muted");
-    onClose();
+    const res: any = await dispatch(muteThread(threadPublicId));
+
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success(
+        res.payload?.isMuted
+          ? "Conversation muted"
+          : "Conversation unmuted"
+      );
+    } else {
+      toast.error("Failed to toggle mute");
+    }
   };
 
   const handleHide = async () => {
@@ -173,7 +181,7 @@ const ChatFeatures = ({
               ></path>
             </svg>
           </div>
-          <span>Mute Conversation</span>
+           <span>{isMute ? "Unmute Conversation" : "Mute Conversation"}</span>
         </li>
         <li onClick={handleHide}>
           <div className="icon hide-icon">

@@ -13,7 +13,7 @@ import socket from "@/libs/socket";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWallet } from "@/redux/wallet/Action";
-import { setCurrentUser, setMessageUnreadCount } from "@/redux/message/messageSlice";
+import { selectTotalUnread, setCurrentUser } from "@/redux/message/messageSlice";
 import { fetchMessageUnreadCount } from "@/redux/message/messageActions";
 import { CircleX, Search } from "lucide-react";
 import { useDeviceType } from "@/hooks/useDeviceType";
@@ -44,6 +44,20 @@ const Header = () => {
     transition: "all 0.3s ease",
   };
 
+//   useEffect(() => {
+//   if (!session?.user?.id) return;
+
+//   const handleMessage = () => {
+//     dispatch(incrementUnread());
+//   };
+
+//   socket.on("newMessage", handleMessage);
+
+//   return () => {
+//     socket.off("newMessage", handleMessage);
+//   };
+// }, [session?.user?.id]);
+
   useEffect(() => {
     const delay = setTimeout(() => {
       if (pathname !== "/discover") return;
@@ -66,22 +80,9 @@ const Header = () => {
     (state: RootState) => state.wallet
   );
 
-  const { messageUnreadCount } = useSelector(
-    (state: RootState) => state.message
-  );
+const messageUnreadCount = useSelector(selectTotalUnread);
 
-  useEffect(() => {
-    const handleUnread = (data: { count: number }) => {
-      dispatch(setMessageUnreadCount(data.count));
-    };
-
-    socket.on("unreadCount", handleUnread);
-
-    return () => {
-      socket.off("unreadCount", handleUnread);
-    };
-  }, [dispatch]);
-
+console.log("HEADER COUNT:", messageUnreadCount);
   useEffect(() => {
     if (session?.user?.id) {
       dispatch(setCurrentUser(session.user.id));

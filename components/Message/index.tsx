@@ -33,6 +33,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   deleteThread,
   fetchMessages,
+  fetchMessageUnreadCount,
   fetchSidebar,
   reportThread,
 } from "@/redux/message/messageActions";
@@ -40,6 +41,7 @@ import {
   addSocketMessage,
   clearMessages,
   markMessagesReadFromSocket,
+  resetThreadUnread,
   setActiveThread,
   setThreadDetails,
   updatePPVStatus,
@@ -102,6 +104,7 @@ const MessagePage = () => {
   const isUploadingVoiceRef = useRef(false);
   const isMobile = useDeviceType();
 
+
   const { isBlockedByYou, isBlockedByOther } = useAppSelector(
     (state) => state.message,
   );
@@ -139,24 +142,24 @@ const MessagePage = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
+  // useEffect(() => {
+  //   if (!session?.user?.id) return;
 
-    const onNewMessage = (msg: any) => dispatch(addSocketMessage(msg));
-    const onRead = ({ readerId }: any) => {
-      if (readerId !== session.user.id) {
-        dispatch(markMessagesReadFromSocket(readerId));
-      }
-    };
+  //   const onNewMessage = (msg: any) => dispatch(addSocketMessage(msg));
+  //   const onRead = ({ readerId }: any) => {
+  //     if (readerId !== session.user.id) {
+  //       dispatch(markMessagesReadFromSocket(readerId));
+  //     }
+  //   };
 
-    socket.on("newMessage", onNewMessage);
-    socket.on("messagesRead", onRead);
+  //   socket.on("newMessage", onNewMessage);
+  //   socket.on("messagesRead", onRead);
 
-    return () => {
-      socket.off("newMessage", onNewMessage);
-      socket.off("messagesRead", onRead);
-    };
-  }, [session?.user?.id, dispatch]);
+  //   return () => {
+  //     socket.off("newMessage", onNewMessage);
+  //     socket.off("messagesRead", onRead);
+  //   };
+  // }, [session?.user?.id, dispatch]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -170,18 +173,7 @@ const MessagePage = () => {
     return () => clearInterval(interval);
   }, [session?.user?.id]);
 
-  useEffect(() => {
-    const handler = (msg: any) => {
-      console.log("🔥 SOCKET MESSAGE RECEIVED:", msg);
-      dispatch(addSocketMessage(msg));
-    };
 
-    socket.on("newMessage", handler);
-
-    return () => {
-      socket.off("newMessage", handler);
-    };
-  }, [dispatch]);
 
   // Scroll to bottom whenever messages change or active thread changes.
   // Using a sentinel <div> at the bottom + scrollIntoView inside rAF
@@ -237,6 +229,7 @@ const MessagePage = () => {
       threadId: activeThreadId,
       userId: session.user.id,
     });
+    dispatch(resetThreadUnread(activeThreadId));
   }, [activeThreadId, session?.user?.id]);
 
   useEffect(() => {
@@ -1114,6 +1107,7 @@ const sendMessage = () => {
           <div className="moneyboy-2x-1x-a-layout">
             <div className="msg-page-wrapper card">
               <div className="msg-page-container" msg-page-wrapper={true}>
+                
                 <SideBar
                   activeThreadId={activeThreadId}
                   onSelectChat={(thread: any) => {
@@ -1122,7 +1116,7 @@ const sendMessage = () => {
                     router.replace(`/message?threadId=${thread.publicId}`);
                   }}
                 />
-                <div className="msg-chats-layout">
+                <div className="msg-chats-layout">                
                   <div
                     className="msg-chats-rooms-container"
                     msg-chat-rooms-wrapper=""

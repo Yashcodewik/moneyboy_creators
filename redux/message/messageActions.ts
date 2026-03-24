@@ -69,13 +69,16 @@ export const sendMessageAction = createAsyncThunk(
 // Mute
 export const muteThread = createAsyncThunk(
   "message/muteThread",
-  async (threadId: string) => {
-    await apiPost({
+  async (threadId: string, { getState }) => {
+    const res = await apiPost({
       url: `/messages/thread/mute/${threadId}`,
       values: {},
     });
 
-    return threadId;
+    return {
+      threadId,
+      isMuted: res?.isMuted, // 👈 IMPORTANT
+    };
   },
 );
 
