@@ -127,8 +127,8 @@ const RequestPayoutPage = () => {
                         <h3>$ {summary.walletBalance.toFixed(2)}</h3>
                       </div>
                       <div >
-                        <p>Incoming</p>
-                        <h3>$ {summary.pendingPayout.toFixed(2)}</h3>
+                        <p className="small">Incoming</p>
+                        <h3 className="small">$ {summary.pendingPayout.toFixed(2)}</h3>
                       </div>
                     
                     </div>
