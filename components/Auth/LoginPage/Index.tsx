@@ -92,7 +92,7 @@ const LoginPage = () => {
         <div className="backicons">
           <button
             className="btn-txt-gradient btn-outline"
-            onClick={() => router.push("/feed")}
+            onClick={() => router.push("/")}
           >
             <IoArrowBackOutline className="icons" />
           </button>

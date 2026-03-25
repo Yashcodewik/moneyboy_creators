@@ -136,15 +136,25 @@ const FollowersPage = () => {
     setOpenMoreId((prev) => (prev === id ? null : id));
   };
 
-  const handleShareProfile = (publicId: string, role: number) => {
-    const basePath = role === 2 ? "profile" : "userprofile";
+const handleShareProfile = (
+  publicId: string,
+  role: number,
+  username?: string
+) => {
+  let url = "";
 
-    const url = `${window.location.origin}/${basePath}/${publicId}`;
+  if (role === 2 && username) {
+    // ✅ creator → username route
+    url = `${window.location.origin}/${username}`;
+  } else {
+    // ✅ normal user → existing route
+    url = `${window.location.origin}/userprofile/${publicId}`;
+  }
 
-    navigator.clipboard.writeText(url);
+  navigator.clipboard.writeText(url);
 
-    ShowToast("Profile link copied", "success");
-  };
+  ShowToast("Profile link copied", "success");
+};
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -187,7 +197,11 @@ const FollowersPage = () => {
   }, []);
 
   // const userIdParam = searchParams.get("q");
-  const userIdParam = searchParams.get("id");
+ const userIdParam = searchParams.get("id") || searchParams.get("q");
+
+ console.log("currentUserId:", currentUserId);
+console.log("userIdParam:", userIdParam);
+console.log("isOwnProfile:", currentUserId === userIdParam);
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -206,7 +220,7 @@ const FollowersPage = () => {
 
     fetchAllData();
   }, [userIdParam, time]);
-
+const isOwnProfile = currentUserId === userIdParam;
   const fetchCreators = async (pageNo = 1) => {
     setCreatorsLoading(true);
     const res = await getApiWithOutQuery({
@@ -792,7 +806,7 @@ const FollowersPage = () => {
                     </button>
                   )}
               </div>
-              {follower._id == currentUserId && (
+              {isOwnProfile && (
                 <div
                   className="rel-user-more-opts-wrapper"
                   data-more-actions-toggle-element
@@ -830,12 +844,13 @@ const FollowersPage = () => {
                       <div className="rel-users-more-opts-popup-container">
                         <ul>
                           <li
-                            onClick={() =>
-                              handleShareProfile(
-                                follower.publicId,
-                                follower.role,
-                              )
-                            }
+                           onClick={() =>
+  handleShareProfile(
+    follower.publicId,
+    follower.role,
+    follower.userName
+  )
+}
                           >
                             <div className="icon share-icon">
                               <svg
@@ -1576,7 +1591,14 @@ const FollowersPage = () => {
                     <div className="rel-user-profile-action">
                       <div className="rel-user-profile">
                         <div className="profile-card">
-                          <a href="#" className="profile-card__main">
+                        <a
+                          href={`/${creator.userName}`} 
+                          className="profile-card__main"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          router.push(`/${creator.userName}`);
+                        }}
+                        >
                             <div className="profile-card__avatar-settings">
                               <div className="profile-card__avatar">
                                 {creator.profileImage &&

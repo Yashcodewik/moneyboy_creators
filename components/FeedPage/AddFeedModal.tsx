@@ -293,6 +293,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     }, 400);
   };
 
+
   const toggleTagUser = (user: TagUser) => {
     setSelectedTagUsers((prev) => {
       const exists = prev.find((u) => u._id === user._id);
@@ -305,24 +306,32 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           showError("Maximum 5 creators allowed");
           return prev;
         }
-        updated = [...prev, { ...user, percentage: 0, manuallySet: false }];
+        updated = [...prev, { ...user, percentage: 5, manuallySet: false }];
       }
 
       const total = updated.length + 1;
-      const equalShare = Number((100 / total).toFixed(2));
+const creatorShare = 40; // or dynamic if you want
+const remaining = 100 - creatorShare;
+
+const rawShare = updated.length > 0 ? remaining / updated.length : 0;
+const equalShare = Math.max(5, Math.round(rawShare / 5) * 5);
 
       let distributed = 0;
 
-      const updatedUsers = updated.map((u, index) => {
-        if (index === updated.length - 1) {
-          // last user gets remaining to fix rounding
-          const remaining = Number((100 - (distributed + equalShare)).toFixed(2));
-          return {
-            ...u,
-            percentage: Number((equalShare + remaining).toFixed(2)),
-            manuallySet: false,
-          };
-        }
+     const updatedUsers = updated.map((u, index) => {
+  let val = equalShare;
+
+  if (index === updated.length - 1) {
+    val = Math.max(5, 100 - (creatorShare + distributed));
+  }
+
+  distributed += val;
+
+  return {
+    ...u,
+    percentage: val,
+    manuallySet: false,
+  };
 
         distributed += equalShare;
 
@@ -333,24 +342,20 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         };
       });
 
-      setCreatorPercentage(equalShare);
-      creatorPercentageRef.current = equalShare; // ← update ref immediately ✅
+    setCreatorPercentage(creatorShare);
+      creatorPercentageRef.current = creatorShare;
 
       setCreatorManuallySet(false);
-      creatorManuallySetRef.current = false; // ← update ref immediately ✅
+      creatorManuallySetRef.current = false; 
 
-      return updated.map((u) => ({
-        ...u,
-        percentage: equalShare,
-        manuallySet: false,
-      }));
+     return updatedUsers;
     });
   };
 
   const selectedTagUsersRef = useRef(selectedTagUsers);
   const creatorPercentageRef = useRef(creatorPercentage);
 
-  // Keep refs in sync with state
+  
   useEffect(() => {
     selectedTagUsersRef.current = selectedTagUsers;
   }, [selectedTagUsers]);
@@ -359,85 +364,130 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     creatorPercentageRef.current = creatorPercentage;
   }, [creatorPercentage]);
 
-  const updateUserPercentage = (changedId: string, inputValue: number) => {
-    const value = Math.max(0, Math.min(100, inputValue));
+const updateUserPercentage = (changedId: string, inputValue: number) => {
+  // ✅ Force multiples of 5 only
+  const value = Math.round(inputValue / 5) * 5;
+  const totalUsers = selectedTagUsers.length + 1; // including creator
 
-    // Build users list
-    let creator = {
-      _id: "creator",
-      percentage: creatorPercentage,
-      locked: true, // always locked
-    };
+// each other must have at least 5
+const maxAllowed = 100 - (totalUsers - 1) * 5;
 
-    let others = selectedTagUsers.map((u) => ({
-      _id: u._id,
-      percentage: u.percentage,
-      locked: u._id === changedId ? true : u.manuallySet || false,
-    }));
+const safeValue = Math.max(5, Math.min(maxAllowed, value));
 
-    // 👉 If creator changed
-    if (changedId === "creator") {
-      creator.percentage = value;
+  let creator = {
+    _id: "creator",
+    percentage: creatorPercentage,
+    locked: true,
+  };
 
-      const remaining = 100 - value;
-      const unlocked = others;
+  let others = selectedTagUsers.map((u) => ({
+    _id: u._id,
+    percentage: u.percentage,
+    locked: u._id === changedId ? true : u.manuallySet || false,
+  }));
 
-      const split = unlocked.length > 0 ? remaining / unlocked.length : 0;
+  // =========================
+  // 👉 CREATOR UPDATED
+  // =========================
+  if (changedId === "creator") {
+    creator.percentage = safeValue;
 
-      const updatedOthers = unlocked.map((u) => ({
+    const remaining = 100 - safeValue;
+    const split = others.length > 0 ? remaining / others.length : 0;
+
+    let distributed = 0;
+
+    const updatedOthers = others.map((u, index) => {
+      let val = Math.round(split / 5) * 5;
+
+      if (index === others.length - 1) {
+        // ✅ Fix rounding difference
+        val = Math.max(5, 100 - (safeValue + distributed));
+      }
+
+      distributed += val;
+
+      return {
         ...u,
-        percentage: Number(split.toFixed(2)),
+        percentage: val,
         locked: false,
-      }));
+      };
+    });
 
-      setCreatorPercentage(value);
-      setSelectedTagUsers((prev) =>
-        prev.map((u) => {
-          const found = updatedOthers.find((f) => f._id === u._id);
-          return {
-            ...u, // ✅ keep original fields (displayName, userName, etc.)
-            percentage: found?.percentage || 0,
-            manuallySet: found?.locked || false,
-          };
-        })
-      );
-      return;
-    }
-
-    // 👉 Update changed user & lock it
-    others = others.map((u) =>
-      u._id === changedId ? { ...u, percentage: value, locked: true } : u
-    );
-
-    // 👉 Calculate remaining after locked users
-    const lockedTotal =
-      creator.percentage +
-      others
-        .filter((u) => u.locked)
-        .reduce((sum, u) => sum + u.percentage, 0);
-
-    const unlocked = others.filter((u) => !u.locked);
-
-    const remaining = 100 - lockedTotal;
-    const split = unlocked.length > 0 ? remaining / unlocked.length : 0;
-
-    const finalOthers = others.map((u) =>
-      u.locked
-        ? u
-        : { ...u, percentage: Number(split.toFixed(2)) }
-    );
+    setCreatorPercentage(safeValue);
 
     setSelectedTagUsers((prev) =>
       prev.map((u) => {
-        const found = finalOthers.find((f) => f._id === u._id);
+        const found = updatedOthers.find((f) => f._id === u._id);
         return {
           ...u,
           percentage: found?.percentage || 0,
-          manuallySet: found?.locked || false,
+          manuallySet: false,
         };
       })
     );
-  };
+
+    return;
+  }
+
+  // =========================
+  // 👉 USER UPDATED
+  // =========================
+  others = others.map((u) =>
+    u._id === changedId
+      ? { ...u, percentage: safeValue, locked: true }
+      : u
+  );
+
+  const lockedTotal =
+    creator.percentage +
+    others
+      .filter((u) => u.locked)
+      .reduce((sum, u) => sum + u.percentage, 0);
+
+  const unlocked = others.filter((u) => !u.locked);
+
+  const remaining = 100 - lockedTotal;
+  const split = unlocked.length > 0 ? remaining / unlocked.length : 0;
+
+  let distributed = 0;
+
+  const finalOthers = others.map((u, index) => {
+    if (u.locked) return u;
+
+    let val = Math.round(split / 5) * 5;
+
+    if (index === others.length - 1) {
+    const remainingForLast =
+  100 -
+  (creator.percentage +
+    others
+      .filter((x) => x.locked)
+      .reduce((s, x) => s + x.percentage, 0) +
+    distributed);
+
+val = Math.max(5, remainingForLast);
+    }
+
+    distributed += val;
+
+    return {
+      ...u,
+      percentage: val,
+    };
+  });
+
+  setSelectedTagUsers((prev) =>
+    prev.map((u) => {
+      const found = finalOthers.find((f) => f._id === u._id);
+      return {
+        ...u,
+        percentage: found?.percentage || 0,
+        manuallySet: found?.locked || false,
+      };
+    })
+  );
+};
 
   const handleAccessTypeChange = (type: AccessType) => {
     setAccessType(type);
@@ -1023,11 +1073,44 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       )}
 
                       {accessType === "pay_per_view" && (
-                        <div className="quantity">
-                          <button className="qty-btn"><Minus size={16} /></button>
-                          <input type="number" className="form-input" defaultValue={1} min={1} max={10} />
-                          <button className="qty-btn"><Plus size={16} /></button>
-                        </div>
+                     <div className="quantity">
+  <button
+    type="button"
+    className="qty-btn"
+    onClick={() => {
+      const current = user.percentage || 0;
+      const newVal = Math.max(5, current - 5);
+      updateUserPercentage(
+        user.isCreator ? "creator" : user._id,
+        newVal
+      );
+    }}
+  >
+    <Minus size={16} />
+  </button>
+
+  <input
+    type="text"
+    className="form-input text-center"
+    value={`${user.percentage || 0}%`}
+    disabled
+  />
+
+  <button
+    type="button"
+    className="qty-btn"
+    onClick={() => {
+      const current = user.percentage || 0;
+      const newVal = Math.min(100, current + 5);
+      updateUserPercentage(
+        user.isCreator ? "creator" : user._id,
+        newVal
+      );
+    }}
+  >
+    <Plus size={16} />
+  </button>
+</div>
                         // <input
                         //   type="number"
                         //   placeholder="Add Percentage"

@@ -248,7 +248,7 @@ setOtpOpen(true);
                     <div className="backicons">
                       <button
                         className="cate-back-btn active-down-effect"
-                        onClick={() => router.push("/feed")}
+                        onClick={() => router.push("/")}
                       >
                         <span>
                           <IoArrowBackOutline className="icons" />
