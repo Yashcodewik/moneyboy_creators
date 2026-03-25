@@ -25,6 +25,8 @@ import {
   CalendarDays,
   CircleAlert,
   CircleX,
+  Minus,
+  Plus,
   Smile,
   X,
 } from "lucide-react";
@@ -1030,19 +1032,24 @@ const difference = Number((100 - totalPercentage).toFixed(2));
                       )}
 
                       {accessType === "pay_per_view" && (
-                        <input
-                          type="number"
-                          placeholder="Add Percentage"
-                          className="form-input"
-                          value={user.percentage || ""}
-                          onChange={(e) => {
-                            const value = Number(e.target.value);
-                            updateUserPercentage(
-                              user.isCreator ? "creator" : user._id,
-                              value,
-                            );
-                          }}
-                        />
+                        <div className="quantity">
+                          <button className="qty-btn"><Minus size={16} /></button>
+                          <input type="number" className="input-box" defaultValue={1} min={1} max={10}/>
+                          <button className="qty-btn"><Plus size={16} /></button>
+                        </div>
+                        // <input
+                        //   type="number"
+                        //   placeholder="Add Percentage"
+                        //   className="form-input"
+                        //   value={user.percentage || ""}
+                        //   onChange={(e) => {
+                        //     const value = Number(e.target.value);
+                        //     updateUserPercentage(
+                        //       user.isCreator ? "creator" : user._id,
+                        //       value,
+                        //     );
+                        //   }}
+                        // />
                       )}
                     </div>
                     {/* <button

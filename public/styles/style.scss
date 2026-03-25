@@ -2053,6 +2053,59 @@ textarea:focus {
   }
 }
 
+// Quantity Start
+.quantity {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+      transition: var(--transition-fast);
+    svg {
+      fill: #FFF;
+      stroke: #FFF;
+    }
+    &:hover {
+      background: linear-gradient(93.25deg, #e5741f -49.57%, #fece26 98.1%);
+    }
+    &:first-child {
+      border-right: 1px solid #eee;
+    }
+    &:last-child {
+      border-left: 1px solid #eee;
+    }
+  }
+  .input-box {
+    width: 50px;
+    height: 38px;
+    border: none;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    border: 0px;
+    border-radius: 0px;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    &[type="number"] {
+      -moz-appearance: textfield;
+    }
+  }
+}
+
 /* Custome class Start  */
 .pointer {
   cursor: pointer;
