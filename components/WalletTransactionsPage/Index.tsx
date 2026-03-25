@@ -144,11 +144,11 @@ const WalletTransactionsPage = () => {
     if (activeTab === "payments") {
       if (session?.user?.role === 2) {
         return [
-          { label: "Received", value: "received" },
-          { label: "Sent", value: "sent" },
+          { label: "Deposit", value: "received" },
+          { label: "Payouts", value: "sent" },
         ];
       }
-      return [{ label: "Sent", value: "sent" }];
+      return [{ label: "Deposit", value: "received" }];
     }
 
     return [];
@@ -351,10 +351,10 @@ const WalletTransactionsPage = () => {
                   {activeTab !== "details" && (
                     <div className="creator-content-cards-wrapper wtransactions_containt">
                       <div className="rel-users-wrapper">
-                        {session?.user?.role === 2 && (
+                        {session?.user?.role === 2 && activeTab === "wallet" &&(
                           <>
                             <div className="history_wrap">
-                              <div className="rline">
+                              {/* <div className="rline">
                                 <p>
                                   Total{" "}
                                   {mode === "expenses"
@@ -380,7 +380,7 @@ const WalletTransactionsPage = () => {
                                   {summary?.totalReviewAmount?.toFixed(2) ||
                                     "0.00"}
                                 </h3>
-                              </div>
+                              </div> */}
                               <div className="">
                                 <p>Wallet Balance</p>
                                 <h3>
@@ -402,7 +402,7 @@ const WalletTransactionsPage = () => {
                             </div>
                           </>
                         )}
-                        {session?.user?.role === 1 && (
+                        {session?.user?.role === 1 && activeTab === "wallet" && (
                           <div className="payout_wrap">
                             <div>
                               <p>Current Balance</p>
@@ -426,6 +426,7 @@ const WalletTransactionsPage = () => {
                           const otherUser = isIncoming
                             ? txn.fromUser
                             : txn.toUser;
+                            const isPaymentTab = activeTab === "payments";
 
                           return (
                             <div className="rel-user-box" key={txn._id}>
@@ -436,6 +437,7 @@ const WalletTransactionsPage = () => {
                                       href="#"
                                       className="profile-card__main"
                                     >
+                                      {!isPaymentTab && (
                                       <div className="profile-card__avatar-settings">
                                         <div className="profile-card__avatar">
                                           {otherUser?.profile ? (
@@ -492,7 +494,10 @@ const WalletTransactionsPage = () => {
                                           />
                                         </div>
                                       </div>
+                                      )}
                                       <div className="profile-card__info">
+                                        {!isPaymentTab && (
+                                          <>
                                         <div className="profile-card__username tphead">
                                           {isIncoming ? "From" : "To"}
                                         </div>
@@ -501,6 +506,8 @@ const WalletTransactionsPage = () => {
                                             {otherUser?.displayName}
                                           </div>
                                         </div>
+                                        </>
+                                        )}
                                         <div className="profile-card__username">
                                           {txn.status === "SUCCESS" && (
                                             <span className="badge success">
@@ -539,6 +546,15 @@ const WalletTransactionsPage = () => {
                                       <p>{txn.type.replace("_", " ")}</p>
                                     </div>
                                   </div>
+                                  {isPaymentTab && (
+                                   <div className="date_wrap">
+                                    <svg className="icons noteDocument" />
+                                    <div className="containt">
+                                      <span>Payment method</span>
+                                      <p>{txn.paymentMethod || "card"}</p>
+                                    </div>
+                                  </div>
+                                  )}
 
                                   <div className="date_wrap">
                                     <svg className="icons calendarNote" />
@@ -558,7 +574,7 @@ const WalletTransactionsPage = () => {
                                   </div>
                                 </div>
                               </div>
-
+                            {!isPaymentTab && (
                               <div className="rel-user-desc">
                                 <div>
                                   <p className="heading">Discription</p>
@@ -577,6 +593,8 @@ const WalletTransactionsPage = () => {
                                   </button>
                                 </div>
                               </div>
+                            )}
+                             
                             </div>
                           );
                         })}
@@ -619,10 +637,10 @@ const WalletTransactionsPage = () => {
                   </svg>
                 </button>
                 <div className="icntext_wrap">
-                  <div className="iconsbox">
+                  {/* <div className="iconsbox">
                     <svg className="icons box3d" width="24" height="24" />
-                  </div>
-                  <h3>#80900857</h3>
+                  </div> */}
+                  {/* <h3>#80900857</h3> */}
                 </div>
               </div>
 
@@ -703,6 +721,15 @@ const WalletTransactionsPage = () => {
                                     </p>
                                   </div>
                                 </div>
+                              
+                                   <div className="date_wrap">
+                                    <svg className="icons noteDocument" />
+                                    <div className="containt">
+                                      <span>Payment method</span>
+                                      <p>{selectedTransaction.paymentMethod || "card"}</p>
+                                    </div>
+                                  </div>
+                                 
 
                                 {/* Date */}
                                 <div className="date_wrap">
