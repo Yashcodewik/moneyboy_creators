@@ -113,6 +113,18 @@ export const deleteThread = createAsyncThunk(
     return threadId;
   },
 );
+//clear chat
+export const clearConversation = createAsyncThunk(
+  "message/clearConversation",
+  async (threadId: string) => {
+    await apiPost({
+      url: `/messages/thread/clear/${threadId}`, 
+      values: {},
+    });
+
+    return threadId;
+  }
+);
 
 // Search
 export const searchMessages = createAsyncThunk(

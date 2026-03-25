@@ -31,6 +31,7 @@ import NoProfileSvg from "../common/NoProfileSvg";
 import { CgClose } from "react-icons/cg";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
+  clearConversation,
   deleteThread,
   fetchMessages,
   fetchMessageUnreadCount,
@@ -743,7 +744,8 @@ const sendMessage = () => {
       toast.error("No active conversation");
       return;
     }
-    await dispatch(deleteThread(activeThreadId));
+   await dispatch(clearConversation(activeThreadId));
+dispatch(clearMessages()); // 🔥 instant UI clear
     setIsOpen(false);
     setShowDeleteModal(false);
     showSuccess("Conversation deleted successfully");
