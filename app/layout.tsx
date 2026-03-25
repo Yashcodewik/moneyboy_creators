@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Geist,
-  Geist_Mono,
-  Poppins,
-  Plus_Jakarta_Sans,
-} from "next/font/google";
+import { Geist, Geist_Mono, Poppins, Plus_Jakarta_Sans,} from "next/font/google";
 import localFont from "next/font/local";
 import "../public/styles/main.css";
 import "../public/styles/pages/discover-page/layout.css";
@@ -12,6 +7,7 @@ import "../public/styles/main-responsive.css";
 import "../public/styles/pages/discover-page/responsive.css";
 import "../public/styles/icons.css";
 import "../public/styles/style.scss";
+// import "../public/styles/modal.scss";
 import AuthProviders from "@/libs/authProviders";
 import { getServerSession } from "next-auth/next";
 import { buildAuthOptions } from "@/libs/auth";

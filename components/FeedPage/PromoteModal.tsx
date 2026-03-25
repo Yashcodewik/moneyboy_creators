@@ -1,3 +1,222 @@
+// "use client";
+
+// import { CgClose } from "react-icons/cg";
+// import {
+//   API_GET_ACTIVE_PROMOTION,
+//   API_GET_PROMOTIONS,
+//   API_PROMOTE_PROFILE,
+// } from "@/utils/api/APIConstant";
+// import ShowToast from "@/components/common/ShowToast";
+// import { useEffect, useState } from "react";
+// import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+// import Modal from "../Modal";
+
+// const PromoteModal = ({
+//   onClose,
+//   show,
+// }: {
+//   onClose: () => void;
+//   show: boolean;
+// }) => {
+//   const [loading, setLoading] = useState(false);
+//   const [duration, setDuration] = useState(3);
+//   const [paymentType, setPaymentType] = useState("wallet");
+//   const [plans, setPlans] = useState<any[]>([]);
+//   const [activePromotion, setActivePromotion] = useState<any>(null);
+
+//   const selectedPlan = plans.find((p) => Number(p.days) === Number(duration));
+//   const pricePerDay = Number(selectedPlan?.price || 0);
+
+//   const totalPrice = selectedPlan
+//     ? (pricePerDay * Number(duration)).toFixed(2)
+//     : "0.00";
+
+//   // ================= API =================
+//   const handlePromote = async () => {
+//     try {
+//       setLoading(true);
+
+//       const response = await apiPost({
+//         url: API_PROMOTE_PROFILE,
+//         values: {
+//           duration,
+//           price: Number(totalPrice),
+//           paymentType,
+//         },
+//       });
+
+//       if (response?.success) {
+//         ShowToast("Profile promoted successfully 🚀", "success");
+//         onClose();
+//       } else {
+//         ShowToast(response?.message || "Something went wrong", "error");
+//       }
+//     } catch (err) {
+//       ShowToast("Something went wrong", "error");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // ================= FETCH =================
+//   const fetchPromotions = async () => {
+//     try {
+//       const res = await getApiWithOutQuery({
+//         url: API_GET_PROMOTIONS,
+//       });
+
+//       if (res?.success && res.data?.length) {
+//         const sortedPlans = res.data.sort(
+//           (a: any, b: any) => Number(a.days) - Number(b.days)
+//         );
+
+//         setPlans(sortedPlans);
+//         setDuration(Number(sortedPlans[0].days));
+//       } else {
+//         ShowToast("Failed to load promotion plans", "error");
+//       }
+//     } catch {
+//       ShowToast("Failed to load promotion plans", "error");
+//     }
+//   };
+
+//   const fetchActivePromotion = async () => {
+//     try {
+//       const res = await getApiWithOutQuery({
+//         url: API_GET_ACTIVE_PROMOTION,
+//       });
+
+//       if (res?.success && res.data && Object.keys(res.data).length > 0) {
+//         setActivePromotion(res.data);
+//       } else {
+//         setActivePromotion(null);
+//       }
+//     } catch {
+//       setActivePromotion(null);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (!show) return;
+
+//     fetchPromotions();
+//     fetchActivePromotion();
+//   }, [show]);
+
+//   // ================= TIMER =================
+//   const remainingDays = activePromotion
+//     ? Math.max(
+//         0,
+//         Math.ceil(
+//           (new Date(activePromotion.expiresAt).getTime() - Date.now()) /
+//             (1000 * 60 * 60 * 24)
+//         )
+//       )
+//     : 0;
+
+//   useEffect(() => {
+//     if (!activePromotion) return;
+
+//     const expiryTime = new Date(activePromotion.expiresAt).getTime();
+
+//     const timer = setInterval(() => {
+//       if (Date.now() >= expiryTime) {
+//         setActivePromotion(null);
+//         fetchActivePromotion();
+//       }
+//     }, 60000);
+
+//     return () => clearInterval(timer);
+//   }, [activePromotion]);
+
+//   // ================= ACTIVE UI =================
+//   if (activePromotion) {
+//     return (
+//       <Modal className="promote_wrap" size="md" show={show} title=" " onClose={onClose}>
+//         <div className="modal_containt promote-modal">
+//           <h3 className="title">Promotion Active 🚀</h3>
+//           <p>Your profile is currently being promoted.</p>
+//           <div className="total_wrap">
+//             <div>
+//               <h3>Promotion Duration</h3>
+//               <p>{activePromotion.duration} Days</p>
+//             </div>
+//             <div>
+//               <h2>{remainingDays} Days Left</h2>
+//             </div>
+//           </div>
+
+//           <div className="note">
+//             <p> Your profile is visible in the Featured section until the promotion expires.</p>
+//           </div>
+//           <div className="actions">
+//             <button
+//               className="premium-btn active-down-effect"
+//               onClick={onClose}
+//             >
+//               <span>Close</span>
+//             </button>
+//           </div>
+//         </div>
+//       </Modal>
+//     );
+//   }
+
+//   // ================= NORMAL UI =================
+//   return (
+//     <Modal className="promote_wrap" size="md" show={show} title=" " onClose={onClose}>
+//       <div className="modal_containt promote-modal">
+//         <h3 className="title">Promote Your Profile</h3>
+//         <p>Increase your visibility! Promote your profile to appear in the Featured section and attract more users.</p>
+//         <div className="note">
+//           <p>Choose your promotion plan and pay easily with your Wallet or card.</p>
+//         </div>
+//         {/* Plans */}
+//         <div className="select_wrap grid2">
+//           {plans.map((plan) => (
+//             <label key={plan._id} className="radio_wrap box_select">
+//               <input type="radio" name="duration" checked={Number(duration) === Number(plan.days)} onChange={() => setDuration(Number(plan.days))}/>
+//               <h3>{plan.days} Days</h3>
+//               <p>${plan.price} /Day</p>
+//             </label>
+//           ))}
+//         </div>
+//         {/* Total */}
+//         <div className="total_wrap">
+//           <div>
+//             <h3>Total Price</h3>
+//             <p>{duration} Days × ${pricePerDay} /day</p>
+//           </div>
+//           <div>
+//             <h2>${totalPrice}</h2>
+//           </div>
+//         </div>
+//         {/* Payment */}
+//         <h4>Payment Method</h4>
+//         <div className="select_wrap">
+//           <label className="radio_wrap">
+//             <input type="radio" checked={paymentType === "wallet"} onChange={() => setPaymentType("wallet")}/>
+//             <img src="/images/icons/wallet_icons.svg" className="icons" />
+//             <p>Wallet</p>
+//           </label>
+//           <label className="radio_wrap">
+//             <input type="radio" checked={paymentType === "card"} onChange={() => setPaymentType("card")}/>
+//             <img src="/images/icons/card_icons.svg" className="icons" />
+//             <p>Card</p>
+//           </label>
+//         </div>
+//         {/* Actions */}
+//         <div className="actions">
+//           <button className="premium-btn active-down-effect" onClick={handlePromote} disabled={loading}><span>{loading ? "Processing..." : "Confirm & Promote"}</span></button>
+//           <button className="active-down-effect" onClick={onClose}><span>Cancel</span></button>
+//         </div>
+//       </div>
+//     </Modal>
+//   );
+// };
+
+// export default PromoteModal;
+
 "use client";
 
 import { CgClose } from "react-icons/cg";

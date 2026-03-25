@@ -77,18 +77,18 @@ const EditProfilePage = () => {
     fetchProfile();
   }, []);
 
-const fetchProfile = async () => {
-  const res = await getApiWithOutQuery({ url: API_CREATOR_PROFILE_INFO });
+  const fetchProfile = async () => {
+    const res = await getApiWithOutQuery({ url: API_CREATOR_PROFILE_INFO });
 
-  if (res?.user) {
-    const merged = {
-      ...res.user,
-      ...(res.creator || {}), // handles null creator
-    };
+    if (res?.user) {
+      const merged = {
+        ...res.user,
+        ...(res.creator || {}), // handles null creator
+      };
 
-    setFormData(merged);
-  }
-};
+      setFormData(merged);
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -261,11 +261,11 @@ const fetchProfile = async () => {
         <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
           <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
             <div className="moneyboy-feed-page-cate-buttons card show_mobail" id="posts-tabs-btn-card">
-              <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft"></span></button>
+              <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft hwhite"></span></button>
               <button className="page-content-type-button active">Edit Profile</button>
             </div>
             <BtnGroupTabs activeTab={tab.toString()} onChange={(key) => setTab(Number(key))}
-              tabs={[{ key: "0", label: "Basic information" }, { key: "1", label: "Pricing settings" }, { key: "2", label: "Account and security" }, ]}/>
+              tabs={[{ key: "0", label: "Basic information" }, { key: "1", label: "Pricing settings" }, { key: "2", label: "Account and security" },]} />
 
             <div className="creator-profile-page-container">
               <div className="creator-profile-front-content-container">

@@ -295,7 +295,7 @@
         .moneyboy-main-asides-layout-container {
             flex-direction: column-reverse;
             gap: 8px;
-            padding: 10px 0 90px;
+            padding: 10px 0 120px;
 
             /* Conditional Styling: Adjusts sidebar width when a custom scrollbar is present (via the `has-scroll` class) */
             &:has(.moneyboy-global-sidebar-wrapper.has-scroll) {

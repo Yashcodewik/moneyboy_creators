@@ -283,8 +283,8 @@
                     .user-profile-card__wishlist-btn {
                         width: 30px;
                         min-width: 30px;
-                        position: absolute;
-                        right: 8px;
+                        /* position: absolute;
+                        right: 8px; */
 
                         &:hover {
                             svg {}

@@ -43,6 +43,7 @@ const Header = () => {
     pointerEvents: showMobileSearch ? "auto" : "none",
     transition: "all 0.3s ease",
   };
+  const [showPromote, setShowPromote] = useState(false);
 
 //   useEffect(() => {
 //   if (!session?.user?.id) return;
@@ -1687,15 +1688,7 @@ console.log("HEADER COUNT:", messageUnreadCount);
                         </a>
                       )}
                       {session?.user?.role === 2 && (
-                        <a
-                          href="#"
-                          className="menu-link premium-btn"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            console.log("Promote Profile clicked");
-                            setShowPromoteModal(true);
-                          }}
-                        >
+                        <a href="#" className="menu-link premium-btn" onClick={() => setShowPromoteModal(true)}>
                           <svg
                             className="self-colored"
                             xmlns="http://www.w3.org/2000/svg"
@@ -1833,7 +1826,7 @@ console.log("HEADER COUNT:", messageUnreadCount);
         </div>
       )}
       {showPromoteModal && (
-        <PromoteModal onClose={() => setShowPromoteModal(false)} />
+        <PromoteModal show={showPromoteModal} onClose={() => setShowPromoteModal(false)} />
       )}
     </>
   );

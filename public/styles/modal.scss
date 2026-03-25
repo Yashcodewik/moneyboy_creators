@@ -1,0 +1,286 @@
+// ── Variables ────────────────────────────────────────────────
+:root {
+  --modal-zindex: 1055;
+  --modal-width: 500px;
+  --modal-sm: 300px;
+  --modal-lg: 650px;
+  --modal-xl: 1140px;
+
+  --modal-padding: 25px;
+  --modal-margin: 0.5rem;
+  --modal-margin-sm-up: 1.75rem;
+
+  --modal-color: #212529;
+  --modal-bg: #ffffff;
+  --modal-border-color: rgba(0, 0, 0, 0.175);
+  --modal-border-width: 1px;
+  --modal-border-radius: 20px;
+  --modal-inner-border-radius: calc(0.5rem - 1px);
+
+  --modal-box-shadow-normal: 0 20px 40px #00000026, 0 5px 15px #0000000d;
+  --modal-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --modal-box-shadow-sm-up: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+  --modal-header-padding-x: 1rem;
+  --modal-header-padding-y: 1rem;
+  --modal-header-border-color: #dee2e6;
+  --modal-header-border-width: 1px;
+
+  --modal-title-line-height: 1.5;
+
+  --modal-footer-gap: 0.5rem;
+  --modal-footer-bg: transparent;
+  --modal-footer-border-color: #dee2e6;
+  --modal-footer-border-width: 1px;
+
+  --modal-backdrop-bg: #000000;
+  --modal-backdrop-opacity: 0.5;
+  --modal-backdrop-zindex: 1050;
+}
+
+
+// ── Backdrop ─────────────────────────────────────────────────
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--modal-backdrop-zindex);
+  background-color: var(--modal-backdrop-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); // Safari
+  opacity: 0;
+  transition: opacity 0.25s ease, backdrop-filter 0.25s ease;
+
+  &.show {
+    opacity: var(--modal-backdrop-opacity);
+  }
+}
+
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--modal-zindex);
+  display: none;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  background: #00000054;
+  box-shadow: var(--modal-box-shadow-normal);
+
+  &.show {
+    display: block;
+  }
+
+  // Fade: slide down before show
+  &.fade .modal-dialog {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+
+  // Shown: reset transform
+  &.show .modal-dialog {
+    transform: none;
+    opacity: 1;
+  }
+
+  // Static: scale bounce
+  &.modal-static .modal-dialog {
+    transform: scale(1.02);
+  }
+}
+
+.modal-dialog {
+  position: relative;
+  width: auto;
+  margin: var(--modal-margin);
+  pointer-events: none;
+  transition: transform 0.3s ease-out, opacity 0.25s ease;
+}
+
+.modal-dialog-scrollable {
+  height: calc(100% - var(--modal-margin) * 2);
+  .modal-content {
+    max-height: 100%;
+    overflow: hidden;
+  }
+  .modal-body {
+    overflow-y: auto;
+  }
+}
+
+.modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-height: calc(100% - var(--modal-margin) * 2);
+}
+
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  color: var(--modal-color);
+  pointer-events: auto;
+  background-color: var(--modal-bg);
+  background-clip: padding-box;
+  border: var(--modal-border-width) solid var(--modal-border-color);
+  border-radius: var(--modal-border-radius);
+  box-shadow: var(--modal-box-shadow);
+  outline: 0;
+  padding: var(--modal-padding);
+}
+
+
+.modal-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0px;
+  border-bottom: 0px;
+  border-top-left-radius: var(--modal-inner-border-radius);
+  border-top-right-radius: var(--modal-inner-border-radius);
+  .btn-close {
+    padding:
+      calc(var(--modal-header-padding-y) * 0.5) calc(var(--modal-header-padding-x) * 0.5);
+    margin-top: calc(-0.5 * var(--modal-header-padding-y));
+    margin-right: calc(-0.5 * var(--modal-header-padding-x));
+    margin-bottom: calc(-0.5 * var(--modal-header-padding-y));
+    margin-left: auto;
+    cursor: pointer;
+    display: inline-flex;
+  }
+}
+
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: 0;
+  text-transform: capitalize;
+  font-family: var(--font-family-base);
+  margin-bottom: 0;
+}
+
+.modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  padding: 0px;
+}
+
+.modal-footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--modal-footer-gap);
+  padding: calc(var(--modal-padding) - var(--modal-footer-gap) * 0.5);
+  background-color: var(--modal-footer-bg);
+  border-top: var(--modal-footer-border-width) solid var(--modal-footer-border-color);
+  border-bottom-left-radius: var(--modal-inner-border-radius);
+  border-bottom-right-radius: var(--modal-inner-border-radius);
+}
+
+
+// ── Size variants ─────────────────────────────────────────────
+
+// ≥ 576px — sm and up
+@media (min-width: 576px) {
+  .modal {
+    --modal-margin: var(--modal-margin-sm-up);
+    --modal-box-shadow: var(--modal-box-shadow-sm-up);
+  }
+  .modal-dialog {
+    max-width: var(--modal-width);
+    margin-right: auto;
+    margin-left: auto;
+  }
+  .modal-sm {
+    --modal-width: var(--modal-sm);
+  }
+}
+
+// ≥ 992px — lg and up
+@media (min-width: 992px) {
+  .modal-lg,
+  .modal-xl {
+    --modal-width: var(--modal-lg);
+  }
+}
+// ≥ 1200px — xl and up
+@media (min-width: 1200px) {
+  .modal-xl {
+    --modal-width: var(--modal-xl);
+  }
+}
+
+// ── Fullscreen variants ───────────────────────────────────────
+
+// Mixin to avoid repeating fullscreen rules
+@mixin modal-fullscreen {
+  width: 100vw;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+
+  .modal-content {
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .modal-header,
+  .modal-footer {
+    border-radius: 0;
+  }
+
+  .modal-body {
+    overflow-y: auto;
+  }
+}
+
+// Always fullscreen
+.modal-fullscreen {
+  @include modal-fullscreen;
+}
+
+// Fullscreen below sm  (< 576px)
+@media (max-width: 575.98px) {
+  .modal-fullscreen-sm-down {
+    @include modal-fullscreen;
+  }
+}
+
+// Fullscreen below md  (< 768px)
+@media (max-width: 767.98px) {
+  .modal-fullscreen-md-down {
+    @include modal-fullscreen;
+  }
+}
+
+// Fullscreen below lg  (< 992px)
+@media (max-width: 991.98px) {
+  .modal-fullscreen-lg-down {
+    @include modal-fullscreen;
+  }
+}
+
+// Fullscreen below xl  (< 1200px)
+@media (max-width: 1199.98px) {
+  .modal-fullscreen-xl-down {
+    @include modal-fullscreen;
+  }
+}
+
+// Fullscreen below xxl (< 1400px)
+@media (max-width: 1399.98px) {
+  .modal-fullscreen-xxl-down {
+    @include modal-fullscreen;
+  }
+}

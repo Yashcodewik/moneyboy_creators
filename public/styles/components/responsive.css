@@ -1113,6 +1113,9 @@
 
                                 .pm-page-select {
                                     width: 100%;
+                                    &:last-child {
+                                        grid-column: 1 / -1 !important;
+                                    }
 
                                     .custom-select-element {
                                         width: 100%;
@@ -2615,7 +2618,7 @@
 
                                     &:last-child {
                                         .custom-select-element {
-                                            border-radius: 0 0 8px 0;
+                                            border-radius: 0 0 8px 8px;
                                         }
                                     }
 
