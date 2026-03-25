@@ -306,27 +306,30 @@ const PurchasedMediaPage: React.FC = () => {
     dispatch(toggleWatchLater({ postId: item._id }));
     refetchPurchasedMedia();
   };
+const hasCountedRef = useRef(false);
+useEffect(() => {
+  if (!publicIdFromUrl || !items.length) return;
 
-  useEffect(() => {
-    if (publicIdFromUrl && items.length) {
-      const matchedItem = items.find(
-        (item) => item.publicId === publicIdFromUrl,
-      );
+  const matchedItem = items.find(
+    (item) => item.publicId === publicIdFromUrl
+  );
 
-      if (matchedItem) {
-           dispatch(addPostViewAction(matchedItem.publicId)); 
-        setSelectedItemId(matchedItem._id);
-        setShowVideo(true);
+  if (!matchedItem) return;
 
-        setTimeout(() => {
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          });
-        }, 150);
-      }
-    }
-  }, [publicIdFromUrl, items]);
+  setSelectedItemId(matchedItem._id);
+  setShowVideo(true);
+
+  if (!hasCountedRef.current) {
+    hasCountedRef.current = true;
+
+    dispatch(addPostViewAction(matchedItem.publicId));
+  }
+
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, 150);
+
+}, [publicIdFromUrl, items]);
 
   useEffect(() => {
     setSelectedItemId(null);
@@ -1017,8 +1020,9 @@ const PurchasedMediaPage: React.FC = () => {
                             <MediaCard
                               key={item._id}
                               item={item}
-                              onOpen={(item) => {
-                                 dispatch(addPostViewAction(item.publicId)); 
+                             onOpen={async (item) => {
+                              await   dispatch(addPostViewAction(item.publicId));
+                              refetchPurchasedMedia();
                                 setShowVideo(false);
 
                                 setTimeout(() => {

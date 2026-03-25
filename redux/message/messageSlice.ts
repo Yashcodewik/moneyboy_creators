@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
+  clearConversation,
   deleteThread,
   fetchMessages,
   fetchMessageUnreadCount,
@@ -56,7 +57,8 @@ const messageSlice = createSlice({
   initialState,
   reducers: {
    setActiveThread: (state, action: PayloadAction<string | null>) => {
-  state.activeThreadId = action.payload;
+  if (state.activeThreadId === action.payload) return;
+    state.activeThreadId = action.payload;
 },
 
     setActiveUser: (state, action: PayloadAction<any>) => {
@@ -333,6 +335,22 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
           state.messages = [];
           state.activeThreadId = null; // 👈 important
         }
+      })
+
+      .addCase(clearConversation.fulfilled, (state, action) => {
+        const threadId = action.payload;
+
+        // ✅ only clear messages (not remove thread)
+        if (state.activeThreadId === threadId) {
+          state.messages = [];
+        }
+
+        // ✅ optional: reset last message in sidebar
+        state.chatList = state.chatList.map((chat) =>
+          chat.publicId === threadId
+            ? { ...chat, lastMessage: "" }
+            : chat
+        );
       })
       .addCase(toggleBlockThread.fulfilled, (state, action) => {
         const { threadPublicId, isBlocked } = action.payload;

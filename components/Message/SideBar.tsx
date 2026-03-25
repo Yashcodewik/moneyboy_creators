@@ -281,6 +281,7 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
                   activeThreadId === chat.publicId ? "true" : undefined
                 }
                 onClick={() => {
+                   if (activeThreadId === chat.publicId) return;
                   onSelectChat(chat);
                 }}
               >

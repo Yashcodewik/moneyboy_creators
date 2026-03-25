@@ -118,18 +118,19 @@ const RequestPayoutPage = () => {
                   <div className="creator-content-cards-wrapper rqstpayout_containt">
 
                     <div className="history_wrap">
-                      <div className="rline">
+                      {/* <div className="rline">
                         <p>Total Earned</p>
                         <h3>$ 0</h3>
-                      </div>
-                      <div className="rline">
-                        <p>Withdraw Review</p>
-                        <h3>$ {summary.pendingPayout.toFixed(2)}</h3>
-                      </div>
-                      <div>
+                      </div> */}
+                        <div className="rline">
                         <p>Wallet Balance</p>
                         <h3>$ {summary.walletBalance.toFixed(2)}</h3>
                       </div>
+                      <div >
+                        <p>Incoming</p>
+                        <h3>$ {summary.pendingPayout.toFixed(2)}</h3>
+                      </div>
+                    
                     </div>
 
                     <div>
