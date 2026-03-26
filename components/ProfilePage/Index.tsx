@@ -1793,7 +1793,7 @@ const ProfilePage = () => {
                       </div>
                       {/* Followers */}
                       <Link
-                        href={`/follower?tab=followers&id=${profile?.user?._id}`}
+                        href={`/follower?tab=followers&id=${profile?.user?.publicId}`}
                       >
                         <div className="profile-card__stats-item followers-stats">
                           <div className="profile-card__stats-num">
@@ -1842,7 +1842,7 @@ const ProfilePage = () => {
                       </Link>
                       {/* Following */}
                       <Link
-                        href={`/follower?tab=following&id=${profile?.user?._id}`}
+                        href={`/follower?tab=following&id=${profile?.user?.publicId}`}
                       >
                         <div className="profile-card__stats-item following-stats">
                           <div className="profile-card__stats-num">
