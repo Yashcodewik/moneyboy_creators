@@ -2550,6 +2550,7 @@ const StorePage = () => {
 
       {showPPVModal && activeStoreOwner && (
         <PPVRequestModal
+        show={showPPVModal} 
           onClose={() => setShowPPVModal(false)}
           creator={{
             userId: activeStoreOwner?._id,

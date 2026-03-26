@@ -956,6 +956,7 @@
 
                   {showReportModal && (
                   <ReportModal
+                  show={showReportModal} 
       post={post}
       onClose={(reported?: boolean) => {
         if (reported) setIsReported(true);

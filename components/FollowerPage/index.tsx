@@ -1712,7 +1712,7 @@ const FollowersPage = () => {
         </aside>
 
       </div>
-      <Modal show={isReportModalOpen} onHide={() => setIsReportModalOpen(false)} title="Report User" className="report_wrap">
+      <Modal show={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} title="Report User" className="report_wrap">
         <div className="modal_content blacklist">
           <div className="content_wrap">
             <div className="form-group">
