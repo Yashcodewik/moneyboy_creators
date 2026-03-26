@@ -6,15 +6,38 @@ import {
   resetThreadUnread,
   updateUserOnlineStatus,
 } from "@/redux/message/messageSlice";
+import { apiPost, getApi } from "@/utils/endpoints/common";
+import { fetchSidebar } from "@/redux/message/messageActions";
 
 const SideBar = ({ onSelectChat, activeThreadId }: any) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const threadIdFromUrl = searchParams.get("threadId");
   const [searchText, setSearchText] = useState("");
+  const [userSearchText, setUserSearchText] = useState("");
+
+  const [userResults, setUserResults] = useState<any[]>([]);
+  const [userPage, setUserPage] = useState(1);
+  const [hasMoreUsers, setHasMoreUsers] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const dispatch = useAppDispatch();
 
   const { chatList, hiddenChatList } = useAppSelector((state) => state.message);
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (!userSearchText.trim()) {
+        setUserResults([]);
+        return;
+      }
+
+      setUserPage(1);
+      fetchUsers(1);
+    }, 400);
+
+    return () => clearTimeout(delay);
+  }, [userSearchText]);
+
 
   const filterChats = (list: any[]) => {
     if (!searchText.trim()) return list;
@@ -32,6 +55,40 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
       return username.includes(lower) || lastMessage.includes(lower);
     });
   };
+
+  const fetchUsers = async (page = 1, append = false) => {
+  if (!userSearchText.trim()) return;
+
+  setLoadingUsers(true);
+
+  try {
+    const res = await getApi({
+      url: `/messages/get-listOfCreators`,
+      page,
+      rowsPerPage: 10,
+      searchText,
+    });
+
+    const newUsers = res?.data || [];
+
+    setUserResults((prev) =>
+      append ? [...prev, ...newUsers] : newUsers
+    );
+
+    setHasMoreUsers(newUsers.length === 10);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoadingUsers(false);
+  }
+};
+const loadMoreUsers = () => {
+  if (!hasMoreUsers || loadingUsers) return;
+
+  const nextPage = userPage + 1;
+  setUserPage(nextPage);
+  fetchUsers(nextPage, true);
+};
 
   const filteredChatList = useMemo(
     () => filterChats(chatList),
@@ -126,10 +183,71 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
               <input
                 type="text"
                 placeholder="Search Contact"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+                value={userSearchText}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setUserSearchText(value);
+                  setSearchText(value); // still filter chats
+                }}
               />
             </div>
+            {userSearchText && userResults.length > 0 && (
+              <div className="search-users">
+                <h3>Start New Chat</h3>
+
+                {userResults.map((user) => (
+                  <div
+                    key={user.publicId}
+                    className="msg-contact-box"
+                   onClick={async (e) => {
+                      e.preventDefault();
+
+                      const existing = chatList.find(
+                        (c) => c.user?.publicId === user.publicId
+                      );
+
+                      if (existing) {
+                        router.push(`/message?threadId=${existing.publicId}`);
+                        return;
+                      }
+
+                      const res = await apiPost({
+                        url: "messages/thread",
+                        values: {
+                          receiverId: user._id || user.id
+                        },
+                      });
+
+                      if (res?.threadId) {
+                        await dispatch(fetchSidebar());
+                        router.push(`/message?threadId=${res.threadId}`);
+                      }
+                    }}
+                  >
+                    <div className="contact-item">
+                      <div className="contact-avatar-wrapper">
+                        <img
+                          className="contact-avatar"
+                          src={user.profile}
+                          alt=""
+                        />
+                      </div>
+
+                      <div className="contact-content">
+                        <h4>{user.displayName || user.username}</h4>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Load More */}
+                {hasMoreUsers && (
+                  <button onClick={loadMoreUsers}>
+                    {loadingUsers ? "Loading..." : "Load More"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

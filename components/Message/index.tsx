@@ -233,13 +233,15 @@ const MessagePage = () => {
   }, [threadPublicIdFromUrl, dispatch, isMobile]);
 
   useEffect(() => {
-    if (!activeThreadId || !session?.user?.id) return;
+    if (!session?.user?.id || !activeThreadId) return;
+
+    dispatch(resetThreadUnread(activeThreadId));
 
     socket.emit("markRead", {
       threadId: activeThreadId,
       userId: session.user.id,
     });
-    dispatch(resetThreadUnread(activeThreadId));
+
   }, [activeThreadId, session?.user?.id]);
 
   useEffect(() => {
