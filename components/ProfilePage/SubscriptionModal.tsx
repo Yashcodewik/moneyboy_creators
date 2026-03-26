@@ -2,6 +2,7 @@
 
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "../CustomSelect";
+import Modal from "../Modal";
 
 interface SubscriptionModalProps {
   onClose: () => void;
@@ -50,108 +51,68 @@ const SubscriptionModal = ({
       : null;
 
   return (
-    <>
-      <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-        <div className="modal-wrap subscription-modal">
-          <button className="close-btn">
-            <CgClose size={22} onClick={onClose} />
-          </button>
-          <div className="profile-card">
-            <div className="profile-card__main justify-center">
-              <div className="profile-card__avatar-settings">
-                <div className="profile-card__avatar">
-                  <img
-                    src={
-                      creator?.profile ||
-                      "/images/profile-avatars/profile-avatar-1.png"
-                    }
-                    alt={creator?.displayName || "Creator Avatar"}
-                  />
+    <Modal show={true} onClose={onClose} title="Report Post" className="subscription_wrap">
+      <div className="modal_containt subscription-modal">
+        <div className="profile-card">
+          <div className="profile-card__main justify-center">
+            <div className="profile-card__avatar-settings">
+              <div className="profile-card__avatar">
+                <img src={creator?.profile || "/images/profile-avatars/profile-avatar-1.png"} alt={creator?.displayName || "Creator Avatar"} />
+              </div>
+            </div>
+            <div className="profile-card__info">
+              <div className="profile-card__name-badge">
+                <div className="profile-card__name">{creator?.displayName || "Unknown Creator"}</div>
+                <div className="profile-card__badge">
+                  <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                 </div>
               </div>
-              <div className="profile-card__info">
-                <div className="profile-card__name-badge">
-                  <div className="profile-card__name">{creator?.displayName || "Unknown Creator"}</div>
-                  <div className="profile-card__badge">
-                    <img
-                      src="/images/logo/profile-badge.png"
-                      alt="MoneyBoy Social Profile Badge"
-                    />
-                  </div>
-                </div>
-                <div className="profile-card__username">@{creator?.userName || "Unknown User"}</div>
-              </div>
+              <div className="profile-card__username">@{creator?.userName || "Unknown User"}</div>
+            </div>
             <div className="select_wrap">
-  <label
-    className={`radio_wrap box_select ${plan === "MONTHLY" ? "active" : ""}`}
-  >
-    <input
-      type="radio"
-      name="plan"
-      checked={plan === "MONTHLY"}
-      onChange={() => setPlan("MONTHLY")}
-    />
-    Month
-  </label>
-
-  <label
-    className={`radio_wrap box_select ${plan === "YEARLY" ? "active" : ""}`}
-  >
-    <input
-      type="radio"
-      name="plan"
-      checked={plan === "YEARLY"}
-      onChange={() => setPlan("YEARLY")}
-    />
-    Year
-  </label>
-</div>
+              <label className={`radio_wrap box_select ${plan === "MONTHLY" ? "active" : ""}`}>
+                <input type="radio" name="plan" checked={plan === "MONTHLY"} onChange={() => setPlan("MONTHLY")} /> Month
+              </label>
+              <label className={`radio_wrap box_select ${plan === "YEARLY" ? "active" : ""}`}>
+                <input type="radio" name="plan" checked={plan === "YEARLY"} onChange={() => setPlan("YEARLY")} /> Year
+              </label>
             </div>
           </div>
-          <h3 className="title">
-            {plan === "MONTHLY" ? "Monthly" : "Yearly"} {action}{" "} <span className="gradinttext">{finalPrice ? `$${finalPrice}` : "Not Updated yet"}</span>{" "}
-            <sub>
-              /{plan === "MONTHLY" ? "Month" : "Year"}
-              {plan === "YEARLY" && savings && (
-                <span>(Save {savings}%)</span>
-              )}
-            </sub>
-          </h3>
-          <ul className="points">
-            <li>Full access to this creator’s exclusive content</li>
-            <li>Direct message with this creator</li>
-            <li>Requested personalized Pay Per view content </li>
-            <li>Cancel your subscription at any time</li>
-          </ul>
-          <div className="actions">
-            <CustomSelect
-              label="Select  a payment card"
-              searchable={false}
-              options={[
-                { label: "Visa Credit Card", value: "visa" },
-                { label: "Mastercard Credit Card", value: "mastercard" },
-                { label: "RuPay Debit Card", value: "rupay" },
-                { label: "American Express", value: "amex" },
-                { label: "Discover Card", value: "discover" },
-              ]}
-            />
-            <button className="premium-btn active-down-effect" onClick={onConfirm}>
-              <span>
-                {action === "upgrade"
-                  ? "Upgrade"
-                  : action === "renew"
-                    ? "Renew"
-                    : "Subscribe"}
-              </span>
-            </button>
-          </div>
-          <p className="note">
-            Clicking “Subscribe” will take you to the payment screen to finalize
-            you subscription
-          </p>
         </div>
+        <h3 className="title">
+          {plan === "MONTHLY" ? "Monthly" : "Yearly"} {action}{" "} <span className="gradinttext">{finalPrice ? `$${finalPrice}` : "Not Updated yet"}</span>{" "}
+          <sub>
+            /{plan === "MONTHLY" ? "Month" : "Year"}
+            {plan === "YEARLY" && savings && (
+              <span>(Save {savings}%)</span>
+            )}
+          </sub>
+        </h3>
+        <ul className="points">
+          <li>Full access to this creator’s exclusive content</li>
+          <li>Direct message with this creator</li>
+          <li>Requested personalized Pay Per view content </li>
+          <li>Cancel your subscription at any time</li>
+        </ul>
+        <div className="actions">
+          <CustomSelect
+            label="Select  a payment card"
+            searchable={false}
+            options={[
+              { label: "Visa Credit Card", value: "visa" },
+              { label: "Mastercard Credit Card", value: "mastercard" },
+              { label: "RuPay Debit Card", value: "rupay" },
+              { label: "American Express", value: "amex" },
+              { label: "Discover Card", value: "discover" },
+            ]}
+          />
+          <button className="premium-btn active-down-effect" onClick={onConfirm}>
+            <span>{action === "upgrade" ? "Upgrade" : action === "renew" ? "Renew" : "Subscribe"}</span>
+          </button>
+        </div>
+        <p className="note">Clicking “Subscribe” will take you to the payment screen to finalize you subscription</p>
       </div>
-    </>
+    </Modal>
   );
 };
 

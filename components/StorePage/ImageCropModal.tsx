@@ -15,6 +15,7 @@ import {
   RectangleHorizontal,
   Square,
 } from "lucide-react";
+import Modal from "../Modal";
 
 interface Props {
   show: boolean;
@@ -77,14 +78,9 @@ export default function ImageCropModal({
   if (!show || !image) return null;
 
   return (
-    <div className="modal show" role="dialog">
-      <form
-        className="modal-wrap imgcrop-modal"
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <button type="button" className="close-btn" onClick={onClose}>
-          <CgClose size={22} />
-        </button>
+    <Modal show={true} onClose={onClose} size="md" title="Edit Image" className="imgcrop_wrap">
+      <form className="modal_containt imgcrop-modal" onSubmit={(e) => e.preventDefault()}>
+        <button type="button" className="close-btn" onClick={onClose}><CgClose size={22} /></button>
         <h3 className="title">Edit Image</h3>
         <div className="img_wrap">
           <Cropper
@@ -167,6 +163,6 @@ export default function ImageCropModal({
           </button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }

@@ -301,44 +301,44 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     };
   }, [showComment]);
 
-const handleSendTip = async (
-  amount: number,
-  paymentMethod: "wallet" | "card"
-) => {
-  if (!session?.user?.id) {
-    router.push("/login");
-    return;
-  }
-
-  if (session.user.id === post.userId) {
-    await showError("You cannot send tip to yourself"); // ✅ replaced
-    return;
-  }
-
-  try {
-    await dispatch(
-      sendTip({
-        creatorId: post.userId,
-        amount,
-        paymentMethod
-      }),
-    ).unwrap();
-
-    await showSuccess("Tip sent successfully ❤️"); // ✅ replaced
-
-    if (paymentMethod === "wallet") {
-      dispatch(fetchWallet()); // refresh wallet instantly
+  const handleSendTip = async (
+    amount: number,
+    paymentMethod: "wallet" | "card"
+  ) => {
+    if (!session?.user?.id) {
+      router.push("/login");
+      return;
     }
 
-    setShowTipModal(false);
- } catch (err: any) {
-  console.error("Tip failed:", err);
+    if (session.user.id === post.userId) {
+      await showError("You cannot send tip to yourself"); // ✅ replaced
+      return;
+    }
 
-  await showError(
-    err?.data?.message || err?.message || "Failed to send tip"
-  );
-}
-};
+    try {
+      await dispatch(
+        sendTip({
+          creatorId: post.userId,
+          amount,
+          paymentMethod
+        }),
+      ).unwrap();
+
+      await showSuccess("Tip sent successfully ❤️"); // ✅ replaced
+
+      if (paymentMethod === "wallet") {
+        dispatch(fetchWallet()); // refresh wallet instantly
+      }
+
+      setShowTipModal(false);
+    } catch (err: any) {
+      console.error("Tip failed:", err);
+
+      await showError(
+        err?.data?.message || err?.message || "Failed to send tip"
+      );
+    }
+  };
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -562,7 +562,7 @@ const handleSendTip = async (
             <Swiper
               slidesPerView={1}
               spaceBetween={15}
-             navigation={post.media?.[0]?.mediaFiles?.length > 1}
+              navigation={post.media?.[0]?.mediaFiles?.length > 1}
               modules={[Navigation]}
               className="post_swiper"
             >
@@ -572,7 +572,7 @@ const handleSendTip = async (
                   return (
                     <SwiperSlide key={file}>
                       {isVideo ? (
-                       <VideoPlayerFeed src={file} />
+                        <VideoPlayerFeed src={file} />
                       ) : (
                         <PhotoView src={file}>
                           <img src={file} alt="Post" />
@@ -591,17 +591,17 @@ const handleSendTip = async (
           <div className="moneyboy-post__actions tooltip_wrapper">
             <ul>
               {/* Send Tip */}
-           
+
               <li>
                 <Link href="#" data-tooltip="Send Tip"
                   onClick={(e) => {
                     e.preventDefault();
-                     if (isOwnPost) return; 
+                    if (isOwnPost) return;
                     if (!session?.user?.id) {
                       router.push("/login");
                       return;
                     }
-                   session?.user?.id !== post.userId && setShowTipModal(true);
+                    session?.user?.id !== post.userId && setShowTipModal(true);
                   }}
                 >
                   <svg
@@ -651,7 +651,7 @@ const handleSendTip = async (
                   <span>Send Tip</span>
                 </Link>
               </li>
-            
+
               {/* Like */}
               <li>
                 <Link data-tooltip="Like"
@@ -659,7 +659,7 @@ const handleSendTip = async (
                   className={`post-like-btn ${post.isLiked ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
-                   
+
                     onLike(post._id);
                   }}
                 >
@@ -687,7 +687,7 @@ const handleSendTip = async (
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                
+
                     if (!session?.user?.id) {
                       router.push("/login"); // ⬅ redirect if not logged in
                       return;
@@ -737,7 +737,7 @@ const handleSendTip = async (
                   className={isReported ? "active" : ""}
                   onClick={(e) => {
                     e.preventDefault();
-                    if (isOwnPost) return; 
+                    if (isOwnPost) return;
                     if (!session?.user?.id) {
                       router.push("/login"); // ⬅ redirect if not logged in
                       return;
@@ -745,7 +745,7 @@ const handleSendTip = async (
 
                     if (post.isReported) return;
 
-                  session?.user?.id !== post.userId && setShowReportModal(true);
+                    session?.user?.id !== post.userId && setShowReportModal(true);
                   }}
                 >
                   <svg
@@ -781,8 +781,8 @@ const handleSendTip = async (
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
-                      if (isOwnPost) return; 
-                   session?.user?.id !== post.userId && onSave(post);
+                    if (isOwnPost) return;
+                    session?.user?.id !== post.userId && onSave(post);
                   }}
                 >
                   <svg
@@ -931,13 +931,7 @@ const handleSendTip = async (
       </div>
 
       {showReportModal && (
-        <ReportModal
-          post={post}
-          onClose={(reported?: boolean) => {
-            if (reported) setIsReported(true);
-            setShowReportModal(false);
-          }}
-        />
+        <ReportModal show={showReportModal} post={post} onClose={() => setShowReportModal(false)}/>
       )}
       {showTipModal && (
         <TipModal onClose={() => setShowTipModal(false)} onConfirm={handleSendTip} creator={{ displayName: post?.creatorInfo?.displayName, userName: post?.creatorInfo?.userName, profile: post?.creatorInfo?.profile, }} />

@@ -27,6 +27,7 @@ import { timeOptions } from "../helper/creatorOptions";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 import ShowToast from "../common/ShowToast";
 import { useSession } from "next-auth/react";
+import Modal from "../Modal";
 
 interface Creator {
   _id: string;
@@ -96,7 +97,7 @@ const FollowersPage = () => {
 
   const session = useSession();
   const currentUserRole = Number(session?.data?.user?.role);
-const currentUserPublicId = session?.data?.user?.publicId;
+  const currentUserPublicId = session?.data?.user?.publicId;
 
   const openReportModal = (user: Follower) => {
     setReportedUserName(user.userName);
@@ -136,25 +137,25 @@ const currentUserPublicId = session?.data?.user?.publicId;
     setOpenMoreId((prev) => (prev === id ? null : id));
   };
 
-const handleShareProfile = (
-  publicId: string,
-  role: number,
-  username?: string
-) => {
-  let url = "";
+  const handleShareProfile = (
+    publicId: string,
+    role: number,
+    username?: string
+  ) => {
+    let url = "";
 
-  if (role === 2 && username) {
-    // ✅ creator → username route
-    url = `${window.location.origin}/${username}`;
-  } else {
-    // ✅ normal user → existing route
-    url = `${window.location.origin}/userprofile/${publicId}`;
-  }
+    if (role === 2 && username) {
+      // ✅ creator → username route
+      url = `${window.location.origin}/${username}`;
+    } else {
+      // ✅ normal user → existing route
+      url = `${window.location.origin}/userprofile/${publicId}`;
+    }
 
-  navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(url);
 
-  ShowToast("Profile link copied", "success");
-};
+    ShowToast("Profile link copied", "success");
+  };
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -197,11 +198,11 @@ const handleShareProfile = (
   }, []);
 
   // const userIdParam = searchParams.get("q");
- const userIdParam = searchParams.get("id") || searchParams.get("q");
+  const userIdParam = searchParams.get("id") || searchParams.get("q");
 
- console.log("currentUserId:", currentUserPublicId);
-console.log("userIdParam:", userIdParam);
-console.log("isOwnProfile:", currentUserPublicId === userIdParam);
+  console.log("currentUserId:", currentUserPublicId);
+  console.log("userIdParam:", userIdParam);
+  console.log("isOwnProfile:", currentUserPublicId === userIdParam);
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -220,7 +221,7 @@ console.log("isOwnProfile:", currentUserPublicId === userIdParam);
 
     fetchAllData();
   }, [userIdParam, time]);
-const isOwnProfile = currentUserPublicId === userIdParam;
+  const isOwnProfile = currentUserPublicId === userIdParam;
   const fetchCreators = async (pageNo = 1) => {
     setCreatorsLoading(true);
     const res = await getApiWithOutQuery({
@@ -375,10 +376,10 @@ const isOwnProfile = currentUserPublicId === userIdParam;
           prev.map((user) =>
             user._id === userId
               ? {
-                  ...user,
-                  isFollowing: false,
-                  isFollowingYou: true,
-                }
+                ...user,
+                isFollowing: false,
+                isFollowingYou: true,
+              }
               : user,
           ),
         );
@@ -389,10 +390,10 @@ const isOwnProfile = currentUserPublicId === userIdParam;
           prev.map((user) =>
             user._id === userId
               ? {
-                  ...user,
-                  isFollowing: true,
-                  isFollowingYou: true,
-                }
+                ...user,
+                isFollowing: true,
+                isFollowingYou: true,
+              }
               : user,
           ),
         );
@@ -430,10 +431,10 @@ const isOwnProfile = currentUserPublicId === userIdParam;
           prev.map((user) =>
             user._id === userId
               ? {
-                  ...user,
-                  isFollowing: false,
-                  followsYou: user.followsYou,
-                }
+                ...user,
+                isFollowing: false,
+                followsYou: user.followsYou,
+              }
               : user,
           ),
         );
@@ -490,10 +491,10 @@ const isOwnProfile = currentUserPublicId === userIdParam;
             prev.map((user) =>
               user._id === userId
                 ? {
-                    ...user,
-                    isFollowing: true,
-                    followsYou: true,
-                  }
+                  ...user,
+                  isFollowing: true,
+                  followsYou: true,
+                }
                 : user,
             ),
           );
@@ -502,10 +503,10 @@ const isOwnProfile = currentUserPublicId === userIdParam;
             prev.map((user) =>
               user._id === userId
                 ? {
-                    ...user,
-                    isFollowing: false,
-                    followsYou: true,
-                  }
+                  ...user,
+                  isFollowing: false,
+                  followsYou: true,
+                }
                 : user,
             ),
           );
@@ -710,7 +711,7 @@ const isOwnProfile = currentUserPublicId === userIdParam;
                       }}
                     >
                       {follower.profileImage &&
-                      !avatarErrorMap[follower._id] ? (
+                        !avatarErrorMap[follower._id] ? (
                         <img
                           src={follower.profileImage}
                           alt={`${follower.firstName}'s profile`}
@@ -844,13 +845,13 @@ const isOwnProfile = currentUserPublicId === userIdParam;
                       <div className="rel-users-more-opts-popup-container">
                         <ul>
                           <li
-                           onClick={() =>
-  handleShareProfile(
-    follower.publicId,
-    follower.role,
-    follower.userName
-  )
-}
+                            onClick={() =>
+                              handleShareProfile(
+                                follower.publicId,
+                                follower.role,
+                                follower.userName
+                              )
+                            }
                           >
                             <div className="icon share-icon">
                               <svg
@@ -1228,19 +1229,20 @@ const isOwnProfile = currentUserPublicId === userIdParam;
   };
 
   return (
-    <div className="moneyboy-2x-1x-layout-container">
-      <div className="moneyboy-2x-1x-a-layout">
-        <div
-          className="moneyboy-feed-page-container moneyboy-diff-content-wrappers"
-          data-multiple-tabs-section
-          data-scroll-zero
-          data-identifier="1"
-        >
+    <>
+      <div className="moneyboy-2x-1x-layout-container">
+        <div className="moneyboy-2x-1x-a-layout">
           <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
+            className="moneyboy-feed-page-container moneyboy-diff-content-wrappers"
+            data-multiple-tabs-section
+            data-scroll-zero
+            data-identifier="1"
           >
-            {/* <button
+            <div
+              className="moneyboy-feed-page-cate-buttons card"
+              id="posts-tabs-btn-card"
+            >
+              {/* <button
                 className="cate-back-btn active-down-effect"
                 onClick={() => router.push("/feed")}
               >
@@ -1269,512 +1271,479 @@ const isOwnProfile = currentUserPublicId === userIdParam;
                   />
                 </svg>
               </button> */}
-            <button
-              className={`page-content-type-button active-down-effect ${
-                follow === "Followers" ? "active" : ""
-              }`}
-              data-multi-tabs-switch-btndata__active
-              data-identifier="1"
-              onClick={() => setFollow("Followers")}
-            >
-              Followers
-            </button>
-            <button
-              className={`page-content-type-button active-down-effect ${
-                follow === "Following" ? "active" : ""
-              }`}
-              data-multi-tabs-switch-btn
-              data-identifier="1"
-              onClick={() => setFollow("Following")}
-            >
-              Following
-            </button>
-          </div>
-
-          {follow === "Followers" && (
-            <div data-multi-tabs-content-tabdata__active data-identifier="1">
-              <div className="card filters-card-layout-wrapper">
-                <div className="tabs-content-wrapper-layout">
-                  <div>
-                    <div className="creator-content-filter-grid-container">
-                      <div className="search-features-grid-btns has-multi-tabs-btns one-row-content-wrapper">
-                        <div className="creator-content-search-input">
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <svg
-                                className="svg-icon"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M14 5H20"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M14 8H17"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Search followers..."
-                              value={followersSearchQuery}
-                              onChange={(e) => {
-                                setFollowersSearchQuery(e.target.value);
-                                handleFollowersSearch(e.target.value);
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="creater-content-filters-layouts">
-                          <div className="creator-content-select-filter">
-                            <CustomSelect
-                              className="bg-white p-sm size-sm"
-                              label="All Time"
-                              options={timeOptions}
-                              value={selectedOption}
-                              searchable={false}
-                              onChange={(val: any) => {
-                                console.log("SELECTED:", val);
-
-                                const selectedTime = val; // ✅ FIX
-
-                                setSelectedOption(val.label);
-                                setTime(selectedTime);
-
-                                fetchFollowers(
-                                  1,
-                                  followersSearchQuery,
-                                  selectedTime,
-                                ); // ✅ correct
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="creator-content-cards-wrapper">
-                        <div className="rel-users-wrapper" ref={moreRef}>
-                          {renderFollowersList()}
-                        </div>
-                        {renderFollowersPagination()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {follow === "Following" && (
-            <div data-multi-tabs-content-tab data-identifier="1">
-              <div className="card filters-card-layout-wrapper">
-                <div className="tabs-content-wrapper-layout">
-                  <div>
-                    <div className="creator-content-filter-grid-container">
-                      <div className="search-features-grid-btns has-multi-tabs-btns one-row-content-wrapper">
-                        <div className="creator-content-search-input">
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <svg
-                                className="svg-icon"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M14 5H20"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M14 8H17"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Search following..."
-                              value={followingSearchQuery}
-                              onChange={(e) => {
-                                setFollowingSearchQuery(e.target.value);
-                                handleFollowingSearch(e.target.value);
-                              }}
-                            />{" "}
-                          </div>
-                        </div>
-
-                        <div className="creater-content-filters-layouts">
-                          <div className="creator-content-select-filter">
-                            <CustomSelect
-                              className="bg-white p-sm size-sm"
-                              label="All Time"
-                              options={timeOptions}
-                              value={time}
-                              searchable={false}
-                              onChange={(val: any) => {
-                                const selectedTime = val;
-
-                                setTime(selectedTime);
-
-                                fetchFollowing(
-                                  1,
-                                  followingSearchQuery,
-                                  selectedTime,
-                                );
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="creator-content-cards-wrapper ">
-                        <div className="rel-users-wrapper">
-                          {renderFollowingList()}
-                        </div>
-                        {renderFollowingPagination()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <aside className="moneyboy-2x-1x-b-layout">
-        <div className="moneyboy-feed-sidebar-container">
-          <div className="featured-profiles-card-container trending-profiles-card-container card">
-            <div className="featured-profiles-header">
-              <div className="featured-card-heading">
-                <h3 className="card-heading">Trending Moneyboys</h3>
-              </div>
-              <div className="featured-card-opts">
-                <button
-                  className="icon-btn hover-scale-icon"
-                  onClick={() => fetchCreators(page)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="25"
-                    viewBox="0 0 24 25"
-                    fill="none"
-                  >
-                    <path
-                      d="M22 12.5C22 18.02 17.52 22.5 12 22.5C6.48 22.5 3.11 16.94 3.11 16.94M3.11 16.94H7.63M3.11 16.94V21.94M2 12.5C2 6.98 6.44 2.5 12 2.5C18.67 2.5 22 8.06 22 8.06M22 8.06V3.06M22 8.06H17.56"
-                      stroke="none"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                  </svg>
-                </button>
-
-                <button
-                  className="icon-btn hover-scale-icon"
-                  disabled={page === 1}
-                  onClick={() => fetchCreators(page - 1)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="25"
-                    viewBox="0 0 24 25"
-                    fill="none"
-                  >
-                    <path
-                      d="M12 22.5C6.47715 22.5 2 18.0228 2 12.5C2 6.97715 6.47715 2.5 12 2.5C17.5228 2.5 22 6.97715 22 12.5C22 18.0228 17.5228 22.5 12 22.5Z"
-                      stroke="none"
-                      strokeWidth="1.5"
-                      strokeMiterlimit="10"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                    <path
-                      d="M13.26 16.03L9.74001 12.5L13.26 8.97"
-                      stroke="none"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                  </svg>
-                </button>
-
-                <button
-                  className="icon-btn hover-scale-icon"
-                  disabled={page === totalPages}
-                  onClick={() => fetchCreators(page + 1)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="25"
-                    viewBox="0 0 24 25"
-                    fill="none"
-                  >
-                    <path
-                      d="M12 22.5C17.5228 22.5 22 18.0228 22 12.5C22 6.97715 17.5228 2.5 12 2.5C6.47715 2.5 2 6.97715 2 12.5C2 18.0228 6.47715 22.5 12 22.5Z"
-                      stroke="none"
-                      strokeWidth="1.5"
-                      strokeMiterlimit="10"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                    <path
-                      d="M10.74 16.03L14.26 12.5L10.74 8.97"
-                      stroke="none"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="featured-profiles-wrapper rel-users-wrapper">
-              {creatorsLoading && (
-                <div className="loadingtext">
-                  {"Loading".split("").map((char, i) => (
-                    <span
-                      key={i}
-                      style={{ animationDelay: `${(i + 1) * 0.1}s` }}
-                    >
-                      {char}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {!creatorsLoading &&
-                creators.map((creator) => (
-                  <div className="rel-user-box" key={creator._id}>
-                    <div className="rel-user-profile-action">
-                      <div className="rel-user-profile">
-                        <div className="profile-card">
-                        <a
-                          href={`/${creator.userName}`} 
-                          className="profile-card__main"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          router.push(`/${creator.userName}`);
-                        }}
-                        >
-                            <div className="profile-card__avatar-settings">
-                              <div className="profile-card__avatar">
-                                {creator.profileImage &&
-                                !avatarErrorMap[creator._id] ? (
-                                  <img
-                                    src={creator.profileImage}
-                                    alt={`${creator.displayName} profile avatar`}
-                                    onError={() =>
-                                      setAvatarErrorMap((prev) => ({
-                                        ...prev,
-                                        [creator._id]: true,
-                                      }))
-                                    }
-                                  />
-                                ) : (
-                                  <div className="noprofile">
-                                    <svg
-                                      width="40"
-                                      height="40"
-                                      viewBox="0 0 66 54"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        className="animate-m"
-                                        d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                                        fill="url(#paint0_linear_4470_53804)"
-                                      />
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_4470_53804"
-                                          x1="0"
-                                          y1="27"
-                                          x2="66"
-                                          y2="27"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stop-color="#FDAB0A" />
-                                          <stop
-                                            offset="0.4"
-                                            stop-color="#FECE26"
-                                          />
-                                          <stop
-                                            offset="1"
-                                            stop-color="#FE990B"
-                                          />
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="profile-card__info">
-                              <div className="profile-card__name-badge">
-                                <div className="profile-card__name">
-                                  {creator.displayName ||
-                                    `${creator.firstName} ${creator.lastName}`}
-                                </div>
-                                <div className="profile-card__badge">
-                                  <img
-                                    src="/images/logo/profile-badge.png"
-                                    alt="MoneyBoy Social Profile Badge"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="profile-card__username">
-                                @{creator.userName}
-                              </div>
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="rel-user-actions">
-                        <div className="rel-user-action-btn">
-                          {creator._id !== currentUserPublicId &&
-                            !(currentUserRole === 1 && creator.role === 1) && (
-                              <button
-                                className={`btn-txt-gradient ${
-                                  creator.isFollowing ? "btn-grey" : ""
-                                }`}
-                                onClick={() =>
-                                  handleFollowToggle(
-                                    creator._id,
-                                    creator.isFollowing,
-                                    "creators",
-                                  )
-                                }
-                                onMouseEnter={(e) => {
-                                  if (creator.isFollowing) {
-                                    e.currentTarget.querySelector(
-                                      "span",
-                                    )!.textContent = "Unfollow";
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (creator.isFollowing) {
-                                    e.currentTarget.querySelector(
-                                      "span",
-                                    )!.textContent = "Following";
-                                  }
-                                }}
-                              >
-                                <span>
-                                  {creator.isFollowing ? "Following" : "Follow"}
-                                </span>
-                              </button>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-              {!loading && creators.length === 0 && (
-                <p className="nodeta">No creators found</p>
-              )}
-            </div>
-          </div>
-
-          <Featuredboys />
-        </div>
-      </aside>
-      {isReportModalOpen && (
-        <div className="modal show" role="dialog" aria-modal="true">
-          <div className="modal-wrap blacklist">
-            <button
-              className="close-btn"
-              onClick={() => setIsReportModalOpen(false)}
-            >
-              ✕
-            </button>
-
-            <h3>Report User</h3>
-
-            <div className="containt_wrap">
-              <div>
-                <label>User</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={`@${reportedUserName}`}
-                  disabled
-                />
-              </div>
-
-              <div>
-                <label>Reason</label>
-                <textarea
-                  rows={3}
-                  placeholder="Describe the issue..."
-                  value={reportMessage}
-                  onChange={(e) => setReportMessage(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="actions">
-              <button className="premium-btn" onClick={handleReportUser}>
-                <span>Submit</span>
-              </button>
-
               <button
-                className="cate-back-btn active-down-effect"
-                onClick={() => setIsReportModalOpen(false)}
+                className={`page-content-type-button active-down-effect ${follow === "Followers" ? "active" : ""
+                  }`}
+                data-multi-tabs-switch-btndata__active
+                data-identifier="1"
+                onClick={() => setFollow("Followers")}
               >
-                Close
+                Followers
+              </button>
+              <button
+                className={`page-content-type-button active-down-effect ${follow === "Following" ? "active" : ""
+                  }`}
+                data-multi-tabs-switch-btn
+                data-identifier="1"
+                onClick={() => setFollow("Following")}
+              >
+                Following
               </button>
             </div>
+
+            {follow === "Followers" && (
+              <div data-multi-tabs-content-tabdata__active data-identifier="1">
+                <div className="card filters-card-layout-wrapper">
+                  <div className="tabs-content-wrapper-layout">
+                    <div>
+                      <div className="creator-content-filter-grid-container">
+                        <div className="search-features-grid-btns has-multi-tabs-btns one-row-content-wrapper">
+                          <div className="creator-content-search-input">
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <svg
+                                  className="svg-icon"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14 5H20"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14 8H17"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Search followers..."
+                                value={followersSearchQuery}
+                                onChange={(e) => {
+                                  setFollowersSearchQuery(e.target.value);
+                                  handleFollowersSearch(e.target.value);
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="creater-content-filters-layouts">
+                            <div className="creator-content-select-filter">
+                              <CustomSelect
+                                className="bg-white p-sm size-sm"
+                                label="All Time"
+                                options={timeOptions}
+                                value={selectedOption}
+                                searchable={false}
+                                onChange={(val: any) => { setSelectedOption(val.label); setTime(val.value); fetchFollowers(1, followersSearchQuery, val.value); }} />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="creator-content-cards-wrapper">
+                          <div className="rel-users-wrapper" ref={moreRef}>
+                            {renderFollowersList()}
+                          </div>
+                          {renderFollowersPagination()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {follow === "Following" && (
+              <div data-multi-tabs-content-tab data-identifier="1">
+                <div className="card filters-card-layout-wrapper">
+                  <div className="tabs-content-wrapper-layout">
+                    <div>
+                      <div className="creator-content-filter-grid-container">
+                        <div className="search-features-grid-btns has-multi-tabs-btns one-row-content-wrapper">
+                          <div className="creator-content-search-input">
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <svg
+                                  className="svg-icon"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14 5H20"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M14 8H17"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Search following..."
+                                value={followingSearchQuery}
+                                onChange={(e) => {
+                                  setFollowingSearchQuery(e.target.value);
+                                  handleFollowingSearch(e.target.value);
+                                }}
+                              />{" "}
+                            </div>
+                          </div>
+
+                          <div className="creater-content-filters-layouts">
+                            <div className="creator-content-select-filter">
+                              <CustomSelect
+                                className="bg-white p-sm size-sm"
+                                label="All Time"
+                                options={timeOptions}
+                                value={time}
+                                searchable={false}
+                                onChange={(val: any) => {
+                                  const selectedTime = val;
+
+                                  setTime(selectedTime);
+
+                                  fetchFollowing(
+                                    1,
+                                    followingSearchQuery,
+                                    selectedTime,
+                                  );
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="creator-content-cards-wrapper ">
+                          <div className="rel-users-wrapper">
+                            {renderFollowingList()}
+                          </div>
+                          {renderFollowingPagination()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </div>
+
+        <aside className="moneyboy-2x-1x-b-layout">
+          <div className="moneyboy-feed-sidebar-container">
+            <div className="featured-profiles-card-container trending-profiles-card-container card">
+              <div className="featured-profiles-header">
+                <div className="featured-card-heading">
+                  <h3 className="card-heading">Trending Moneyboys</h3>
+                </div>
+                <div className="featured-card-opts">
+                  <button
+                    className="icon-btn hover-scale-icon"
+                    onClick={() => fetchCreators(page)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="25"
+                      viewBox="0 0 24 25"
+                      fill="none"
+                    >
+                      <path
+                        d="M22 12.5C22 18.02 17.52 22.5 12 22.5C6.48 22.5 3.11 16.94 3.11 16.94M3.11 16.94H7.63M3.11 16.94V21.94M2 12.5C2 6.98 6.44 2.5 12 2.5C18.67 2.5 22 8.06 22 8.06M22 8.06V3.06M22 8.06H17.56"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                    </svg>
+                  </button>
+
+                  <button
+                    className="icon-btn hover-scale-icon"
+                    disabled={page === 1}
+                    onClick={() => fetchCreators(page - 1)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="25"
+                      viewBox="0 0 24 25"
+                      fill="none"
+                    >
+                      <path
+                        d="M12 22.5C6.47715 22.5 2 18.0228 2 12.5C2 6.97715 6.47715 2.5 12 2.5C17.5228 2.5 22 6.97715 22 12.5C22 18.0228 17.5228 22.5 12 22.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                      <path
+                        d="M13.26 16.03L9.74001 12.5L13.26 8.97"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                    </svg>
+                  </button>
+
+                  <button
+                    className="icon-btn hover-scale-icon"
+                    disabled={page === totalPages}
+                    onClick={() => fetchCreators(page + 1)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="25"
+                      viewBox="0 0 24 25"
+                      fill="none"
+                    >
+                      <path
+                        d="M12 22.5C17.5228 22.5 22 18.0228 22 12.5C22 6.97715 17.5228 2.5 12 2.5C6.47715 2.5 2 6.97715 2 12.5C2 18.0228 6.47715 22.5 12 22.5Z"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                      <path
+                        d="M10.74 16.03L14.26 12.5L10.74 8.97"
+                        stroke="none"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="featured-profiles-wrapper rel-users-wrapper">
+                {creatorsLoading && (
+                  <div className="loadingtext">
+                    {"Loading".split("").map((char, i) => (
+                      <span
+                        key={i}
+                        style={{ animationDelay: `${(i + 1) * 0.1}s` }}
+                      >
+                        {char}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {!creatorsLoading &&
+                  creators.map((creator) => (
+                    <div className="rel-user-box" key={creator._id}>
+                      <div className="rel-user-profile-action">
+                        <div className="rel-user-profile">
+                          <div className="profile-card">
+                            <a
+                              href={`/${creator.userName}`}
+                              className="profile-card__main"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                router.push(`/${creator.userName}`);
+                              }}
+                            >
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  {creator.profileImage &&
+                                    !avatarErrorMap[creator._id] ? (
+                                    <img
+                                      src={creator.profileImage}
+                                      alt={`${creator.displayName} profile avatar`}
+                                      onError={() =>
+                                        setAvatarErrorMap((prev) => ({
+                                          ...prev,
+                                          [creator._id]: true,
+                                        }))
+                                      }
+                                    />
+                                  ) : (
+                                    <div className="noprofile">
+                                      <svg
+                                        width="40"
+                                        height="40"
+                                        viewBox="0 0 66 54"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path
+                                          className="animate-m"
+                                          d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                          fill="url(#paint0_linear_4470_53804)"
+                                        />
+                                        <defs>
+                                          <linearGradient
+                                            id="paint0_linear_4470_53804"
+                                            x1="0"
+                                            y1="27"
+                                            x2="66"
+                                            y2="27"
+                                            gradientUnits="userSpaceOnUse"
+                                          >
+                                            <stop stop-color="#FDAB0A" />
+                                            <stop
+                                              offset="0.4"
+                                              stop-color="#FECE26"
+                                            />
+                                            <stop
+                                              offset="1"
+                                              stop-color="#FE990B"
+                                            />
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="profile-card__info">
+                                <div className="profile-card__name-badge">
+                                  <div className="profile-card__name">
+                                    {creator.displayName ||
+                                      `${creator.firstName} ${creator.lastName}`}
+                                  </div>
+                                  <div className="profile-card__badge">
+                                    <img
+                                      src="/images/logo/profile-badge.png"
+                                      alt="MoneyBoy Social Profile Badge"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="profile-card__username">
+                                  @{creator.userName}
+                                </div>
+                              </div>
+                            </a>
+                          </div>
+                        </div>
+
+                        <div className="rel-user-actions">
+                          <div className="rel-user-action-btn">
+                            {creator._id !== currentUserPublicId &&
+                              !(currentUserRole === 1 && creator.role === 1) && (
+                                <button
+                                  className={`btn-txt-gradient ${creator.isFollowing ? "btn-grey" : ""
+                                    }`}
+                                  onClick={() =>
+                                    handleFollowToggle(
+                                      creator._id,
+                                      creator.isFollowing,
+                                      "creators",
+                                    )
+                                  }
+                                  onMouseEnter={(e) => {
+                                    if (creator.isFollowing) {
+                                      e.currentTarget.querySelector(
+                                        "span",
+                                      )!.textContent = "Unfollow";
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (creator.isFollowing) {
+                                      e.currentTarget.querySelector(
+                                        "span",
+                                      )!.textContent = "Following";
+                                    }
+                                  }}
+                                >
+                                  <span>
+                                    {creator.isFollowing ? "Following" : "Follow"}
+                                  </span>
+                                </button>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                {!loading && creators.length === 0 && (
+                  <p className="nodeta">No creators found</p>
+                )}
+              </div>
+            </div>
+
+            <Featuredboys />
+          </div>
+        </aside>
+
+      </div>
+      <Modal show={isReportModalOpen} onHide={() => setIsReportModalOpen(false)} title="Report User" className="report_wrap">
+        <div className="modal_content blacklist">
+          <div className="content_wrap">
+            <div className="form-group">
+              <label>User</label>
+              <input
+                type="text"
+                className="form-control"
+                value={`@${reportedUserName}`}
+                disabled
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Reason</label>
+              <textarea
+                rows={3}
+                className="form-control"
+                placeholder="Describe the issue..."
+                value={reportMessage}
+                onChange={(e) => setReportMessage(e.target.value)}
+              />
+            </div>
+          </div>
+          {/* Actions */}
+          <div className="actions">
+            <button className="premium-btn" onClick={handleReportUser}><span>Submit</span></button>
+            <button className="cate-back-btn active-down-effect" onClick={() => setIsReportModalOpen(false)}>Close</button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 };
 

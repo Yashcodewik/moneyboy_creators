@@ -15,6 +15,7 @@ import {
   RectangleHorizontal,
   Square,
 } from "lucide-react";
+import Modal from "../Modal";
 
 interface Props {
   show: boolean;
@@ -77,27 +78,10 @@ export default function ImageCropModal({
   if (!show || !image) return null;
 
   return (
-    <div className="modal show" role="dialog">
-      <form
-        className="modal-wrap imgcrop-modal"
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <button type="button" className="close-btn" onClick={onClose}>
-          <CgClose size={22} />
-        </button>
-        <h3 className="title">Edit Image</h3>
+    <Modal show={true} onClose={onClose} size="md" title="Edit Image" className="imgcrop_wrap">
+      <form className="modal_containt imgcrop-modal" onSubmit={(e) => e.preventDefault()}>
         <div className="img_wrap">
-          <Cropper
-            image={image}
-            crop={crop}
-            zoom={zoom}
-            rotation={rotation}
-            aspect={aspectRatio}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onRotationChange={setRotation}
-            onCropComplete={onCropComplete}
-          />
+          <Cropper image={image} crop={crop} zoom={zoom} rotation={rotation} aspect={aspectRatio} onCropChange={setCrop} onZoomChange={setZoom} onRotationChange={setRotation} onCropComplete={onCropComplete} />
         </div>
         <div className="controlers_wrap btntooltip_wrapper">
           <button
@@ -157,16 +141,9 @@ export default function ImageCropModal({
           </button>
         </div>
         <div className="actions mt-3">
-          <button
-            className="premium-btn active-down-effect"
-            type="button"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            <span>{loading ? "Processing..." : "Save"}</span>
-          </button>
+          <button className="premium-btn active-down-effect" type="button" onClick={handleSave} disabled={loading}><span>{loading ? "Processing..." : "Save"}</span></button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }

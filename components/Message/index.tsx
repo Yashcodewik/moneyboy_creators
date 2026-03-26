@@ -60,6 +60,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { showError, showSuccess } from "@/utils/alert";
+import Modal from "../Modal";
 
 const MessagePage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -2228,99 +2229,28 @@ const MessagePage = () => {
       </PhotoProvider>
 
       {/* ── Report Modal ── */}
-      {showReportModal && (
-        <div
-          className="modal show"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="age-modal-title"
-        >
-          <form
-            className="modal-wrap rdcnvrstn-modal"
-            onSubmit={handleSubmitReport}
-          >
-            <button
-              type="button"
-              className="close-btn"
-              onClick={() => setShowReportModal(false)}
-            >
-              <CgClose size={22} />
-            </button>
-            <h3 className="title">Report Conversation</h3>
-            <p className="modal-subtitle">
-              Help us understand the issue. Your report will remain
-              confidential.
-            </p>
-            <div className="input-wrap">
-              <label>
-                Reason <span>*</span>
-              </label>
-              <textarea
-                rows={4}
-                placeholder="Tell us what happened..."
-                name="message"
-                maxLength={300}
-                value={reportMessage}
-                onChange={(e) => setReportMessage(e.target.value)}
-              />
-              <label className="right">{reportMessage.length}/300</label>
-            </div>
-            <div className="actions">
-              <button
-                className="btn-danger active-down-effect"
-                type="button"
-                onClick={() => setShowReportModal(false)}
-              >
-                <span>Cancel</span>
-              </button>
-              <button className="premium-btn active-down-effect" type="submit">
-                <span>Submit</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      <Modal show={showReportModal} onClose={() => setShowReportModal(false)} title="Report Conversation" size="md" className="rdcnvrstn_wrap">
+        <form className="modal_containt rdcnvrstn-modal" onSubmit={handleSubmitReport}>
+          <div>
+            <textarea className="form-control" placeholder="Enter report reason..." value={reportMessage} onChange={(e) => setReportMessage(e.target.value)} rows={4} />
+          </div>
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" className="btn btn-secondary" onClick={() => setShowReportModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-danger">Submit Report</button>
+          </div>
+        </form>
+      </Modal>
 
       {/* ── Delete Modal ── */}
-      {showDeleteModal && (
-        <div
-          className="modal show"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="age-modal-title"
-        >
-          <div className="modal-wrap rdcnvrstn-modal">
-            <button
-              type="button"
-              className="close-btn"
-              onClick={() => setShowDeleteModal(false)}
-            >
-              <CgClose size={22} />
-            </button>
-            <h3 className="title">Delete Conversation</h3>
-            <p className="modal-subtitle">
-              This will permanently delete the conversation and cannot be
-              undone.
-            </p>
-            <div className="actions">
-              <button
-                className="btn-danger active-down-effect"
-                type="button"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                <span>Cancel</span>
-              </button>
-              <button
-                className="premium-btn active-down-effect"
-                type="button"
-                onClick={handleDelete}
-              >
-                <span>Submit</span>
-              </button>
-            </div>
+      <Modal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete Conversation" size="md" className="rdcnvrstn_wrap">
+        <div className="modal_containt rdcnvrstn-modal">
+          <p>Are you sure you want to delete this conversation?</p>
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+            <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
           </div>
         </div>
-      )}
+      </Modal>
     </>
   );
 };

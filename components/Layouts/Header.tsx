@@ -1833,7 +1833,7 @@ console.log("HEADER COUNT:", messageUnreadCount);
         </div>
       )}
       {showPromoteModal && (
-        <PromoteModal onClose={() => setShowPromoteModal(false)} />
+        <PromoteModal show={showPromoteModal} onClose={() => setShowPromoteModal(false)} />
       )}
     </>
   );

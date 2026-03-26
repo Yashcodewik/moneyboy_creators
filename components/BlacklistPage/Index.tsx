@@ -13,6 +13,7 @@ import {
 } from "@/utils/api/APIConstant";
 import ShowToast from "../common/ShowToast";
 import { useDeviceType } from "@/hooks/useDeviceType";
+import Modal from "../Modal";
 
 const BlacklistPage = () => {
   const router = useRouter();
@@ -265,53 +266,24 @@ const BlacklistPage = () => {
         <Featuredboys />
       </div>
       {/* ========== Blacklist User Modal Start ========== */}
-      {isModalOpen && (
-        <div
-          className="modal show"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="age-modal-title"
-        >
-          <div className="modal-wrap blacklist">
-            <button className="close-btn" onClick={() => setIsModalOpen(false)}>
-              <CgClose size={22} />
-            </button>
-            <h3>Blacklist user</h3>
-            <div className="containt_wrap">
-              <div className="">
-                <label>Please enter the username you want to block</label>
-                <CustomSelect
-                  label="Select User"
-                  searchable={true}
-                  options={connectionOptions}
-                  onChange={(option: any) => setSelectedUser(option)}
-                />
-              </div>
-              <div className="">
-                <label>Reason</label>
-                <textarea
-                  rows={2}
-                  name="reason"
-                  placeholder="Enter your reason"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                />
-              </div>
+      <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)} title="Blacklist user" className="blacklist_wrap">
+        <div className="modal_containt report-modal">
+          <div className="containt_wrap">
+            <div className="">
+              <label>Please enter the username you want to block</label>
+              <CustomSelect label="Select User" searchable={true} options={connectionOptions} onChange={(option: any) => setSelectedUser(option)}/>
             </div>
-            <div className="actions">
-              <button className="premium-btn" onClick={handleBlockUser}>
-                <span>Submit</span>
-              </button>
-              <button
-                className="cate-back-btn active-down-effect"
-                onClick={() => setIsModalOpen(false)}
-              >
-                Close
-              </button>
+            <div className="">
+              <label>Reason</label>
+              <textarea rows={2} name="reason" placeholder="Enter your reason" value={reason} onChange={(e) => setReason(e.target.value)}/>
             </div>
           </div>
+          <div className="actions">
+            <button className="premium-btn" onClick={handleBlockUser}><span>Submit</span></button>
+            <button className="cate-back-btn active-down-effect" onClick={() => setIsModalOpen(false)}>Close</button>
+          </div>
         </div>
-      )}
+      </Modal>
     </>
   );
 };

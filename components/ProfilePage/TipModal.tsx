@@ -6,6 +6,7 @@ import { useState } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { BsBank2 } from "react-icons/bs";
+import Modal from "../Modal";
 interface TipModalProps {
   onClose: () => void;
   onConfirm: (amount: number, paymentMethod: "wallet" | "card") => Promise<void>;
@@ -27,9 +28,9 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
         .min(1, "Tip amount must be at least $1")
         .max(999, "Maximum tip amount is $999"),
     }),
-  onSubmit: async (values) => {
-  await onConfirm(Number(values.amount), paymentMethod);
-},
+    onSubmit: async (values) => {
+      await onConfirm(Number(values.amount), paymentMethod);
+    },
   });
 
   const [cards, setCards] = useState<any[]>([]);
@@ -41,6 +42,12 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
 
   return (
     <>
+      <Modal show={true} onClose={onClose} size="md" className="tip-modal">
+        <div className="modal-wrap">
+          
+        </div>
+      </Modal>
+
       <div
         className="modal show"
         role="dialog"
@@ -175,22 +182,22 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
             </label>
           </div>
           {paymentMethod === "card" &&
-          <div>
-            <label className="small">Choose Payment Method*</label>
-            <CustomSelect
-              label="Select a Payment Card"
-              placeholder="Select a Payment Card"
-              value={selectedCard}
-              options={cards.map((card) => ({
-                label: `${card.cardholderName} - **** ${card.cardNumber}`,
-                value: card._id,
-              }))}
-              onChange={(val: any) => {
-                console.log("SELECTED VALUE:", val);
-                setSelectedCard(val);
-              }}
-            />
-          </div>
+            <div>
+              <label className="small">Choose Payment Method*</label>
+              <CustomSelect
+                label="Select a Payment Card"
+                placeholder="Select a Payment Card"
+                value={selectedCard}
+                options={cards.map((card) => ({
+                  label: `${card.cardholderName} - **** ${card.cardNumber}`,
+                  value: card._id,
+                }))}
+                onChange={(val: any) => {
+                  console.log("SELECTED VALUE:", val);
+                  setSelectedCard(val);
+                }}
+              />
+            </div>
           }
           <div className="actions">
             <button

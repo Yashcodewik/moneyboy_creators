@@ -7,7 +7,7 @@ import "../public/styles/main-responsive.css";
 import "../public/styles/pages/discover-page/responsive.css";
 import "../public/styles/icons.css";
 import "../public/styles/style.scss";
-// import "../public/styles/modal.scss";
+import "../public/styles/modal.scss";
 import AuthProviders from "@/libs/authProviders";
 import { getServerSession } from "next-auth/next";
 import { buildAuthOptions } from "@/libs/auth";

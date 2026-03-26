@@ -837,19 +837,6 @@ const EditProfilePage = () => {
         onClose={() => setCropOpen(false)}
         onSave={handleCropSave}
       />
-
-      {/* <div className="modal show" role="dialog" aria-modal="true" aria-labelledby="age-modal-title">
-        <form className="modal-wrap imgcrop-modal">
-          <button className="close-btn"><CgClose size={22} /></button>
-          <h3 className="title">Edit Profile Photo</h3>
-          <div className="img_wrap">
-            <img alt="Post Image" src="https://res.cloudinary.com/drhj03nvv/image/upload/v1771397982/posts/6995635dd577ca04fd5c7755/1771397981555-post-img-4.jpg.jpg"/>
-          </div>
-          <div className="actions">
-            <button className="premium-btn active-down-effect" type="submit"><span>Save</span></button>
-          </div>
-        </form>
-      </div> */}
     </>
   );
 };

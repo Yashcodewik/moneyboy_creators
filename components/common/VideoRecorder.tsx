@@ -10,6 +10,7 @@ import {
   showQuestion,
 } from "@/utils/alert";
 import { CgClose } from "react-icons/cg";
+import Modal from "../Modal";
 
 type Props = {
   onClose: () => void;
@@ -79,40 +80,40 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
   }, [recordedChunks]);
 
   /* ========== START RECORDING ========== */
-const startRecording = () => {
-  if (!streamRef.current) {
-    showWarning("Please enable camera first");
-    return;
-  }
-
-  // 🔥 Ensure stream is attached
-  if (videoRef.current) {
-    videoRef.current.srcObject = streamRef.current;
-    videoRef.current.muted = true;
-    videoRef.current.play();
-  }
-
-  chunksRef.current = [];
-
-  const recorder = new MediaRecorder(streamRef.current, {
-    mimeType: "video/webm;codecs=vp8,opus",
-  });
-
-  mediaRecorderRef.current = recorder;
-
-  recorder.ondataavailable = (event) => {
-    if (event.data.size > 0) {
-      chunksRef.current.push(event.data);
+  const startRecording = () => {
+    if (!streamRef.current) {
+      showWarning("Please enable camera first");
+      return;
     }
-  };
 
-  recorder.onstop = () => {
-    setRecordedChunks([...chunksRef.current]);
-  };
+    // 🔥 Ensure stream is attached
+    if (videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.muted = true;
+      videoRef.current.play();
+    }
 
-  recorder.start();
-  setIsRecording(true);
-};
+    chunksRef.current = [];
+
+    const recorder = new MediaRecorder(streamRef.current, {
+      mimeType: "video/webm;codecs=vp8,opus",
+    });
+
+    mediaRecorderRef.current = recorder;
+
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        chunksRef.current.push(event.data);
+      }
+    };
+
+    recorder.onstop = () => {
+      setRecordedChunks([...chunksRef.current]);
+    };
+
+    recorder.start();
+    setIsRecording(true);
+  };
 
   /* ========== STOP RECORDING ========== */
   const stopRecording = () => {
@@ -121,23 +122,23 @@ const startRecording = () => {
   };
 
   /* ========== RETAKE VIDEO ========== */
-const retakeVideo = () => {
-  if (playbackUrlRef.current) {
-    URL.revokeObjectURL(playbackUrlRef.current);
-    playbackUrlRef.current = null;
-  }
+  const retakeVideo = () => {
+    if (playbackUrlRef.current) {
+      URL.revokeObjectURL(playbackUrlRef.current);
+      playbackUrlRef.current = null;
+    }
 
-  setPlaybackUrl(null);
-  setRecordedChunks([]);
-  chunksRef.current = [];
+    setPlaybackUrl(null);
+    setRecordedChunks([]);
+    chunksRef.current = [];
 
-  if (videoRef.current && streamRef.current) {
-    videoRef.current.srcObject = streamRef.current;
-    videoRef.current.muted = true;
-    videoRef.current.controls = false;
-    videoRef.current.play();
-  }
-};
+    if (videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.muted = true;
+      videoRef.current.controls = false;
+      videoRef.current.play();
+    }
+  };
 
   /* ========== SUBMIT VIDEO ========== */
   const handleSubmit = () => {
@@ -198,83 +199,19 @@ const retakeVideo = () => {
   }, [recordedChunks]);
 
   return (
-    <div
-      className="modal show"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="video-modal-title"
-      onClick={handleClose}
-    >
-      <div
-        className="modal-wrap videorecord-modal"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button className="close-btn" onClick={handleClose}>
-          <CgClose size={22} />
-        </button>
-        <h3 id="video-modal-title" className="title">
-          Record Video
-        </h3>
-        {/* <div className="video_wrap">
-
-          {cameraEnabled && !playbackUrl && (
-            <video ref={videoRef} autoPlay muted playsInline width="100%" style={{ borderRadius: 8 }}/>
+    <Modal show={true} onClose={handleClose} title="Report Pop-Up" className="videorecord_wrap">
+      <div className="modal_containt videorecord-modal">
+        <div className="video_wrap">
+          {/* LIVE CAMERA */}
+          {cameraEnabled && recordedChunks.length === 0 && (
+            <video ref={videoRef} autoPlay playsInline muted style={{width: "100%", borderRadius: 8, background: "#000",}} />
           )}
-          {playbackUrl && (
-            <Plyr source={{type: "video", sources: [{src: playbackUrl, type: "video/webm",},],}}
-              options={{controls: [ "play", "progress", "current-time", "mute", "volume", "fullscreen",],}}/>
+          {/* PLAYBACK */}
+          {recordedChunks.length > 0 && playbackUrl && (
+            <Plyr source={{type: "video", sources: [{src: playbackUrl, type: "video/webm",},],}} options={{controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",],}}/>
           )}
-        </div> */}
-<div className="video_wrap">
-  {/* LIVE CAMERA */}
-  {cameraEnabled && recordedChunks.length === 0 && (
-    <video
-      ref={videoRef}
-      autoPlay
-      playsInline
-      muted
-      style={{
-        width: "100%",
-        borderRadius: 8,
-        background: "#000",
-      }}
-    />
-  )}
-
-  {/* PLAYBACK */}
-  {recordedChunks.length > 0 && playbackUrl && (
-    <Plyr
-      source={{
-        type: "video",
-        sources: [
-          {
-            src: playbackUrl,
-            type: "video/webm",
-          },
-        ],
-      }}
-      options={{
-        controls: [
-          "play",
-          "progress",
-          "current-time",
-          "mute",
-          "volume",
-          "fullscreen",
-        ],
-      }}
-    />
-  )}
-</div>
-        {loading && (
-          <div className="loadingtext">
-            {"Loading".split("").map((char, i) => (
-              <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-                {char}
-              </span>
-            ))}
-          </div>
-        )}
+        </div>
+        {loading && (<div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>)}
         <div className="actions">
           {!cameraEnabled && !loading && (
             <button
@@ -321,7 +258,7 @@ const retakeVideo = () => {
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 
