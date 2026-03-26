@@ -14,6 +14,7 @@ import AddFeedModal from "../FeedPage/AddFeedModal";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchFollowerCounts } from "@/redux/other/followActions";
 import NoProfileSvg from "../common/NoProfileSvg";
+import { CirclePlus } from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
@@ -1067,6 +1068,17 @@ const handleProfileClick = (username: string) => {
                     </div>
                   </Link>
                 </li>
+
+                {/* Mobile Navigation - New POst */}
+                {session?.user?.role === 2 && (
+                  <li>
+                    <Link href="#" className={`btn-primary postbtn ${activePage === "search" ? "active" : ""}`} onClick={() => setAddFeedShow(true)}>
+                      <div>
+                        <CirclePlus size={24}/>
+                      </div>
+                    </Link>
+                  </li>
+                )}
 
                 {/* Mobile Navigation - Subscriptions */}
                 {session?.isAuthenticated && (

@@ -1845,7 +1845,7 @@
 
                             .profile-card__name-badge {
                                 .profile-card__name {
-                                    font-size: 14px;
+                                    font-size: 15px;
                                 }
 
                                 .profile-card__badge {
@@ -1854,7 +1854,7 @@
                             }
 
                             .profile-card__username {
-                                font-size: 12px;
+                                font-size: 13px;
                             }
                         }
 
@@ -1892,7 +1892,7 @@
                     gap: 4px;
 
                     .moneyboy-post__upload-time {
-                        font-size: 12px;
+                        font-size: 13px;
                     }
 
                     .moenyboy-post__more-opt-btn {
@@ -1906,8 +1906,8 @@
             }
 
             .moneyboy-post__desc {
-                font-size: 12px;
-                line-height: 16px;
+                font-size: 13px;
+                line-height: 17px;
 
                 span {
                     &:hover {}

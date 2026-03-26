@@ -95,17 +95,18 @@ textarea:focus {
   border-radius: 100%;
   justify-content: center;
   align-items: center;
-  width: 60px;
+  width: 36px;
   display: flex;
   position: fixed;
-  bottom: 150px;
+  bottom: 87px;
   right: 15px;
   .premium-btn {
     aspect-ratio: 1;
     border-radius: 100%;
     justify-content: center;
     align-items: center;
-    width: 100%;
+    max-width: 32px;
+    height: 32px;
     display: flex;
     svg {
       transform: scale(1.15);
@@ -1494,6 +1495,13 @@ textarea:focus {
   /* ========== Mobile (max-width: 767px) ========== */
   @media (max-width: 767px) {
     justify-content: center;
+    button {
+      width: 28px;
+      height: 28px;
+      span {
+        font-size: 14px;
+      }
+    }
   }
 }
 
@@ -8826,6 +8834,9 @@ textarea:focus {
             }
           }
           .profile-card__username {
+            gap: 3px;
+            display: inline-flex;
+            align-items: center;
             &.tphead {
               font-size: 10px;
               line-height: 12px;
@@ -8841,6 +8852,10 @@ textarea:focus {
               &.success {
                 color: #22c55e;
                 background: #22c55e26;
+              }
+              &.gray {
+                color: #505050;
+                background: #dcdcdc;
               }
               &.pending {
                 color: #f59e0b;        
@@ -8876,8 +8891,8 @@ textarea:focus {
           color: #505050;
           font-weight: 500;
           font-style: normal;
-          font-size: 9px;
-          line-height: 9px;
+          font-size: 10px;
+          line-height: 10px;
           letter-spacing: 0px;
           margin-bottom: 0px;
         }
@@ -8885,8 +8900,8 @@ textarea:focus {
           color: #444444;
           font-weight: 600;
           font-style: normal;
-          font-size: 10px;
-          line-height: 14px;
+          font-size: 11px;
+          line-height: 15px;
           letter-spacing: 0px;
           margin-bottom: 0px;
         }
@@ -8979,6 +8994,11 @@ textarea:focus {
       .date_box {
         &.mobail_show {
           display: none;
+        }
+      }
+      .detailsbox_wrap {
+        .date_box {
+          justify-content: space-between;
         }
       }
     }
@@ -9107,6 +9127,11 @@ textarea:focus {
           }
           .mobail_hide {
             display: none;
+          }
+        }
+        .detailsbox_wrap {
+          .date_box {
+            justify-content: space-between;
           }
         }
       }

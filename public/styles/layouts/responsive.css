@@ -338,6 +338,7 @@
                         align-items: center;
                         justify-content: center;
                         border-radius: 100%;
+                        display: none;
 
                         .btn-primary {
                             width: 100%;
