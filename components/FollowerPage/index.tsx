@@ -96,7 +96,7 @@ const FollowersPage = () => {
 
   const session = useSession();
   const currentUserRole = Number(session?.data?.user?.role);
-  const currentUserId = session?.data?.user?.id;
+const currentUserPublicId = session?.data?.user?.publicId;
 
   const openReportModal = (user: Follower) => {
     setReportedUserName(user.userName);
@@ -199,9 +199,9 @@ const handleShareProfile = (
   // const userIdParam = searchParams.get("q");
  const userIdParam = searchParams.get("id") || searchParams.get("q");
 
- console.log("currentUserId:", currentUserId);
+ console.log("currentUserId:", currentUserPublicId);
 console.log("userIdParam:", userIdParam);
-console.log("isOwnProfile:", currentUserId === userIdParam);
+console.log("isOwnProfile:", currentUserPublicId === userIdParam);
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -220,7 +220,7 @@ console.log("isOwnProfile:", currentUserId === userIdParam);
 
     fetchAllData();
   }, [userIdParam, time]);
-const isOwnProfile = currentUserId === userIdParam;
+const isOwnProfile = currentUserPublicId === userIdParam;
   const fetchCreators = async (pageNo = 1) => {
     setCreatorsLoading(true);
     const res = await getApiWithOutQuery({
@@ -778,7 +778,7 @@ const isOwnProfile = currentUserId === userIdParam;
             </div>
             <div className="rel-user-actions">
               <div className="rel-user-action-btn">
-                {follower._id !== currentUserId &&
+                {follower.publicId !== currentUserPublicId &&
                   !(currentUserRole === 1 && follower.role === 1) && (
                     <button
                       className={buttonProps.className}
@@ -1188,7 +1188,7 @@ const isOwnProfile = currentUserId === userIdParam;
               </div>
             </div>
             <div className="rel-user-action-btn">
-              {follow._id !== currentUserId &&
+              {follow.publicId !== currentUserPublicId &&
                 !(currentUserRole === 1 && follow.role === 1) && (
                   <button
                     className={buttonProps.className}
@@ -1677,7 +1677,7 @@ const isOwnProfile = currentUserId === userIdParam;
 
                       <div className="rel-user-actions">
                         <div className="rel-user-action-btn">
-                          {creator._id !== currentUserId &&
+                          {creator._id !== currentUserPublicId &&
                             !(currentUserRole === 1 && creator.role === 1) && (
                               <button
                                 className={`btn-txt-gradient ${

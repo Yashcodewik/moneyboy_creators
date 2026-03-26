@@ -166,7 +166,7 @@ useEffect(() => {
 
   const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
-    router.push(`/follower?tab=${tab}&q=${session && session?.user?.id}`);
+    router.push(`/follower?tab=${tab}&id=${session?.user?.publicId}`);
   };
 
 const handleProfileClick = (username: string) => {
