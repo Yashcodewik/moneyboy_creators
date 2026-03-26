@@ -4106,6 +4106,9 @@
                               border: none;
                               outline: none;
                               padding-left: 8px;
+                              &:focus {
+                                    box-shadow: none !important;
+                              }
                             }
                         }
 

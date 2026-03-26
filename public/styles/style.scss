@@ -501,6 +501,22 @@ textarea:focus {
     transform: none;
   }
 }
+.backbtnicon {
+  cursor: pointer;
+  width: 32px;
+  min-width: 32px;
+  min-height: 46px;
+  transition: var(--transition-fast);
+  background: #f4f4f4;
+  border-radius: 12px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
 
 // Group Button Start
 .btnGroup {
@@ -8494,7 +8510,7 @@ textarea:focus {
   background: #fff;
   gap: 10px;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-content: space-between;
   border-radius: 19px;
@@ -8512,6 +8528,10 @@ textarea:focus {
     font-style: normal;
     letter-spacing: 0;
     margin-bottom: 3px;
+    &.small {
+      font-size: 11px;
+      line-height: 14px;
+    }
   }
   h3 {
     text-align: center;
@@ -8521,6 +8541,10 @@ textarea:focus {
     font-weight: 400;
     font-style: normal;
     text-transform: capitalize;
+    &.small {
+     font-size: 16px;
+     font-weight: 300;
+    }
   }
 }
 .payout_wrap {
