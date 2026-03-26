@@ -92,7 +92,7 @@ interface MediaItem {
   }>;
   creator: {
     _id: string;
-    publicId:string;
+    publicId: string;
     displayName: string;
     userName: string;
   };
@@ -306,30 +306,30 @@ const PurchasedMediaPage: React.FC = () => {
     dispatch(toggleWatchLater({ postId: item._id }));
     refetchPurchasedMedia();
   };
-const hasCountedRef = useRef(false);
-useEffect(() => {
-  if (!publicIdFromUrl || !items.length) return;
+  const hasCountedRef = useRef(false);
+  useEffect(() => {
+    if (!publicIdFromUrl || !items.length) return;
 
-  const matchedItem = items.find(
-    (item) => item.publicId === publicIdFromUrl
-  );
+    const matchedItem = items.find(
+      (item) => item.publicId === publicIdFromUrl
+    );
 
-  if (!matchedItem) return;
+    if (!matchedItem) return;
 
-  setSelectedItemId(matchedItem._id);
-  setShowVideo(true);
+    setSelectedItemId(matchedItem._id);
+    setShowVideo(true);
 
-  if (!hasCountedRef.current) {
-    hasCountedRef.current = true;
+    if (!hasCountedRef.current) {
+      hasCountedRef.current = true;
 
-    dispatch(addPostViewAction(matchedItem.publicId));
-  }
+      dispatch(addPostViewAction(matchedItem.publicId));
+    }
 
-  setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, 150);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 150);
 
-}, [publicIdFromUrl, items]);
+  }, [publicIdFromUrl, items]);
 
   useEffect(() => {
     setSelectedItemId(null);
@@ -603,15 +603,15 @@ useEffect(() => {
                             {/* IMAGE */}
                             {(media.type === "photo" ||
                               media.type === "image") && (
-                              <PhotoView src={file}>
-                                <img
-                                  src={file}
-                                  alt="media"
-                                  className="posterimg"
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </PhotoView>
-                            )}
+                                <PhotoView src={file}>
+                                  <img
+                                    src={file}
+                                    alt="media"
+                                    className="posterimg"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </PhotoView>
+                              )}
                           </SwiperSlide>
                         )),
                       )}
@@ -623,7 +623,7 @@ useEffect(() => {
                     <div className="pm-page-card-footer vdocard-footer">
                       <div className="profile-card">
                         <Link
-                         href={`/${selectedItem.creator.userName}`}
+                          href={`/${selectedItem.creator.userName}`}
                           className="profile-card__main"
                         >
                           <div className="profile-card__avatar-settings">
@@ -691,103 +691,103 @@ useEffect(() => {
                         </Link>
                       </div>
                       {selectedItem?.accessType !== "PPV Request" && (
-                      <div className="meta-bar">
-                      
+                        <div className="meta-bar">
+
                           <div className="meta-item view">
                             <FaEye /> <span>{selectedItem.viewCount}</span>
                           </div>
-                        
-                        <div className="meta-item">
-                          <span>{formatDate(selectedItem.createdAt)}</span>
+
+                          <div className="meta-item">
+                            <span>{formatDate(selectedItem.createdAt)}</span>
+                          </div>
+                          <div className="meta-actions">
+                            <Link
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleLike(selectedItem);
+                              }}
+                            >
+                              {selectedItem.isLiked ? (
+                                <FaThumbsUp />
+                              ) : (
+                                <FaRegThumbsUp />
+                              )}
+                              <span>{selectedItem.likeCount}</span>
+                            </Link>
+                            <Link
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleDislike(selectedItem);
+                              }}
+                            >
+                              {selectedItem.isDisliked ? (
+                                <FaThumbsDown />
+                              ) : (
+                                <FaRegThumbsDown />
+                              )}
+                            </Link>
+                            <Link
+                              href="#"
+                              className="favorite"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleFavorite(selectedItem);
+                              }}
+                            >
+                              {selectedItem.isFavorite ? (
+                                <FaStar color="#e5741f" />
+                              ) : (
+                                <FaRegStar />
+                              )}
+                              {/* <FaStar color="#e5741f" /> */}
+                            </Link>
+                            <Link
+                              href="#"
+                              className="watch"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleWatchLater(selectedItem);
+                              }}
+                            >
+                              {selectedItem.isWatchLater ? (
+                                <FaClock />
+                              ) : (
+                                <FaRegClock />
+                              )}
+                            </Link>
+                            <Link
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setShowComments((prev) => !prev);
+                              }}
+                            >
+                              <FaCommentAlt />{" "}
+                              <span>{selectedItem.commentCount}</span>
+                            </Link>
+                            <Link
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!selectedItem) return;
+                                if (selectedItem.isReported) {
+                                  toast.success("You already reported this post");
+                                  return;
+                                }
+                                setReportPost(selectedItem);
+                                setShowReportModal(true);
+                              }}
+                            >
+                              {selectedItem.isReported ? (
+                                <FaFlag />
+                              ) : (
+                                <FaRegFlag />
+                              )}
+                            </Link>
+                          </div>
                         </div>
-                        <div className="meta-actions">
-                          <Link
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleLike(selectedItem);
-                            }}
-                          >
-                            {selectedItem.isLiked ? (
-                              <FaThumbsUp />
-                            ) : (
-                              <FaRegThumbsUp />
-                            )}
-                            <span>{selectedItem.likeCount}</span>
-                          </Link>
-                          <Link
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleDislike(selectedItem);
-                            }}
-                          >
-                            {selectedItem.isDisliked ? (
-                              <FaThumbsDown />
-                            ) : (
-                              <FaRegThumbsDown />
-                            )}
-                          </Link>
-                          <Link
-                            href="#"
-                            className="favorite"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleFavorite(selectedItem);
-                            }}
-                          >
-                            {selectedItem.isFavorite ? (
-                              <FaStar color="#e5741f" />
-                            ) : (
-                              <FaRegStar />
-                            )}
-                            {/* <FaStar color="#e5741f" /> */}
-                          </Link>
-                          <Link
-                            href="#"
-                            className="watch"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleWatchLater(selectedItem);
-                            }}
-                          >
-                            {selectedItem.isWatchLater ? (
-                              <FaClock />
-                            ) : (
-                              <FaRegClock />
-                            )}
-                          </Link>
-                          <Link
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowComments((prev) => !prev);
-                            }}
-                          >
-                            <FaCommentAlt />{" "}
-                            <span>{selectedItem.commentCount}</span>
-                          </Link>
-                          <Link
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (!selectedItem) return;
-                              if (selectedItem.isReported) {
-                                toast.success("You already reported this post");
-                                return;
-                              }
-                              setReportPost(selectedItem);
-                              setShowReportModal(true);
-                            }}
-                          >
-                            {selectedItem.isReported ? (
-                              <FaFlag />
-                            ) : (
-                              <FaRegFlag />
-                            )}
-                          </Link>
-                        </div>
-                      </div>
                       )}
                     </div>
                     <div className="pm-page-card-footer vdocard-footer description">
@@ -915,7 +915,7 @@ useEffect(() => {
                         <a
                           href="#"
                           className="btn-txt-gradient shimmer btn-outline"
-                          // onClick={toggleVideo}
+                        // onClick={toggleVideo}
                         >
                           <span>Watch Now</span>
                         </a>
@@ -932,25 +932,22 @@ useEffect(() => {
                     <div className="pm-multi-tabs-buttons-wrapper">
                       <div className="multi-tabs-action-buttons">
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "favorites" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "favorites" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("favorites")}
                         >
                           <span>Favorites</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "continue-watching" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "continue-watching" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("continue-watching")}
                         >
                           <span>Continue Watching</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "watch-later" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "watch-later" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("watch-later")}
                         >
                           <span>Watch Later</span>
@@ -964,17 +961,15 @@ useEffect(() => {
                           <span>All Media</span>
                         </button> */}
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "recently-purchased" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "recently-purchased" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("recently-purchased")}
                         >
                           <span>Recently Purchased</span>
                         </button>
                         <button
-                          className={`multi-tab-switch-btn ${
-                            activeTab === "recently-added" ? "active" : ""
-                          }`}
+                          className={`multi-tab-switch-btn ${activeTab === "recently-added" ? "active" : ""
+                            }`}
                           onClick={() => handleTabClick("recently-added")}
                         >
                           <span>Recently Added From Subscriptions</span>
@@ -1020,9 +1015,9 @@ useEffect(() => {
                             <MediaCard
                               key={item._id}
                               item={item}
-                             onOpen={async (item) => {
-                              await   dispatch(addPostViewAction(item.publicId));
-                              refetchPurchasedMedia();
+                              onOpen={async (item) => {
+                                await dispatch(addPostViewAction(item.publicId));
+                                refetchPurchasedMedia();
                                 setShowVideo(false);
 
                                 setTimeout(() => {
@@ -1068,13 +1063,12 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
       {showReportModal && reportPost && (
         <ReportModal
+          show={showReportModal}
           post={reportPost}
-          onClose={() => {
-            setShowReportModal(false);
-            setReportPost(null);
-          }}
+          onClose={() => {setShowReportModal(false); setReportPost(null);}}
           onReported={refetchPurchasedMedia}
         />
       )}

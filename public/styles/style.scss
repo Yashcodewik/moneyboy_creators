@@ -3482,7 +3482,7 @@ textarea:focus {
 }
 
 .modal {
-  &.promote_wrap, &.ageverify_wrap, .rdcnvrstn_wrap, .videorecord_wrap {
+  &.promote_wrap, &.ageverify_wrap, .rdcnvrstn_wrap, .videorecord_wrap, .tip_wrap {
     .btn-close {
       position: absolute;
       top: 18px;
@@ -3494,7 +3494,7 @@ textarea:focus {
   }
   /* ========== Mobile Screen Size ========== */
   @media screen and (max-width: 767px) {
-    &.promote_wrap, &.ageverify_wrap, .rdcnvrstn_wrap, .videorecord_wrap {
+    &.promote_wrap, &.ageverify_wrap, .rdcnvrstn_wrap, .videorecord_wrap, .tip_wrap {
       .modal-content {
         padding: 25px !important;
       }
@@ -4256,11 +4256,6 @@ textarea:focus {
     }
   }
   &.tip-modal {
-    padding: 50px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 550px;
     .close-btn {
       position: absolute;
       top: 20px;

@@ -42,31 +42,15 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
 
   return (
     <>
-      <Modal show={true} onClose={onClose} size="md" className="tip-modal">
-        <div className="modal-wrap">
-          
-        </div>
-      </Modal>
-
-      <div
-        className="modal show"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="age-modal-title"
-      >
-        <div className="modal-wrap tip-modal">
-          <button className="close-btn">
-            <CgClose size={22} onClick={onClose} />
-          </button>
+      <Modal show={true} onClose={onClose} size="md" title="Thanks for the Tip" className="tip_wrap">
+        <div className="modal_containt tip-modal">
+          <button className="close-btn"><CgClose size={22} onClick={onClose} /></button>
           <div className="profile-card">
             <div className="profile-card__main justify-center">
               <div className="profile-card__avatar-settings">
                 <div className="profile-card__avatar">
                   {creator?.profile ? (
-                    <img
-                      src={creator.profile}
-                      alt={creator?.displayName || "Creator Avatar"}
-                    />
+                    <img src={creator.profile} alt={creator?.displayName || "Creator Avatar"} />
                   ) : (
                     <div className="noprofile">
                       <svg
@@ -209,7 +193,7 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
             </button>
           </div>
         </div>
-      </div>
+      </Modal>
     </>
   );
 };

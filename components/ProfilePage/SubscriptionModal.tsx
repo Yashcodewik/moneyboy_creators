@@ -51,7 +51,7 @@ const SubscriptionModal = ({
       : null;
 
   return (
-    <Modal show={true} onClose={onClose} title="Report Post" className="subscription_wrap">
+    <Modal show={true} onClose={onClose} title=" " className="subscription_wrap">
       <div className="modal_containt subscription-modal">
         <div className="profile-card">
           <div className="profile-card__main justify-center">
