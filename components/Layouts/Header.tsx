@@ -14,7 +14,7 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWallet } from "@/redux/wallet/Action";
 import { selectTotalUnread, setCurrentUser } from "@/redux/message/messageSlice";
-import { fetchMessageUnreadCount } from "@/redux/message/messageActions";
+import { fetchMessageUnreadCount, fetchSidebar } from "@/redux/message/messageActions";
 import { CircleX, Search } from "lucide-react";
 import { useDeviceType } from "@/hooks/useDeviceType";
 
@@ -91,7 +91,7 @@ console.log("HEADER COUNT:", messageUnreadCount);
 
   useEffect(() => {
     if (session?.isAuthenticated) {
-      dispatch(fetchMessageUnreadCount());
+      dispatch(fetchSidebar());
     }
   }, [session?.isAuthenticated, dispatch]);
 
