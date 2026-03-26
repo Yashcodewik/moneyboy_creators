@@ -302,15 +302,22 @@ const PPVRequestModal = ({ show, onClose, creator, post, onSuccess, }: PPVReques
             </label>
           </div>
           {paymentMethod === "card" && (
-            <CustomSelect
-              label="Select Card"
-              value={selectedCard}
-              options={cards.map((card) => ({
-                label: `${card.cardholderName} - **** ${card.cardNumber}`,
-                value: card._id,
-              }))}
-              onChange={setSelectedCard}
-            />
+         <CustomSelect
+  label="Select Card"
+  value={selectedCard}
+  options={cards.map((card) => ({
+    label: `${card.cardholderName} - **** ${card.cardNumber}`,
+    value: card._id,
+  }))}
+  onChange={(value) => {
+    // CustomSelect can return string or string[], handle both cases
+    if (Array.isArray(value)) {
+      setSelectedCard(value[0] ?? null); // pick first or null
+    } else {
+      setSelectedCard(value);
+    }
+  }}
+/>
           )}
           <div className="actions">
             <button onClick={() => formik.handleSubmit()} disabled={loading}>

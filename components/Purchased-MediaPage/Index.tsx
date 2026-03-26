@@ -1070,6 +1070,7 @@ useEffect(() => {
       </div>
       {showReportModal && reportPost && (
         <ReportModal
+          show={showReportModal}
           post={reportPost}
           onClose={() => {
             setShowReportModal(false);

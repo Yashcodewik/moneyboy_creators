@@ -37,7 +37,7 @@ export default function AgeGate() {
   if (!showModal || pathname === "/terms") return null;
 
   return (
-    <Modal show={showModal} onHide={handleDisagree} size="lg" title=" " className="ageverify_wrap">
+    <Modal show={showModal} onClose={handleDisagree} size="lg" title=" " className="ageverify_wrap">
       <div className="modal_containt ageverify-modal">
         <h3 className="title"> Age Verification Required{" "} <img src="/images/18plus-Icon.svg" className="icons" alt="18+" /></h3>
         <p>This website contains content intended for mature audiences. By entering, you confirm that:</p>
