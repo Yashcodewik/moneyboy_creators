@@ -51,11 +51,18 @@ export default function RoleRouteGuard({
 
     const allowedRoutes = ROLE_ROUTES[roleKey];
 
-    if (allowedRoutes.includes(pathname)) {
-      setAllowed(true);
-    } else {
-      router.replace("/feed");
-    }
+  const isDynamicMatch = allowedRoutes.some((route) => {
+  if (route.includes("[publicId]")) {
+    return pathname.startsWith("/userprofile/");
+  }
+  return route === pathname;
+});
+
+if (isDynamicMatch) {
+  setAllowed(true);
+} else {
+  router.replace("/feed");
+}
   }, [session, status, pathname, router]);
 
   // block render until verified

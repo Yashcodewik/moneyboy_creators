@@ -508,7 +508,7 @@ const UserEditProfilePage = () => {
                             </div>
                             <input
                               type="text"
-                              placeholder="City *"
+                              placeholder="City"
                               value={formData.city || ""}
                               onChange={(e) =>
                                 setFormData({

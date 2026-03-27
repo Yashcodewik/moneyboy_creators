@@ -69,7 +69,7 @@ export const sendMessageAction = createAsyncThunk(
 // Mute
 export const muteThread = createAsyncThunk(
   "message/muteThread",
-  async (threadId: string, { getState }) => {
+  async (threadId: string) => {
     const res = await apiPost({
       url: `/messages/thread/mute/${threadId}`,
       values: {},
@@ -77,10 +77,24 @@ export const muteThread = createAsyncThunk(
 
     return {
       threadId,
-      isMuted: res?.isMuted, // 👈 IMPORTANT
+      isMuted: res?.isMuted, // MUST come from backend
     };
-  },
+  }
 );
+// export const muteThread = createAsyncThunk(
+//   "message/muteThread",
+//   async (threadId: string, { getState }) => {
+//     const res = await apiPost({
+//       url: `/messages/thread/mute/${threadId}`,
+//       values: {},
+//     });
+
+//     return {
+//       threadId,
+//       isMuted: res?.isMuted, // 👈 IMPORTANT
+//     };
+//   },
+// );
 
 // Hide
 export const hideThread = createAsyncThunk(

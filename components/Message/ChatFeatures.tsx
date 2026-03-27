@@ -8,6 +8,7 @@ import {
   searchMessages,
   toggleBlockThread,
   fetchThreadDetails,
+  fetchSidebar,
 } from "@/redux/message/messageActions";
 
 const ChatFeatures = ({
@@ -27,6 +28,8 @@ const ChatFeatures = ({
   const router = useRouter();
   const { isBlocked, isHidden, isMute } = useAppSelector((state) => state.message);
 
+
+
   const dispatch = useAppDispatch();
 
   const handleMute = async () => {
@@ -38,6 +41,8 @@ const ChatFeatures = ({
           ? "Conversation muted"
           : "Conversation unmuted"
       );
+      dispatch(fetchThreadDetails(threadPublicId));
+      dispatch(fetchSidebar()); 
     } else {
       toast.error("Failed to toggle mute");
     }

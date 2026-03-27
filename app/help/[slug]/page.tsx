@@ -43,7 +43,7 @@ export default async function Page({
       <CmsPage
         slug={page.slug}
         defaultTitle={page.title}
-        backUrl="/help?tab=guides"
+        // backUrl="/help?tab=guides"
       />
     </div>
   );

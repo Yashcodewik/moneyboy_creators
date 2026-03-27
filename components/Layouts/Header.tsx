@@ -6,15 +6,25 @@ import { useRouter, usePathname } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { signOut } from "next-auth/react";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_CREATOR_PROFILE, API_UNREAD_NOTIFICATIONS, API_USER_PROFILE } from "@/utils/api/APIConstant";
+import {
+  API_CREATOR_PROFILE,
+  API_UNREAD_NOTIFICATIONS,
+  API_USER_PROFILE,
+} from "@/utils/api/APIConstant";
 import PromoteModal from "../FeedPage/PromoteModal";
 import NoProfileSvg from "../common/NoProfileSvg";
 import socket from "@/libs/socket";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWallet } from "@/redux/wallet/Action";
-import { selectTotalUnread, setCurrentUser } from "@/redux/message/messageSlice";
-import { fetchMessageUnreadCount, fetchSidebar } from "@/redux/message/messageActions";
+import {
+  selectTotalUnread,
+  setCurrentUser,
+} from "@/redux/message/messageSlice";
+import {
+  fetchMessageUnreadCount,
+  fetchSidebar,
+} from "@/redux/message/messageActions";
 import { CircleX, Search } from "lucide-react";
 import { useDeviceType } from "@/hooks/useDeviceType";
 
@@ -44,19 +54,19 @@ const Header = () => {
     transition: "all 0.3s ease",
   };
 
-//   useEffect(() => {
-//   if (!session?.user?.id) return;
+  //   useEffect(() => {
+  //   if (!session?.user?.id) return;
 
-//   const handleMessage = () => {
-//     dispatch(incrementUnread());
-//   };
+  //   const handleMessage = () => {
+  //     dispatch(incrementUnread());
+  //   };
 
-//   socket.on("newMessage", handleMessage);
+  //   socket.on("newMessage", handleMessage);
 
-//   return () => {
-//     socket.off("newMessage", handleMessage);
-//   };
-// }, [session?.user?.id]);
+  //   return () => {
+  //     socket.off("newMessage", handleMessage);
+  //   };
+  // }, [session?.user?.id]);
 
   useEffect(() => {
     const delay = setTimeout(() => {
@@ -76,13 +86,11 @@ const Header = () => {
   }, [showPromoteModal]);
   const dispatch = useDispatch<AppDispatch>();
 
-  const { balance } = useSelector(
-    (state: RootState) => state.wallet
-  );
+  const { balance } = useSelector((state: RootState) => state.wallet);
 
-const messageUnreadCount = useSelector(selectTotalUnread);
+  const messageUnreadCount = useSelector(selectTotalUnread);
 
-console.log("HEADER COUNT:", messageUnreadCount);
+  console.log("HEADER COUNT:", messageUnreadCount);
   useEffect(() => {
     if (session?.user?.id) {
       dispatch(setCurrentUser(session.user.id));
@@ -326,7 +334,6 @@ console.log("HEADER COUNT:", messageUnreadCount);
     }
   }, [session?.isAuthenticated, dispatch]);
 
-
   console.log(session, "session=============================");
 
   return (
@@ -336,7 +343,10 @@ console.log("HEADER COUNT:", messageUnreadCount);
           <div className="header-container">
             <div className="header-logo">
               <Link href="/">
-                <img src="/images/logo/moneyboy-logo.png" alt="MoneyBoy Social Logo" />
+                <img
+                  src="/images/logo/moneyboy-logo.png"
+                  alt="MoneyBoy Social Logo"
+                />
               </Link>
             </div>
 
@@ -344,14 +354,51 @@ console.log("HEADER COUNT:", messageUnreadCount);
               <div className="header-search-input">
                 <div className="label-input">
                   <div className="input-placeholder-icon">
-                    <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      className="svg-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M14 5H20"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M14 8H17"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </div>
-                  <input type="text" placeholder="Search here" value={headerSearch} onChange={(e) => setHeaderSearch(e.target.value)} onFocus={() => { if (pathname !== "/discover") { router.push("/discover"); } }} />
+                  <input
+                    type="text"
+                    placeholder="Search here"
+                    value={headerSearch}
+                    onChange={(e) => setHeaderSearch(e.target.value)}
+                    onFocus={() => {
+                      if (pathname !== "/discover") {
+                        router.push("/discover");
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
@@ -362,52 +409,185 @@ console.log("HEADER COUNT:", messageUnreadCount);
                       <ul>
                         {isMobile && (
                           <li className="search-btn">
-                            <Link href="#" className="icon-link" onClick={(e) => { e.preventDefault(); setShowMobileSearch((prev) => !prev); }}><Search /></Link>
+                            <Link
+                              href="#"
+                              className="icon-link"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setShowMobileSearch((prev) => !prev);
+                              }}
+                            >
+                              <Search />
+                            </Link>
                             {isMobile && (
-                              <div className="mobile-search-popup" style={mobileSearchStyle}>
+                              <div
+                                className="mobile-search-popup"
+                                style={mobileSearchStyle}
+                              >
                                 <div className="search-container">
                                   <div className="label-input">
                                     <div className="input-placeholder-icon">
-                                      <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                        <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                      <svg
+                                        className="svg-icon"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                      >
+                                        <path
+                                          d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M14 5H20"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                        <path
+                                          d="M14 8H17"
+                                          strokeWidth="1.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
                                       </svg>
                                     </div>
-                                    <input type="text" placeholder="Search here..." value={headerSearch} onChange={(e) => setHeaderSearch(e.target.value)} autoFocus />
+                                    <input
+                                      type="text"
+                                      placeholder="Search here..."
+                                      value={headerSearch}
+                                      onChange={(e) =>
+                                        setHeaderSearch(e.target.value)
+                                      }
+                                      autoFocus
+                                      onFocus={() => {
+                                        if (pathname !== "/discover") {
+                                          router.push("/discover");
+                                        }
+                                      }}
+                                    />
                                   </div>
-                                  <button className="btn-danger icon" onClick={() => setShowMobileSearch(false)}><CircleX size={18} /></button>
+                                  <button
+                                    className="btn-danger icon"
+                                    onClick={() => setShowMobileSearch(false)}
+                                  >
+                                    <CircleX size={18} />
+                                  </button>
                                 </div>
                               </div>
                             )}
                           </li>
                         )}
                         <li className="message-btn">
-                          <Link href="#" className={`icon-link ${isMessagePage ? "active" : ""}`} onClick={handleMessage} data-tooltip="Messages" data-position="bottom">
-                            <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path d="M22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H12" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M15.2 4.62C14.87 3.63 15.26 2.41 16.34 2.07C16.9 1.9 17.6 2.04 18 2.57C18.38 2.02 19.1 1.9 19.66 2.07C20.74 2.4 21.13 3.63 20.8 4.62C20.29 6.19 18.5 7 18 7C17.5 7 15.73 6.2 15.2 4.62Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M15.9965 11H16.0054" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M11.9955 11H12.0045" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M7.99451 11H8.00349" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <Link
+                            href="#"
+                            className={`icon-link ${isMessagePage ? "active" : ""}`}
+                            onClick={handleMessage}
+                            data-tooltip="Messages"
+                            data-position="bottom"
+                          >
+                            <svg
+                              className="svg-icon"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H12"
+                                strokeWidth="1.5"
+                                strokeMiterlimit="10"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M15.2 4.62C14.87 3.63 15.26 2.41 16.34 2.07C16.9 1.9 17.6 2.04 18 2.57C18.38 2.02 19.1 1.9 19.66 2.07C20.74 2.4 21.13 3.63 20.8 4.62C20.29 6.19 18.5 7 18 7C17.5 7 15.73 6.2 15.2 4.62Z"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M15.9965 11H16.0054"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M11.9955 11H12.0045"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M7.99451 11H8.00349"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           </Link>
                           {messageUnreadCount > 0 && (
-                            <span className="message-badge">{messageUnreadCount}</span>
+                            <span className="message-badge">
+                              {messageUnreadCount}
+                            </span>
                           )}
                         </li>
                         <li className="noti-btn">
-                          <Link href="#" className={`icon-link ${isNotificationsPage ? "active" : ""}`} onClick={handleNotificationClick} data-tooltip="Notifications" data-position="bottom">
-                            <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M7 13H12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M7 17H16" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M14 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V10" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <Link
+                            href="#"
+                            className={`icon-link ${isNotificationsPage ? "active" : ""}`}
+                            onClick={handleNotificationClick}
+                            data-tooltip="Notifications"
+                            data-position="bottom"
+                          >
+                            <svg
+                              className="svg-icon"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path
+                                d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M7 13H12"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M7 17H16"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M14 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V10"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           </Link>
                           {unreadCount > 0 && (
-                            <span className="notification-badge">{unreadCount}</span>
+                            <span className="notification-badge">
+                              {unreadCount}
+                            </span>
                           )}
                         </li>
                       </ul>
@@ -962,8 +1142,13 @@ console.log("HEADER COUNT:", messageUnreadCount);
                       </a>
                       {session?.user?.role === 2 && (
                         <a
-                          href="/block-countries"
+                          href="#"
                           className="menu-link block-countries-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsOpen(false); // close menu
+                            router.push("/block-countries");
+                          }}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1145,8 +1330,9 @@ console.log("HEADER COUNT:", messageUnreadCount);
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className={`menu-link posts-link ${pathname === "/like" ? "active" : ""
-                            }`}
+                          className={`menu-link posts-link ${
+                            pathname === "/like" ? "active" : ""
+                          }`}
                           onClick={(e) => handleTabNavigation(e, "posts")}
                         >
                           <svg
@@ -1191,8 +1377,9 @@ console.log("HEADER COUNT:", messageUnreadCount);
                       {session?.user?.role === 2 && (
                         <a
                           href="/like"
-                          className={`menu-link videos-link ${pathname === "/like" ? "active" : ""
-                            }`}
+                          className={`menu-link videos-link ${
+                            pathname === "/like" ? "active" : ""
+                          }`}
                           onClick={(e) => handleTabNavigation(e, "videos")}
                         >
                           <svg
@@ -1833,7 +2020,10 @@ console.log("HEADER COUNT:", messageUnreadCount);
         </div>
       )}
       {showPromoteModal && (
-        <PromoteModal show={showPromoteModal} onClose={() => setShowPromoteModal(false)} />
+        <PromoteModal
+          show={showPromoteModal}
+          onClose={() => setShowPromoteModal(false)}
+        />
       )}
     </>
   );
@@ -2169,7 +2359,6 @@ export default Header;
 //       dispatch(fetchWallet());
 //     }
 //   }, [session?.isAuthenticated, dispatch]);
-
 
 //   console.log(session, "session=============================");
 
