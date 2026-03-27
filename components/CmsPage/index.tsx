@@ -105,6 +105,15 @@ const CmsPage: React.FC<CmsPageProps> = ({
     router.replace(`?tab=${tab}`);
   };
 
+  const handleBack = () => {
+  // Always go to feed if no explicit backUrl
+  if (backUrl) {
+    router.push(backUrl);
+  } else {
+    router.push("/feed"); // ✅ force correct exit
+  }
+};
+
   return (
     <div className="container">
       <div className="moneyboy-main-asides-layout-container">
@@ -113,7 +122,7 @@ const CmsPage: React.FC<CmsPageProps> = ({
             <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers common-cntwrap">
               {/* Header */}
               <div className="moneyboy-feed-page-cate-buttons card">
-                <button className="cate-back-btn active-down-effect" onClick={() => { if (backUrl) router.push(backUrl); else router.back(); }}><span className="icons arrowLeft"></span></button>
+                <button className="cate-back-btn active-down-effect"  onClick={handleBack}><span className="icons arrowLeft"></span></button>
                 {!showGuidesTab && (<button className="page-content-type-button active-down-effect active">{cmsData?.title || defaultTitle}</button>)}
                 {showGuidesTab && (
                   <>

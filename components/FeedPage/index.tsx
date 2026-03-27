@@ -292,13 +292,23 @@ const handleSave = async (post: any) => {
             <div className="moneyboy-feed-page-container">
               <BtnGroupTabs
                 activeTab={activeTab}
-                onChange={(value) => {
-                  if (!isLoggedIn && value === "following") {
-                    router.push("/discover");
-                    return;
-                  }
-                  setActiveTab(value as TabType);
-                }}
+            onChange={(value) => {
+  console.log("TAB CLICKED:", value);
+
+  // ✅ STEP 1: close sidebar on mobile
+  if (isMobile) {
+    setShowSidebarMobile(false);
+  }
+
+  // existing logic
+  if (!isLoggedIn && value === "following") {
+     if (isMobile) setShowSidebarMobile(false); 
+    router.push("/discover");
+    return;
+  }
+
+  setActiveTab(value as TabType);
+}}
                 tabs={[
                   { key: "feed", label: "Feed" },
                   {

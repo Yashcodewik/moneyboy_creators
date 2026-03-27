@@ -1349,13 +1349,34 @@ const FollowersPage = () => {
 
                           <div className="creater-content-filters-layouts">
                             <div className="creator-content-select-filter">
-                              <CustomSelect
-                                className="bg-white p-sm size-sm"
-                                label="All Time"
-                                options={timeOptions}
-                                value={selectedOption}
-                                searchable={false}
-                                onChange={(val: any) => { setSelectedOption(val.label); setTime(val.value); fetchFollowers(1, followersSearchQuery, val.value); }} />
+                             <CustomSelect
+  className="bg-white p-sm size-sm"
+  label="All Time"
+  options={timeOptions}
+  value={selectedOption}
+  searchable={false}
+  onChange={(val: any) => {
+    console.log("🔥 RAW VALUE:", val);
+    console.log("👉 typeof val:", typeof val);
+    console.log("👉 val.label:", val?.label);
+    console.log("👉 val.value:", val?.value);
+
+    const finalValue = val?.value || val;
+
+    console.log("✅ FINAL VALUE USED:", finalValue);
+
+    setSelectedOption(val?.label || val);
+    setTime(finalValue);
+
+    console.log("📡 CALLING API WITH:", {
+      page: 1,
+      search: followersSearchQuery,
+      time: finalValue,
+    });
+
+    fetchFollowers(1, followersSearchQuery, finalValue);
+  }}
+/>
                             </div>
                           </div>
                         </div>

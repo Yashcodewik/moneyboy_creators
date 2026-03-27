@@ -130,10 +130,26 @@ const NotificationPage = () => {
     }
   };
 
-  const goToProfile = (publicId?: string) => {
-    if (!publicId) return;
-    router.push(`/${publicId}`);
-  };
+const goToProfile = (user?: any) => {
+  if (!user) return;
+
+  const role = user?.role;
+  const publicId = user?.publicId;
+  const userName = user?.userName;
+
+    console.log("NAV USER:", user);
+
+  if (role === 1) {
+    // 👤 normal user
+    router.push(`/userprofile/${publicId}`);
+  } else if (role === 2) {
+    // ⭐ creator
+    router.push(`/${userName}`);
+  } else {
+    // fallback
+    router.push(`/${userName}`);
+  }
+};
 
   // useEffect(() => {
   //   if (!selectedPost?.createdAt) return;
@@ -187,9 +203,8 @@ const NotificationPage = () => {
                         className="noti-item--icon"
                         onClick={() =>
                           goToProfile(
-                            noti.senderId?.userName ||
-                            noti.postTag?.taggedBy?.userName,
-                          )
+  noti.senderId || noti.postTag?.taggedBy
+)
                         }
                       >
                         <img
