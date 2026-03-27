@@ -18,11 +18,12 @@ import PricingSetting from "./PricingSetting";
 import ImageCropModal from "./ImageCropModal";
 import { showError, showSuccess } from "@/utils/alert";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import BtnGroupTabs from "../BtnGroupTabs";
 
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
+    const router = useRouter();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
@@ -261,7 +262,7 @@ const EditProfilePage = () => {
         <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
           <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
             <div className="moneyboy-feed-page-cate-buttons card show_mobail" id="posts-tabs-btn-card">
-              <button className="cate-back-btn active-down-effect"><span className="icons arrowLeft hwhite"></span></button>
+              <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}><span className="icons arrowLeft hwhite"></span></button>
               <button className="page-content-type-button active">Edit Profile</button>
             </div>
             <BtnGroupTabs activeTab={tab.toString()} onChange={(key) => setTab(Number(key))}

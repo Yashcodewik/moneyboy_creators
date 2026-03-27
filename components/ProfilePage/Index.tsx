@@ -762,19 +762,19 @@ const ProfilePage = () => {
 
       const newState = !post.isSaved;
 
-      queryClient.setQueryData(
-        ["creator-posts", username, search, timeFilter],
-        (oldData: any) => {
-          if (!oldData) return oldData;
+queryClient.setQueryData(
+  ["creator-posts", username, search, timeFilter, page, activeTab],
+  (oldData: any) => {
+    if (!oldData) return oldData;
 
-          return {
-            ...oldData,
-            posts: oldData.posts.map((p: any) =>
-              p._id === postId ? { ...p, isSaved: newState } : p,
-            ),
-          };
-        },
-      );
+    return {
+      ...oldData,
+      posts: oldData.posts.map((p: any) =>
+        p._id === postId ? { ...p, isSaved: newState } : p
+      ),
+    };
+  }
+);
 
       try {
         if (post.isSaved) {
