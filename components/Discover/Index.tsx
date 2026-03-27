@@ -19,7 +19,7 @@ const Dashboard = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
-const querySearch = searchParams.get("search");
+  const querySearch = searchParams.get("search");
 
   type FilterType =
     | "category"
@@ -39,7 +39,7 @@ const querySearch = searchParams.get("search");
     | null;
 
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
-const [search, setSearch] = useState(querySearch || "");
+  const [search, setSearch] = useState(querySearch || "");
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const { creators, page, totalPages, loading } = useSelector(
     (state: any) => state.discoverCreators,
@@ -60,18 +60,18 @@ const [search, setSearch] = useState(querySearch || "");
     loadSession();
   }, []);
 
-useEffect(() => {
-  if (!sessionLoaded) return;
+  useEffect(() => {
+    if (!sessionLoaded) return;
 
-  dispatch(
-    fetchDiscoverCreators({
-      page,
-      search: querySearch || search,
-      filters: filterValues,
-      ...(session?.user && { userPublicId: session.user.publicId }),
-    }) as any,
-  );
-}, [page, querySearch, search, filterValues, sessionLoaded, session?.user?.publicId]);
+    dispatch(
+      fetchDiscoverCreators({
+        page,
+        search: querySearch || search,
+        filters: filterValues,
+        ...(session?.user && { userPublicId: session.user.publicId }),
+      }) as any,
+    );
+  }, [page, querySearch, search, filterValues, sessionLoaded, session?.user?.publicId]);
 
   useEffect(() => {
     dispatch(resetCreators());
@@ -96,11 +96,11 @@ useEffect(() => {
     };
   }, []);
 
- useEffect(() => {
-  const newSearch = querySearch || "";
-  setSearch(newSearch);
-  dispatch(setPage(1));
-}, [querySearch, dispatch]);
+  useEffect(() => {
+    const newSearch = querySearch || "";
+    setSearch(newSearch);
+    dispatch(setPage(1));
+  }, [querySearch, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -316,8 +316,12 @@ useEffect(() => {
                             </div>
                             <div className="user-profile-card__info-container text_iconset">
                               <div className="user-profile-card__info">
-                                <div className="user-profile-card__name-badge w-fit">
-                                  <div className="user-profile-card__name">{creator.displayName}</div>
+                                <div className="user-profile-card__name-badge">
+                                  <div className="user-profile-card__name">
+                                    {creator.displayName?.length > 8
+                                      ? creator.displayName.slice(0, 8) + "..."
+                                      : creator.displayName}
+                                  </div>
                                   <div className="user-profile-card__badge">
                                     <img src="/images/logo/profile-badge.png" alt="Profile Badge" />
                                   </div>

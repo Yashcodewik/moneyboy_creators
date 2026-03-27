@@ -1,26 +1,13 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import {
-  CircleX,
-  BadgeCheck,
-  MessageCircleMore,
-  Loader,
-  Check,
-  Send,
-  ArrowLeft,
-} from "lucide-react";
+import { CircleX, BadgeCheck, MessageCircleMore, Loader, Check, Send, ArrowLeft,} from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import socket from "@/libs/socket";
-import {
-  apiPost,
-  apiPostWithMultiForm,
-  getApi,
-  getApiByParams,
-} from "@/utils/endpoints/common";
+import {apiPost, apiPostWithMultiForm, getApi, getApiByParams,} from "@/utils/endpoints/common";
 import { API_MESSAGE_CHAT_UPLOAD_MEDIA } from "@/utils/api/APIConstant";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plyr } from "plyr-react";
@@ -29,36 +16,13 @@ import toast from "react-hot-toast";
 import ChatFeatures from "./ChatFeatures";
 import Link from "next/link";
 import NoProfileSvg from "../common/NoProfileSvg";
-import { CgClose } from "react-icons/cg";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import {
-  clearConversation,
-  deleteThread,
-  fetchMessages,
-  fetchMessageUnreadCount,
-  fetchSidebar,
-  reportThread,
-} from "@/redux/message/messageActions";
-import {
-  addSocketMessage,
-  clearMessages,
-  markMessagesReadFromSocket,
-  resetThreadUnread,
-  setActiveThread,
-  setThreadDetails,
-  updatePPVStatus,
-} from "@/redux/message/messageSlice";
+import { clearConversation, deleteThread, fetchMessages, fetchMessageUnreadCount, fetchSidebar, reportThread,} from "@/redux/message/messageActions";
+import { addSocketMessage, clearMessages, markMessagesReadFromSocket, resetThreadUnread, setActiveThread, setThreadDetails, updatePPVStatus,} from "@/redux/message/messageSlice";
 import CustomAudioPlayer from "../common/CustomAudioPlayer";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import {
-  ChevronLeft,
-  ChevronRight,
-  RotateCw,
-  X,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut,} from "lucide-react";
 import { showError, showSuccess } from "@/utils/alert";
 import Modal from "../Modal";
 
@@ -1171,17 +1135,10 @@ const MessagePage = () => {
                           <div className="messages-empty">
                             <div className="messages-empty-card">
                               <div className="messages-empty-icon">
-                                <Loader
-                                  size={28}
-                                  className="loader"
-                                  color="#FFF"
-                                />
+                                <Loader size={28} className="loader" color="#FFF"/>
                               </div>
                               <h3>Loading chat</h3>
-                              <p>
-                                Please wait while we load the conversation
-                                details.
-                              </p>
+                              <p>Please wait while we load the conversation details.</p>
                             </div>
                           </div>
                         ) : (

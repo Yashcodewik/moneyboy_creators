@@ -845,8 +845,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                       autoFocusSearch={false}
                       skinTonesDisabled
                       previewConfig={{ showPreview: false }}
-                      height={360}
-                      width={340}
                     />
                   </div>
                 )}

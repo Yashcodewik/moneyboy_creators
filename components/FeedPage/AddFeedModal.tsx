@@ -968,11 +968,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                       alt={`preview-${index}`}
                     />
                   ) : (
-                    <video
-                      src={media.url}
-                      className="img-fluid upldimg"
-                      controls
-                    />
+                    <video src={media.url} className="img-fluid upldimg"/>
                   )}
                   <button
                     type="button"

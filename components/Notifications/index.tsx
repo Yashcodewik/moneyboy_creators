@@ -281,7 +281,7 @@ const NotificationPage = () => {
         </aside>
       </div>
 
-      <Modal show={showModal} onClose={() => setShowModal(false)} title="Post Details" className="notipost_wrap">
+      <Modal show={showModal} onClose={() => setShowModal(false)} size="lg" title="Post Details" className="notipost_wrap">
         <form className="modal_containt notipost-modal">
           <div className="post_wrap">
             {/* POST IMAGES */}
