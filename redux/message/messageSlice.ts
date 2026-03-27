@@ -209,7 +209,7 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
       state.isBlocked =
         perms?.isBlockedByYou || perms?.isBlockedByOther || false;
       state.isHidden = perms?.isHidden || false;
-      state.isMute = perms?.isMute || false;
+      state.isMute = perms?.isMuted || false;
     },
 
     clearMessages: (state) => {
@@ -320,6 +320,8 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
         state.isBlockedByOther = perms?.isBlockedByOther || false;
         state.isBlocked =
           perms?.isBlockedByYou || perms?.isBlockedByOther || false;
+          state.isHidden = perms?.isHidden || false;
+        state.isMute = perms?.isMuted || false; // 🔥 IMPORTANT
       })
       // Delete
       .addCase(deleteThread.fulfilled, (state, action) => {
