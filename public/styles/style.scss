@@ -5123,7 +5123,7 @@ textarea:focus {
         max-width: 50%;
         padding: 14px 8px;
         border-radius: 14px;
-        height: -webkit-fill-available;
+        height: fit-content;
       }
     }
   }
