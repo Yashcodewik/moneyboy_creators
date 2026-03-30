@@ -72,6 +72,7 @@ const MessagePage = () => {
   const isMobile = useDeviceType();
 
 
+
   const { isBlockedByYou, isBlockedByOther } = useAppSelector(
     (state) => state.message,
   );
@@ -184,18 +185,16 @@ const MessagePage = () => {
     };
   }, [dispatch, session?.user?.id]);
 
-  useEffect(() => {
-    if (!threadPublicIdFromUrl) return;
+useEffect(() => {
+  if (!threadPublicIdFromUrl) {
+    // ✅ header click → no threadId → show list
+    dispatch(setActiveThread(null));
+    return;
+  }
 
-    // ❗ MOBILE → IGNORE URL (show sidebar first)
-    if (isMobile) {
-      dispatch(setActiveThread(null));
-      return;
-    }
-
-    // ✅ DESKTOP → allow direct chat open
-    dispatch(setActiveThread(threadPublicIdFromUrl));
-  }, [threadPublicIdFromUrl, dispatch, isMobile]);
+  // ✅ profile click → open chat (mobile + desktop both)
+  dispatch(setActiveThread(threadPublicIdFromUrl));
+}, [threadPublicIdFromUrl, dispatch]);
 
   useEffect(() => {
     if (!session?.user?.id || !activeThreadId) return;
@@ -1835,14 +1834,14 @@ const MessagePage = () => {
                                         and kick things off.
                                       </p>
                                       <div className="start-actions">
-                                        <button
+                                        {/* <button
                                           className="btn-primary"
                                           onClick={() =>
                                             textareaRef.current?.focus()
                                           }
                                         >
                                           Start chatting <Send size={22} />
-                                        </button>
+                                        </button> */}
                                         <button
                                           className="hello-btn"
                                           onClick={() => {
@@ -1856,11 +1855,11 @@ const MessagePage = () => {
                                               threadId: activeThreadId,
                                               senderId: session.user.id,
                                               receiverId: activeUser.id,
-                                              text: "👋 Hi there",
+                                              text: "👋 Hello",
                                             });
                                           }}
                                         >
-                                          👋 Say Hello
+                                          👋 Say hello
                                         </button>
                                       </div>
                                     </div>

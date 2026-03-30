@@ -310,7 +310,7 @@ const SubscriptionsPage = () => {
                                   <svg className="icons calendarNote" />
                                   <div className="containt">
                                     <span>Start Date</span>
-                                    <p>{formatDate(item.createdAt)}</p>
+                                    <p>{formatDate(item.startsAt)}</p>
                                   </div>
                                 </div>
                                 <div className="date_wrap">
@@ -400,7 +400,7 @@ const SubscriptionsPage = () => {
                                   <svg className="icons calendarNote" />
                                   <div className="containt">
                                     <span>Start Date</span>
-                                    <p>{formatDate(item.createdAt)}</p>
+                                    <p>{formatDate(item.startsAt)}</p>
                                   </div>
                                 </div>
                                 <div className="date_wrap">
