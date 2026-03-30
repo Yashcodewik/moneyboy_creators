@@ -278,6 +278,12 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     router.push(`/post?page&publicId=${post.publicId}`);
   };
 
+  const handleSeeMoreComments = () => {
+  router.push(
+    `/post?page&publicId=${post.publicId}&comment=open`
+  );
+};
+
   const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
     const aLikes = a.likeCount ?? a.likes?.length ?? 0;
     const bLikes = b.likeCount ?? b.likes?.length ?? 0;
@@ -920,7 +926,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                       </Link>
                     </li>
                   </ul>
-                  {hasMoreComments && (<button onClick={handlePostRedirect} className="btn-primary active-down-effect-2x" >See more <ArrowUpRight size={14} /></button>)}
+                  {hasMoreComments && (<button  onClick={(e) => {
+      e.stopPropagation(); // 🔥 VERY IMPORTANT
+      handleSeeMoreComments();
+    }}className="btn-primary active-down-effect-2x" >See more <ArrowUpRight size={14} /></button>)}
                 </div>
               </div>
             )}
