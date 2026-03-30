@@ -1151,8 +1151,14 @@ useEffect(() => {
                                     <div
                                       className="profile-card__main"
                                       onClick={() => {
-                                        if (!activeUser?.username) return;
-                                        router.push(`/${activeUser.username}`);
+                                        if (!activeUser) return;
+
+                                        if (activeUser.role === 1) {
+                                          router.push(`/userprofile/${activeUser.publicId}`);
+                                        } else {
+                                          if (!activeUser.username) return;
+                                          router.push(`/${activeUser.username}`);
+                                        }
                                       }}
                                     >
                                       {isMobile && activeThreadId && (
@@ -1177,12 +1183,14 @@ useEffect(() => {
                                               activeUser?.username ||
                                               ""}
                                           </div>
-                                          <div className="profile-card__badge">
-                                            <img
-                                              src="/images/logo/profile-badge.png"
-                                              alt="Profile Badge"
-                                            />
-                                          </div>
+                                          {activeUser.role === 2 && (
+                                            <div className="profile-card__badge">
+                                              <img
+                                                src="/images/logo/profile-badge.png"
+                                                alt="Profile Badge"
+                                              />
+                                            </div>
+                                          )}
                                         </div>
                                         <div className="profile-card__username">
                                           @{activeUser?.username || ""}
@@ -1197,9 +1205,15 @@ useEffect(() => {
                                   <div
                                     className="btn-txt-gradient"
                                     onClick={() => {
-                                      if (!activeUser?.username) return;
+                                    if (!activeUser) return;
+
+                                    if (activeUser.role === 1) {
+                                      router.push(`/userprofile/${activeUser.publicId}`);
+                                    } else {
+                                      if (!activeUser.username) return;
                                       router.push(`/${activeUser.username}`);
-                                    }}
+                                    }
+                                  }}
                                   >
                                     <span>View Profile</span>
                                   </div>
@@ -1493,6 +1507,25 @@ useEffect(() => {
                                                     unlocked successfully
                                                   </div>
                                                 )}
+
+                                                {/* EXPIRY COUNTDOWN */}
+                                        {/* {(msg.ppvRequestId.status === "PENDING" || msg.ppvRequestId.status === "MEDIA_UPLOADED") && 
+                                          msg.ppvRequestId.expiresAt && (() => {
+                                            const msLeft = new Date(msg.ppvRequestId.expiresAt).getTime() - Date.now();
+                                            const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+                                            if (daysLeft <= 0) return (
+                                              <div className="warning_wrap danger">
+                                                <CircleX size={20} /> This request has expired
+                                              </div>
+                                            );
+                                            if (daysLeft <= 5) return (
+                                              <div className="warning_wrap danger">
+                                                <CircleX size={20} /> {daysLeft} day{daysLeft !== 1 ? "s" : ""} remaining
+                                              </div>
+                                            );
+                                            return null;
+                                          })()
+                                        } */}
 
                                               {/* UPLOAD BOX — CREATOR ONLY + PENDING */}
                                               {isCreator &&
@@ -1815,7 +1848,7 @@ useEffect(() => {
                                 })}
 
                                 {/* Empty state */}
-                                {messages.length === 0 && (
+                                {/* {messages.length === 0 && (
                                   <div className="start-convo-wrapper">
                                     <div className="bg-gradient"></div>
                                     <div className="bg-bubble bubble1"></div>
@@ -1833,7 +1866,7 @@ useEffect(() => {
                                         </strong>{" "}
                                         and kick things off.
                                       </p>
-                                      <div className="start-actions">
+                                      <div className="start-actions"> */}
                                         {/* <button
                                           className="btn-primary"
                                           onClick={() =>
@@ -1842,7 +1875,7 @@ useEffect(() => {
                                         >
                                           Start chatting <Send size={22} />
                                         </button> */}
-                                        <button
+                                        {/* <button
                                           className="hello-btn"
                                           onClick={() => {
                                             if (
@@ -1864,7 +1897,7 @@ useEffect(() => {
                                       </div>
                                     </div>
                                   </div>
-                                )}
+                                )} */}
 
                                 {/* Typing indicator */}
                                 {isOtherUserTyping && (
@@ -1885,7 +1918,7 @@ useEffect(() => {
                             </div>
 
                             {/* ── Footer ── */}
-                            {messages.length > 0 &&
+                            { 
                               !isBlockedByOther &&
                               !isBlockedByYou && (
                                 <div className="chat-room-footer-layout">

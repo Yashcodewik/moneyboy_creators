@@ -489,7 +489,7 @@ const Header = () => {
                         )}
                         <li className="message-btn">
                           <Link
-                            href="#"
+                            href=""
                             className={`icon-link ${isMessagePage ? "active" : ""}`}
                             onClick={handleMessage}
                             data-tooltip="Messages"
