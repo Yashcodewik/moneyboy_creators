@@ -266,7 +266,11 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   };
 
   const handleProfileClick = (username: string) => {
-  
+    if (!session?.user?.id) {
+      router.push("/login");
+      return;
+    }
+
     router.push(`/${username}`);
   };
 
@@ -739,7 +743,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                       return;
                     }
 
-                    if (post.isReported) return;
+                   if (isReported) return;
 
                     session?.user?.id !== post.userId && setShowReportModal(true);
                   }}
@@ -925,7 +929,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       </div>
 
       {showReportModal && (
-        <ReportModal show={showReportModal} post={post} onClose={() => setShowReportModal(false)}/>
+        <ReportModal show={showReportModal} post={post}   onClose={(reported?: boolean) => {
+    if (reported) setIsReported(true); // ✅ FIX
+    setShowReportModal(false);
+  }}/>
       )}
       {showTipModal && (
         <TipModal onClose={() => setShowTipModal(false)} onConfirm={handleSendTip} creator={{ displayName: post?.creatorInfo?.displayName, userName: post?.creatorInfo?.userName, profile: post?.creatorInfo?.profile, }} />
