@@ -152,59 +152,26 @@ const AccountSecurity = ({ profile }: any) => {
         <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
           <div className="form_grid">
             <div className="label-input one">
-              <div className="input-placeholder-icon">
-                <i className="icons message svg-icon"></i>
-              </div>
+              <div className="input-placeholder-icon"><i className="icons message svg-icon"></i></div>
               <input type="text" value={profile?.email || ""} readOnly />
-              <span className="righttext">
-                {profile?.status === 5 ? "Verified" : "Unverified"}
-              </span>
+              <span className="righttext">{profile?.status === 5 ? "Verified" : "Unverified"}</span>
             </div>
-            <div className="label-input password">
-              <div className="input-placeholder-icon">
-                <i className="icons lock svg-icon"></i>
-              </div>
-              <input
-                type={showPass ? "text" : "password"}
-                placeholder="Password *"
-                value={passwordData.password}
-                onChange={(e) =>
-                  setPasswordData({
-                    ...passwordData,
-                    password: e.target.value,
-                  })
-                }
-              />
-              <span
-                onClick={() => setShowPass(!showPass)}
-                className="input-placeholder-icon eye-icon"
-              >
-                {showPass ? (
-                  <i className="icons eye-slash svg-icon"></i>
-                ) : (
-                  <i className="icons eye svg-icon"></i>
-                )}
-              </span>
+            <div className="label-input one password">
+              <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
+              <input type={showPass ? "text" : "password"} placeholder="Password *" value={passwordData.password} onChange={(e) =>   setPasswordData({...passwordData,  password: e.target.value,})}/>
+              <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
             </div>
+
             <div className="label-input password">
-              <div className="input-placeholder-icon">
-                <i className="icons lock svg-icon"></i>
-              </div>
-              <input
-                type={showConfirmPass ? "text" : "password"}
-                placeholder="Confirm password*"
-                value={passwordData.confirmPassword}
-                onChange={(e) =>
-                  setPasswordData({
-                    ...passwordData,
-                    confirmPassword: e.target.value,
-                  })
-                }
-              />
-              <span
-                onClick={() => setShowConfirmPass(!showConfirmPass)}
-                className="input-placeholder-icon eye-icon"
-              >
+              <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
+              <input type={showPass ? "text" : "password"} placeholder="New Password *" value={passwordData.password} onChange={(e) =>   setPasswordData({...passwordData,  password: e.target.value,})}/>
+              <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
+            </div>
+
+            <div className="label-input password">
+              <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
+              <input type={showConfirmPass ? "text" : "password"} placeholder="Confirm password*" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value,})}/>
+              <span onClick={() => setShowConfirmPass(!showConfirmPass)} className="input-placeholder-icon eye-icon">
                 {showConfirmPass ? (
                   <i className="icons eye-slash svg-icon"></i>
                 ) : (

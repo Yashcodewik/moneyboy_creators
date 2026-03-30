@@ -1971,7 +1971,7 @@ queryClient.setQueryData(
                                   "Not Updated yet"}
                               </h3>
                               <span>/Year</span>
-                              <div className="save-txt fs_10">
+                              <div className="save-txt">
                                 {(() => {
                                   const savings = calculateYearlySavings(
                                     profile?.subscription?.monthlyPrice,
