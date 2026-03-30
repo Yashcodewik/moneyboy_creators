@@ -414,7 +414,7 @@ const WalletTransactionsPage = () => {
                               {!isPaymentTab && (
                                 <div className="rel-user-desc">
                                   <div>
-                                    <p className="heading">Discription</p>
+                                    <p className="heading">Description</p>
                                     <p>{WalletTransactiontypeformate(txn.type)}</p>
                                   </div>
                                   <div className="rel-user-actions">
