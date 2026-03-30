@@ -68,19 +68,7 @@ const Header = () => {
   //   };
   // }, [session?.user?.id]);
 
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      if (pathname !== "/discover") return;
 
-      if (!headerSearch.trim()) {
-        router.push("/discover");
-      } else {
-        router.push(`/discover?search=${encodeURIComponent(headerSearch)}`);
-      }
-    }, 500); // wait 500ms after typing
-
-    return () => clearTimeout(delay);
-  }, [headerSearch]);
   useEffect(() => {
     console.log("showPromoteModal:", showPromoteModal);
   }, [showPromoteModal]);
@@ -392,12 +380,19 @@ const Header = () => {
                     type="text"
                     placeholder="Search here"
                     value={headerSearch}
-                    onChange={(e) => setHeaderSearch(e.target.value)}
-                    onFocus={() => {
-                      if (pathname !== "/discover") {
-                        router.push("/discover");
-                      }
-                    }}
+                    onChange={(e) => {
+  const value = e.target.value;
+  setHeaderSearch(value);
+
+  if (value.trim()) {
+    if (pathname !== "/discover") {
+      router.push("/discover");
+    } else {
+      router.replace(`/discover?search=${encodeURIComponent(value)}`);
+    }
+  }
+}}
+                   
                   />
                 </div>
               </div>
@@ -465,15 +460,20 @@ const Header = () => {
                                       type="text"
                                       placeholder="Search here..."
                                       value={headerSearch}
-                                      onChange={(e) =>
-                                        setHeaderSearch(e.target.value)
-                                      }
+                                    onChange={(e) => {
+  const value = e.target.value;
+  setHeaderSearch(value);
+
+  if (value.trim()) {
+    if (pathname !== "/discover") {
+      router.push("/discover");
+    } else {
+      router.replace(`/discover?search=${encodeURIComponent(value)}`);
+    }
+  }
+}}
                                       autoFocus
-                                      onFocus={() => {
-                                        if (pathname !== "/discover") {
-                                          router.push("/discover");
-                                        }
-                                      }}
+                                    
                                     />
                                   </div>
                                   <button
