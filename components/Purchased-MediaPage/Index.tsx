@@ -803,7 +803,7 @@ const PurchasedMediaPage: React.FC = () => {
 
             {!selectedItem && (
               <div className="pm-page-hero-wrapper">
-                <div className="pm-page-hero-container ">
+                <div className="pm-page-hero-container">
                   <div className="hero-type-card-wrapper ">
                     <div className="hero-type-card-container card">
                       <div className="hero-type-card--bg-img">
@@ -1068,7 +1068,7 @@ const PurchasedMediaPage: React.FC = () => {
         <ReportModal
           show={showReportModal}
           post={reportPost}
-          onClose={() => {setShowReportModal(false); setReportPost(null);}}
+          onClose={() => { setShowReportModal(false); setReportPost(null); }}
           onReported={refetchPurchasedMedia}
         />
       )}
