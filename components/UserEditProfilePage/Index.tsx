@@ -12,6 +12,10 @@ import NoProfileSvg from "../common/NoProfileSvg";
 import { showError, showSuccess } from "@/utils/alert";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import ImageCropModal from "./ImageCropModal";
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+import { useSession } from "next-auth/react";
+countries.registerLocale(enLocale);
 
 // ========== Enums & Constants ==========
 
@@ -64,7 +68,6 @@ interface PasswordData {
 // ========== Component ==========
 
 const UserEditProfilePage = () => {
-  const { session } = useDecryptedSession();
 
   // ── UI State ──
   const [tab, setTab] = useState<0 | 1>(0);
@@ -91,7 +94,8 @@ const UserEditProfilePage = () => {
     password: "",
     confirmPassword: "",
   });
-
+  
+const { data: session, update } = useSession();
   // ── File / Crop State ──
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -239,7 +243,23 @@ const UserEditProfilePage = () => {
 
       if (res?.success) {
         showSuccess("Profile updated successfully");
-      } else {
+
+        const fresh = await getApiWithOutQuery({
+          url: `${API_USER_PROFILE}/${session?.user?.publicId}`,
+        });
+
+        if (fresh?.data) {
+          await update({
+            user: {
+              ...session?.user,
+              profile: fresh.data.profile,
+              displayName: fresh.data.displayName,
+              firstName: fresh.data.firstName,
+              lastName: fresh.data.lastName,
+            },
+          });
+        }
+      }else {
         showError(res?.message || "Failed to update profile");
       }
     } catch (error: any) {
@@ -304,6 +324,10 @@ const UserEditProfilePage = () => {
     }
   };
 
+   const selectedCountry = formData.country;
+  const countryCode = selectedCountry
+    ? countries.getAlpha2Code(selectedCountry, "en")
+    : null;
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
@@ -399,9 +423,26 @@ const UserEditProfilePage = () => {
                               )}
                             </div>
                             {/* Country */}
-                            <CustomSelect label="United States of America *" icon={
-                              <img src="/images/united_flag.png" className="svg-icon" alt="flag" />
-                            } options={countryOptions} value={formData.country} onChange={(val) => handleFormChange("country", val as string)} />
+                                 <CustomSelect
+                            label="Select Country *"
+                            icon={
+                              countryCode ? (
+                                <div className="flag-circle">
+                                  <img
+                                    src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+                                    alt="flag"
+                                  />
+                                </div>
+                              ) : (
+                                <svg className="icons locationIcon svg-icon"></svg>
+                              )
+                            }
+                            options={countryOptions}
+                            value={formData.country || ""}
+                            onChange={(val) =>
+                              setFormData({ ...formData, country: val as string })
+                            }
+                          />
 
                             {/* City */}
                             <div className="label-input">
