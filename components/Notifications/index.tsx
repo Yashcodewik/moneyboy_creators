@@ -24,6 +24,7 @@ import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import { useDispatch } from "react-redux";
 import { updatePostCount } from "@/redux/other/followSlice";
 import Modal from "../Modal";
+import { useSession } from "next-auth/react";
 
 const NotificationPage = () => {
   const router = useRouter();
@@ -36,6 +37,7 @@ const NotificationPage = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const dispatch = useDispatch();
+  const { data: session } = useSession();
 
   const fetchNotifications = async (pageNumber = 1) => {
     try {
@@ -150,6 +152,9 @@ const goToProfile = (user?: any) => {
     router.push(`/${userName}`);
   }
 };
+
+const isOwner =
+  session?.user?.publicId === selectedPost?.postTag?.taggedBy?.publicId;
 
   // useEffect(() => {
   //   if (!selectedPost?.createdAt) return;
@@ -358,7 +363,7 @@ const goToProfile = (user?: any) => {
                   <li
                     key={selectedPost.postTag.taggedBy._id}
                     onClick={() =>
-                      goToProfile(selectedPost.postTag.taggedBy?.userName)
+                      goToProfile(selectedPost.postTag.taggedBy)
                     }
                   >
                     <img
@@ -377,7 +382,7 @@ const goToProfile = (user?: any) => {
                   .map((u: any) => (
                     <li
                       key={u.user?._id}
-                      onClick={() => goToProfile(u.user?.userName)}
+                      onClick={() => goToProfile(u.user)}
                     >
                       <img
                         src={
@@ -411,22 +416,27 @@ const goToProfile = (user?: any) => {
                 )}
               </>
             )}
-            {selectedPost?.postTag?.myStatus === "pending" && (
-              <>
-                <div className="head">
-                  {" "}
-                  <h3>Collaboration Request Pending</h3> <Clock />
-                </div>
-                <p className="pending_text">
-                  You have been tagged in this post and invited to
-                  collaborate. Please review the content and choose to accept
-                  or decline before the deadline.
-                </p>
-              </>
-            )}
+        {selectedPost?.postTag?.myStatus === "pending" && (
+  <>
+    <div className="head">
+      <h3>
+        {isOwner
+          ? "Waiting for approvals"
+          : "Collaboration Request Pending"}
+      </h3>
+      <Clock />
+    </div>
+
+    <p className="pending_text">
+      {isOwner
+        ? "You have invited creators to collaborate. Waiting for their response."
+        : "You have been tagged in this post and invited to collaborate. Please review and accept or decline."}
+    </p>
+  </>
+)}
           </div>
           {/* TIMER */}
-          {selectedPost?.postTag?.myStatus === "pending" && (
+          {selectedPost?.postTag?.myStatus === "pending" &&  !isOwner&& (
             <div className="timer_wrap mt-3">
               <p>Response Deadline</p>
               <FlipClockCountdown
@@ -442,7 +452,9 @@ const goToProfile = (user?: any) => {
               </FlipClockCountdown>
             </div>
           )}
-          {selectedPost?.postTag?.myStatus === "pending" && !isExpired && (
+          {selectedPost?.postTag?.myStatus === "pending" &&
+!isExpired &&
+!isOwner&& (
             <div className="actions">
               <button
                 type="button"

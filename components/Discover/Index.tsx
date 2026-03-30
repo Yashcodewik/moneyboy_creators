@@ -40,6 +40,7 @@ const Dashboard = () => {
 
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [search, setSearch] = useState(querySearch || "");
+  const [hasFetched, setHasFetched] = useState(false);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const { creators, page, totalPages, loading } = useSelector(
     (state: any) => state.discoverCreators,
@@ -60,18 +61,20 @@ const Dashboard = () => {
     loadSession();
   }, []);
 
-  useEffect(() => {
-    if (!sessionLoaded) return;
+useEffect(() => {
+  if (!sessionLoaded) return;
 
-    dispatch(
-      fetchDiscoverCreators({
-        page,
-        search: querySearch || search,
-        filters: filterValues,
-        ...(session?.user && { userPublicId: session.user.publicId }),
-      }) as any,
-    );
-  }, [page, querySearch, search, filterValues, sessionLoaded, session?.user?.publicId]);
+  dispatch(
+    fetchDiscoverCreators({
+      page,
+      search: querySearch || search,
+      filters: filterValues,
+      ...(session?.user && { userPublicId: session.user.publicId }),
+    }) as any,
+  ).finally(() => {
+    setHasFetched(true); // ✅ mark fetched
+  });
+}, [page, querySearch, search, filterValues, sessionLoaded, session?.user?.publicId]);
 
   useEffect(() => {
     dispatch(resetCreators());
@@ -274,7 +277,7 @@ const Dashboard = () => {
                     <img src="/images/micons.png" alt="M" className="loading-letter-img" /> {"oneyBoy".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 2) * 0.1}s` }}>{char}</span>))}
                   </div>
                 )}
-                {!loading && creators.length === 0 && (
+                {hasFetched && !loading && creators.length === 0&& (
                   <div className="nofound grid-span-4">
                     <h3 className="first">No media found</h3>
                     <h3 className="second">No media found</h3>
