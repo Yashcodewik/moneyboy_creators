@@ -147,15 +147,18 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
     return () => { socket.off("userOnline", handleOnline); socket.off("userOffline", handleOffline); };
   }, [dispatch]);
 
-  useEffect(() => {
-    if (!threadIdFromUrl && chatList.length > 0) {
-      const firstThread = chatList[0]?.publicId;
-      if (firstThread) { router.replace(`/message?threadId=${firstThread}`); }
-    }
-  }, [chatList, threadIdFromUrl, router]);
+  // useEffect(() => {
+  //   if (!threadIdFromUrl && chatList.length > 0) {
+  //     const firstThread = chatList[0]?.publicId;
+  //     if (firstThread) { router.replace(`/message?threadId=${firstThread}`); }
+  //   }
+  // }, [chatList, threadIdFromUrl, router]);
 
   const handleUserClick = async (user: any) => {
     const existing = chatList.find((c: any) => c.user?.publicId === user.publicId);
+      setUserResults([]);
+  setUserSearchText("");
+  setHasMoreUsers(true);
     if (existing) { router.push(`/message?threadId=${existing.publicId}`); return; }
     try {
       const res = await apiPost({
@@ -186,7 +189,7 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
                   <path d="M14 8H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <input type="text" placeholder="Search Contact" value={userSearchText} onChange={(e) => { const value = e.target.value; setUserSearchText(value); setSearchText(value); }} />
+              <input type="text" placeholder="Search Contact" value={userSearchText} onChange={(e) => { const value = e.target.value; setUserSearchText(value); }} />
             </div>
             {userSearchText && (userResults.length > 0 || loadingUsers) && (
               <div className="search-users scrolling" onScroll={handleScroll}>
@@ -203,7 +206,7 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
                       )}
                     </div>
                     <div className="user_content">
-                      <h4>{user.displayName || user.username}</h4>
+                      <h4>{user.username || user.displayName}</h4>
                     </div>
                   </div>
                 ))}
