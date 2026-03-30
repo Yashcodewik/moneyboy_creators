@@ -1,32 +1,19 @@
 "use client";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
-import Link from "next/link";
 import { TbCamera } from "react-icons/tb";
-import { GoDotFill } from "react-icons/go";
-import {
-  apiPost,
-  apiPostWithMultiForm,
-  getApiWithOutQuery,
-} from "@/utils/endpoints/common";
-import {
-  API_CHANGE_PASSWORD,
-  API_TOGGLE_ACCOUNT,
-  API_UPDATE_USER_PROFILE,
-  API_USER_PROFILE,
-} from "@/utils/api/APIConstant";
+import { apiPost, apiPostWithMultiForm, getApiWithOutQuery, } from "@/utils/endpoints/common";
+import { API_CHANGE_PASSWORD, API_TOGGLE_ACCOUNT, API_UPDATE_USER_PROFILE, API_USER_PROFILE, } from "@/utils/api/APIConstant";
 import { countryOptions } from "../helper/creatorOptions";
-import ShowToast from "../common/ShowToast";
 import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { showError, showSuccess } from "@/utils/alert";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import countries from "i18n-iso-countries";
-import enLocale from "i18n-iso-countries/langs/en.json";
-import { useSession } from "next-auth/react";
-countries.registerLocale(enLocale);
+import ImageCropModal from "./ImageCropModal";
+
+// ========== Enums & Constants ==========
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -36,6 +23,7 @@ export enum UserStatus {
   DELETED = 4,
   VERIFIED = 5,
 }
+
 export const genderOptions = [
   { label: "Male", value: "Male" },
   { label: "Female", value: "Female" },
@@ -43,28 +31,84 @@ export const genderOptions = [
   { label: "Prefer not to say", value: "Prefer not to say" },
 ];
 
+const months = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+].map((m, i) => ({ label: m, value: i.toString() }));
+
+const years = Array.from({ length: 100 }, (_, i) => {
+  const year = new Date().getFullYear() - i;
+  return { label: year.toString(), value: year.toString() };
+});
+
+// ========== Types ==========
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  userName: string;
+  gender: string;
+  dob: string;
+  country: string;
+  city: string;
+  bio: string;
+  email: string;
+}
+
+interface PasswordData {
+  password: string;
+  confirmPassword: string;
+}
+
+// ========== Component ==========
+
 const UserEditProfilePage = () => {
-  const [showPass, setShowPass] = useState(false);
+  const { session } = useDecryptedSession();
+
+  // ── UI State ──
+  const [tab, setTab] = useState<0 | 1>(0);
   const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
-  const [tab, setTab] = useState(0);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // ── Data State ──
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [formData, setFormData] = useState<any>({});
-  const [profileFile, setProfileFile] = useState<File | null>(null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [passwordData, setPasswordData] = useState({
+  const [formData, setFormData] = useState<FormData>({
+    firstName: "",
+    lastName: "",
+    displayName: "",
+    userName: "",
+    gender: "",
+    dob: "",
+    country: "",
+    city: "",
+    bio: "",
+    email: "",
+  });
+  const [passwordData, setPasswordData] = useState<PasswordData>({
     password: "",
     confirmPassword: "",
   });
 
-  const { data: session, update } = useSession();
+  // ── File / Crop State ──
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropType, setCropType] = useState<"avatar" | "cover" | null>(null);
+
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  // ========== Fetch Profile ==========
 
   useEffect(() => {
     const fetchProfile = async () => {
       if (!session?.isAuthenticated) return;
 
       const publicId = session?.user?.publicId;
-
       if (!publicId) {
         console.error("Public ID missing in session");
         return;
@@ -72,26 +116,30 @@ const UserEditProfilePage = () => {
 
       try {
         setLoading(true);
-
         const res = await getApiWithOutQuery({
           url: `${API_USER_PROFILE}/${publicId}`,
         });
 
         if (res?.success) {
-          setUserProfile(res.data);
-
+          const data = res.data;
+          setUserProfile(data);
           setFormData({
-            firstName: res.data.firstName,
-            lastName: res.data.lastName,
-            displayName: res.data.displayName,
-            userName: res.data.userName,
-            gender: res.data.gender,
-            dob: res.data.dob,
-            country: res.data.country,
-            city: res.data.city,
-            bio: res.data.bio,
-            email: res.data.email,
+            firstName: data.firstName ?? "",
+            lastName: data.lastName ?? "",
+            displayName: data.displayName ?? "",
+            userName: data.userName ?? "",
+            gender: data.gender ?? "",
+            dob: data.dob ?? "",
+            country: data.country ?? "",
+            city: data.city ?? "",
+            bio: data.bio ?? "",
+            email: data.email ?? "",
           });
+
+          if (data.dob) {
+            const parsed = new Date(data.dob);
+            if (!isNaN(parsed.getTime())) setSelectedDate(parsed);
+          }
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -103,23 +151,86 @@ const UserEditProfilePage = () => {
     fetchProfile();
   }, [session?.isAuthenticated, session?.user?.publicId]);
 
+  // ========== Close Calendar on Outside Click ==========
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.closest(".calendar-dropdown") ||
+        target.closest(".react-datepicker") ||
+        target.closest(".custom-select-menu")
+      ) {
+        return;
+      }
+      setCalendarOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ========== Handlers ==========
+
+  const handleFormChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePasswordChange = (field: keyof PasswordData, value: string) => {
+    setPasswordData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "avatar" | "cover"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImage(reader.result as string);
+      setCropType(type);
+      setCropOpen(true);
+    };
+    reader.readAsDataURL(file);
+
+    e.target.value = "";
+  };
+
+  const handleCropSave = async (croppedBase64: string) => {
+    const blob = await (await fetch(croppedBase64)).blob();
+    const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
+
+    if (cropType === "avatar") {
+      setProfileFile(file);
+    } else if (cropType === "cover") {
+      setCoverFile(file);
+    }
+
+    setCropOpen(false);
+    setCropImage(null);
+    setCropType(null);
+  };
+
   const handleUpdateProfile = async () => {
-    const payload = new FormData();
     try {
       setLoading(true);
-      Object.keys(formData).forEach((key) => {
-        if (formData[key] !== undefined && formData[key] !== "") {
-          payload.append(key, formData[key]);
+      const payload = new FormData();
+
+      (Object.keys(formData) as (keyof FormData)[]).forEach((key) => {
+        const value = formData[key];
+        if (value !== undefined && value !== "") {
+          payload.append(key, value);
         }
       });
 
-      if (profileFile) {
-        payload.append("profile", profileFile);
+      if (selectedDate) {
+        payload.append("dob", selectedDate.toISOString());
       }
 
-      if (coverFile) {
-        payload.append("coverImage", coverFile);
-      }
+      if (profileFile) payload.append("profile", profileFile);
+      if (coverFile) payload.append("coverImage", coverFile);
 
       const res = await apiPostWithMultiForm({
         url: API_UPDATE_USER_PROFILE,
@@ -128,22 +239,8 @@ const UserEditProfilePage = () => {
 
       if (res?.success) {
         showSuccess("Profile updated successfully");
-
-        const fresh = await getApiWithOutQuery({
-          url: `${API_USER_PROFILE}/${session?.user?.publicId}`,
-        });
-
-        if (fresh?.data) {
-          await update({
-            user: {
-              ...session?.user,
-              profile: fresh.data.profile,
-              displayName: fresh.data.displayName,
-              firstName: fresh.data.firstName,
-              lastName: fresh.data.lastName,
-            },
-          });
-        }
+      } else {
+        showError(res?.message || "Failed to update profile");
       }
     } catch (error: any) {
       showError(error?.error || "Failed to update profile");
@@ -163,548 +260,233 @@ const UserEditProfilePage = () => {
       return;
     }
 
-    const res = await apiPost({
-      url: API_CHANGE_PASSWORD,
-      values: passwordData,
-    });
-
-    if (res?.success) {
-      showSuccess(res.message || "Password updated successfully");
-      setPasswordData({
-        password: "",
-        confirmPassword: "",
+    try {
+      setLoading(true);
+      const res = await apiPost({
+        url: API_CHANGE_PASSWORD,
+        values: passwordData,
       });
-    } else {
-      showError(res?.message || "Failed to update password");
+
+      if (res?.success) {
+        showSuccess(res.message || "Password updated successfully");
+        setPasswordData({ password: "", confirmPassword: "" });
+      } else {
+        showError(res?.message || "Failed to update password");
+      }
+    } catch (error: any) {
+      showError(error?.message || "Failed to update password");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleToggleAccount = async () => {
     try {
+      setLoading(true);
       const res = await apiPost({
         url: API_TOGGLE_ACCOUNT,
-        values: {}, // no body needed
+        values: {},
       });
 
       if (res?.success) {
         showSuccess(res.message);
-
-        // Update local userProfile status
         setUserProfile((prev: any) => ({
           ...prev,
-          status: res.status, // update status returned from API
+          status: res.status,
         }));
+      } else {
+        showError(res?.message || "Failed to toggle account");
       }
     } catch (error: any) {
       showError(error?.message || "Failed to toggle account");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [open, setOpen] = useState(false);
-
-  /* close when clicking outside */
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      // ignore clicks inside calendar or custom select dropdown
-      if (
-        target.closest(".calendar-dropdown") ||
-        target.closest(".react-datepicker") ||
-        target.closest(".custom-select-menu")
-      ) {
-        return;
-      }
-
-      setOpen(false);
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  /* month + year dropdown */
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ].map((m, i) => ({ label: m, value: i.toString() }));
-
-  const years = Array.from({ length: 100 }, (_, i) => {
-    const year = new Date().getFullYear() - i;
-    return { label: year.toString(), value: year.toString() };
-  });
-
-  console.log(loading, "loading------------------------------");
-  const selectedCountry = formData.country;
-  const countryCode = selectedCountry
-    ? countries.getAlpha2Code(selectedCountry, "en")
-    : null;
   return (
-    <div className="moneyboy-2x-1x-layout-container">
-      <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-        <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers">
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            {/* <button className="cate-back-btn active-down-effect">
-              <span className="icons arrowLeft hwhite"></span>
-            </button> */}
-            <button
-              className={`page-content-type-button active-down-effect ${
-                tab === 0 ? "active" : ""
-              }`}
-              onClick={() => setTab(0)}
-            >
-              basic information
-            </button>
-            <button
-              className={`page-content-type-button active-down-effect ${
-                tab === 1 ? "active" : ""
-              }`}
-              onClick={() => setTab(1)}
-            >
-              Account and security
-            </button>
-          </div>
-          <div className="creator-profile-page-container">
-            <div className="creator-profile-front-content-container">
-              {/* ========== basic information ========== */}
-              {tab === 0 && (
-                <>
-                  <div className="creator-profile-card-container card">
-                    <div className="creator-profile-banner">
-                      {coverFile ? (
-                        <img
-                          src={URL.createObjectURL(coverFile)}
-                          alt="cover preview"
-                        />
-                      ) : userProfile?.coverImage ? (
-                        <img src={userProfile.coverImage} alt="cover" />
-                      ) : (
-                        <NoProfileSvg />
-                      )}
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        id="coverUpload"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            setCoverFile(e.target.files[0]);
-                          }
-                        }}
-                      />
+    <>
+      <div className="moneyboy-2x-1x-layout-container">
+        <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
+          <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers">
+            {/* ── Tab Buttons ── */}
+            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+              <button className={`page-content-type-button active-down-effect ${tab === 0 ? "active" : ""}`} onClick={() => setTab(0)}>Basic Information</button>
+              <button className={`page-content-type-button active-down-effect ${tab === 1 ? "active" : ""}`} onClick={() => setTab(1)}>Account and Security</button>
+            </div>
 
-                      <label htmlFor="coverUpload" className="imgicons pointer">
-                        <TbCamera size="16" />
-                      </label>
-                    </div>
+            <div className="creator-profile-page-container">
+              <div className="creator-profile-front-content-container">
+                {/* ========== Tab 0 – Basic Information ========== */}
+                {tab === 0 && (
+                  <>
+                    <div className="creator-profile-card-container card">
+                      {/* Cover Image */}
+                      <div className="creator-profile-banner">
+                        {coverFile ? (
+                          <img src={URL.createObjectURL(coverFile)} alt="cover preview" />
+                        ) : userProfile?.coverImage ? (
+                          <img src={userProfile.coverImage} alt="cover" />
+                        ) : (
+                          <NoProfileSvg />
+                        )}
+                        <input type="file" hidden accept="image/*" id="coverUpload" onChange={(e) => handleFileSelect(e, "cover")} />
+                        <label htmlFor="coverUpload" className="imgicons pointer"><TbCamera size={16} /></label>
+                      </div>
 
-                    <div className="creator-profile-info-container">
-                      <div className="profile-card">
-                        <div className="profile-info-buttons">
-                          <div className="profile-card__main">
-                            <div className="profile-card__avatar-settings">
-                              <div className="profile-card__avatar">
-                                {profileFile ? (
-                                  <img
-                                    src={URL.createObjectURL(profileFile)}
-                                    alt="profile preview"
-                                  />
-                                ) : userProfile?.profile ? (
-                                  <img
-                                    src={userProfile.profile}
-                                    alt="profile"
-                                  />
-                                ) : (
-                                  <NoProfileSvg />
-                                )}
-                                <input
-                                  type="file"
-                                  hidden
-                                  accept="image/*"
-                                  id="profileUpload"
-                                  onChange={(e) => {
-                                    if (e.target.files?.[0]) {
-                                      setProfileFile(e.target.files[0]);
-                                    }
-                                  }}
-                                />
-
-                                <label
-                                  htmlFor="profileUpload"
-                                  className="imgicons pointer"
-                                >
-                                  <TbCamera size="16" />
-                                </label>
+                      <div className="creator-profile-info-container">
+                        {/* Avatar */}
+                        <div className="profile-card">
+                          <div className="profile-info-buttons">
+                            <div className="profile-card__main">
+                              <div className="profile-card__avatar-settings">
+                                <div className="profile-card__avatar">
+                                  {profileFile ? (
+                                    <img src={URL.createObjectURL(profileFile)} alt="profile preview" />
+                                  ) : userProfile?.profile ? (
+                                    <img src={userProfile.profile} alt="profile" />
+                                  ) : (
+                                    <NoProfileSvg />
+                                  )}
+                                  <input type="file" hidden accept="image/*" id="profileUpload" onChange={(e) => handleFileSelect(e, "avatar")} />
+                                  <label htmlFor="profileUpload" className="imgicons pointer"><TbCamera size={16} /></label>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="creator-subscriptions-container">
-                        <div className="form_grid">
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user svg-icon"></i>
+                        {/* Form Fields */}
+                        <div className="creator-subscriptions-container">
+                          <div className="form_grid">
+                            {/* First Name */}
+                            <div className="label-input">
+                              <div className="input-placeholder-icon"><i className="icons user svg-icon" /></div>
+                              <input type="text" placeholder="First Name *" value={formData.firstName} onChange={(e) => handleFormChange("firstName", e.target.value)} />
                             </div>
-                            <input
-                              type="text"
-                              placeholder="First Name *"
-                              value={formData.firstName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  firstName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user svg-icon"></i>
+                            {/* Last Name */}
+                            <div className="label-input">
+                              <div className="input-placeholder-icon"><i className="icons user svg-icon" /></div>
+                              <input type="text" placeholder="Last Name *" value={formData.lastName} onChange={(e) => handleFormChange("lastName", e.target.value)} />
                             </div>
-                            <input
-                              type="text"
-                              placeholder="Last name *"
-                              value={formData.lastName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  lastName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user2 svg-icon"></i>
+                            {/* Display Name */}
+                            <div className="label-input">
+                              <div className="input-placeholder-icon"><i className="icons user2 svg-icon" /></div>
+                              <input type="text" placeholder="Display Name *" value={formData.displayName} onChange={(e) => handleFormChange("displayName", e.target.value)} />
                             </div>
-                            <input
-                              type="text"
-                              placeholder="Display name *"
-                              value={formData.displayName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  displayName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons profile-check svg-icon"></i>
+                            {/* Username (read-only) */}
+                            <div className="label-input">
+                              <div className="input-placeholder-icon"><i className="icons profile-check svg-icon" /></div>
+                              <input type="text" placeholder="User Name *" value={formData.userName} disabled readOnly />
                             </div>
-                            <input
-                              type="text"
-                              placeholder="User name *"
-                              value={formData.userName || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  userName: e.target.value,
-                                })
-                              }
-                              disabled
-                            />
-                          </div>
-
-                          <CustomSelect
-                            label="Select Your Gender"
-                            icon={<svg className="icons groupUser svg-icon" />}
-                            options={genderOptions}
-                            value={formData.gender || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, gender: val })
-                            }
-                          />
-
-                          <div
-                            className="label-input calendar-dropdown"
-                            ref={wrapperRef}
-                          >
-                            <div className="input-placeholder-icon">
-                              <CalendarDays className="icons svg-icon" />
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="(DD/MM/YYYY)"
-                              className="form-input"
-                              readOnly
-                              value={
-                                selectedDate
-                                  ? selectedDate.toLocaleDateString("en-GB")
-                                  : ""
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpen(true);
-                              }}
-                            />
-                            {open && (
-                              <div
-                                className="calendar_show shadow"
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <DatePicker
-                                  selected={selectedDate}
-                                  inline
-                                  renderCustomHeader={({
-                                    date,
-                                    changeYear,
-                                    changeMonth,
-                                  }) => (
-                                    <div
-                                      className="flex gap-5 select_wrap p-2"
-                                      onMouseDown={(e) => e.stopPropagation()}
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <CustomSelect
-                                        options={months}
-                                        searchable={false}
-                                        value={date.getMonth().toString()}
-                                        onChange={(val) =>
-                                          changeMonth(Number(val))
-                                        }
-                                      />
-                                      <CustomSelect
-                                        options={years}
-                                        searchable={false}
-                                        value={date.getFullYear().toString()}
-                                        onChange={(val) =>
-                                          changeYear(Number(val))
-                                        }
-                                      />
+                            {/* Gender */}
+                            <CustomSelect label="Select Your Gender" icon={<svg className="icons groupUser svg-icon" />} options={genderOptions} value={formData.gender} onChange={(val) => handleFormChange("gender", val as string)} />
+                            {/* Date of Birth */}
+                            <div className="label-input calendar-dropdown" ref={calendarRef}>
+                              <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
+                              <input type="text" placeholder="Date of Birth (DD/MM/YYYY)" className="form-input" readOnly value={selectedDate ? selectedDate.toLocaleDateString("en-GB") : ""} onClick={(e) => { e.stopPropagation(); setCalendarOpen(true); }} />
+                              {calendarOpen && (
+                                <div className="calendar_show shadow" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                                  <DatePicker selected={selectedDate} inline renderCustomHeader={({ date, changeYear, changeMonth, }) => (
+                                    <div className="flex gap-5 select_wrap p-2" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                                      <CustomSelect options={months} searchable={false} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} />
+                                      <CustomSelect options={years} searchable={false} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} />
                                     </div>
                                   )}
-                                  onChange={(date: Date | null) => {
-                                    setSelectedDate(date);
-                                    setOpen(false);
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* <div className="label-input">
-                            <div className="input-placeholder-icon"><i className="icons bookmarkIcon svg-icon"></i></div>
-                            <input type="date" placeholder="Date of Birth (DD/MM/YYYY) *" value={formData.dob || ""} max={minAdultDate} onChange={(e) => {const selectedDate = e.target.value; if (selectedDate > minAdultDate) {alert("You must be at least 18 years old"); return;} setFormData({...formData, dob: selectedDate,});}}/>
-                          </div> */}
-
-                          <CustomSelect
-                            label="Select Country *"
-                            icon={
-                              countryCode ? (
-                                <div className="flag-circle">
-                                  <img
-                                    src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
-                                    alt="flag"
+                                    onChange={(date: Date | null) => { setSelectedDate(date); if (date) { handleFormChange("dob", date.toISOString()); } setCalendarOpen(false); }}
                                   />
                                 </div>
-                              ) : (
-                                <svg className="icons locationIcon svg-icon"></svg>
-                              )
-                            }
-                            options={countryOptions}
-                            value={formData.country || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, country: val })
-                            }
-                          />
-
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <svg className="icons locationIcon svg-icon"></svg>
+                              )}
                             </div>
-                            <input
-                              type="text"
-                              placeholder="City"
-                              value={formData.city || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  city: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
+                            {/* Country */}
+                            <CustomSelect label="United States of America *" icon={
+                              <img src="/images/united_flag.png" className="svg-icon" alt="flag" />
+                            } options={countryOptions} value={formData.country} onChange={(val) => handleFormChange("country", val as string)} />
 
-                          <div className="label-input textarea one">
-                            <div className="input-placeholder-icon">
-                              <svg className="icons messageUser svg-icon"></svg>
+                            {/* City */}
+                            <div className="label-input">
+                              <div className="input-placeholder-icon"><svg className="icons locationIcon svg-icon" /></div>
+                              <input type="text" placeholder="City" value={formData.city} onChange={(e) => handleFormChange("city", e.target.value)} />
                             </div>
-                            <textarea
-                              rows={4}
-                              placeholder="Bio"
-                              value={formData.bio || ""}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  bio: e.target.value,
-                                })
-                              }
-                            />
+
+                            {/* Bio */}
+                            <div className="label-input textarea one">
+                              <div className="input-placeholder-icon">
+                                <svg className="icons messageUser svg-icon" />
+                              </div>
+                              <textarea rows={4} placeholder="Bio" value={formData.bio} onChange={(e) => handleFormChange("bio", e.target.value)} />
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="btm_btn one">
-                    <button
-                      className="premium-btn active-down-effect"
-                      onClick={handleUpdateProfile}
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <span className="loader"></span>
-                      ) : (
-                        <span>Save Changes</span>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* ========== Account and security ========== */}
-              {tab === 1 && (
-                <div className="creator-profile-card-container">
-                  <div className="card filters-card-wrapper">
-                    <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
-                      <div className="form_grid">
-                        <div className="label-input one">
-                          <div className="input-placeholder-icon">
-                            <i className="icons message svg-icon"></i>
-                          </div>
-                          <input
-                            type="text"
-                            value={userProfile?.email || ""}
-                            readOnly
-                          />
-                          <span className="righttext">
-                            {userProfile?.status === 5
-                              ? "Verified"
-                              : "Unverified"}
-                          </span>
-                        </div>
-                        <div className="label-input password">
-                          <div className="input-placeholder-icon">
-                            <i className="icons lock svg-icon"></i>
-                          </div>
-                          <input
-                            type={showPass ? "text" : "password"}
-                            placeholder="Password *"
-                            value={passwordData.password}
-                            onChange={(e) =>
-                              setPasswordData({
-                                ...passwordData,
-                                password: e.target.value,
-                              })
-                            }
-                          />
-                          <span
-                            onClick={() => setShowPass(!showPass)}
-                            className="input-placeholder-icon eye-icon"
-                          >
-                            {showPass ? (
-                              <i className="icons eye-slash svg-icon"></i>
-                            ) : (
-                              <i className="icons eye svg-icon"></i>
-                            )}
-                          </span>
-                        </div>
-                        <div className="label-input password">
-                          <div className="input-placeholder-icon">
-                            <i className="icons lock svg-icon"></i>
-                          </div>
-                          <input
-                            type={showConfirmPass ? "text" : "password"}
-                            placeholder="Confirm password*"
-                            value={passwordData.confirmPassword}
-                            onChange={(e) =>
-                              setPasswordData({
-                                ...passwordData,
-                                confirmPassword: e.target.value,
-                              })
-                            }
-                          />
-
-                          <span
-                            onClick={() => setShowConfirmPass(!showConfirmPass)}
-                            className="input-placeholder-icon eye-icon"
-                          >
-                            {showConfirmPass ? (
-                              <i className="icons eye-slash svg-icon"></i>
-                            ) : (
-                              <i className="icons eye svg-icon"></i>
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="btm_btn">
-                        <button
-                          className="premium-btn active-down-effect"
-                          onClick={handleChangePassword}
-                          disabled={loading}
-                        >
-                          {loading ? (
-                            <span className="loader"></span>
-                          ) : (
-                            <span>Save Changes</span>
-                          )}
-                        </button>
-                      </div>
+                    {/* Save Button */}
+                    <div className="btm_btn one">
+                      <button className="premium-btn active-down-effect" onClick={handleUpdateProfile} disabled={loading}>
+                        {loading ? (<span className="loader" />) : (<span>Save Changes</span>)}
+                      </button>
                     </div>
-                    <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
-                      <div className="deactivate_wrap">
-                        <div className="">
-                          <h5>Deactivate account</h5>
-                          <p>
-                            Hides the profile temporarily (Does not delete it)
-                          </p>
+                  </>
+                )}
+
+                {/* ══════════════ Tab 1 – Account & Security ══════════════ */}
+                {tab === 1 && (
+                  <div className="creator-profile-card-container">
+                    <div className="card filters-card-wrapper">
+                      {/* Password Section */}
+                      <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
+                        <div className="form_grid">
+                          {/* Email (read-only) */}
+                          <div className="label-input one">
+                            <div className="input-placeholder-icon"><i className="icons message svg-icon" /></div>
+                            <input type="text" value={userProfile?.email ?? ""} readOnly />
+                            <span className="righttext">{userProfile?.status === UserStatus.VERIFIED ? "Verified" : "Unverified"}</span>
+                          </div>
+                          {/* New Password */}
+                          <div className="label-input password">
+                            <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
+                            <input type={showPass ? "text" : "password"} placeholder="Password *" value={passwordData.password} onChange={(e) => handlePasswordChange("password", e.target.value)} />
+                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">
+                              {showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}
+                            </span>
+                          </div>
+
+                          {/* Confirm Password */}
+                          <div className="label-input password">
+                            <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
+                            <input type={showConfirmPass ? "text" : "password"} placeholder="Confirm Password *" value={passwordData.confirmPassword} onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)} />
+                            <span onClick={() => setShowConfirmPass((prev) => !prev)} className="input-placeholder-icon eye-icon">
+                              {showConfirmPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}
+                            </span>
+                          </div>
                         </div>
-                        <button
-                          className={`btn-danger ${
-                            userProfile?.status === UserStatus.SELF_DEACTIVATED
-                              ? "reactivate-btn"
-                              : ""
-                          }`}
-                          onClick={handleToggleAccount}
-                        >
-                          {userProfile?.status === UserStatus.SELF_DEACTIVATED
-                            ? "Reactivate account"
-                            : "Deactivate account"}
-                        </button>
+                        <div className="btm_btn">
+                          <button className="premium-btn active-down-effect" onClick={handleChangePassword} disabled={loading}>{loading ? (<span className="loader" />) : (<span>Save Changes</span>)}</button>
+                        </div>
+                      </div>
+
+                      {/* Deactivate / Reactivate Section */}
+                      <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
+                        <div className="deactivate_wrap">
+                          <div>
+                            <h5>Deactivate Account</h5>
+                            <p>Hides the profile temporarily (does not delete it)</p>
+                          </div>
+                          <button className={`btn-danger ${userProfile?.status === UserStatus.SELF_DEACTIVATED ? "reactivate-btn" : "" }`} onClick={handleToggleAccount} disabled={loading}>{userProfile?.status === UserStatus.SELF_DEACTIVATED ? "Reactivate Account" : "Deactivate Account"}</button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
+        <Featuredboys />
       </div>
-      <Featuredboys />
-    </div>
+      {/* Image Crop Modal */}
+      <ImageCropModal show={cropOpen} image={cropImage} aspect={cropType === "cover" ? 6 / 1 : 1} onClose={() => { setCropOpen(false); setCropImage(null); setCropType(null);}} onSave={handleCropSave}/>
+    </>
   );
 };
 

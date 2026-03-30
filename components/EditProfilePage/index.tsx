@@ -410,9 +410,7 @@ const EditProfilePage = () => {
                           </div>
                           <div>
                             <div className="label-input">
-                              <div className="input-placeholder-icon">
-                                <i className="icons user svg-icon"></i>
-                              </div>
+                              <div className="input-placeholder-icon"><i className="icons user svg-icon"></i></div>
                               <input
                                 type="text"
                                 placeholder="Last name *"
@@ -431,9 +429,7 @@ const EditProfilePage = () => {
                           </div>
                           <div>
                             <div className="label-input">
-                              <div className="input-placeholder-icon">
-                                <i className="icons user2 svg-icon"></i>
-                              </div>
+                              <div className="input-placeholder-icon"><i className="icons user2 svg-icon"></i></div>
                               <input
                                 type="text"
                                 placeholder="Display name *"

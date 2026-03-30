@@ -1068,7 +1068,7 @@ const PurchasedMediaPage: React.FC = () => {
         <ReportModal
           show={showReportModal}
           post={reportPost}
-          onClose={() => {setShowReportModal(false); setReportPost(null);}}
+          onClose={() => { setShowReportModal(false); setReportPost(null); }}
           onReported={refetchPurchasedMedia}
         />
       )}

@@ -694,27 +694,6 @@ textarea:focus {
   position: relative;
   overflow: visible !important;
 }
-// .emoji-picker-wrapper {
-//   position: absolute;
-//   bottom: 55px;
-//   right: 0;
-//   z-index: 9999;
-//   background: #fff;
-//   border-radius: 14px;
-//   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-//   overflow: hidden;
-//   @media screen and (max-width: 767px) {
-//     left: 50%;
-//     right: auto;
-//     transform: translateX(-50%);
-//     width: 100%;
-//     max-width: 420px;
-//     aside.epr-main {
-//      width: 100% !important;
-//     }
-//   }
-// }
-/* Wrapper */
 .emoji-picker-wrapper {
   position: absolute;
   bottom: 55px;
@@ -724,28 +703,15 @@ textarea:focus {
   border-radius: 14px;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  width: 350px;
-}
-/* Emoji picker internal fix */
-.emoji-picker-wrapper aside.epr-main {
-  width: 100% !important;
-}
-
-/* ✅ Mobile Fix */
-@media screen and (max-width: 767px) {
-  .emoji-picker-wrapper {
+  @media screen and (max-width: 767px) {
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-
-    width: 90%;          /* not full width */
-    max-width: 350px;   /* keep compact */
-
-    bottom: 70px;       /* spacing from input */
-  }
-
-  .emoji-picker-wrapper aside.epr-main {
-    width: 100% !important;
+    width: 100%;
+    max-width: 420px;
+    aside.epr-main {
+     width: 100% !important;
+    }
   }
 }
 // Video Player Start
