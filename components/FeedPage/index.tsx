@@ -12,32 +12,10 @@ import CustomSelect from "../CustomSelect";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-import {
-  fetchFeedPosts,
-  fetchFollowingPosts,
-  fetchPopularPosts,
-  incrementFeedPostCommentCount,
-  updateFeedPost,
-} from "@/redux/other/feedPostsSlice";
+import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost,} from "@/redux/other/feedPostsSlice";
 import { PhotoProvider } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import {
-  showSuccess,
-  showError,
-  showWarning,
-  showInfo,
-  showQuestion,
-} from "@/utils/alert";
-import {
-  ChevronLeft,
-  ChevronRight,
-  CircleChevronDown,
-  CircleChevronUp,
-  RotateCw,
-  X,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleChevronDown, CircleChevronUp, RotateCw, X, ZoomIn, ZoomOut,} from "lucide-react";
 import BtnGroupTabs from "../BtnGroupTabs";
 import { useDeviceType } from "@/hooks/useDeviceType";
 

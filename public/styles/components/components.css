@@ -2692,6 +2692,17 @@
                 .content-filter-card {
                    width: 100%;
                    display: flex;
+
+                   .search_wrapper {
+                    .btn-danger {
+                        padding: 5px;
+                        position: absolute;
+                        right: 8px;
+                        max-width: 26px;
+                        height: 26px;
+                        z-index: 9;
+                    }
+                   }
  
                    &>.label-input {
                       border-radius: 18px;

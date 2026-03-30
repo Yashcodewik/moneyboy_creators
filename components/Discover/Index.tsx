@@ -325,7 +325,7 @@ useEffect(() => {
                                       ? creator.displayName.slice(0, 8) + "..."
                                       : creator.displayName}
                                   </div>
-                                  <div className="user-profile-card__badge">
+                                  <div className="user-profile-card__badge mx-w-18 endicons">
                                     <img src="/images/logo/profile-badge.png" alt="Profile Badge" />
                                   </div>
                                 </div>

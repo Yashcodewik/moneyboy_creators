@@ -436,16 +436,26 @@ const UserEditProfilePage = () => {
                       {/* Password Section */}
                       <div className="creator-content-cards-wrapper mb-10 pricing_account_wrap">
                         <div className="form_grid">
-                          {/* Email (read-only) */}
+                          {/* Email */}
                           <div className="label-input one">
                             <div className="input-placeholder-icon"><i className="icons message svg-icon" /></div>
                             <input type="text" value={userProfile?.email ?? ""} readOnly />
                             <span className="righttext">{userProfile?.status === UserStatus.VERIFIED ? "Verified" : "Unverified"}</span>
                           </div>
+
+                          {/* Password */}
+                          <div className="label-input one password">
+                            <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
+                            <input type={showPass ? "text" : "password"} placeholder="Password *" value={passwordData.password} onChange={(e) => handlePasswordChange("password", e.target.value)} />
+                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">
+                              {showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}
+                            </span>
+                          </div>
+
                           {/* New Password */}
                           <div className="label-input password">
                             <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
-                            <input type={showPass ? "text" : "password"} placeholder="Password *" value={passwordData.password} onChange={(e) => handlePasswordChange("password", e.target.value)} />
+                            <input type={showPass ? "text" : "password"} placeholder="New Password *" value={passwordData.password} onChange={(e) => handlePasswordChange("password", e.target.value)} />
                             <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">
                               {showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}
                             </span>
@@ -472,7 +482,7 @@ const UserEditProfilePage = () => {
                             <h5>Deactivate Account</h5>
                             <p>Hides the profile temporarily (does not delete it)</p>
                           </div>
-                          <button className={`btn-danger ${userProfile?.status === UserStatus.SELF_DEACTIVATED ? "reactivate-btn" : "" }`} onClick={handleToggleAccount} disabled={loading}>{userProfile?.status === UserStatus.SELF_DEACTIVATED ? "Reactivate Account" : "Deactivate Account"}</button>
+                          <button className={`btn-danger ${userProfile?.status === UserStatus.SELF_DEACTIVATED ? "reactivate-btn" : ""}`} onClick={handleToggleAccount} disabled={loading}>{userProfile?.status === UserStatus.SELF_DEACTIVATED ? "Reactivate Account" : "Deactivate Account"}</button>
                         </div>
                       </div>
                     </div>
@@ -485,7 +495,7 @@ const UserEditProfilePage = () => {
         <Featuredboys />
       </div>
       {/* Image Crop Modal */}
-      <ImageCropModal show={cropOpen} image={cropImage} aspect={cropType === "cover" ? 6 / 1 : 1} onClose={() => { setCropOpen(false); setCropImage(null); setCropType(null);}} onSave={handleCropSave}/>
+      <ImageCropModal show={cropOpen} image={cropImage} aspect={cropType === "cover" ? 6 / 1 : 1} onClose={() => { setCropOpen(false); setCropImage(null); setCropType(null); }} onSave={handleCropSave} />
     </>
   );
 };

@@ -720,6 +720,16 @@
                             width: 24px;
                             left: 100%;
 
+                            &.endicons {
+                                position: relative;
+                                left: auto;
+                            }
+                            &.mx-w-18 {
+                                img {
+                                   max-width: 18px;
+                               }
+                            }
+
                             img {}
                         }
                     }
