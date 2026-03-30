@@ -211,6 +211,11 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     router.push(`/${username}`);
   };
 
+    const handleSeeMoreComments = () => {
+  router.push(
+    `/post?page&publicId=${post.publicId}&comment=open`
+  );
+};
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
@@ -611,7 +616,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 </ul>
                 {hasMoreComments && (
                   <button
-                    onClick={handlePostRedirect}
+                    onClick={(e) => {
+      e.stopPropagation(); // 🔥 VERY IMPORTANT
+      handleSeeMoreComments();
+    }}
                     className="btn-primary active-down-effect-2x"
                   >
                     See more <ArrowUpRight size={14} />

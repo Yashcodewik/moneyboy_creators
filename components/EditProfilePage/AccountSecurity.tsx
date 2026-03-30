@@ -26,10 +26,11 @@ export enum UserStatus {
 
 const AccountSecurity = ({ profile }: any) => {
   const { session } = useDecryptedSession();
-  const [passwordData, setPasswordData] = useState({
-    password: "",
-    confirmPassword: "",
-  });
+const [passwordData, setPasswordData] = useState({
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
@@ -39,37 +40,50 @@ const AccountSecurity = ({ profile }: any) => {
   const [toggleLoading, setToggleLoading] = useState(false);
   const [blockLoading, setBlockLoading] = useState(false);
 
-  const handleChangePassword = async () => {
-    if (!passwordData.password || !passwordData.confirmPassword) {
-      showError("Please fill all password fields");
-      return;
-    }
+const handleChangePassword = async () => {
+  // ✅ 1. Validate all fields
+  if (
+    !passwordData.currentPassword ||
+    !passwordData.newPassword ||
+    !passwordData.confirmPassword
+  ) {
+    showError("Please fill all password fields");
+    return;
+  }
 
-    if (passwordData.password !== passwordData.confirmPassword) {
-      showError("Password and confirm password do not match");
-      return;
-    }
+  // ✅ 2. Match new + confirm
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    showError("New password and confirm password do not match");
+    return;
+  }
 
-    try {
-      setPasswordLoading(true);
+  try {
+    setPasswordLoading(true);
 
-      const res = await apiPost({
-        url: API_CHANGE_CREATOR_PASSWORD,
-        values: passwordData,
+    // ✅ 3. API call (correct payload)
+    const res = await apiPost({
+      url: API_CHANGE_CREATOR_PASSWORD,
+      values: passwordData,
+    });
+
+    if (res?.success) {
+      showSuccess(res.message || "Password updated successfully");
+
+      // ✅ 4. Reset form
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
-
-      if (res?.success) {
-        showSuccess(res.message || "Password updated successfully");
-        setPasswordData({ password: "", confirmPassword: "" });
-      } else {
-        showError(res?.message || "Failed to update password");
-      }
-    } catch (err: any) {
-      showError(err?.message || "Something went wrong");
-    } finally {
-      setPasswordLoading(false);
+    } else {
+      showError(res?.message || "Failed to update password");
     }
-  };
+  } catch (err: any) {
+    showError(err?.message || "Something went wrong");
+  } finally {
+    setPasswordLoading(false);
+  }
+};
   const handleToggleAccount = async () => {
     try {
       setToggleLoading(true);
@@ -156,29 +170,91 @@ const AccountSecurity = ({ profile }: any) => {
               <input type="text" value={profile?.email || ""} readOnly />
               <span className="righttext">{profile?.status === 5 ? "Verified" : "Unverified"}</span>
             </div>
-            <div className="label-input one password">
-              <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-              <input type={showPass ? "text" : "password"} placeholder="Password *" value={passwordData.password} onChange={(e) =>   setPasswordData({...passwordData,  password: e.target.value,})}/>
-              <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
-            </div>
+          <div className="label-input one password">
+  <div className="input-placeholder-icon">
+    <i className="icons lock svg-icon"></i>
+  </div>
 
-            <div className="label-input password">
-              <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-              <input type={showPass ? "text" : "password"} placeholder="New Password *" value={passwordData.password} onChange={(e) =>   setPasswordData({...passwordData,  password: e.target.value,})}/>
-              <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
-            </div>
+  <input
+    type={showPass ? "text" : "password"}
+    placeholder="Current Password *"
+    value={passwordData.currentPassword}
+    onChange={(e) =>
+      setPasswordData({
+        ...passwordData,
+        currentPassword: e.target.value,
+      })
+    }
+  />
 
-            <div className="label-input password">
-              <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-              <input type={showConfirmPass ? "text" : "password"} placeholder="Confirm password*" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value,})}/>
-              <span onClick={() => setShowConfirmPass(!showConfirmPass)} className="input-placeholder-icon eye-icon">
-                {showConfirmPass ? (
-                  <i className="icons eye-slash svg-icon"></i>
-                ) : (
-                  <i className="icons eye svg-icon"></i>
-                )}
-              </span>
-            </div>
+  <span
+    onClick={() => setShowPass(!showPass)}
+    className="input-placeholder-icon eye-icon"
+  >
+    {showPass ? (
+      <i className="icons eye-slash svg-icon"></i>
+    ) : (
+      <i className="icons eye svg-icon"></i>
+    )}
+  </span>
+</div>
+
+          <div className="label-input password">
+  <div className="input-placeholder-icon">
+    <i className="icons lock svg-icon"></i>
+  </div>
+
+  <input
+    type={showPass ? "text" : "password"}
+    placeholder="New Password *"
+    value={passwordData.newPassword}
+    onChange={(e) =>
+      setPasswordData({
+        ...passwordData,
+        newPassword: e.target.value,
+      })
+    }
+  />
+
+  <span
+    onClick={() => setShowPass(!showPass)}
+    className="input-placeholder-icon eye-icon"
+  >
+    {showPass ? (
+      <i className="icons eye-slash svg-icon"></i>
+    ) : (
+      <i className="icons eye svg-icon"></i>
+    )}
+  </span>
+</div>
+         <div className="label-input password">
+  <div className="input-placeholder-icon">
+    <i className="icons lock svg-icon"></i>
+  </div>
+
+  <input
+    type={showConfirmPass ? "text" : "password"}
+    placeholder="Confirm Password *"
+    value={passwordData.confirmPassword}
+    onChange={(e) =>
+      setPasswordData({
+        ...passwordData,
+        confirmPassword: e.target.value,
+      })
+    }
+  />
+
+  <span
+    onClick={() => setShowConfirmPass(!showConfirmPass)}
+    className="input-placeholder-icon eye-icon"
+  >
+    {showConfirmPass ? (
+      <i className="icons eye-slash svg-icon"></i>
+    ) : (
+      <i className="icons eye svg-icon"></i>
+    )}
+  </span>
+</div>
           </div>
           <div className="btm_btn">
             <button

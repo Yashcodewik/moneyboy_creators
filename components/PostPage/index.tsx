@@ -109,6 +109,7 @@ const PostPage = () => {
   }, [open, isMobile]);
   const [showComment, setShowComment] = useState(false);
   const commentsState = useAppSelector((state) => state.comments);
+  const commentParam = searchParams.get("comment");
   const postComments = commentsState.comments[post?._id] || [];
   useEffect(() => {
     if (showComment && post?._id) {
@@ -185,6 +186,12 @@ const PostPage = () => {
 
     setLikeLoading(false);
   };
+
+  useEffect(() => {
+  if (commentParam === "open") {
+    setShowComment(true);
+  }
+}, [commentParam]);
 
   const handleSave = async () => {
     if (!isLoggedIn) return router.push("/login");
