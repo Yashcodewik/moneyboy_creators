@@ -1269,7 +1269,7 @@ val = Math.max(5, remainingForLast);
         </div>
       </Modal>
       {showTagModal && (
-        <Modal size="lg" show={show} title="Tag Other Creators" onClose={confirmClose}>
+        <Modal size="lg" show={show} title="Tag Other Creators" onClose={() => setShowTagModal(false)} >
           <div className="modal_containt creators-modal">
             <div className="label-input search_wrap">
               <div className="input-placeholder-icon"><IoSearch size={22} color="#716f6f" /></div>

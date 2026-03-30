@@ -90,7 +90,7 @@ const PricingSetting = () => {
           <div className="creator-content-cards-wrapper pricing_account_wrap">
             <div className="subtop_cont">
               <h3>Subscription</h3>
-              <button className="btn-primary">
+              <button type="button"  className="btn-primary">
                 <GoDotFill size={20} /> <span>Paid Subscriptions</span>
               </button>
             </div>

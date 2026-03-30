@@ -23,6 +23,10 @@ import DatePicker from "react-datepicker";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { showError, showSuccess } from "@/utils/alert";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+import { useSession } from "next-auth/react";
+countries.registerLocale(enLocale);
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -53,7 +57,7 @@ const UserEditProfilePage = () => {
     confirmPassword: "",
   });
 
-  const { session } = useDecryptedSession();
+  const { data: session, update } = useSession();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -124,6 +128,22 @@ const UserEditProfilePage = () => {
 
       if (res?.success) {
         showSuccess("Profile updated successfully");
+
+        const fresh = await getApiWithOutQuery({
+          url: `${API_USER_PROFILE}/${session?.user?.publicId}`,
+        });
+
+        if (fresh?.data) {
+          await update({
+            user: {
+              ...session?.user,
+              profile: fresh.data.profile,
+              displayName: fresh.data.displayName,
+              firstName: fresh.data.firstName,
+              lastName: fresh.data.lastName,
+            },
+          });
+        }
       }
     } catch (error: any) {
       showError(error?.error || "Failed to update profile");
@@ -227,7 +247,10 @@ const UserEditProfilePage = () => {
   });
 
   console.log(loading, "loading------------------------------");
-
+  const selectedCountry = formData.country;
+  const countryCode = selectedCountry
+    ? countries.getAlpha2Code(selectedCountry, "en")
+    : null;
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
@@ -488,12 +511,18 @@ const UserEditProfilePage = () => {
                           </div> */}
 
                           <CustomSelect
-                            label="United States of America *"
+                            label="Select Country *"
                             icon={
-                              <img
-                                src="/images/united_flag.png"
-                                className="svg-icon"
-                              />
+                              countryCode ? (
+                                <div className="flag-circle">
+                                  <img
+                                    src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+                                    alt="flag"
+                                  />
+                                </div>
+                              ) : (
+                                <svg className="icons locationIcon svg-icon"></svg>
+                              )
                             }
                             options={countryOptions}
                             value={formData.country || ""}
