@@ -317,12 +317,12 @@ useEffect(() => {
                               </button>
                             </div> */}
                             </div>
-                            <div className="user-profile-card__info-container text_iconset">
+                            <div className="user-profile-card__info-container text_iconset gap-5">
                               <div className="user-profile-card__info">
                                 <div className="user-profile-card__name-badge">
                                   <div className="user-profile-card__name">
-                                    {creator.displayName?.length > 8
-                                      ? creator.displayName.slice(0, 8) + "..."
+                                    {creator.displayName?.length > 15
+                                      ? creator.displayName.slice(0, 15) + "..."
                                       : creator.displayName}
                                   </div>
                                   <div className="user-profile-card__badge mx-w-18 endicons">

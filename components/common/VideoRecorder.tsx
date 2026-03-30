@@ -199,7 +199,7 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
   }, [recordedChunks]);
 
   return (
-    <Modal show={true} onClose={handleClose} title="Report Pop-Up" className="videorecord_wrap">
+    <Modal show={true} onClose={handleClose} title=" " className="videorecord_wrap">
       <div className="modal_containt videorecord-modal">
         <div className="video_wrap">
           {/* LIVE CAMERA */}

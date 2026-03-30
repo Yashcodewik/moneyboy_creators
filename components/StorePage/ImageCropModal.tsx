@@ -80,87 +80,20 @@ export default function ImageCropModal({
   return (
     <Modal show={true} onClose={onClose} size="md" title="Edit Image" className="imgcrop_wrap">
       <form className="modal_containt imgcrop-modal" onSubmit={(e) => e.preventDefault()}>
-        <button type="button" className="close-btn" onClick={onClose}><CgClose size={22} /></button>
-        <h3 className="title">Edit Image</h3>
         <div className="img_wrap">
-          <Cropper
-            image={image}
-            crop={crop}
-            zoom={zoom}
-            rotation={rotation}
-            aspect={aspectRatio}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onRotationChange={setRotation}
-            onCropComplete={onCropComplete}
-          />
+          <Cropper image={image} crop={crop} zoom={zoom} rotation={rotation} aspect={aspectRatio} onCropChange={setCrop} onZoomChange={setZoom} onRotationChange={setRotation} onCropComplete={onCropComplete}/>
         </div>
         <div className="controlers_wrap btntooltip_wrapper">
-          <button
-            type="button"
-            className="active-down-effect"
-            data-tooltip="Zoom Out"
-            onClick={() => setZoom((z) => Math.max(1, z - 0.2))}
-          >
-            <ZoomOut size={20} />
-          </button>
-          <button
-            type="button"
-            className="active-down-effect"
-            data-tooltip="Zoom In"
-            onClick={() => setZoom((z) => Math.min(3, z + 0.2))}
-          >
-            {" "}
-            <ZoomIn size={20} />
-          </button>
-          <button
-            type="button"
-            className="active-down-effect"
-            data-tooltip="Rotate"
-            onClick={() => setRotation((r) => (r + 90) % 360)}
-          >
-            {" "}
-            <RotateCw size={20} />
-          </button>
-          <button
-            type="button"
-            className="active-down-effect"
-            data-tooltip="Flip Horizontal"
-            onClick={() =>
-              setFlip((f) => ({ ...f, horizontal: !f.horizontal }))
-            }
-          >
-            {" "}
-            <FlipHorizontal size={20} />
-          </button>
-          <button
-            type="button"
-            className="active-down-effect"
-            data-tooltip="Flip Vertical"
-            onClick={() => setFlip((f) => ({ ...f, vertical: !f.vertical }))}
-          >
-            {" "}
-            <FlipVertical size={20} />
-          </button>
+          <button type="button" className="active-down-effect" data-tooltip="Zoom Out" onClick={() => setZoom((z) => Math.max(1, z - 0.2))}> <ZoomOut size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Zoom In" onClick={() => setZoom((z) => Math.min(3, z + 0.2))}> {" "} <ZoomIn size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Rotate" onClick={() => setRotation((r) => (r + 90) % 360)}> {" "} <RotateCw size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Flip Horizontal" onClick={() =>   setFlip((f) => ({ ...f, horizontal: !f.horizontal })) }> {" "} <FlipHorizontal size={20} /></button>
+          <button type="button" className="active-down-effect" data-tooltip="Flip Vertical" onClick={() => setFlip((f) => ({ ...f, vertical: !f.vertical }))}> {" "} <FlipVertical size={20} /></button>
           {/* <button type="button" className="active-down-effect" data-tooltip="Change Ratio" onClick={changeRatio}> {React.createElement(RATIOS[ratioIndex].icon, { size: 20 })}</button> */}
-          <button
-            type="button"
-            className="active-down-effect"
-            data-tooltip="Reset"
-            onClick={resetCrop}
-          >
-            <RefreshCcw size={20} />
-          </button>
+          <button type="button" className="active-down-effect" data-tooltip="Reset" onClick={resetCrop}> <RefreshCcw size={20} /></button>
         </div>
         <div className="actions mt-3">
-          <button
-            className="premium-btn active-down-effect"
-            type="button"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            <span>{loading ? "Processing..." : "Save"}</span>
-          </button>
+          <button className="premium-btn active-down-effect" type="button" onClick={handleSave} disabled={loading}><span>{loading ? "Processing..." : "Save"}</span></button>
         </div>
       </form>
     </Modal>

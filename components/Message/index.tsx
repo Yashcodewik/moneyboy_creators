@@ -2187,10 +2187,10 @@ useEffect(() => {
       {/* ── Report Modal ── */}
       <Modal show={showReportModal} onClose={() => setShowReportModal(false)} title="Report Conversation" size="md" className="rdcnvrstn_wrap">
         <form className="modal_containt rdcnvrstn-modal" onSubmit={handleSubmitReport}>
-          <div>
+          <div className="w-full">
             <textarea className="form-control" placeholder="Enter report reason..." value={reportMessage} onChange={(e) => setReportMessage(e.target.value)} rows={4} />
           </div>
-          <div className="d-flex justify-content-end gap-2 mt-3">
+          <div className="flex justify-end gap-10 w-full">
             <button type="button" className="btn btn-secondary" onClick={() => setShowReportModal(false)}>Cancel</button>
             <button type="submit" className="btn btn-danger">Submit Report</button>
           </div>
@@ -2201,7 +2201,7 @@ useEffect(() => {
       <Modal show={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete Conversation" size="md" className="rdcnvrstn_wrap">
         <div className="modal_containt rdcnvrstn-modal">
           <p>Are you sure you want to delete this conversation?</p>
-          <div className="d-flex justify-content-end gap-2 mt-3">
+          <div className="flex justify-end gap-10 w-full">
             <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
             <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
           </div>

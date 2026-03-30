@@ -2048,6 +2048,15 @@
             }
         }
     }
+
+    .header-auth-buttons {
+        .btn-txt-gradient, .btn-txt-gradient {
+            padding: 8px 12px;
+            span {
+                font-size: 12px;
+            }
+        }
+    }
 }
 
 @media (max-width: 560px) {

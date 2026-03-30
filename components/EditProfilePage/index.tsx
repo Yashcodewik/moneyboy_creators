@@ -490,10 +490,7 @@ const EditProfilePage = () => {
                             )}
                           </div>
                           <div>
-                            <div
-                              className="label-input calendar-dropdown"
-                              ref={wrapperRef}
-                            >
+                            <div className="label-input calendar-dropdown" ref={wrapperRef}>
                               <div className="input-placeholder-icon">
                                 <CalendarDays className="icons svg-icon" />
                               </div>

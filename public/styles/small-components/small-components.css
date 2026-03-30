@@ -713,6 +713,10 @@
                             letter-spacing: 0.65px;
                             font-size: 13px;
                             color: #FFFFFF;
+                            display: -webkit-box;
+                            -webkit-line-clamp: 1;
+                            -webkit-box-orient: vertical;  
+                            overflow: hidden;
                         }
 
                         .user-profile-card__badge {

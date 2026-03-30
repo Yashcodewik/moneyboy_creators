@@ -7,7 +7,7 @@ import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getApi } from "@/utils/endpoints/common";
-import {API_ADD_COMMENT, API_GET_TRANSACTION_CREATORS, API_GET_TRANSACTIONS,} from "@/utils/api/APIConstant";
+import { API_ADD_COMMENT, API_GET_TRANSACTION_CREATORS, API_GET_TRANSACTIONS, } from "@/utils/api/APIConstant";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { WalletTransactiontypeformate } from "../helper/creatorOptions";
@@ -168,12 +168,12 @@ const WalletTransactionsPage = () => {
                         <div className="input-placeholder-icon">
                           <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </div>
-                        <input type="text" placeholder="Enter name here" value={searchText} onChange={(e) => {setSearchText(e.target.value); setPage(1);}}/>
+                        <input type="text" placeholder="Enter name here" value={searchText} onChange={(e) => { setSearchText(e.target.value); setPage(1); }} />
                       </div>
                     </div>
                     <div className="creater-content-filters-layouts gap-5 wrap_with_center">
@@ -214,68 +214,35 @@ const WalletTransactionsPage = () => {
                           </div>
                         </div>
                       </div>
-                      <div
-                        className="creator-content-grid-layout-options date-range-options"
-                        ref={wrapperRef}
-                      >
+                      <div className="creator-content-grid-layout-options date-range-options" ref={wrapperRef}>
                         <div className="date-btn-wrapper">
-                          <button
-                            type="button"
-                            className="creator-content-grid-layout-btn"
-                            onClick={() =>
-                              setActiveField(
-                                activeField === "start" ? null : "start",
-                              )
-                            }
-                          >
-                            <span>
-                              {startDate
-                                ? startDate.toDateString()
-                                : "Start Date"}
-                            </span>
+                          <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "start" ? null : "start",)}>
+                            <span>{startDate ? startDate.toDateString() : "Start Date"}</span>
                             <svg className="icons calendarNoteSmall" />
                           </button>
-                          {activeField === "start" && (
+                          {/* {activeField === "start" && (
                             <div className="calendar-dropdown">
-                              <DatePicker
-                                selected={startDate}
-                                onChange={(date: any) => {
-                                  setStartDate(date);
-                                  setPage(1);
-                                  setActiveField(null);
-                                }}
-                                inline
-                              />
+                              <DatePicker selected={startDate} onChange={(date: any) => {setStartDate(date); setPage(1); setActiveField(null);}} inline/>
+                            </div>
+                          )} */}
+                          {activeField === "start" && (
+                            <div className="calendar-dropdown" onClick={(e) => { if (e.target === e.currentTarget) setActiveField(null); }}>
+                              <div className="calendar_show">
+                                <DatePicker selected={startDate} onChange={(date: any) => { setStartDate(date); setPage(1); setActiveField(null); }} inline />
+                              </div>
                             </div>
                           )}
                         </div>
                         <div className="date-btn-wrapper">
-                          <button
-                            type="button"
-                            className="creator-content-grid-layout-btn"
-                            onClick={() =>
-                              setActiveField(
-                                activeField === "end" ? null : "end",
-                              )
-                            }
-                          >
-                            <span>
-                              {endDate ? endDate.toDateString() : "End Date"}
-                            </span>{" "}
+                          <button type="button" className="creator-content-grid-layout-btn" onClick={() => setActiveField(activeField === "end" ? null : "end",)}>
+                            <span>{endDate ? endDate.toDateString() : "End Date"}</span>{" "}
                             <svg className="icons calendarNoteSmall" />
                           </button>
                           {activeField === "end" && (
-                            <div className="calendar-dropdown">
-                              <DatePicker
-                                selected={endDate}
-                                minDate={startDate ?? undefined}
-                                onChange={(date: any) => {
-                                  setEndDate(date);
-                                  setPage(1);
-                                  setActiveField(null);
-                                }}
-                                inline
-                              />
+                            <div className="calendar-dropdown" onClick={(e) => {if (e.target === e.currentTarget) setActiveField(null);}}>
+                              <div className="calendar_show">
+                                <DatePicker selected={endDate} minDate={startDate ?? undefined} onChange={(date: any) => {setEndDate(date); setPage(1); setActiveField(null);}} inline/>
+                              </div>
                             </div>
                           )}
                         </div>

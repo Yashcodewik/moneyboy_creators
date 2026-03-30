@@ -704,13 +704,29 @@ textarea:focus {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   @media screen and (max-width: 767px) {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    position: fixed;
+    inset: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
     width: 100%;
-    max-width: 420px;
+    max-width: 100%;
+    transform: none;
     aside.epr-main {
-     width: 100% !important;
+      width: calc(100vw - 32px) !important;
+      max-width: 420px !important;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
     }
   }
 }
@@ -1553,6 +1569,23 @@ textarea:focus {
     left: 0;
     z-index: 1000;
   }
+  @media (max-width: 768px) {
+    .calendar_show {
+      position: fixed;
+      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(2px);
+      padding: 16px;
+    }
+  }
   .react-datepicker {
     border-radius: 14px;
     overflow: visible;
@@ -1561,6 +1594,10 @@ textarea:focus {
     box-shadow: 0 6px 4px -4px #08080816, 0 2px 13.5px 1px #08080825;
     font-family: var(--font-family-base);
     transition: var(--transition-normal);
+    @media (max-width: 768px) {
+      width: 100%;
+      max-width: fit-content;
+    }
     .react-datepicker__navigation {
       top: 4px;
       width: 26px;
@@ -1576,24 +1613,12 @@ textarea:focus {
         overflow: visible !important;
         max-width: fit-content !important;
       }
-      &.react-datepicker__navigation--previous {
-        span {
-          &::before {
-            right: -4px;
-          }
-        }
-      }
-      &.react-datepicker__navigation--next {
-        span {
-          &::before {
-            left: -4px;
-          }
-        }
-      }
+      &.react-datepicker__navigation--previous span::before { right: -4px; }
+      &.react-datepicker__navigation--next    span::before { left: -4px;  }
     }
     .react-datepicker__header {
       padding: 7px;
-      border-radius: 12px 12px 0px 0px;
+      border-radius: 12px 12px 0 0;
       background-color: #010405;
       border-bottom: 2.5px solid #010405;
       h2 {
@@ -1609,13 +1634,8 @@ textarea:focus {
         display: flex;
         align-items: center;
         justify-content: center;
-        .custom-select-element {
-          .custom-select-label-wrapper {
-            padding: 6px 8px;
-          }
-          .custom-select-options-dropdown-wrapper {
-
-          }
+        .custom-select-element .custom-select-label-wrapper {
+          padding: 6px 8px;
         }
       }
     }
@@ -1644,9 +1664,7 @@ textarea:focus {
         background-color: transparent;
         box-shadow: none;
         cursor: not-allowed;
-        &:hover {
-          background-color: transparent;
-        }
+        &:hover { background-color: transparent; }
       }
     }
   }
@@ -6397,7 +6415,7 @@ textarea:focus {
           width: 100%;
           max-width: 50%;
           .date-btn-wrapper, button {
-            width: 100% !important;
+            // width: 100% !important;
             .calendar-dropdown {
               left: auto;
               right: 0px;
