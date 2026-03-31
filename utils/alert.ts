@@ -104,7 +104,7 @@ export const showDeclineReason = async (): Promise<string | null> => {
       <div class="input-wrap">
         <label>Description</label>
         <textarea id="declineNote" class="swal2-textarea" maxlength="300" placeholder="Tell us why you decline..."> </textarea>
-        <label class="right">0/300</label>
+        <label id="charCount" class="right">0/300</label>
       </div>
     `,
     confirmButtonText: "<span>Submit</span>",
@@ -116,7 +116,9 @@ export const showDeclineReason = async (): Promise<string | null> => {
       const counter = document.getElementById("charCount");
       textarea.focus();
       textarea.addEventListener("input", () => {
-        if (counter) counter.textContent = textarea.value.length.toString();
+        if (counter) {
+  counter.textContent = `${textarea.value.length}/300`;
+}
       });
     },
 

@@ -1183,7 +1183,7 @@ useEffect(() => {
                                               activeUser?.username ||
                                               ""}
                                           </div>
-                                          {activeUser.role === 2 && (
+                                          {activeUser?.role === 2 && (
                                             <div className="profile-card__badge">
                                               <img
                                                 src="/images/logo/profile-badge.png"
