@@ -14,7 +14,7 @@ import {
 import PromoteModal from "../FeedPage/PromoteModal";
 import NoProfileSvg from "../common/NoProfileSvg";
 import socket from "@/libs/socket";
-import { AppDispatch, RootState } from "@/redux/store";
+import { AppDispatch, RootState, useAppSelector } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWallet } from "@/redux/wallet/Action";
 import {
@@ -54,20 +54,11 @@ const Header = () => {
     transition: "all 0.3s ease",
   };
 
-  //   useEffect(() => {
-  //   if (!session?.user?.id) return;
+const unread = useAppSelector(selectTotalUnread);
 
-  //   const handleMessage = () => {
-  //     dispatch(incrementUnread());
-  //   };
-
-  //   socket.on("newMessage", handleMessage);
-
-  //   return () => {
-  //     socket.off("newMessage", handleMessage);
-  //   };
-  // }, [session?.user?.id]);
-
+useEffect(() => {
+  console.log("📢 HEADER UNREAD:", unread);
+}, [unread]);
 
   useEffect(() => {
     console.log("showPromoteModal:", showPromoteModal);
@@ -76,17 +67,10 @@ const Header = () => {
 
   const { balance } = useSelector((state: RootState) => state.wallet);
 
-  const messageUnreadCount = useSelector(selectTotalUnread);
-
-  console.log("HEADER COUNT:", messageUnreadCount);
-  useEffect(() => {
-    if (session?.user?.id) {
-      dispatch(setCurrentUser(session.user.id));
-    }
-  }, [session?.user?.id, dispatch]);
 
   useEffect(() => {
     if (session?.isAuthenticated) {
+      console.log("📡 FETCH SIDEBAR TRIGGERED");
       dispatch(fetchSidebar());
     }
   }, [session?.isAuthenticated, dispatch]);
@@ -536,9 +520,9 @@ const Header = () => {
                               />
                             </svg>
                           </Link>
-                          {messageUnreadCount > 0 && (
+                          {unread > 0 && (
                             <span className="message-badge">
-                              {messageUnreadCount}
+                              {unread}
                             </span>
                           )}
                         </li>

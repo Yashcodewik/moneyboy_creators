@@ -155,7 +155,7 @@ const WalletTransactionsPage = () => {
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             <button className={`page-content-type-button active-down-effect ${activeTab === "wallet" ? "active" : ""}`} onClick={() => setActiveTab("wallet")}>Wallet Transactions</button>
-            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}>Order History</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}> Request Order History</button>
             <button className={`page-content-type-button active-down-effect ${activeTab === "payments" ? "active" : ""}`} onClick={() => setActiveTab("payments")}>Payment History</button>
           </div>
           <div className="tabs-content-wrapper-layout">
@@ -273,19 +273,20 @@ const WalletTransactionsPage = () => {
                                 <h3>
                                   $ {summary?.totalEarned?.toFixed(2) || "0.00"}
                                 </h3>
-                              </div>
-                              <div className="rline">
-                                <p>In Review</p>
-                                <h3>
-                                  ${" "}
-                                  {summary?.totalReviewAmount?.toFixed(2) ||
-                                    "0.00"}
-                                </h3>
                               </div> */}
-                              <div className="col-span-full">
+                             
+                              <div className="rline">
                                 <p>Wallet Balance</p>
                                 <h3> ${" "}
                                   {summary?.walletBalance?.toFixed(2) || "0.00"}
+                                </h3>
+                              </div>
+                               <div className="small">
+                                <p>In Review</p>
+                                <h3 className="small">
+                                  ${" "}
+                                  {summary?.totalReviewAmount?.toFixed(2) ||
+                                    "0.00"}
                                 </h3>
                               </div>
                             </div>
@@ -415,7 +416,7 @@ const WalletTransactionsPage = () => {
                                 <div className="rel-user-desc">
                                   <div>
                                     <p className="heading">Description</p>
-                                    <p>{WalletTransactiontypeformate(txn.type)}</p>
+                                    <p>{WalletTransactiontypeformate(txn.typeLabel)}</p>
                                   </div>
                                   <div className="rel-user-actions">
                                     <button className="btn-txt-gradient" type="button" onClick={() => { setSelectedTransaction(txn); setActiveTab("details"); }}>
