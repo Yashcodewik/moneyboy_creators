@@ -922,8 +922,8 @@ const handleProfileClick = (username: string) => {
         <div className="mobile-navigations-container">
           <div
             className={`mobile-navigations ${
-              !session?.isAuthenticated ? "lgout" : ""
-            }`}
+  session?.user?.role === 2 ? "creatorlogin" : ""
+} ${!session?.isAuthenticated ? "lgout" : ""}`}
           >
             <nav>
               <ul>
