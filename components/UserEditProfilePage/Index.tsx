@@ -91,13 +91,13 @@ const UserEditProfilePage = () => {
     bio: "",
     email: "",
   });
-const [passwordData, setPasswordData] = useState<PasswordData>({
-  currentPassword: "",
-  newPassword: "",
-  confirmPassword: "",
-});
-  
-const { data: session, update } = useSession();
+  const [passwordData, setPasswordData] = useState<PasswordData>({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const { data: session, update } = useSession();
   // ── File / Crop State ──
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -261,7 +261,7 @@ const { data: session, update } = useSession();
             },
           });
         }
-      }else {
+      } else {
         showError(res?.message || "Failed to update profile");
       }
     } catch (error: any) {
@@ -271,46 +271,46 @@ const { data: session, update } = useSession();
     }
   };
 
-const handleChangePassword = async () => {
-  if (
-    !passwordData.currentPassword ||
-    !passwordData.newPassword ||
-    !passwordData.confirmPassword
-  ) {
-    showError("Please fill all password fields");
-    return;
-  }
-
-  if (passwordData.newPassword !== passwordData.confirmPassword) {
-    showError("New password and confirm password do not match");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const res = await apiPost({
-      url: API_CHANGE_PASSWORD,
-      values: passwordData,
-    });
-
-    if (res?.success) {
-      showSuccess(res.message || "Password updated successfully");
-
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-    } else {
-      showError(res?.message || "Failed to update password");
+  const handleChangePassword = async () => {
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
+      showError("Please fill all password fields");
+      return;
     }
-  } catch (error: any) {
-    showError(error?.message || "Failed to update password");
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showError("New password and confirm password do not match");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await apiPost({
+        url: API_CHANGE_PASSWORD,
+        values: passwordData,
+      });
+
+      if (res?.success) {
+        showSuccess(res.message || "Password updated successfully");
+
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        showError(res?.message || "Failed to update password");
+      }
+    } catch (error: any) {
+      showError(error?.message || "Failed to update password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleToggleAccount = async () => {
     try {
@@ -336,7 +336,7 @@ const handleChangePassword = async () => {
     }
   };
 
-   const selectedCountry = formData.country;
+  const selectedCountry = formData.country;
   const countryCode = selectedCountry
     ? countries.getAlpha2Code(selectedCountry, "en")
     : null;
@@ -435,26 +435,26 @@ const handleChangePassword = async () => {
                               )}
                             </div>
                             {/* Country */}
-                                 <CustomSelect
-                            label="Select Country *"
-                            icon={
-                              countryCode ? (
-                                <div className="flag-circle">
-                                  <img
-                                    src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
-                                    alt="flag"
-                                  />
-                                </div>
-                              ) : (
-                                <svg className="icons locationIcon svg-icon"></svg>
-                              )
-                            }
-                            options={countryOptions}
-                            value={formData.country || ""}
-                            onChange={(val) =>
-                              setFormData({ ...formData, country: val as string })
-                            }
-                          />
+                            <CustomSelect
+                              label="Select Country *"
+                              icon={
+                                countryCode ? (
+                                  <div className="flag-circle">
+                                    <img
+                                      src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
+                                      alt="flag"
+                                    />
+                                  </div>
+                                ) : (
+                                  <svg className="icons locationIcon svg-icon"></svg>
+                                )
+                              }
+                              options={countryOptions}
+                              value={formData.country || ""}
+                              onChange={(val) =>
+                                setFormData({ ...formData, country: val as string })
+                              }
+                            />
 
                             {/* City */}
                             <div className="label-input">
@@ -495,56 +495,29 @@ const handleChangePassword = async () => {
                             <input type="text" value={userProfile?.email ?? ""} readOnly />
                             <span className="righttext">{userProfile?.status === UserStatus.VERIFIED ? "Verified" : "Unverified"}</span>
                           </div>
-                          <div>
-                            <p>Do You Want to Change Your Password</p>
+                          <div className="col-span-full">
+                            <p className="text">Do You Want to Change Your Password</p>
                           </div>
 
                           {/* Password */}
                           <div className="label-input one password">
                             <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
-                            <input
-  type={showPass ? "text" : "password"}
-  placeholder="Current Password *"
-  value={passwordData.currentPassword}
-  onChange={(e) =>
-    handlePasswordChange("currentPassword", e.target.value)
-  }
-/>
-                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">
-                              {showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}
-                            </span>
+                            <input type={showPass ? "text" : "password"} placeholder="Current Password *" value={passwordData.currentPassword} onChange={(e) => handlePasswordChange("currentPassword", e.target.value)} />
+                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}</span>
                           </div>
 
                           {/* New Password */}
                           <div className="label-input password">
                             <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
-                           <input
-  type={showPass ? "text" : "password"}
-  placeholder="New Password *"
-  value={passwordData.newPassword}
-  onChange={(e) =>
-    handlePasswordChange("newPassword", e.target.value)
-  }
-/>
-                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">
-                              {showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}
-                            </span>
+                            <input type={showPass ? "text" : "password"} placeholder="New Password *" value={passwordData.newPassword} onChange={(e) => handlePasswordChange("newPassword", e.target.value)} />
+                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}</span>
                           </div>
 
                           {/* Confirm Password */}
                           <div className="label-input password">
                             <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
-                           <input
-  type={showConfirmPass ? "text" : "password"}
-  placeholder="Confirm Password *"
-  value={passwordData.confirmPassword}
-  onChange={(e) =>
-    handlePasswordChange("confirmPassword", e.target.value)
-  }
-/>
-                            <span onClick={() => setShowConfirmPass((prev) => !prev)} className="input-placeholder-icon eye-icon">
-                              {showConfirmPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}
-                            </span>
+                            <input type={showConfirmPass ? "text" : "password"} placeholder="Confirm Password *" value={passwordData.confirmPassword} onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)} />
+                            <span onClick={() => setShowConfirmPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showConfirmPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}</span>
                           </div>
                         </div>
                         <div className="btm_btn">

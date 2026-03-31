@@ -7174,6 +7174,12 @@ textarea:focus {
     padding: 8px;
     border-radius: 18px;
     background-color: #f4f4f4;
+    p.text {
+      color: #000;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+    }
     .subtop_cont {
       display: flex;
       align-items: center;
@@ -7198,11 +7204,7 @@ textarea:focus {
           border-radius: 30px;
         }
         &:hover {
-          background: linear-gradient(
-            93.25deg,
-            var(--color-text-active) -49.57%,
-            var(--color-text-active) 98.1%
-          );
+          background: linear-gradient(93.25deg, var(--color-text-active) -49.57%, var(--color-text-active) 98.1%);
           svg {
             background-color: var(--color-secondary);
             fill: var(--color-secondary);
