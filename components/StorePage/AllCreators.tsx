@@ -491,7 +491,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                             </div>
                           </div>
                           <div className="creator-media-card__btn mt-auto">
-                            {!isOwnPost && post.accessType === "pay_per_view" && post.isUnlocked !== true && (<h5>From <span>${post.price}</span></h5>)}
+                            {!isOwnPost && post.accessType === "pay_per_view" && post.isUnlocked !== true && (<h5> <span>${post.price}</span></h5>)}
                             <Link href="#" className={`btn-txt-gradient shimmer btn-outline ${isOwnPost ? "opacity-50 cursor-not-allowed" : ""}`} onClick={(e) => {
                               e.preventDefault(); if (isOwnPost) return; if ((post.accessType === "subscriber" && post.isSubscribed) || (post.accessType === "pay_per_view" && post.isUnlocked)
                               ) { router.push(`/purchased-media?publicId=${post.publicId}`,); return; }
