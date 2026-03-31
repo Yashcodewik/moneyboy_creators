@@ -22,6 +22,7 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const playbackUrlRef = useRef<string | null>(null);
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
 
@@ -36,7 +37,7 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
       setLoading(true);
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: { facingMode },
         audio: true,
       });
 
@@ -122,23 +123,33 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
   };
 
   /* ========== RETAKE VIDEO ========== */
-  const retakeVideo = () => {
-    if (playbackUrlRef.current) {
-      URL.revokeObjectURL(playbackUrlRef.current);
-      playbackUrlRef.current = null;
-    }
+const retakeVideo = () => {
+  // stop playback first
+  if (videoRef.current) {
+    videoRef.current.pause();
+    videoRef.current.src = "";
+    videoRef.current.srcObject = null;
+  }
 
-    setPlaybackUrl(null);
-    setRecordedChunks([]);
-    chunksRef.current = [];
+  if (playbackUrlRef.current) {
+    URL.revokeObjectURL(playbackUrlRef.current);
+    playbackUrlRef.current = null;
+  }
 
+  setPlaybackUrl(null);
+  setRecordedChunks([]);
+  chunksRef.current = [];
+
+  // small delay to let DOM update
+  setTimeout(() => {
     if (videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
       videoRef.current.muted = true;
       videoRef.current.controls = false;
       videoRef.current.play();
     }
-  };
+  }, 100);
+};
 
   /* ========== SUBMIT VIDEO ========== */
   const handleSubmit = () => {
@@ -164,20 +175,23 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
   };
 
   /* ========== CLOSE HANDLER ========== */
-  const handleClose = async () => {
-    if (isRecording) {
-      const ok = await showQuestion(
-        "Recording is in progress. Cancel recording?",
-      );
-      if (!ok) return;
-    }
-    if (recordedChunks.length > 0) {
-      showSuccess("Recording  Successfully");
-    }
+const handleClose = async () => {
+  let message = "";
 
-    stopCamera();
-    onClose();
-  };
+  if (isRecording) {
+    message = "Recording is in progress. Cancel recording?";
+  } else if (recordedChunks.length > 0) {
+    message = "You have a recorded video. Discard it?";
+  }
+
+  if (message) {
+    const ok = await showQuestion(message);
+    if (!ok) return;
+  }
+
+  stopCamera();
+  onClose();
+};
 
   /* ========== PLAYBACK PREVIEW ========== */
   useEffect(() => {
@@ -198,18 +212,43 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
     }
   }, [recordedChunks]);
 
+  const switchCamera = async () => {
+  try {
+    stopCamera();
+
+    setFacingMode((prev) =>
+      prev === "user" ? "environment" : "user"
+    );
+
+    setTimeout(() => {
+      startCamera();
+    }, 200);
+  } catch (err) {
+    console.error(err);
+    showError("Unable to switch camera");
+  }
+};
+
   return (
     <Modal show={true} onClose={handleClose} title=" " className="videorecord_wrap">
       <div className="modal_containt videorecord-modal">
         <div className="video_wrap">
           {/* LIVE CAMERA */}
           {cameraEnabled && recordedChunks.length === 0 && (
-            <video ref={videoRef} autoPlay playsInline muted style={{width: "100%", borderRadius: 8, background: "#000",}} />
+            <video key={recordedChunks.length}  ref={videoRef} autoPlay playsInline muted style={{width: "100%", borderRadius: 8, background: "#000",}} />
           )}
           {/* PLAYBACK */}
-          {recordedChunks.length > 0 && playbackUrl && (
-            <Plyr source={{type: "video", sources: [{src: playbackUrl, type: "video/webm",},],}} options={{controls: ["play", "progress", "current-time", "mute", "volume", "fullscreen",],}}/>
-          )}
+         {recordedChunks.length > 0 && playbackUrl && (
+  <video
+    src={playbackUrl}
+    controls
+    style={{
+      width: "100%",
+      borderRadius: 8,
+      background: "#000",
+    }}
+  />
+)}
         </div>
         {loading && (<div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>)}
         <div className="actions">
@@ -221,14 +260,26 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
               <span>Enable Camera</span>
             </button>
           )}
-          {cameraEnabled && !isRecording && recordedChunks.length === 0 && (
-            <button
-              className="premium-btn active-down-effect"
-              onClick={startRecording}
-            >
-              <span>Start Recording</span>
-            </button>
-          )}
+         {cameraEnabled && !isRecording && recordedChunks.length === 0 && (
+  <>
+    <button
+      className="premium-btn active-down-effect"
+      onClick={startRecording}
+    >
+      <span>Start Recording</span>
+    </button>
+
+    {/* ✅ ADD THIS BUTTON */}
+    <button
+      className="btn-grey active-down-effect"
+      onClick={switchCamera}
+    >
+      <span>
+        {facingMode === "user" ? "Back Camera" : "Front Camera"}
+      </span>
+    </button>
+  </>
+)}
           {isRecording && (
             <button
               className="btn-danger active-down-effect"
