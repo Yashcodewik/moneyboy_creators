@@ -11,7 +11,6 @@ import {
 } from "@/utils/alert";
 import { CgClose } from "react-icons/cg";
 import Modal from "../Modal";
-import { RefreshCw } from "lucide-react";
 
 type Props = {
   onClose: () => void;
@@ -260,14 +259,6 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
               }}
             />
           )}
-          <button
-            className="btn-grey active-down-effect"
-            onClick={switchCamera}
-          >
-            <span>
-              <RefreshCw />
-            </span>
-          </button>
         </div>
         {loading && (
           <div className="loadingtext">
@@ -294,6 +285,16 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
                 onClick={startRecording}
               >
                 <span>Start Recording</span>
+              </button>
+
+              {/* ✅ ADD THIS BUTTON */}
+              <button
+                className="btn-grey active-down-effect"
+                onClick={switchCamera}
+              >
+                <span>
+                  {facingMode === "user" ? "Back Camera" : "Front Camera"}
+                </span>
               </button>
             </>
           )}
