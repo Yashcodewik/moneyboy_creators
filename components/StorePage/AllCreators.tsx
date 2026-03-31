@@ -310,7 +310,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                 </div>
                 {!isSearchActive && (
                   <div className="creater-content-filters-layouts gap-5">
-                    <div className="creator-content-select-filter">
+                    {/* <div className="creator-content-select-filter">
                       <CustomSelect
                         className="bg-white p-sm size-sm"
                         label="Filter By"
@@ -325,7 +325,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                           setFilter(option);
                         }}
                       />
-                    </div>
+                    </div> */}
                     <div className="creator-content-select-filter">
                       <CustomSelect
                         className="bg-white p-sm size-sm"
