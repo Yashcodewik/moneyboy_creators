@@ -23,6 +23,7 @@ import { Plyr } from "plyr-react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { showTaggedUserList } from "@/utils/alert";
 import NoProfileSvg from "../common/NoProfileSvg";
+import { CircleX } from "lucide-react";
 
 interface AllCreatorsProps {
   onUnlock: (post: any) => void;
@@ -45,6 +46,17 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
   const [sort, setSort] = useState<"price_low" | "price_high" | "">();
   const { page, totalPages } = paidContentFeedPagination;
+
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (search.trim() === "") {
+      setIsSearchActive(false);
+    } else {
+      setIsSearchActive(true);
+    }
+  }, [search]);
 
   useEffect(() => {
     let tabParam: "trending" | "new" | "photo" | "video" = "new";
@@ -279,91 +291,59 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
     <div>
       <div className="tabs-content-wrapper-layout">
         <div data-multi-dem-cards-layout>
-          <div
-            className="creator-content-filter-grid-container"
-            data-multiple-tabs-section
-          >
+          <div className="creator-content-filter-grid-container" data-multiple-tabs-section>
             <div className="filters-card-wrapper card">
-              <div className="search-features-grid-btns has-multi-tabs-btns">
-                <div className="creator-content-search-input">
+              <div className="search-features-grid-btns">
+                <div className={`creator-content-search-input ${isSearchActive ? "grid-span-3" : ""}`}>
                   <div className="label-input">
                     <div className="input-placeholder-icon">
-                      <svg
-                        className="svg-icon"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14 5H20"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14 8H17"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                      <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Search by creator or price..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
+                    <input ref={searchInputRef} type="text" placeholder="Search by creator or price..." value={search} onFocus={() => setIsSearchActive(true)} onChange={(e) => setSearch(e.target.value)} />
+                    {isSearchActive && (<button className="btn-danger icon" onMouseDown={(e) => { e.preventDefault(); setSearch(""); setIsSearchActive(false); searchInputRef.current?.blur(); }}><CircleX size={18} /></button>)}
                   </div>
                 </div>
-                <div className="creater-content-filters-layouts gap-5">
-                  <div className="creator-content-select-filter">
-                    <CustomSelect
-                      className="bg-white p-sm size-sm"
-                      label="Filter By"
-                      searchable={false}
-                      options={[
-                        { label: "All", value: "" },
-                        { label: "Subscriber", value: "subscriber" },
-                        { label: "Pay Per View", value: "pay_per_view" },
-                      ]}
-                      onChange={(option: any) => {
-                        console.log("FILTER CHANGED:", option);
-                        setFilter(option);
-                      }}
-                    />
+                {!isSearchActive && (
+                  <div className="creater-content-filters-layouts gap-5">
+                    <div className="creator-content-select-filter">
+                      <CustomSelect
+                        className="bg-white p-sm size-sm"
+                        label="Filter By"
+                        searchable={false}
+                        options={[
+                          { label: "All", value: "" },
+                          { label: "Subscriber", value: "subscriber" },
+                          { label: "Pay Per View", value: "pay_per_view" },
+                        ]}
+                        onChange={(option: any) => {
+                          console.log("FILTER CHANGED:", option);
+                          setFilter(option);
+                        }}
+                      />
+                    </div>
+                    <div className="creator-content-select-filter">
+                      <CustomSelect
+                        className="bg-white p-sm size-sm"
+                        label="Sort By"
+                        searchable={false}
+                        options={[
+                          { label: "All", value: "" },
+                          { label: "Price Low → High", value: "price_low" },
+                          { label: "Price High → Low", value: "price_high" },
+                        ]}
+                        onChange={(option: any) => {
+                          console.log("SORT CHANGED:", option);
+                          setSort(option);
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="creator-content-select-filter">
-                    <CustomSelect
-                      className="bg-white p-sm size-sm"
-                      label="Sort By"
-                      searchable={false}
-                      options={[
-                        { label: "All", value: "" },
-                        { label: "Price Low → High", value: "price_low" },
-                        { label: "Price High → Low", value: "price_high" },
-                      ]}
-                      onChange={(option: any) => {
-                        console.log("SORT CHANGED:", option);
-                        setSort(option);
-                      }}
-                    />
-                  </div>
-                </div>
+                )}
               </div>
               <div className="creator-content-tabs-btn-wrapper">
                 <div className="multi-tabs-action-buttons">
@@ -401,15 +381,16 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                 )}
                 <div className="col-4-cards-layout">
                   {!loadingPaidContentFeed &&
-                    paidContentFeed.map((post) => {const isOwnPost = post.creatorInfo?._id === loggedInUserId; const taggedUsers = post?.collaboration?.taggedUsers ?? [];
+                    paidContentFeed.map((post) => {
+                      const isOwnPost = post.creatorInfo?._id === loggedInUserId; const taggedUsers = post?.collaboration?.taggedUsers ?? [];
                       return (
                         <div className="creator-media-card card" key={post._id}>
                           <div className="creator-media-card__media-wrapper">
                             <div className="creator-media-card__media">
                               {post.media?.type === "photo" ? (
-                                <img alt="Post Image" src={post.media?.mediaFiles?.[0]}/>
+                                <img alt="Post Image" src={post.media?.mediaFiles?.[0]} />
                               ) : (
-                                <video ref={(el) => {if (el) playersRef.current[post._id] = el;}} src={post.media?.mediaFiles?.[0]} muted loop playsInline onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}/>
+                                <video ref={(el) => { if (el) playersRef.current[post._id] = el; }} src={post.media?.mediaFiles?.[0]} muted loop playsInline onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)} />
                                 // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
                                 //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
                                 // </div>
@@ -438,33 +419,35 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                             <div className="profile-card">
                               <Link href={`/${post.creatorInfo?.userName}`} className="profile-card__main">
                                 <div className="profile-card__avatar-settings">
-                                 <div className="profile-card__avatar">
-  {post.creatorInfo?.profile ? (
-    <img
-      src={post.creatorInfo.profile}
-      alt={post.creatorInfo?.displayName || "User"}
-      onError={(e) => {
-        e.currentTarget.style.display = "none";
-      }}
-    />
-  ) : (
-    <NoProfileSvg />
-  )}
-</div>
+                                  <div className="profile-card__avatar">
+                                    {post.creatorInfo?.profile ? (
+                                      <img
+                                        src={post.creatorInfo.profile}
+                                        alt={post.creatorInfo?.displayName || "User"}
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = "none";
+                                        }}
+                                      />
+                                    ) : (
+                                      <NoProfileSvg />
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="profile-card__info">
                                   <div className="profile-card__name-badge">
                                     <div className="profile-card__name">{post.creatorInfo?.displayName}</div>
                                     <div className="profile-card__badge">
-                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge"/>
+                                      <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
                                     </div>
                                     {taggedUsers.length > 0 && (
-                                      <div className="tagview" onClick={(e) => {e.stopPropagation(); e.preventDefault(); showTaggedUserList([
-  ...(post?.collaboration?.taggedBy
-    ? [{ user: post.collaboration.taggedBy }]
-    : []),
-  ...(post?.collaboration?.taggedUsers || []),
-]);;}}>
+                                      <div className="tagview" onClick={(e) => {
+                                        e.stopPropagation(); e.preventDefault(); showTaggedUserList([
+                                          ...(post?.collaboration?.taggedBy
+                                            ? [{ user: post.collaboration.taggedBy }]
+                                            : []),
+                                          ...(post?.collaboration?.taggedUsers || []),
+                                        ]);;
+                                      }}>
                                         <ul className="taglist">
                                           {" "}
                                           {taggedUsers

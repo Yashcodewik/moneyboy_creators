@@ -405,6 +405,11 @@
                 border-radius: 16px;
                 padding: 8px;
 
+                &.multi_show_hide {
+                    flex-wrap: nowrap;
+                    justify-content: center;
+                }
+
                 &.has-multi-tabs-btns {
                     flex-wrap: wrap;
                     justify-content: end;
