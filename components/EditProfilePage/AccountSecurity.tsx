@@ -170,10 +170,14 @@ const handleChangePassword = async () => {
               <input type="text" value={profile?.email || ""} readOnly />
               <span className="righttext">{profile?.status === 5 ? "Verified" : "Unverified"}</span>
             </div>
+            <div>
+                            <p>Do You Want to Change Your Password</p>
+                          </div>
           <div className="label-input one password">
   <div className="input-placeholder-icon">
     <i className="icons lock svg-icon"></i>
   </div>
+  
 
   <input
     type={showPass ? "text" : "password"}
