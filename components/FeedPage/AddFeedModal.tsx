@@ -309,8 +309,18 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         updated = [...prev, { ...user, percentage: 5, manuallySet: false }];
       }
 
-      const total = updated.length + 1;
-const creatorShare = 40; // or dynamic if you want
+const totalUsers = updated.length + 1;
+
+let creatorShare = 0;
+
+// ✅ if only 2 → 50-50
+if (totalUsers === 2) {
+  creatorShare = 50;
+} else {
+  // ✅ more than 2 → creator gets higher but dynamic
+  creatorShare = Math.max(40, 100 - (totalUsers - 1) * 20);
+}
+
 const remaining = 100 - creatorShare;
 
 const rawShare = updated.length > 0 ? remaining / updated.length : 0;
@@ -318,7 +328,7 @@ const equalShare = Math.max(5, Math.round(rawShare / 5) * 5);
 
       let distributed = 0;
 
-     const updatedUsers = updated.map((u, index) => {
+const updatedUsers = updated.map((u, index) => {
   let val = equalShare;
 
   if (index === updated.length - 1) {
@@ -332,15 +342,8 @@ const equalShare = Math.max(5, Math.round(rawShare / 5) * 5);
     percentage: val,
     manuallySet: false,
   };
+});
 
-        distributed += equalShare;
-
-        return {
-          ...u,
-          percentage: equalShare,
-          manuallySet: false,
-        };
-      });
 
     setCreatorPercentage(creatorShare);
       creatorPercentageRef.current = creatorShare;
