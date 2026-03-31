@@ -53,7 +53,7 @@ const NotificationPage = () => {
         } else {
           setNotifications((prev) => {
             const map = new Map(
-              [...prev, ...newData].map((item) => [item._id, item]),
+              [...prev, ...newData].map((item) => [item._id, item])
             );
             return Array.from(map.values());
           });
@@ -100,8 +100,8 @@ const NotificationPage = () => {
         prev.map((n) =>
           n._id === noti._id
             ? { ...n, postTag: { ...n.postTag, myStatus: "approved" } }
-            : n,
-        ),
+            : n
+        )
       );
 
       dispatch(updatePostCount(1));
@@ -124,37 +124,37 @@ const NotificationPage = () => {
         prev.map((n) =>
           n._id === noti._id
             ? { ...n, postTag: { ...n.postTag, myStatus: "rejected" } }
-            : n,
-        ),
+            : n
+        )
       );
 
       setShowModal(false);
     }
   };
 
-const goToProfile = (user?: any) => {
-  if (!user) return;
+  const goToProfile = (user?: any) => {
+    if (!user) return;
 
-  const role = user?.role;
-  const publicId = user?.publicId;
-  const userName = user?.userName;
+    const role = user?.role;
+    const publicId = user?.publicId;
+    const userName = user?.userName;
 
     console.log("NAV USER:", user);
 
-  if (role === 1) {
-    // 👤 normal user
-    router.push(`/userprofile/${publicId}`);
-  } else if (role === 2) {
-    // ⭐ creator
-    router.push(`/${userName}`);
-  } else {
-    // fallback
-    router.push(`/${userName}`);
-  }
-};
+    if (role === 1) {
+      // 👤 normal user
+      router.push(`/userprofile/${publicId}`);
+    } else if (role === 2) {
+      // ⭐ creator
+      router.push(`/${userName}`);
+    } else {
+      // fallback
+      router.push(`/${userName}`);
+    }
+  };
 
-const isOwner =
-  session?.user?.publicId === selectedPost?.postTag?.taggedBy?.publicId;
+  const isOwner =
+    session?.user?.publicId === selectedPost?.postTag?.taggedBy?.publicId;
 
   // useEffect(() => {
   //   if (!selectedPost?.createdAt) return;
@@ -167,12 +167,20 @@ const isOwner =
   // }, [selectedPost]);
 
   useEffect(() => {
-    if (!selectedPost?.createdAt) return;
+    if (!selectedPost) return;
 
+    if ([9, 10, 11].includes(selectedPost?.type) && selectedPost?.expiresAt) {
+      const expiry = new Date(selectedPost.expiresAt).getTime();
+      const now = Date.now();
+      setCountdownTo(expiry <= now ? now + 1000 : expiry);
+      setIsExpired(now >= expiry);
+      return;
+    }
+
+    if (!selectedPost?.createdAt) return;
     const created = new Date(selectedPost.createdAt).getTime();
     const expiry = created + 24 * 60 * 60 * 1000;
     const now = Date.now();
-
     setCountdownTo(expiry <= now ? now + 1000 : expiry);
     setIsExpired(now >= expiry);
   }, [selectedPost]);
@@ -206,11 +214,20 @@ const isOwner =
                     <div className="noti-item" key={noti._id}>
                       <div
                         className="noti-item--icon"
-                        onClick={() =>
-                          goToProfile(
-  noti.senderId || noti.postTag?.taggedBy
-)
-                        }
+                        onClick={() => {
+                          if (
+                            [9, 10, 11].includes(noti.type) &&
+                            noti.referenceId
+                          ) {
+                            router.push(
+                              `/message?threadId=${noti.referenceId}`
+                            );
+                          } else {
+                            goToProfile(
+                              noti.senderId || noti.postTag?.taggedBy
+                            );
+                          }
+                        }}
                       >
                         <img
                           src={
@@ -234,7 +251,8 @@ const isOwner =
                           <div className="noti-time">
                             <span>{formatTime(noti.createdAt)}</span>
                           </div>
-                          {noti.postPreview && (
+                          {(noti.postPreview ||
+                            [9, 10, 11].includes(noti.type)) && (
                             <div className="noti-more-actions iconbtn btntooltip_wrapper">
                               <button
                                 className="btn-gray viewbtn"
@@ -249,8 +267,8 @@ const isOwner =
                               {noti.postTag?.myStatus === "pending" &&
                                 noti.type === 3 &&
                                 Date.now() <
-                                new Date(noti.createdAt).getTime() +
-                                24 * 60 * 60 * 1000 && (
+                                  new Date(noti.createdAt).getTime() +
+                                    24 * 60 * 60 * 1000 && (
                                   <>
                                     <button
                                       className="btn-gray acceptbtn"
@@ -275,15 +293,14 @@ const isOwner =
                         <div className="noti-desc">
                           <p>
                             {" "}
-                            {noti.type === 3 && (
-                              noti.postTag?.myStatus === "pending"
+                            {noti.type === 3 &&
+                              (noti.postTag?.myStatus === "pending"
                                 ? "Review this collaboration request and choose to accept or decline."
                                 : noti.postTag?.myStatus === "approved"
-                                  ? "Collaboration request accepted"
-                                  : noti.postTag?.myStatus === "rejected"
-                                    ? "Collaboration request declined"
-                                    : ""
-                            )}
+                                ? "Collaboration request accepted"
+                                : noti.postTag?.myStatus === "rejected"
+                                ? "Collaboration request declined"
+                                : "")}
                             {noti.type === 4 &&
                               "Collaboration response received."}
                           </p>
@@ -301,9 +318,22 @@ const isOwner =
         </aside>
       </div>
 
-      <Modal show={showModal} onClose={() => setShowModal(false)} size="lg" title="Post Details" className="notipost_wrap">
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        size="lg"
+        title="Post Details"
+        className="notipost_wrap"
+      >
         <form className="modal_containt notipost-modal">
-          <div className="post_wrap">
+          <div
+            className="post_wrap"
+            style={{
+              display: [9, 10, 11].includes(selectedPost?.type)
+                ? "none"
+                : "block",
+            }}
+          >
             {/* POST IMAGES */}
             <div className="img_wrap">
               <Swiper
@@ -329,7 +359,7 @@ const isOwner =
                           <img src={mediaUrl} alt="post media" />
                         )}
                       </SwiperSlide>
-                    ),
+                    )
                   )}
               </Swiper>
             </div>
@@ -339,12 +369,11 @@ const isOwner =
               <div className="charge_wrap">
                 <p>Earnings From This Post</p>
                 <div className="right_box">
-                  {selectedPost?.postPreview?.accessType ===
-                    "pay_per_view" && (
-                      <span className="premium-btn">
-                        <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
-                      </span>
-                    )}
+                  {selectedPost?.postPreview?.accessType === "pay_per_view" && (
+                    <span className="premium-btn">
+                      <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
+                    </span>
+                  )}
                   {selectedPost?.postPreview?.accessType === "subscriber" && (
                     <span className="premium-btn success">
                       <span>Subscription</span>
@@ -362,9 +391,7 @@ const isOwner =
                 {selectedPost?.postTag?.taggedBy && (
                   <li
                     key={selectedPost.postTag.taggedBy._id}
-                    onClick={() =>
-                      goToProfile(selectedPost.postTag.taggedBy)
-                    }
+                    onClick={() => goToProfile(selectedPost.postTag.taggedBy)}
                   >
                     <img
                       src={
@@ -380,10 +407,7 @@ const isOwner =
                 {selectedPost?.postTag?.taggedUsers
                   ?.filter((u: any) => u?.user)
                   .map((u: any) => (
-                    <li
-                      key={u.user?._id}
-                      onClick={() => goToProfile(u.user)}
-                    >
+                    <li key={u.user?._id} onClick={() => goToProfile(u.user)}>
                       <img
                         src={
                           u.user?.profile ||
@@ -398,7 +422,16 @@ const isOwner =
               </ul>
             </div>
           </div>
-          <div className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved" ? "approved" : selectedPost?.postTag?.myStatus === "rejected" ? "rejected" : "pending"}`}>
+          {selectedPost?.postTag && ![9, 10, 11].includes(selectedPost?.type) && (
+          <div
+            className={`approval_wrap ${
+              selectedPost?.postTag?.myStatus === "approved"
+                ? "approved"
+                : selectedPost?.postTag?.myStatus === "rejected"
+                ? "rejected"
+                : "pending"
+            }`}
+          >
             {selectedPost?.postTag?.myStatus === "approved" && (
               <div className="head">
                 <h3>Post Approved</h3> <BadgeCheck />
@@ -416,27 +449,96 @@ const isOwner =
                 )}
               </>
             )}
-        {selectedPost?.postTag?.myStatus === "pending" && (
-  <>
-    <div className="head">
-      <h3>
-        {isOwner
-          ? "Waiting for approvals"
-          : "Collaboration Request Pending"}
-      </h3>
-      <Clock />
-    </div>
+            {selectedPost?.postTag?.myStatus === "pending" && (
+              <>
+                <div className="head">
+                  <h3>
+                    {isOwner
+                      ? "Waiting for approvals"
+                      : "Collaboration Request Pending"}
+                  </h3>
+                  <Clock />
+                </div>
 
-    <p className="pending_text">
-      {isOwner
-        ? "You have invited creators to collaborate. Waiting for their response."
-        : "You have been tagged in this post and invited to collaborate. Please review and accept or decline."}
-    </p>
-  </>
-)}
+                <p className="pending_text">
+                  {isOwner
+                    ? "You have invited creators to collaborate. Waiting for their response."
+                    : "You have been tagged in this post and invited to collaborate. Please review and accept or decline."}
+                </p>
+              </>
+            )}
+            {/* PPV Notification Modal Content */}
+           
           </div>
+          )}
+           {[9, 10, 11].includes(selectedPost?.type) && (
+              <>
+                <div
+                  className={`approval_wrap ${
+                    selectedPost?.type === 10
+                      ? "approved"
+                      : selectedPost?.type === 11
+                      ? "rejected"
+                      : "pending"
+                  }`}
+                >
+                  <div className="head">
+                    <h3>
+                      {selectedPost?.type === 9 && "PPV Request Received"}
+                      {selectedPost?.type === 10 && "PPV Request Accepted"}
+                      {selectedPost?.type === 11 && "PPV Request Declined"}
+                    </h3>
+                    {selectedPost?.type === 10 && <BadgeCheck />}
+                    {selectedPost?.type === 11 && <CircleX color="#c62828" />}
+                    {selectedPost?.type === 9 && <Clock />}
+                  </div>
+                  <p className="pending_text">
+                    {selectedPost?.type === 9 &&
+                      "You received a new PPV request. Click below to view it in chat."}
+                    {selectedPost?.type === 10 &&
+                      "Your PPV request has been accepted."}
+                    {selectedPost?.type === 11 &&
+                      "Your PPV request has been declined."}
+                  </p>
+                </div>
+
+                {/* Countdown for type 9 only */}
+                {selectedPost?.type === 9 && !isExpired && (
+                  <div className="timer_wrap mt-3">
+                    <p>Expires In</p>
+                    <FlipClockCountdown
+                      key={selectedPost._id}
+                      to={countdownTo}
+                      labels={["", "", "", ""]}
+                      renderMap={[false, true, true, true]}
+                      showSeparators={true}
+                      labelStyle={{ display: "none" }}
+                      digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}
+                    >
+                      Finished
+                    </FlipClockCountdown>
+                  </div>
+                )}
+
+                {/* Go to chat button */}
+                <div className="actions">
+                  <button
+                    type="button"
+                    className="premium-btn active-down-effect"
+                    onClick={() => {
+                      setShowModal(false);
+                      router.push(
+                        `/message?threadId=${selectedPost?.referenceId}`
+                      );
+                    }}
+                  >
+                    <span>View in Chat</span>
+                  </button>
+                </div>
+              </>
+            )}
           {/* TIMER */}
-          {selectedPost?.postTag?.myStatus === "pending" &&  !isOwner&& (
+          {selectedPost?.postTag?.myStatus === "pending" && !isOwner && (
             <div className="timer_wrap mt-3">
               <p>Response Deadline</p>
               <FlipClockCountdown
@@ -453,25 +555,25 @@ const isOwner =
             </div>
           )}
           {selectedPost?.postTag?.myStatus === "pending" &&
-!isExpired &&
-!isOwner&& (
-            <div className="actions">
-              <button
-                type="button"
-                className="btn-danger active-down-effect"
-                onClick={() => handleRejectPost(selectedPost)}
-              >
-                Decline
-              </button>
-              <button
-                type="button"
-                className="premium-btn active-down-effect"
-                onClick={() => handleAcceptPost(selectedPost)}
-              >
-                <span>Accept</span>
-              </button>
-            </div>
-          )}
+            !isExpired &&
+            !isOwner && (
+              <div className="actions">
+                <button
+                  type="button"
+                  className="btn-danger active-down-effect"
+                  onClick={() => handleRejectPost(selectedPost)}
+                >
+                  Decline
+                </button>
+                <button
+                  type="button"
+                  className="premium-btn active-down-effect"
+                  onClick={() => handleAcceptPost(selectedPost)}
+                >
+                  <span>Accept</span>
+                </button>
+              </div>
+            )}
         </form>
       </Modal>
     </>

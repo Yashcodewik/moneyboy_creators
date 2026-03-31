@@ -29,7 +29,7 @@ interface MessageState {
   isBlockedByOther: boolean;
   hiddenChatList: any[];
   isHidden: boolean;
-  // messageUnreadCount: number;
+  messageUnreadCount: number;
   currentUserId: string | null; // 👈 Add currentUserId to state
 }
 
@@ -48,7 +48,7 @@ const initialState: MessageState = {
   isBlockedByOther: false,
   hiddenChatList: [],
   isHidden: false,
-  // messageUnreadCount: 0,
+  messageUnreadCount: 0,
   currentUserId: null, // 👈 Initialize currentUserId
 };
 
@@ -56,68 +56,100 @@ const messageSlice = createSlice({
   name: "message",
   initialState,
   reducers: {
-   setActiveThread: (state, action: PayloadAction<string | null>) => {
-  if (state.activeThreadId === action.payload) return;
-    state.activeThreadId = action.payload;
-},
+    setActiveThread: (state, action: PayloadAction<string | null>) => {
+      if (state.activeThreadId === action.payload) return;
+      state.activeThreadId = action.payload;
+    },
 
     setActiveUser: (state, action: PayloadAction<any>) => {
       state.activeUser = action.payload;
     },
 
-addSocketMessage: (state, action: PayloadAction<any>) => {
-  const msg = action.payload;
-  const isActiveChat = msg.threadId === state.activeThreadId;
+    addSocketMessage: (state, action: PayloadAction<any>) => {
+      const msg = action.payload;
 
-  // Replace optimistic message with real one from server
-  // (real messages won't have a temp- prefix, but may match by content+time)
-  if (isActiveChat) {
-    const isTempMessage = msg._id?.startsWith("temp-");
+      const senderId =
+        typeof msg.senderId === "object"
+          ? msg.senderId._id
+          : msg.senderId;
 
-    if (!isTempMessage) {
-      // Remove any temp message with same text to avoid duplicates
-      state.messages = state.messages.filter(
-        (m) =>
-          !(
-            m._id?.startsWith("temp-") &&
-            m.message === msg.message &&
-            m.threadId === msg.threadId
-          ),
+      // 🔥 FIX: replace optimistic with real message
+      if (senderId === state.currentUserId && msg._id && !msg._id.startsWith("temp-")) {
+        state.messages = state.messages.map((m) =>
+          m._id?.startsWith("temp-") ? msg : m
+        );
+        // update sidebar lastMessage for sender too
+        state.chatList = state.chatList.map((chat) =>
+          chat.publicId === msg.threadId
+            ? { ...chat, lastMessage: msg.message || "" }
+            : chat
+        );
+        return;
+      }
+
+      // ⬇️ YOUR EXISTING CODE CONTINUES
+      console.log("🧠 REDUCER HIT:", msg.threadId);
+      console.log("📊 chatList BEFORE:", state.chatList);
+      console.log("📊 chatList LENGTH:", state.chatList.length);
+      console.log("👤 full msg:", msg);
+
+      const isActiveChat = msg.threadId === state.activeThreadId;
+
+      if (isActiveChat) {
+        const exists = state.messages.some((m) => m._id === msg._id);
+        if (!exists) state.messages.push(msg);
+      }
+
+      const receiverId =
+        typeof msg.receiverId === "object"
+          ? msg.receiverId._id
+          : msg.receiverId;
+
+      console.log("👤 currentUserId:", state.currentUserId);
+      console.log("👤 receiverId:", receiverId);
+      console.log("👤 senderId:", msg.senderId);
+
+      const isReceiver = receiverId === state.currentUserId;
+      console.log("👉 isReceiver:", isReceiver);
+
+      if (!isReceiver) return;
+
+      const existingThread = state.chatList.find(
+        (chat) => chat.publicId === msg.threadId
       );
-    }
 
-    const exists = state.messages.some((m) => m._id === msg._id);
-    if (!exists) {
-      state.messages.push(msg);
-    }
-  }
-  console.log("🧠 REDUX addSocketMessage:", msg.threadId);
+      console.log("🔎 existingThread:", existingThread);
 
-  // ... rest of your existing sidebar unread count logic unchanged
-  const receiverId =
-    typeof msg.receiverId === "object" ? msg.receiverId._id : msg.receiverId;
-  const isReceiver = receiverId === state.currentUserId;
+      if (existingThread) {
+        state.chatList = state.chatList.map((chat) =>
+          chat.publicId === msg.threadId
+            ? {
+              ...chat,
+              unreadCount: isActiveChat
+                ? 0
+                : (chat.unreadCount || 0) + 1,
+              lastMessage: msg.message || "",
+            }
+            : chat
+        );
+      } else {
+        state.chatList.unshift({
+          publicId: msg.threadId,
+          lastMessage: msg.message || "",
+          unreadCount: 1,
+          user: msg.senderId,
+        });
+      }
 
-  if (isReceiver) {
-    if (isActiveChat) {
-      state.chatList = state.chatList.map((chat) =>
-        chat.publicId === msg.threadId
-          ? { ...chat, unreadCount: 0 }
-          : chat
+      console.log("📊 chatList AFTER:", state.chatList);
+
+      state.messageUnreadCount = state.chatList.reduce(
+        (total, chat) => total + (chat.unreadCount || 0),
+        0
       );
-    } else {
-      state.chatList = state.chatList.map((chat) =>
-        chat.publicId === msg.threadId
-          ? { ...chat, unreadCount: (chat.unreadCount || 0) + 1 }
-          : chat
-      );
-  //       state.messageUnreadCount = state.chatList.reduce(
-  //   (total, chat) => total + (chat.unreadCount || 0),
-  //   0
-  // );
-    }
-  }
-},
+
+      console.log("🔔 totalUnread:", state.messageUnreadCount);
+    },
     updatePPVStatus: (
       state,
       action: PayloadAction<{
@@ -152,26 +184,22 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
       }));
     },
 
-  resetThreadUnread: (state, action: PayloadAction<string>) => {
-    const threadId = action.payload;
+    resetThreadUnread: (state, action: PayloadAction<string>) => {
+      const threadId = action.payload;
 
-    const chat = state.chatList.find(
-      (chat) => chat.publicId === threadId
-    );
+      // ✅ reset unread for that thread
+      state.chatList = state.chatList.map((chat) =>
+        chat.publicId === threadId
+          ? { ...chat, unreadCount: 0 }
+          : chat
+      );
 
-  if (chat?.unreadCount) {
-    // state.messageUnreadCount = Math.max(
-    //   0,
-    //   state.messageUnreadCount - chat.unreadCount
-    // );
-  }
-
-    state.chatList = state.chatList.map((chat) =>
-      chat.publicId === threadId
-        ? { ...chat, unreadCount: 0 }
-        : chat
-    );
-  },
+      // ✅ recalculate global unread (source of truth)
+      state.messageUnreadCount = state.chatList.reduce(
+        (total, chat) => total + (chat.unreadCount || 0),
+        0
+      );
+    },
 
     markMessagesReadFromSocket: (state, action) => {
       const threadId = action.payload;
@@ -191,12 +219,12 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
       state.chatList = state.chatList.map((chat: any) =>
         chat?.user?.id === userId
           ? {
-              ...chat,
-              user: {
-                ...chat.user,
-                isOnline,
-              },
-            }
+            ...chat,
+            user: {
+              ...chat.user,
+              isOnline,
+            },
+          }
           : chat,
       );
     },
@@ -215,9 +243,9 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
     clearMessages: (state) => {
       state.messages = [];
     },
-    // setMessageUnreadCount: (state, action: PayloadAction<number>) => {
-    //   state.messageUnreadCount = action.payload;
-    // },
+    setMessageUnreadCount: (state, action: PayloadAction<number>) => {
+      state.messageUnreadCount = action.payload;
+    },
 
     // incrementUnread: (state) => {
     //   state.messageUnreadCount += 1;
@@ -238,6 +266,12 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
       .addCase(fetchSidebar.fulfilled, (state, action) => {
         state.chatList = action.payload.visible;
         state.hiddenChatList = action.payload.hidden;
+
+        // ✅ IMPORTANT
+        state.messageUnreadCount = action.payload.visible.reduce(
+          (total: number, chat: any) => total + (chat.unreadCount || 0),
+          0
+        );
       })
 
       // Messages
@@ -255,30 +289,30 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
         state.searchedMessages = action.payload;
       })
       .addCase(muteThread.fulfilled, (state, action) => {
-  const { threadId, isMuted } = action.payload;
+        const { threadId, isMuted } = action.payload;
 
-  // ✅ update sidebar
-  state.chatList = state.chatList.map((chat) =>
-    chat.publicId === threadId
-      ? { ...chat, isMuted }
-      : chat
-  );
+        // ✅ update sidebar
+        state.chatList = state.chatList.map((chat) =>
+          chat.publicId === threadId
+            ? { ...chat, isMuted }
+            : chat
+        );
 
-  state.hiddenChatList = state.hiddenChatList.map((chat) =>
-    chat.publicId === threadId
-      ? { ...chat, isMuted }
-      : chat
-  );
+        state.hiddenChatList = state.hiddenChatList.map((chat) =>
+          chat.publicId === threadId
+            ? { ...chat, isMuted }
+            : chat
+        );
 
-  // ✅ update active thread (THIS WAS MISSING 🔥)
-  if (state.activeThreadId === threadId) {
-    state.isMute = isMuted;
+        // ✅ update active thread (THIS WAS MISSING 🔥)
+        if (state.activeThreadId === threadId) {
+          state.isMute = isMuted;
 
-    if (state.activeThreadDetails?.permissions) {
-      state.activeThreadDetails.permissions.isMuted = isMuted;
-    }
-  }
-})
+          if (state.activeThreadDetails?.permissions) {
+            state.activeThreadDetails.permissions.isMuted = isMuted;
+          }
+        }
+      })
 
       .addCase(hideThread.fulfilled, (state, action) => {
         const { threadPublicId, isHidden } = action.payload;
@@ -320,7 +354,7 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
         state.isBlockedByOther = perms?.isBlockedByOther || false;
         state.isBlocked =
           perms?.isBlockedByYou || perms?.isBlockedByOther || false;
-          state.isHidden = perms?.isHidden || false;
+        state.isHidden = perms?.isHidden || false;
         state.isMute = perms?.isMuted || false; // 🔥 IMPORTANT
       })
       // Delete
@@ -375,9 +409,9 @@ addSocketMessage: (state, action: PayloadAction<any>) => {
           }
         }
       })
-      // .addCase(fetchMessageUnreadCount.fulfilled, (state, action) => {
-      //   state.messageUnreadCount = action.payload;
-      // });
+    // .addCase(fetchMessageUnreadCount.fulfilled, (state, action) => {
+    //   state.messageUnreadCount = action.payload;
+    // });
   },
 });
 
@@ -389,7 +423,7 @@ export const {
   markMessagesRead,
   markMessagesReadFromSocket,
   clearMessages,
-  // setMessageUnreadCount,
+  setMessageUnreadCount,
   // incrementUnread,
   // resetUnread,
   resetThreadUnread,

@@ -110,24 +110,11 @@ const MessagePage = () => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (!session?.user?.id) return;
-
-  //   const onNewMessage = (msg: any) => dispatch(addSocketMessage(msg));
-  //   const onRead = ({ readerId }: any) => {
-  //     if (readerId !== session.user.id) {
-  //       dispatch(markMessagesReadFromSocket(readerId));
-  //     }
-  //   };
-
-  //   socket.on("newMessage", onNewMessage);
-  //   socket.on("messagesRead", onRead);
-
-  //   return () => {
-  //     socket.off("newMessage", onNewMessage);
-  //     socket.off("messagesRead", onRead);
-  //   };
-  // }, [session?.user?.id, dispatch]);
+  useEffect(() => {
+  if (threadPublicIdFromUrl) {
+    dispatch(resetThreadUnread(threadPublicIdFromUrl));
+  }
+}, [threadPublicIdFromUrl]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -172,19 +159,6 @@ const MessagePage = () => {
     };
   }, [dispatch]);
 
-  useEffect(() => {
-    const handler = ({ readerId }: any) => {
-      if (readerId === session?.user?.id) return;
-      dispatch(markMessagesReadFromSocket(readerId));
-    };
-
-    socket.on("messagesRead", handler);
-
-    return () => {
-      socket.off("messagesRead", handler);
-    };
-  }, [dispatch, session?.user?.id]);
-
 useEffect(() => {
   if (!threadPublicIdFromUrl) {
     // ✅ header click → no threadId → show list
@@ -196,17 +170,26 @@ useEffect(() => {
   dispatch(setActiveThread(threadPublicIdFromUrl));
 }, [threadPublicIdFromUrl, dispatch]);
 
-  useEffect(() => {
-    if (!session?.user?.id || !activeThreadId) return;
+useEffect(() => {
+  if (!session?.user?.id || !activeThreadId) return;
 
-    dispatch(resetThreadUnread(activeThreadId));
+  dispatch(resetThreadUnread(activeThreadId));
 
-    socket.emit("markRead", {
-      threadId: activeThreadId,
-      userId: session.user.id,
-    });
+  socket.emit("markRead", {
+    threadId: activeThreadId,
+    userId: session.user.id,
+  });
 
-  }, [activeThreadId, session?.user?.id]);
+  const handleMessagesRead = ({ threadId }: { threadId: string }) => {
+    dispatch(markMessagesReadFromSocket(threadId));
+  };
+
+  socket.on("messagesRead", handleMessagesRead);
+
+  return () => {
+    socket.off("messagesRead", handleMessagesRead);
+  };
+}, [activeThreadId, session?.user?.id]);
 
   useEffect(() => {
     if (!activeThreadId) return;
@@ -285,25 +268,6 @@ useEffect(() => {
       socket.off("connect", joinRoom);
     };
   }, [activeThreadId]);
-
-  useEffect(() => {
-    if (!session?.user?.id) return;
-
-    const handleConnect = () => {
-      socket.emit("connectUser", session.user.id);
-      console.log("🔗 User connected to socket");
-    };
-
-    if (socket.connected) {
-      handleConnect();
-    }
-
-    socket.on("connect", handleConnect);
-
-    return () => {
-      socket.off("connect", handleConnect);
-    };
-  }, [session?.user?.id]);
 
   const sendMessage = () => {
     if (!newComment.trim()) return;
@@ -1153,10 +1117,10 @@ useEffect(() => {
                                       onClick={() => {
                                         if (!activeUser) return;
 
-                                        if (activeUser.role === 1) {
+                                        if (activeUser?.role === 1) {
                                           router.push(`/userprofile/${activeUser.publicId}`);
                                         } else {
-                                          if (!activeUser.username) return;
+                                          if (!activeUser?.username) return;
                                           router.push(`/${activeUser.username}`);
                                         }
                                       }}
@@ -1183,7 +1147,7 @@ useEffect(() => {
                                               activeUser?.username ||
                                               ""}
                                           </div>
-                                          {activeUser.role === 2 && (
+                                          {activeUser?.role === 2 && (
                                             <div className="profile-card__badge">
                                               <img
                                                 src="/images/logo/profile-badge.png"

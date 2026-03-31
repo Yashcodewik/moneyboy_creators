@@ -147,13 +147,6 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
     return () => { socket.off("userOnline", handleOnline); socket.off("userOffline", handleOffline); };
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   if (!threadIdFromUrl && chatList.length > 0) {
-  //     const firstThread = chatList[0]?.publicId;
-  //     if (firstThread) { router.replace(`/message?threadId=${firstThread}`); }
-  //   }
-  // }, [chatList, threadIdFromUrl, router]);
-
   const handleUserClick = async (user: any) => {
     const existing = chatList.find((c: any) => c.user?.publicId === user.publicId);
       setUserResults([]);
@@ -231,13 +224,13 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
             <div className="hidecnvt_wrapp">
               <h3>Hide Conversation</h3>
               {filteredHiddenChatList.map((chat: any) => (
-                <ChatItem key={chat.publicId} chat={chat} gradientId={`hidden-grad-${chat.publicId}`} showDisplayName onClick={() => { dispatch(resetThreadUnread(chat.publicId)); onSelectChat(chat); }} />
+                <ChatItem key={chat.publicId} chat={chat} gradientId={`hidden-grad-${chat.publicId}`} showDisplayName onClick={() => { dispatch(resetThreadUnread(chat.publicId)); if (activeThreadId === chat.publicId) return; onSelectChat(chat); }} />
               ))}
             </div>
           )}
           {Array.isArray(filteredChatList) &&
             filteredChatList.map((chat: any) => (
-              <ChatItem key={chat.publicId} chat={chat} isActive={activeThreadId === chat.publicId} gradientId={`chat-grad-${chat.publicId}`} onClick={() => { if (activeThreadId === chat.publicId) return; dispatch(resetThreadUnread(chat.publicId)); onSelectChat(chat); }} />
+              <ChatItem key={chat.publicId} chat={chat} isActive={activeThreadId === chat.publicId} gradientId={`chat-grad-${chat.publicId}`} onClick={() => { dispatch(resetThreadUnread(chat.publicId)); if (activeThreadId === chat.publicId) return;  onSelectChat(chat); }} />
             ))}
         </div>
       </div>
