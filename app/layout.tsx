@@ -51,14 +51,6 @@ export const metadata: Metadata = {
     description: "Join Moneyboy Creators and start earning from your content.",
     url: "https://moneyboy.com",
     siteName: "Moneyboy Creators",
-    images: [
-      {
-        url: "/images/micons.png", // add this image
-        width: 1200,
-        height: 630,
-        alt: "Moneyboy Creators",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -67,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Moneyboy Creators",
     description: "Start earning from your content today.",
-    images: ["/images/micons.png"],
+    images:"/images/micons.png",
   },
 
   robots: {
@@ -76,10 +68,8 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: [{ url: "/images/favicon.ico" }],
-    apple: [
-      { url: "/images/logo/favicons/apple-touch-icon.png", sizes: "180x180" },
-    ],
+    icon: "/images/favicon.ico",
+    apple: "/images/logo/favicons/apple-touch-icon.png",
   },
 
   manifest: "/site.webmanifest",
