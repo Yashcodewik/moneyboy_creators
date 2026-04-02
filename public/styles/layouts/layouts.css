@@ -83,7 +83,17 @@
             .sidebar-profile-card {}
 
             /* Placeholder for component styling */
-            .sidebar-post-button {}
+            .sidebar-post-button {
+               .btn-primary {
+                  svg {
+                     width: 28px;
+                     height: auto;
+                     path {
+                        stroke: #505050;
+                     }
+                  }
+               }
+            }
 
             /* Placeholder for component styling */
             .sidebar-navigation-container {}
