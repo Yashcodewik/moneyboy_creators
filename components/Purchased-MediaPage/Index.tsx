@@ -107,9 +107,6 @@ type MediaBlock = {
 const PurchasedMediaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("collection");
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const [status, setStatus] = useState<string>("all");
-  const [type, setType] = useState<string>("all");
-  const [time, setTime] = useState<string>("all_time");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const router = useRouter();
   const [imgError, setImgError] = useState(false);
@@ -182,18 +179,21 @@ const PurchasedMediaPage: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  useEffect(() => {
-    refetchPurchasedMedia();
-  }, [activeTab, selectedCreator, mediaType, timeFilter, search]);
 
   useEffect(() => {
     dispatch(fetchPurchasedMediaCreators());
   }, [dispatch]);
 
-  useEffect(() => {
+useEffect(() => {
+  // if page is already 1, setPage won't trigger fetch useEffect
+  // so we fetch directly here when filters change
+  if (page !== 1) {
+    dispatch(setPage(1)); // this will trigger the page useEffect above
+  } else {
+    // page is already 1, fetch directly
     dispatch(
       fetchPurchasedMedia({
-        page, // ✅ dynamic page
+        page: 1,
         limit: 12,
         publicId: publicIdFromUrl || undefined,
         tab: activeTab === "collection" ? "all-media" : activeTab,
@@ -203,7 +203,9 @@ const PurchasedMediaPage: React.FC = () => {
         search,
       }),
     );
-  }, [page, activeTab, selectedCreator, mediaType, timeFilter, search]);
+  }
+}, [activeTab, selectedCreator, mediaType, timeFilter, search]);
+
 
   const refetchPurchasedMedia = () => {
     dispatch(
@@ -219,10 +221,6 @@ const PurchasedMediaPage: React.FC = () => {
       }),
     );
   };
-
-  useEffect(() => {
-    dispatch(setPage(1));
-  }, [activeTab, selectedCreator, mediaType, timeFilter, search]);
 
   const creators = useSelector(
     (state: RootState) => state.purchasedMedia.creators.items,
@@ -454,7 +452,11 @@ const PurchasedMediaPage: React.FC = () => {
                           <input
                             type="text"
                             placeholder="Enter keyword here"
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              clearTimeout((window as any)._searchTimer);
+                              (window as any)._searchTimer = setTimeout(() => setSearch(val), 400);
+                            }}
                           />
                         </div>
                       </div>
@@ -474,10 +476,10 @@ const PurchasedMediaPage: React.FC = () => {
                       </div> */}
 
                       <div className="pm-page-select">
-                        <CustomSelect
+                       <CustomSelect
                           label="All Types"
                           options={typeOptions}
-                          value={type}
+                          value={mediaType}
                           onChange={(value) => setMediaType(value as any)}
                           placeholder="Search type"
                         />
@@ -495,7 +497,7 @@ const PurchasedMediaPage: React.FC = () => {
                         <CustomSelect
                           label="All Time"
                           options={timeOptions}
-                          value={time}
+                          value={timeFilter}
                           onChange={(value) => setTimeFilter(value as any)}
                           placeholder="Search time"
                         />

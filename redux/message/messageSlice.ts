@@ -201,16 +201,12 @@ const messageSlice = createSlice({
       );
     },
 
-    markMessagesReadFromSocket: (state, action) => {
-      const threadId = action.payload;
-
-      state.messages = state.messages.map((msg: any) => {
-        if (msg.threadId === threadId) {
-          return { ...msg, isRead: true };
-        }
-        return msg;
-      });
-    },
+markMessagesReadFromSocket: (state, action) => {
+  state.messages = state.messages.map((msg: any) => ({
+    ...msg,
+    isRead: true,
+  }));
+},
     updateUserOnlineStatus: (
       state,
       action: { payload: { userId: string; isOnline: boolean } },

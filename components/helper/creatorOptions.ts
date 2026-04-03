@@ -223,7 +223,8 @@ export const typeOptions = [
   { label: "Photos", value: "photo" },
   { label: "Videos", value: "video" },
   { label: "Bundles", value: "bundle" },
-  { label: "PPV", value: "ppv" },
+  { label: "PPV Posts", value: "ppv" },
+  { label: "PPV Requests", value: "ppv_request" },
 ];
 
 export const timeOptions = [

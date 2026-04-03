@@ -170,6 +170,7 @@ useEffect(() => {
   dispatch(setActiveThread(threadPublicIdFromUrl));
 }, [threadPublicIdFromUrl, dispatch]);
 
+
 useEffect(() => {
   if (!session?.user?.id || !activeThreadId) return;
 
@@ -179,8 +180,17 @@ useEffect(() => {
     threadId: activeThreadId,
     userId: session.user.id,
   });
+}, [activeThreadId, session?.user?.id, messages.length]);
 
-  const handleMessagesRead = ({ threadId }: { threadId: string }) => {
+// messagesRead listener — always active, never torn down on thread change
+useEffect(() => {
+  if (!session?.user?.id) return;
+
+  const handleMessagesRead = ({ threadId, readerId }: { threadId: string; readerId: string }) => {
+    console.log("📨 messagesRead received:", { threadId, readerId });
+    console.log("👤 my session userId:", session.user.id);
+    console.log("🔁 will dispatch?", readerId !== session.user.id);
+    if (readerId === session.user.id) return;
     dispatch(markMessagesReadFromSocket(threadId));
   };
 
@@ -189,7 +199,7 @@ useEffect(() => {
   return () => {
     socket.off("messagesRead", handleMessagesRead);
   };
-}, [activeThreadId, session?.user?.id]);
+}, [session?.user?.id, dispatch]);
 
   useEffect(() => {
     if (!activeThreadId) return;
@@ -250,24 +260,25 @@ useEffect(() => {
     };
   }, [activeThreadId, session?.user?.id]);
 
-  useEffect(() => {
-    if (!activeThreadId) return;
+useEffect(() => {
+  if (!activeThreadId) return;
 
-    const joinRoom = () => {
-      console.log("🚪 Joining thread room:", activeThreadId);
-      socket.emit("joinThread", activeThreadId);
-    };
+  const joinRoom = () => {
+    console.log("🚪 Joining thread room:", activeThreadId);
+    socket.emit("joinThread", activeThreadId);
+  };
 
-    if (socket.connected) {
-      joinRoom();
-    }
+  console.log("🔌 socket.connected at join time:", socket.connected);
+  console.log("🧵 activeThreadId at join time:", activeThreadId);
 
-    socket.on("connect", joinRoom);
+  joinRoom(); // ← remove the if(socket.connected) check, always call
 
-    return () => {
-      socket.off("connect", joinRoom);
-    };
-  }, [activeThreadId]);
+  socket.on("connect", joinRoom);
+
+  return () => {
+    socket.off("connect", joinRoom);
+  };
+}, [activeThreadId]);
 
   const sendMessage = () => {
     if (!newComment.trim()) return;
