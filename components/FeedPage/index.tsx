@@ -51,6 +51,7 @@ const FeedPage = () => {
   const isMobile = useDeviceType();
   const [showSidebarMobile, setShowSidebarMobile] = useState(false);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
+  // const isRehydrated = useSelector((state: any) => state._persist?.rehydrated);
 
   useEffect(() => {
     const container = document.getElementById("feed-scroll-container");
@@ -78,6 +79,7 @@ const FeedPage = () => {
   }, [isMobile]);
 
   useEffect(() => {
+    //  if (!isRehydrated) return; 
     if (activeTab === "feed" && feedPosts.length === 0) {
       dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT }));
     }
@@ -92,6 +94,8 @@ const FeedPage = () => {
       dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT }));
     }
   }, [
+      // isRehydrated,
+
     activeTab,
     isLoggedIn,
     userId,

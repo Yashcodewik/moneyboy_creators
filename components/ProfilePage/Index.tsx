@@ -814,7 +814,15 @@ queryClient.setQueryData(
             className="creator-content-card__media"
             onClick={() => handlePostClick(post)}
           >
-            <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
+           <div
+  className={`creator-card__img 
+    ${!hasMedia ? "nomedia" : ""} 
+    ${
+      !session?.isAuthenticated && (isSubscriberPost || isPPVPost)
+        ? "prime_cont"
+        : ""
+    }`}
+>
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
               )}
