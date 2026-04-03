@@ -111,11 +111,15 @@ const PostPage = () => {
   const commentsState = useAppSelector((state) => state.comments);
   const commentParam = searchParams.get("comment");
   const postComments = commentsState.comments[post?._id] || [];
+
   useEffect(() => {
     if (showComment && post?._id) {
       dispatch(fetchComments(post._id));
     }
   }, [showComment, post?._id, dispatch]);
+
+  console.log(post, "router===========================router===========");
+
   useEffect(() => {
     if (!publicId) return;
     const fetchPost = async () => {
@@ -139,6 +143,7 @@ const PostPage = () => {
     };
     fetchPost();
   }, [publicId, (session?.user as any)?.id || ""]);
+
   const formatRelativeTime = (dateString: string) => {
     const postDate = new Date(dateString);
     const now = new Date();
@@ -157,6 +162,7 @@ const PostPage = () => {
       return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
     return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
   };
+
   const handleLike = async () => {
     if (!isLoggedIn) return router.push("/login");
     if (likeLoading) return;
@@ -188,10 +194,10 @@ const PostPage = () => {
   };
 
   useEffect(() => {
-  if (commentParam === "open") {
-    setShowComment(true);
-  }
-}, [commentParam]);
+    if (commentParam === "open") {
+      setShowComment(true);
+    }
+  }, [commentParam]);
 
   const handleSave = async () => {
     if (!isLoggedIn) return router.push("/login");
@@ -219,7 +225,7 @@ const PostPage = () => {
 
   const handleSendTip = async (
     amount: number,
-    paymentMethod: "wallet" | "card"
+    paymentMethod: "wallet" | "card",
   ) => {
     if (!session?.user?.id) {
       router.push("/login");
@@ -231,7 +237,7 @@ const PostPage = () => {
         sendTip({
           creatorId: post.userId,
           amount,
-          paymentMethod
+          paymentMethod,
         }),
       ).unwrap();
 
@@ -239,12 +245,12 @@ const PostPage = () => {
         dispatch(fetchWallet());
       }
 
-
       setShowTipModal(false);
     } catch (err) {
       console.error("Tip failed:", err);
     }
   };
+
   const onEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -267,6 +273,7 @@ const PostPage = () => {
 
     setShowEmojiPicker(false);
   };
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     if (!post?._id) return;
@@ -288,6 +295,7 @@ const PostPage = () => {
   const handleDislikeComment = (commentId: string) => {
     dispatch(dislikeComment({ commentId }));
   };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -310,12 +318,14 @@ const PostPage = () => {
       setIsReported(post.isReported);
     }
   }, [post]);
+
   const handleCopy = () => {
     const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
+
   if (loading) {
     return (
       <div className="loadingtext">
@@ -337,12 +347,19 @@ const PostPage = () => {
   if (!post) {
     return <div className="nodeta">Post not found</div>;
   }
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container common-cntwrap">
-          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}>
+          <div
+            className="moneyboy-feed-page-cate-buttons card"
+            id="posts-tabs-btn-card"
+          >
+            <button
+              className="cate-back-btn active-down-effect"
+              onClick={() => router.push("/feed")}
+            >
               <span className="icons arrowLeft"></span>
             </button>
             <button className="page-content-type-button active-down-effect active max-w-50">
@@ -732,6 +749,7 @@ const PostPage = () => {
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
+                          if (!isLoggedIn) return router.push("/login");
                           if (isOwnPost) return;
                           setShowTipModal(true);
                         }}
@@ -791,7 +809,7 @@ const PostPage = () => {
                         className={`post-like-btn ${post.isLiked ? "active" : ""}`}
                         onClick={(e) => {
                           e.preventDefault();
-                          // if (isOwnPost) return; 
+                          // if (isOwnPost) return;
                           handleLike();
                         }}
                       >
@@ -820,6 +838,7 @@ const PostPage = () => {
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
+                          if (!isLoggedIn) return router.push("/login");
                           setShowComment((prev) => !prev);
                         }}
                       >
@@ -866,7 +885,7 @@ const PostPage = () => {
                         className={isReported ? "active" : ""}
                         onClick={(e) => {
                           e.preventDefault();
-
+                          if (!isLoggedIn) return router.push("/login");
                           if (isReported) return;
                           if (isOwnPost) return;
                           setShowReportModal(true);
@@ -1078,7 +1097,10 @@ const PostPage = () => {
                                             offset="0.4"
                                             stop-color="#FECE26"
                                           />
-                                          <stop offset="1" stop-color="#FE990B" />
+                                          <stop
+                                            offset="1"
+                                            stop-color="#FE990B"
+                                          />
                                         </linearGradient>
                                       </defs>
                                     </svg>
@@ -1116,8 +1138,9 @@ const PostPage = () => {
                           <li className={comment.isLiked ? "active" : ""}>
                             <Link
                               href="#"
-                              className={`comment-like-btn ${comment.isLiked ? "active" : ""
-                                }`}
+                              className={`comment-like-btn ${
+                                comment.isLiked ? "active" : ""
+                              }`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleLikeComment(comment._id);
@@ -1130,8 +1153,9 @@ const PostPage = () => {
                           <li className={comment.isDisliked ? "active" : ""}>
                             <Link
                               href="#"
-                              className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""
-                                }`}
+                              className={`comment-dislike-btn ${
+                                comment.isDisliked ? "active" : ""
+                              }`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleDislikeComment(comment._id);

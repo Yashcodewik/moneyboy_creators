@@ -88,7 +88,6 @@ export const getApiByParams = async ({
 
 export const apiPost = async ({ url, values }: postParams): Promise<any> => {
   try {
-    console.log(url, "url============================", values);
     const res = await defaultAxios.post(url, values, {
       headers: {
         Accept: "application/json",

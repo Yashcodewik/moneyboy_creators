@@ -14,59 +14,57 @@ export default function RoleRouteGuard({
   const router = useRouter();
   const pathname = usePathname();
 
-  const [allowed, setAllowed] = useState(false);
+  // const [allowed, setAllowed] = useState(false);
 
-  useEffect(() => {
-    if (status === "loading") return;
+  // useEffect(() => {
+  //   if (status === "loading") return;
 
-    const ALL_ROLE_ROUTES = Object.values(ROLE_ROUTES).flat();
+  //   const ALL_ROLE_ROUTES = Object.values(ROLE_ROUTES).flat();
 
-    const isUsernameRoute =
-      /^\/[a-zA-Z0-9_]+$/.test(pathname) &&
-      !PUBLIC_ROUTES.includes(pathname) &&
-      !ALL_ROLE_ROUTES.includes(pathname);
+  //   const isUsernameRoute =
+  //     /^\/[a-zA-Z0-9_]+$/.test(pathname) &&
+  //     !PUBLIC_ROUTES.includes(pathname) &&
+  //     !ALL_ROLE_ROUTES.includes(pathname);
 
-    const isPublicRoute =
-      PUBLIC_ROUTES.includes(pathname) ||
-      isUsernameRoute;
+  //   const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || isUsernameRoute;
 
-    if (isPublicRoute) {
-      setAllowed(true);
-      return;
-    }
+  //   if (isPublicRoute) {
+  //     setAllowed(true);
+  //     return;
+  //   }
 
-    // not logged in
-    if (!session?.user) {
-      router.replace("/login");
-      return;
-    }
+  //   // not logged in
+  //   // if (!session?.user) {
+  //   //   router.replace("/login");
+  //   //   return;
+  //   // }
 
-    const role = session.user.role;
-    const roleKey = role === 1 ? "user" : role === 2 ? "creator" : null;
+  //   const role = session?.user?.role;
+  //   const roleKey = role === 1 ? "user" : role === 2 ? "creator" : null;
 
-    if (!roleKey) {
-      router.replace("/login");
-      return;
-    }
+  //   if (!roleKey) {
+  //     router.replace("/login");
+  //     return;
+  //   }
 
-    const allowedRoutes = ROLE_ROUTES[roleKey];
+  //   const allowedRoutes = ROLE_ROUTES[roleKey];
 
-  const isDynamicMatch = allowedRoutes.some((route) => {
-  if (route.includes("[publicId]")) {
-    return pathname.startsWith("/userprofile/");
-  }
-  return route === pathname;
-});
+  //   const isDynamicMatch = allowedRoutes.some((route) => {
+  //     if (route.includes("[publicId]")) {
+  //       return pathname.startsWith("/userprofile/");
+  //     }
+  //     return route === pathname;
+  //   });
 
-if (isDynamicMatch) {
-  setAllowed(true);
-} else {
-  router.replace("/feed");
-}
-  }, [session, status, pathname, router]);
+  //   if (isDynamicMatch) {
+  //     setAllowed(true);
+  //   } else {
+  //     router.replace("/feed");
+  //   }
+  // }, [session, status, pathname, router]);
 
   // block render until verified
-  if (!allowed) return null;
+  // if (!allowed) return null;
 
   return <>{children}</>;
 }

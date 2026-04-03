@@ -34,7 +34,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
 import UnlockContentModal from "./UnlockContentModal";
-import { AtSign, CircleArrowLeft, CircleArrowRight, Pencil, Trash2 } from "lucide-react";
+import {
+  AtSign,
+  CircleArrowLeft,
+  CircleArrowRight,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
@@ -196,9 +202,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: username,
-        });
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: username,
+          });
 
       return response;
     },
@@ -320,11 +326,7 @@ const ProfilePage = () => {
     setSubLoading(false);
   };
   const typeParam =
-    activeTab === "videos"
-      ? "video"
-      : activeTab === "photos"
-        ? "photo"
-        : "";
+    activeTab === "videos" ? "video" : activeTab === "photos" ? "photo" : "";
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ["creator-posts", username, search, timeFilter, page, activeTab],
@@ -360,7 +362,7 @@ const ProfilePage = () => {
         values: {
           postId: unlockPost._id,
           creatorId: profile?.user?._id,
-          paymentMethod
+          paymentMethod,
         },
       });
 
@@ -460,7 +462,7 @@ const ProfilePage = () => {
             >
               <span>{p}</span>
             </button>
-          )
+          ),
         )}
 
         {/* NEXT */}
@@ -479,7 +481,7 @@ const ProfilePage = () => {
 
   const handleSendTip = async (
     amount: number,
-    paymentMethod: "wallet" | "card"
+    paymentMethod: "wallet" | "card",
   ) => {
     if (!amount || amount <= 0) {
       toast.error("Please enter a valid amount");
@@ -496,9 +498,7 @@ const ProfilePage = () => {
         },
       });
 
-
-      const errorMessage =
-        res?.message || res?.error || res?.data?.message;
+      const errorMessage = res?.message || res?.error || res?.data?.message;
 
       if (!res?.success) {
         showError(errorMessage || "Tip failed");
@@ -511,15 +511,12 @@ const ProfilePage = () => {
         dispatch(fetchWallet());
       }
       setShowTipModal(false);
-
     } catch (err: any) {
       console.error("Tip error:", err);
 
       // ✅ Handle axios/fetch errors also
       const errorMessage =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Something went wrong";
+        err?.response?.data?.message || err?.message || "Something went wrong";
 
       showError(errorMessage);
     }
@@ -660,7 +657,12 @@ const ProfilePage = () => {
       realMedia || "/images/profile-avatars/profile-avatar-6.jpg";
 
     const hasMedia = Boolean(realMedia);
-    const handlePostClick = (post: any) => {
+
+    const handlePostClick = (post: any , isPaid: boolean) => {
+      if (!session?.isAuthenticated && isPaid) {
+        router.push("/login");
+        return;
+      }
       if (
         post.status === "pending_approval" ||
         post.status === "creator_approval_pending"
@@ -702,7 +704,9 @@ const ProfilePage = () => {
         return;
       }
     };
+
     const queryClient = useQueryClient();
+
     const handleDeletePost = async (postId: string) => {
       if (!postId) return;
 
@@ -747,6 +751,7 @@ const ProfilePage = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     const isPostSaved = post.isSaved;
+
     const handleSavePost = async (e: React.MouseEvent) => {
       e.stopPropagation();
 
@@ -762,19 +767,19 @@ const ProfilePage = () => {
 
       const newState = !post.isSaved;
 
-queryClient.setQueryData(
-  ["creator-posts", username, search, timeFilter, page, activeTab],
-  (oldData: any) => {
-    if (!oldData) return oldData;
+      queryClient.setQueryData(
+        ["creator-posts", username, search, timeFilter, page, activeTab],
+        (oldData: any) => {
+          if (!oldData) return oldData;
 
-    return {
-      ...oldData,
-      posts: oldData.posts.map((p: any) =>
-        p._id === postId ? { ...p, isSaved: newState } : p
-      ),
-    };
-  }
-);
+          return {
+            ...oldData,
+            posts: oldData.posts.map((p: any) =>
+              p._id === postId ? { ...p, isSaved: newState } : p,
+            ),
+          };
+        },
+      );
 
       try {
         if (post.isSaved) {
@@ -812,17 +817,18 @@ queryClient.setQueryData(
         <div className="creator-content-card">
           <div
             className="creator-content-card__media"
-            onClick={() => handlePostClick(post)}
+            onClick={() => handlePostClick(post, isSubscriberPost || isPPVPost)}
           >
-           <div
-  className={`creator-card__img 
-    ${!hasMedia ? "nomedia" : ""} 
-    ${
-      !session?.isAuthenticated && (isSubscriberPost || isPPVPost)
-        ? "prime_cont"
-        : ""
-    }`}
->
+            <div
+              className={`creator-card__img 
+            ${!hasMedia ? "nomedia" : ""} 
+            ${
+              !session?.isAuthenticated && (isSubscriberPost || isPPVPost)
+                ? // ? "prime_cont"
+                  ""
+                : ""
+            }`}
+            >
               {mediaType === "photo" && firstMedia && (
                 <img src={firstMedia} alt="Creator Content" />
               )}
@@ -840,7 +846,7 @@ queryClient.setQueryData(
               )}
             </div>
             {(isSubscriberPost && !isSubscribed) ||
-              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={(e) => {
@@ -938,7 +944,7 @@ queryClient.setQueryData(
             ) : null}
             <div
               className="creator-media-card__overlay"
-            // onClick={(e) => e.stopPropagation()}
+              // onClick={(e) => e.stopPropagation()}
             >
               <div className="creator-media-card__stats">
                 {isOwner &&
@@ -950,7 +956,9 @@ queryClient.setQueryData(
                   )}
 
                 {!isOwnProfile && !isTaggedUser && !hideSaveBtn && !isFree && (
-                  <div className={`creator-media-card__stats-btn wishlist-icon btntooltip_wrapper ${isPostSaved ? "active" : ""}`}>
+                  <div
+                    className={`creator-media-card__stats-btn wishlist-icon btntooltip_wrapper ${isPostSaved ? "active" : ""}`}
+                  >
                     <button
                       data-position="left"
                       data-tooltip="Wishlist"
@@ -1195,7 +1203,6 @@ queryClient.setQueryData(
     );
   };
 
-
   const renderTabContent = (filterType: "all" | "video" | "photo") => {
     let filteredPosts = posts;
 
@@ -1225,8 +1232,9 @@ queryClient.setQueryData(
           )}
 
           <div
-            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${layoutTab === "list" ? "layout-list" : "layout-grid"
-              }`}
+            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${
+              layoutTab === "list" ? "layout-list" : "layout-grid"
+            }`}
             data-direct-cards-layout
             data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
           >
@@ -1238,14 +1246,12 @@ queryClient.setQueryData(
                 </div>
               )}
 
-
               {!postsLoading &&
                 filteredPosts.length > 0 &&
                 filteredPosts.map((post: any) => (
                   <PostCard key={post.publicId} post={post} />
                 ))}
             </>
-
           </div>
           {renderPagination()}
         </div>
@@ -1740,9 +1746,9 @@ queryClient.setQueryData(
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                            "default",
-                            { month: "long", year: "numeric" },
-                          )
+                              "default",
+                              { month: "long", year: "numeric" },
+                            )
                           : ""}
                       </span>
                     </div>
@@ -1938,22 +1944,57 @@ queryClient.setQueryData(
                   <div className="creator-subscriptions-container">
                     <div className="subscriptions-container">
                       <ul>
-                        <li className={currentPlan === "MONTHLY" ? "active" : ""}>
+                        <li
+                          className={currentPlan === "MONTHLY" ? "active" : ""}
+                        >
                           <div className="subscription-info">
-                            <div className="subscription-label">Monthly Subscription</div>
+                            <div className="subscription-label">
+                              Monthly Subscription
+                            </div>
                             <div className="subscription-price">
-                              <h3>${" "} {profile?.subscription?.monthlyPrice || "Not Updated yet"}</h3>
+                              <h3>
+                                ${" "}
+                                {profile?.subscription?.monthlyPrice ||
+                                  "Not Updated yet"}
+                              </h3>
                               <span>/Month</span>
                             </div>
                           </div>
                           <div className="subscripton-button">
                             {isOwnProfile ? (
-                              <button className="btn-txt-gradient shimmer btn-outline p-sm gap-5" onClick={() => router.push("/creator-edit-profile?tab=pricing",)}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="url(#pencilGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <button
+                                className="btn-txt-gradient shimmer btn-outline p-sm gap-5"
+                                onClick={() =>
+                                  router.push(
+                                    "/creator-edit-profile?tab=pricing",
+                                  )
+                                }
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="url(#pencilGradient)"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
                                   <defs>
-                                    <linearGradient id="pencilGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                    <linearGradient
+                                      id="pencilGradient"
+                                      x1="0"
+                                      y1="0"
+                                      x2="24"
+                                      y2="24"
+                                      gradientUnits="userSpaceOnUse"
+                                    >
                                       <stop offset="0%" stop-color="#FECE26" />
-                                      <stop offset="100%" stop-color="#E5741F" />
+                                      <stop
+                                        offset="100%"
+                                        stop-color="#E5741F"
+                                      />
                                     </linearGradient>
                                   </defs>
                                   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
