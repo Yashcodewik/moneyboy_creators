@@ -266,10 +266,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   };
 
   const handleProfileClick = (username: string) => {
-    if (!session?.user?.id) {
-      router.push("/login");
-      return;
-    }
+    // if (!session?.user?.id) {
+    //   router.push("/login");
+    //   return;
+    // }
 
     router.push(`/${username}`);
   };

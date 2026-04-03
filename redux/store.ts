@@ -31,7 +31,8 @@ const storage =
 const persistConfig = {
   key: "money_boy",
   storage,
-  whitelist: ["auth", "subscription"],
+  whitelist: ["auth", "subscription", "feedPosts"] 
+
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
