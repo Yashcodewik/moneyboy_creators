@@ -1574,6 +1574,7 @@ useEffect(() => {
                                                   {msg.ppvRequestId.description}
                                                 </p>
                                               </div>
+                                              {msg.ppvRequestId.deliveredMedia?.length > 0 && (
                                               <div className="cont_wrap">
                                                 <h3>
                                                   {msg.ppvRequestId.status ===
@@ -1741,6 +1742,7 @@ useEffect(() => {
                                                     )}
                                                 </div>
                                               </div>
+                                              )}
 
                                               {/* ACTIONS */}
                                               <div className="actions">
@@ -1748,6 +1750,7 @@ useEffect(() => {
                                                   <p className="text-gradiant">
                                                     Amount
                                                   </p>
+
                                                   <button className="btn-txt-gradient">
                                                     <span>
                                                       ${msg.ppvRequestId.price}

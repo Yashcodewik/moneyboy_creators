@@ -210,7 +210,7 @@ const PPVRequestModal = ({ show, onClose, creator, post, onSuccess, }: PPVReques
           {formik.touched.description && formik.errors.description && (
             <span className="error-message">{formik.errors.description}</span>
           )}
-          <div>
+          {/* <div>
             <label>Upload reference file</label>
             <div className="upload-wrapper">
               {mediaPreview && (
@@ -240,7 +240,7 @@ const PPVRequestModal = ({ show, onClose, creator, post, onSuccess, }: PPVReques
                   setMediaPreview({ file: selectedFile, url: previewUrl, type: isImage ? "image" : "video", });
                 }}/>
             </div>
-          </div>
+          </div> */}
           <div>
             <label>Offer your price $</label>
             <input className="form-input" type="number" placeholder="20.00" value={formik.values.offerPrice} onChange={formik.handleChange} onBlur={formik.handleBlur} name="offerPrice" />

@@ -107,7 +107,7 @@ const RequestPayoutPage = () => {
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
 
           <div className="moneyboy-feed-page-cate-buttons card hide_mobile" id="posts-tabs-btn-card">
-            <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}><IoArrowBackOutline className="icons" /></button>
+            <button className="cate-back-btn active-down-effect" onClick={() => router.back()}><IoArrowBackOutline className="icons" /></button>
             <button className="page-content-type-button active-down-effect active max-w-50">Request a Payout</button>
           </div>
 
