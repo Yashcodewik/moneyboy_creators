@@ -56,7 +56,7 @@ export const fetchFeedPosts = createAsyncThunk(
       totalPages: res.totalPages,
       source: "feed",
     };
-  }
+  },
 );
 
 /* ---------------- FETCH FOLLOWING POSTS ---------------- */
@@ -77,7 +77,7 @@ export const fetchFollowingPosts = createAsyncThunk(
       hasMore: rawLength === limit,
       source: "following",
     };
-  }
+  },
 );
 
 /* ---------------- FETCH POPULAR POSTS ---------------- */
@@ -99,7 +99,7 @@ export const fetchPopularPosts = createAsyncThunk(
       hasMore: rawLength === limit,
       source: "popular",
     };
-  }
+  },
 );
 
 /* ---------------- SLICE ---------------- */
@@ -111,7 +111,7 @@ const feedPostsSlice = createSlice({
     /* 🔥 Optimistic update reducer (used for save / unsave / like etc.) */
     updateFeedPost(
       state,
-      action: PayloadAction<{ postId: string; data: any }>
+      action: PayloadAction<{ postId: string; data: any }>,
     ) {
       const post = state.posts[action.payload.postId];
       if (post) {
@@ -151,12 +151,17 @@ const feedPostsSlice = createSlice({
       .addCase(fetchFeedPosts.fulfilled, (state, action) => {
         state.loading = false;
 
+        const newPosts: any = {};
+
         action.payload.posts.forEach((post: any) => {
-          state.posts[post._id] = {
+          newPosts[post._id] = {
             ...post,
             source: "feed",
           };
         });
+
+        // ✅ Replace old posts completely
+        state.posts = newPosts;
 
         state.feedPage = action.payload.page;
         state.totalFeed = action.payload.total;
@@ -216,10 +221,7 @@ const feedPostsSlice = createSlice({
   },
 });
 
-export const {
-  updateFeedPost,
-  incrementFeedPostCommentCount,
-  resetFeedPosts,
-} = feedPostsSlice.actions;
+export const { updateFeedPost, incrementFeedPostCommentCount, resetFeedPosts } =
+  feedPostsSlice.actions;
 
 export default feedPostsSlice.reducer;

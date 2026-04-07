@@ -7,15 +7,28 @@ import { apiPost } from "@/utils/endpoints/common";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import PostCard from "./PostCard";
 import Featuredboys from "../Featuredboys";
-import { CgClose } from "react-icons/cg";
-import CustomSelect from "../CustomSelect";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-import { fetchFeedPosts, fetchFollowingPosts, fetchPopularPosts, incrementFeedPostCommentCount, updateFeedPost,} from "@/redux/other/feedPostsSlice";
+import {
+  fetchFeedPosts,
+  fetchFollowingPosts,
+  fetchPopularPosts,
+  incrementFeedPostCommentCount,
+  updateFeedPost,
+} from "@/redux/other/feedPostsSlice";
 import { PhotoProvider } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import { ChevronLeft, ChevronRight, CircleChevronDown, CircleChevronUp, RotateCw, X, ZoomIn, ZoomOut,} from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleChevronDown,
+  CircleChevronUp,
+  RotateCw,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import BtnGroupTabs from "../BtnGroupTabs";
 import { useDeviceType } from "@/hooks/useDeviceType";
 
@@ -42,6 +55,7 @@ const FeedPage = () => {
     hasMorePopular,
     loading,
   } = useSelector((state: any) => state.feedPosts);
+
   const allPosts = Object.values(posts);
   const feedPosts = allPosts.filter((p: any) => p.source === "feed");
   const followingPosts = allPosts.filter((p: any) => p.source === "following");
@@ -78,9 +92,10 @@ const FeedPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isMobile]);
 
+
   useEffect(() => {
-    //  if (!isRehydrated) return; 
-    if (activeTab === "feed" && feedPosts.length === 0) {
+    //  if (!isRehydrated) return;
+    if (activeTab === "feed") {
       dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT }));
     }
     if (
@@ -94,7 +109,7 @@ const FeedPage = () => {
       dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT }));
     }
   }, [
-      // isRehydrated,
+    // isRehydrated,
 
     activeTab,
     isLoggedIn,
@@ -167,57 +182,53 @@ const FeedPage = () => {
   };
 
   /* ================= SAVE / UNSAVE ================= */
-const handleSave = async (post: any) => {
-  if (!isLoggedIn) return router.push("/login");
+  const handleSave = async (post: any) => {
+    if (!isLoggedIn) return router.push("/login");
 
-  const postId = post._id;
-  const creatorUserId = post.userId;
-  const isSaved = post.isSaved;
+    const postId = post._id;
+    const creatorUserId = post.userId;
+    const isSaved = post.isSaved;
 
-  if (saveLoading[postId]) return;
+    if (saveLoading[postId]) return;
 
-  setSaveLoading((p) => ({ ...p, [postId]: true }));
+    setSaveLoading((p) => ({ ...p, [postId]: true }));
 
-  const nextState = !isSaved;
+    const nextState = !isSaved;
 
-  // update all posts from this creator
-  Object.values(posts).forEach((p: any) => {
-    if (p.userId === creatorUserId) {
-      dispatch(
-        updateFeedPost({
-          postId: p._id,
-          data: { isSaved: nextState },
-        })
-      );
-    }
-  });
-
-  try {
-    if (nextState) {
-      await dispatch(
-        savePost({ creatorUserId })
-      ).unwrap();
-    } else {
-      await dispatch(
-        unsavePost({ creatorUserId })
-      ).unwrap();
-    }
-  } catch {
-    // rollback
+    // update all posts from this creator
     Object.values(posts).forEach((p: any) => {
       if (p.userId === creatorUserId) {
         dispatch(
           updateFeedPost({
             postId: p._id,
-            data: { isSaved },
-          })
+            data: { isSaved: nextState },
+          }),
         );
       }
     });
-  }
 
-  setSaveLoading((p) => ({ ...p, [postId]: false }));
-};
+    try {
+      if (nextState) {
+        await dispatch(savePost({ creatorUserId })).unwrap();
+      } else {
+        await dispatch(unsavePost({ creatorUserId })).unwrap();
+      }
+    } catch {
+      // rollback
+      Object.values(posts).forEach((p: any) => {
+        if (p.userId === creatorUserId) {
+          dispatch(
+            updateFeedPost({
+              postId: p._id,
+              data: { isSaved },
+            }),
+          );
+        }
+      });
+    }
+
+    setSaveLoading((p) => ({ ...p, [postId]: false }));
+  };
 
   /* ================= COMMENTS ================= */
   const incrementCommentCount = (postId: string) => {
@@ -232,7 +243,6 @@ const handleSave = async (post: any) => {
       : activeTab === "following"
         ? followingPosts
         : popularPosts;
-
 
   const activeHasMore =
     activeTab === "feed"
@@ -257,13 +267,38 @@ const handleSave = async (post: any) => {
         if (!visible) return null;
         return (
           <div className="toolbar_controller">
-            <button className="btn_icons" onClick={() => index > 0 && onIndexChange(index - 1)}><ChevronLeft size={20} /></button>
-            <span>{index + 1} / {images.length}</span>
-            <button className="btn_icons" onClick={() => index < images.length - 1 && onIndexChange(index + 1)}><ChevronRight size={20} /></button>
-            <button className="btn_icons" onClick={() => onScale(scale + 0.2)}><ZoomIn size={20} /></button>
-            <button className="btn_icons" onClick={() => onScale(Math.max(0.5, scale - 0.2))}><ZoomOut size={20} /></button>
-            <button className="btn_icons" onClick={() => onRotate(rotate + 90)}><RotateCw size={20} /></button>
-            <button className="btn_icons" onClick={onClose}><X size={20} /></button>
+            <button
+              className="btn_icons"
+              onClick={() => index > 0 && onIndexChange(index - 1)}
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span>
+              {index + 1} / {images.length}
+            </span>
+            <button
+              className="btn_icons"
+              onClick={() =>
+                index < images.length - 1 && onIndexChange(index + 1)
+              }
+            >
+              <ChevronRight size={20} />
+            </button>
+            <button className="btn_icons" onClick={() => onScale(scale + 0.2)}>
+              <ZoomIn size={20} />
+            </button>
+            <button
+              className="btn_icons"
+              onClick={() => onScale(Math.max(0.5, scale - 0.2))}
+            >
+              <ZoomOut size={20} />
+            </button>
+            <button className="btn_icons" onClick={() => onRotate(rotate + 90)}>
+              <RotateCw size={20} />
+            </button>
+            <button className="btn_icons" onClick={onClose}>
+              <X size={20} />
+            </button>
           </div>
         );
       }}
@@ -274,23 +309,23 @@ const handleSave = async (post: any) => {
             <div className="moneyboy-feed-page-container">
               <BtnGroupTabs
                 activeTab={activeTab}
-            onChange={(value) => {
-  console.log("TAB CLICKED:", value);
+                onChange={(value) => {
+                  console.log("TAB CLICKED:", value);
 
-  // ✅ STEP 1: close sidebar on mobile
-  if (isMobile) {
-    setShowSidebarMobile(false);
-  }
+                  // ✅ STEP 1: close sidebar on mobile
+                  if (isMobile) {
+                    setShowSidebarMobile(false);
+                  }
 
-  // existing logic
-  if (!isLoggedIn && value === "following") {
-     if (isMobile) setShowSidebarMobile(false); 
-    router.push("/discover");
-    return;
-  }
+                  // existing logic
+                  if (!isLoggedIn && value === "following") {
+                    if (isMobile) setShowSidebarMobile(false);
+                    router.push("/discover");
+                    return;
+                  }
 
-  setActiveTab(value as TabType);
-}}
+                  setActiveTab(value as TabType);
+                }}
                 tabs={[
                   { key: "feed", label: "Feed" },
                   {
@@ -314,57 +349,60 @@ const handleSave = async (post: any) => {
                   >
                     {loading && activeList.length === 0
                       ? Array.from({ length: 4 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="moneyboy-post__container card skloading"
-                        >
-                          <div className="post_header">
-                            <div className="post_header-left">
-                              <div className="post_avatar"></div>
-                              <div className="post_text">
-                                <div className="line medium"></div>
-                                <div className="line short"></div>
+                          <div
+                            key={i}
+                            className="moneyboy-post__container card skloading"
+                          >
+                            <div className="post_header">
+                              <div className="post_header-left">
+                                <div className="post_avatar"></div>
+                                <div className="post_text">
+                                  <div className="line medium"></div>
+                                  <div className="line short"></div>
+                                </div>
+                              </div>
+                              <div className="post__time"></div>
+                            </div>
+                            <div>
+                              <div className="line long"></div>
+                              <div className="line medium"></div>
+                              <div className="line short"></div>
+                            </div>
+                            <div className="moneyboy-post__media">
+                              <div className="moneyboy-post__img"></div>
+                              <div className="moneyboy-post__actions">
+                                <ul>
+                                  <li></li>
+                                  <li></li>
+                                  <li></li>
+                                </ul>
+                                <ul>
+                                  <li></li>
+                                  <li></li>
+                                </ul>
                               </div>
                             </div>
-                            <div className="post__time"></div>
                           </div>
-                          <div>
-                            <div className="line long"></div>
-                            <div className="line medium"></div>
-                            <div className="line short"></div>
-                          </div>
-                          <div className="moneyboy-post__media">
-                            <div className="moneyboy-post__img"></div>
-                            <div className="moneyboy-post__actions">
-                              <ul>
-                                <li></li>
-                                <li></li>
-                                <li></li>
-                              </ul>
-                              <ul>
-                                <li></li>
-                                <li></li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      ))
+                        ))
                       : activeList?.map((post: any) => (
-                        <PostCard
-                          key={post._id}
-                          post={post}
-                          onLike={handleLike}
-                          onSave={handleSave}
-                          onCommentAdded={incrementCommentCount}
-                        />
-                      ))}
+                          <PostCard
+                            key={post._id}
+                            post={post}
+                            onLike={handleLike}
+                            onSave={handleSave}
+                            onCommentAdded={incrementCommentCount}
+                          />
+                        ))}
                   </InfiniteScrollWrapper>
                 </div>
               )}
             </div>
           </div>
           {(!isMobile || showSidebarMobile) && (
-            <aside className={`moneyboy-2x-1x-b-layout scrolling ${isMobile ? "mobile-sidebar" : ""}`} ref={sidebarRef}>
+            <aside
+              className={`moneyboy-2x-1x-b-layout scrolling ${isMobile ? "mobile-sidebar" : ""}`}
+              ref={sidebarRef}
+            >
               <Featuredboys />
             </aside>
           )}
