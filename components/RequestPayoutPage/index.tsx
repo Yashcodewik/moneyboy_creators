@@ -168,22 +168,24 @@ const RequestPayoutPage = () => {
                         <h3>$ 0</h3>
                       </div> */}
                       <div className="rline">
-                        <p >
+                        <p>
                           Available Balance
-
                           <span
                             style={{ position: "relative", cursor: "pointer" }}
                             onMouseEnter={(e) => {
-                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              const tooltip = e.currentTarget.querySelector(
+                                ".tooltip-box",
+                              ) as HTMLElement;
                               if (tooltip) tooltip.style.opacity = "1";
                             }}
                             onMouseLeave={(e) => {
-                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              const tooltip = e.currentTarget.querySelector(
+                                ".tooltip-box",
+                              ) as HTMLElement;
                               if (tooltip) tooltip.style.opacity = "0";
                             }}
                           >
                             ⓘ
-
                             <span
                               className="tooltip-box"
                               style={{
@@ -208,28 +210,27 @@ const RequestPayoutPage = () => {
                           </span>
                         </p>
 
-                        <h3>$ {summary.walletBalance.toFixed(2)}</h3>
+                        <h3>$ {InitialSummary?.walletBalance.toFixed(2) || summary.walletBalance.toFixed(2)}</h3>
                       </div>
                       <div>
-                        <p
-                          className="small"
-
-                        >
+                        <p className="small">
                           Pending Earnings
-
                           <span
                             style={{ position: "relative", cursor: "pointer" }}
                             onMouseEnter={(e) => {
-                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              const tooltip = e.currentTarget.querySelector(
+                                ".tooltip-box",
+                              ) as HTMLElement;
                               if (tooltip) tooltip.style.opacity = "1";
                             }}
                             onMouseLeave={(e) => {
-                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              const tooltip = e.currentTarget.querySelector(
+                                ".tooltip-box",
+                              ) as HTMLElement;
                               if (tooltip) tooltip.style.opacity = "0";
                             }}
                           >
                             ⓘ
-
                             <span
                               className="tooltip-box"
                               style={{
@@ -254,7 +255,9 @@ const RequestPayoutPage = () => {
                           </span>
                         </p>
 
-                        <h3 className="small">$ {summary.pendingPayout.toFixed(2)}</h3>
+                        <h3 className="small">
+                          $ {InitialSummary?.pendingPayout.toFixed(2) || summary.pendingPayout.toFixed(2)}
+                        </h3>
                       </div>
                     </div>
 
