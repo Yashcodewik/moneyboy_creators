@@ -454,12 +454,12 @@ useEffect(() => {
     if (!activeThreadId || !activeUser?.id) return;
 
     const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
+    const isVideo = file.type === "video/mp4";
 
-    if (!isImage && !isVideo) {
-      toast.error("Please select an image or video file");
-      return;
-    }
+   if (!isImage && !isVideo) {
+  toast.error("Only images and MP4 videos are allowed");
+  return;
+}
 
     if (file.size > 100 * 1024 * 1024) {
       toast.error("File must be less than 100MB");
@@ -583,9 +583,9 @@ useEffect(() => {
         return !file.type.startsWith("image/");
       }
 
-      if (normalizedRequestType === "VIDEO") {
-        return !file.type.startsWith("video/");
-      }
+     if (normalizedRequestType === "VIDEO") {
+      return file.type !== "video/mp4";
+    }
 
       return !file.type.startsWith("image/") && !file.type.startsWith("video/");
     });
@@ -1908,7 +1908,7 @@ useEffect(() => {
                                           ref={fileInputRef}
                                           type="file"
                                           hidden
-                                          accept="image/*,video/*"
+                                          accept="image/*,video/mp4"
                                           onChange={handleFileSelect}
                                           disabled={
                                             !activeThreadId || !activeUser?.id

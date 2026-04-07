@@ -137,7 +137,13 @@ const messageSlice = createSlice({
           publicId: msg.threadId,
           lastMessage: msg.message || "",
           unreadCount: 1,
-          user: msg.senderId,
+          user: {
+            id: msg.senderId?._id,
+            username: msg.senderId?.userName,
+            displayName: msg.senderId?.displayName,
+            image: msg.senderId?.profile,
+            isOnline: true, // optional
+          },
         });
       }
 
