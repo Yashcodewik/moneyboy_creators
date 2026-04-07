@@ -148,24 +148,49 @@ const feedPostsSlice = createSlice({
         state.loading = true;
       })
 
+      // .addCase(fetchFeedPosts.fulfilled, (state, action) => {
+      //   state.loading = false;
+
+      //   const newPosts: any = {};
+
+      //   action.payload.posts.forEach((post: any) => {
+      //     newPosts[post._id] = {
+      //       ...post,
+      //       source: "feed",
+      //     };
+      //   });
+
+      //   // ✅ Replace old posts completely
+      //   state.posts = newPosts;
+
+      //   state.feedPage = action.payload.page;
+      //   state.totalFeed = action.payload.total;
+      //   state.totalPagesFeed = action.payload.totalPages;
+      // })
+
       .addCase(fetchFeedPosts.fulfilled, (state, action) => {
         state.loading = false;
 
-        const newPosts: any = {};
+        const isFirstPage = action.payload.page === 1;
 
+        if (isFirstPage) {
+          state.posts = {};
+        }
+
+        // ✅ APPEND (for pagination)
         action.payload.posts.forEach((post: any) => {
-          newPosts[post._id] = {
+          state.posts[post._id] = {
             ...post,
             source: "feed",
           };
         });
 
-        // ✅ Replace old posts completely
-        state.posts = newPosts;
-
         state.feedPage = action.payload.page;
         state.totalFeed = action.payload.total;
         state.totalPagesFeed = action.payload.totalPages;
+
+        // ✅ IMPORTANT
+        state.hasMoreFeed = action.payload.page < action.payload.totalPages;
       })
 
       .addCase(fetchFollowingPosts.fulfilled, (state, action) => {

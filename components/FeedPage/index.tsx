@@ -92,12 +92,11 @@ const FeedPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isMobile]);
 
-
   useEffect(() => {
-    //  if (!isRehydrated) return;
     if (activeTab === "feed") {
       dispatch(fetchFeedPosts({ userId, page: 1, limit: LIMIT }));
     }
+
     if (
       activeTab === "following" &&
       followingPosts.length === 0 &&
@@ -105,19 +104,11 @@ const FeedPage = () => {
     ) {
       dispatch(fetchFollowingPosts({ page: 1, limit: LIMIT }));
     }
+
     if (activeTab === "popular" && popularPosts.length === 0) {
       dispatch(fetchPopularPosts({ userId, page: 1, limit: LIMIT }));
     }
-  }, [
-    // isRehydrated,
-
-    activeTab,
-    isLoggedIn,
-    userId,
-    feedPosts.length,
-    followingPosts.length,
-    popularPosts.length,
-  ]);
+  }, [activeTab, isLoggedIn, userId]);
 
   /* ================= INFINITE SCROLL ================= */
   const fetchMoreHandler = () => {
