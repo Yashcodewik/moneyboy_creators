@@ -180,100 +180,100 @@ const WalletTransactionsPage = () => {
                             activeTab === "payouts" && (
                               <>
                                 <div className="history_wrap">
-                                                      <div className="rline">
-  <p >
-    Wallet Balance
+                                  <div className="rline">
+                                    <p >
+                                      Available Balance
 
-    <span
-      style={{ position: "relative", cursor: "pointer" }}
-      onMouseEnter={(e) => {
-        const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-        if (t) t.style.opacity = "1";
-      }}
-      onMouseLeave={(e) => {
-        const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-        if (t) t.style.opacity = "0";
-      }}
-    >
-      ⓘ
+                                      <span
+                                        style={{ position: "relative", cursor: "pointer" }}
+                                        onMouseEnter={(e) => {
+                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                                          if (t) t.style.opacity = "1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                                          if (t) t.style.opacity = "0";
+                                        }}
+                                      >
+                                        ⓘ
 
-      <span
-        className="tooltip-box"
-        style={{
-          position: "absolute",
-          bottom: "130%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          background: "#222",
-          color: "#fff",
-          padding: "6px 8px",
-          borderRadius: "6px",
-          fontSize: "11px",
-          whiteSpace: "nowrap",
-          opacity: 0,
-          pointerEvents: "none",
-          transition: "0.2s ease",
-          zIndex: 999,
-        }}
-      >
-        Money ready to withdraw or use.
-      </span>
-    </span>
-  </p>
+                                        <span
+                                          className="tooltip-box"
+                                          style={{
+                                            position: "absolute",
+                                            bottom: "130%",
+                                            left: "50%",
+                                            transform: "translateX(-50%)",
+                                            background: "#222",
+                                            color: "#fff",
+                                            padding: "6px 8px",
+                                            borderRadius: "6px",
+                                            fontSize: "11px",
+                                            whiteSpace: "nowrap",
+                                            opacity: 0,
+                                            pointerEvents: "none",
+                                            transition: "0.2s ease",
+                                            zIndex: 999,
+                                          }}
+                                        >
+                                          Money ready to withdraw or use.
+                                        </span>
+                                      </span>
+                                    </p>
 
-  <h3>
-    ${" "}
-    {summary?.walletBalance?.toFixed(2) || "0.00"}
-  </h3>
-</div>
-                               <div className="small">
-  <p
-  
-  >
-    In Review
+                                    <h3>
+                                      ${" "}
+                                      {summary?.walletBalance?.toFixed(2) || "0.00"}
+                                    </h3>
+                                  </div>
+                                  <div className="small">
+                                    <p
 
-    <span
-      style={{ position: "relative", cursor: "pointer" }}
-      onMouseEnter={(e) => {
-        const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-        if (t) t.style.opacity = "1";
-      }}
-      onMouseLeave={(e) => {
-        const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-        if (t) t.style.opacity = "0";
-      }}
-    >
-      ⓘ
+                                    >
+                                      Pending Earnings
 
-      <span
-        className="tooltip-box"
-        style={{
-          position: "absolute",
-          bottom: "130%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          background: "#222",
-          color: "#fff",
-          padding: "6px 8px",
-          borderRadius: "6px",
-          fontSize: "11px",
-          whiteSpace: "nowrap",
-          opacity: 0,
-          pointerEvents: "none",
-          transition: "0.2s ease",
-          zIndex: 999,
-        }}
-      >
-        Processing earnings. Available soon.
-      </span>
-    </span>
-  </p>
+                                      <span
+                                        style={{ position: "relative", cursor: "pointer" }}
+                                        onMouseEnter={(e) => {
+                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                                          if (t) t.style.opacity = "1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                                          if (t) t.style.opacity = "0";
+                                        }}
+                                      >
+                                        ⓘ
 
-  <h3 className="small">
-    ${" "}
-    {summary?.totalReviewAmount?.toFixed(2) || "0.00"}
-  </h3>
-</div>
+                                        <span
+                                          className="tooltip-box"
+                                          style={{
+                                            position: "absolute",
+                                            bottom: "130%",
+                                            left: "50%",
+                                            transform: "translateX(-50%)",
+                                            background: "#222",
+                                            color: "#fff",
+                                            padding: "6px 8px",
+                                            borderRadius: "6px",
+                                            fontSize: "11px",
+                                            whiteSpace: "nowrap",
+                                            opacity: 0,
+                                            pointerEvents: "none",
+                                            transition: "0.2s ease",
+                                            zIndex: 999,
+                                          }}
+                                        >
+                                          Processing earnings. Available soon.
+                                        </span>
+                                      </span>
+                                    </p>
+
+                                    <h3 className="small">
+                                      ${" "}
+                                      {summary?.totalReviewAmount?.toFixed(2) || "0.00"}
+                                    </h3>
+                                  </div>
                                 </div>
                                 <div className="payout_wrap">
                                   <h3>Get a payout</h3>
