@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import ShowToast from "../common/ShowToast";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
-import { API_BLOCK_COUNTRIES, API_CHANGE_CREATOR_PASSWORD, API_GET_BLOCKED_COUNTRIES, API_TOGGLE_CREATOR_ACCOUNT, API_UNBLOCK_COUNTRIES, } from "@/utils/api/APIConstant";
+import { API_BLOCK_COUNTRIES, API_CHANGE_CREATOR_PASSWORD, API_GET_BLOCKED_COUNTRIES, API_SOCIAL_DISCONNECT, API_TOGGLE_CREATOR_ACCOUNT, API_UNBLOCK_COUNTRIES, } from "@/utils/api/APIConstant";
 import { FaXTwitter } from "react-icons/fa6";
 import { countryOptions } from "../helper/creatorOptions";
 import CustomSelect from "../CustomSelect";
 import { signIn } from "next-auth/react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import { showError, showSuccess } from "@/utils/alert";
+import { showError, showQuestion, showSuccess } from "@/utils/alert";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -143,6 +143,47 @@ const AccountSecurity = ({ profile }: any) => {
 
     fetchBlockedCountries();
   }, []);
+
+
+  useEffect(() => {
+  if (profile) {
+    setUserProfile(profile);
+  }
+}, [profile]);
+
+const handleDisconnectX = async () => {
+  // 🔥 STEP 1: CONFIRMATION
+  const confirm = await showQuestion(
+    "Are you sure you want to disconnect your X account?",
+    "Yes, Disconnect",
+    "Cancel"
+  );
+
+  if (!confirm) return;
+
+  try {
+    const res = await apiPost({
+      url: API_SOCIAL_DISCONNECT,
+      values: {},
+    });
+
+    if (res?.success) {
+      // ✅ SUCCESS MESSAGE
+      showSuccess(res.message || "Disconnected successfully");
+
+      // 🔥 UPDATE UI WITHOUT REFRESH
+      setUserProfile((prev: any) => ({
+        ...prev,
+        socialId: undefined,
+      }));
+
+    } else {
+      showError(res?.message || "Disconnect failed");
+    }
+  } catch (err: any) {
+    showError(err?.message || "Something went wrong");
+  }
+};
   return (
     <div className="creator-profile-card-container">
       <div className="card filters-card-wrapper">
@@ -182,11 +223,32 @@ const AccountSecurity = ({ profile }: any) => {
             <p>Connect your social accounts to automatically publish your MoneyBoy posts.</p>
             <div className="btn_wrap">
               <label>Connect X Account</label>
-              {profile?.socialId ? (
-                <button type="button" className="active-down-effect xbtn connected" disabled> <div className="icons"> <FaXTwitter size={18} /> </div> CONNECTED</button>
-              ) : (
-                <button type="button" className="active-down-effect xbtn" onClick={async () => { document.cookie = "userType=Activities; path=/"; signIn("twitter"); }}> <div className="icons"> <FaXTwitter size={18} /> </div> Connect X Account</button>
-              )}
+            {userProfile?.socialId ? (
+  <button
+    type="button"
+    className="active-down-effect xbtn connected"
+    onClick={handleDisconnectX}
+  >
+    <div className="icons">
+      <FaXTwitter size={18} />
+    </div>
+    DISCONNECT
+  </button>
+) : (
+  <button
+    type="button"
+    className="active-down-effect xbtn"
+    onClick={async () => {
+      document.cookie = "userType=Activities; path=/";
+      signIn("twitter");
+    }}
+  >
+    <div className="icons">
+      <FaXTwitter size={18} />
+    </div>
+    Connect X Account
+  </button>
+)}
             </div>
           </div>
         </div>
