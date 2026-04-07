@@ -210,7 +210,7 @@ const RequestPayoutPage = () => {
                           </span>
                         </p>
 
-                        <h3>$ {InitialSummary?.walletBalance.toFixed(2) || summary.walletBalance.toFixed(2)}</h3>
+                        <h3>$ {InitialSummary?.walletBalance?.toFixed(2) || summary.walletBalance.toFixed(2)}</h3>
                       </div>
                       <div>
                         <p className="small">
@@ -256,7 +256,7 @@ const RequestPayoutPage = () => {
                         </p>
 
                         <h3 className="small">
-                          $ {InitialSummary?.pendingPayout.toFixed(2) || summary.pendingPayout.toFixed(2)}
+                          $ {InitialSummary?.pendingPayout?.toFixed(2) || summary.pendingPayout.toFixed(2)}
                         </h3>
                       </div>
                     </div>
