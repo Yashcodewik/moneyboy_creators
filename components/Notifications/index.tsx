@@ -69,6 +69,21 @@ const NotificationPage = () => {
   useEffect(() => {
     fetchNotifications(1);
   }, []);
+
+  useEffect(() => {
+  if (!socket) return;
+
+  const handleNewNotification = () => {
+    fetchNotifications(1);
+  };
+
+  socket.on("newNotification", handleNewNotification);
+
+  return () => {
+    socket.off("newNotification", handleNewNotification);
+  };
+}, []);
+
   const fetchMoreNotifications = () => {
     if (!hasMore) return;
     setPage((prev) => {
@@ -211,10 +226,22 @@ const NotificationPage = () => {
                   scrollableTarget="feed-scroll-container"
                 >
                   {notifications.map((noti) => (
-                    <div className="noti-item" key={noti._id}>
+                    <div className="noti-item" key={noti._id}   onClick={() => {
+    if ([3, 4, 9, 10, 11,8].includes(noti.type)) {
+      setSelectedPost(noti);
+      setShowModal(true);
+    }
+  }}
+  style={{
+    cursor: [3, 4, 9, 10, 11,8].includes(noti.type)
+      ? "pointer"
+      : "default",
+  }}
+                    >
                       <div
                         className="noti-item--icon"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (
                             [9, 10, 11].includes(noti.type) &&
                             noti.referenceId
@@ -253,42 +280,48 @@ const NotificationPage = () => {
                           </div>
                           {(noti.postPreview ||
                             [9, 10, 11].includes(noti.type)) && (
-                            <div className="noti-more-actions iconbtn btntooltip_wrapper">
-                              <button
-                                className="btn-gray viewbtn"
-                                data-tooltip="View Details"
-                                onClick={() => {
-                                  setSelectedPost(noti);
-                                  setShowModal(true);
-                                }}
-                              >
-                                <Eye size={16} />
-                              </button>
-                              {noti.postTag?.myStatus === "pending" &&
-                                noti.type === 3 &&
-                                Date.now() <
+                              <div className="noti-more-actions iconbtn btntooltip_wrapper">
+                                <button
+                                  className="btn-gray viewbtn"
+                                  data-tooltip="View Details"
+                                  onClick={() => {
+                                    setSelectedPost(noti);
+                                    setShowModal(true);
+                                  }}
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                {noti.postTag?.myStatus === "pending" &&
+                                  noti.type === 3 &&
+                                  Date.now() <
                                   new Date(noti.createdAt).getTime() +
-                                    24 * 60 * 60 * 1000 && (
-                                  <>
-                                    <button
-                                      className="btn-gray acceptbtn"
-                                      data-tooltip="Accept"
-                                      onClick={() => handleAcceptPost(noti)}
-                                    >
-                                      {" "}
-                                      <Check size={16} />
-                                    </button>
-                                    <button
-                                      className="btn-gray declinebtn"
-                                      data-tooltip="Decline"
-                                      onClick={() => handleRejectPost(noti)}
-                                    >
-                                      <X size={16} />
-                                    </button>
-                                  </>
-                                )}
-                            </div>
-                          )}
+                                  24 * 60 * 60 * 1000 && (
+                                    <>
+                                      <button
+                                        className="btn-gray acceptbtn"
+                                        data-tooltip="Accept"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAcceptPost(noti);
+                                        }}
+                                      >
+                                        {" "}
+                                        <Check size={16} />
+                                      </button>
+                                      <button
+                                        className="btn-gray declinebtn"
+                                        data-tooltip="Decline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRejectPost(noti);
+                                        }}
+                                      >
+                                        <X size={16} />
+                                      </button>
+                                    </>
+                                  )}
+                              </div>
+                            )}
                         </div>
                         <div className="noti-desc">
                           <p>
@@ -297,10 +330,10 @@ const NotificationPage = () => {
                               (noti.postTag?.myStatus === "pending"
                                 ? "Review this collaboration request and choose to accept or decline."
                                 : noti.postTag?.myStatus === "approved"
-                                ? "Collaboration request accepted"
-                                : noti.postTag?.myStatus === "rejected"
-                                ? "Collaboration request declined"
-                                : "")}
+                                  ? "Collaboration request accepted"
+                                  : noti.postTag?.myStatus === "rejected"
+                                    ? "Collaboration request declined"
+                                    : "")}
                             {noti.type === 4 &&
                               "Collaboration response received."}
                           </p>
@@ -423,120 +456,118 @@ const NotificationPage = () => {
             </div>
           </div>
           {selectedPost?.postTag && ![9, 10, 11].includes(selectedPost?.type) && (
-          <div
-            className={`approval_wrap ${
-              selectedPost?.postTag?.myStatus === "approved"
-                ? "approved"
-                : selectedPost?.postTag?.myStatus === "rejected"
-                ? "rejected"
-                : "pending"
-            }`}
-          >
-            {selectedPost?.postTag?.myStatus === "approved" && (
-              <div className="head">
-                <h3>Post Approved</h3> <BadgeCheck />
-              </div>
-            )}
-            {selectedPost?.postTag?.myStatus === "rejected" && (
-              <>
+            <div
+              className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved"
+                  ? "approved"
+                  : selectedPost?.postTag?.myStatus === "rejected"
+                    ? "rejected"
+                    : "pending"
+                }`}
+            >
+              {selectedPost?.postTag?.myStatus === "approved" && (
                 <div className="head">
-                  <h3>Post Rejected</h3> <CircleX color="#c62828" />
+                  <h3>Post Approved</h3> <BadgeCheck />
                 </div>
-                {selectedPost?.postTag?.myRejectReason && (
-                  <p className="reject_reason">
-                    Reason: {selectedPost.postTag.myRejectReason}
-                  </p>
-                )}
-              </>
-            )}
-            {selectedPost?.postTag?.myStatus === "pending" && (
-              <>
-                <div className="head">
-                  <h3>
-                    {isOwner
-                      ? "Waiting for approvals"
-                      : "Collaboration Request Pending"}
-                  </h3>
-                  <Clock />
-                </div>
+              )}
+              {selectedPost?.postTag?.myStatus === "rejected" && (
+                <>
+                  <div className="head">
+                    <h3>Post Rejected</h3> <CircleX color="#c62828" />
+                  </div>
+                  {selectedPost?.postTag?.myRejectReason && (
+                    <p className="reject_reason">
+                      Reason: {selectedPost.postTag.myRejectReason}
+                    </p>
+                  )}
+                </>
+              )}
+              {selectedPost?.postTag?.myStatus === "pending" && (
+                <>
+                  <div className="head">
+                    <h3>
+                      {isOwner
+                        ? "Waiting for approvals"
+                        : "Collaboration Request Pending"}
+                    </h3>
+                    <Clock />
+                  </div>
 
-                <p className="pending_text">
-                  {isOwner
-                    ? "You have invited creators to collaborate. Waiting for their response."
-                    : "You have been tagged in this post and invited to collaborate. Please review and accept or decline."}
-                </p>
-              </>
-            )}
-            {/* PPV Notification Modal Content */}
-           
-          </div>
+                  <p className="pending_text">
+                    {isOwner
+                      ? "You have invited creators to collaborate. Waiting for their response."
+                      : "You have been tagged in this post and invited to collaborate. Please review and accept or decline."}
+                  </p>
+                </>
+              )}
+              {/* PPV Notification Modal Content */}
+
+            </div>
           )}
-           {[9, 10, 11].includes(selectedPost?.type) && (
-              <>
-                <div
-                  className={`approval_wrap ${
-                    selectedPost?.type === 10
-                      ? "approved"
-                      : selectedPost?.type === 11
+          {[9, 10, 11].includes(selectedPost?.type) && (
+            <>
+              <div
+                className={`approval_wrap ${selectedPost?.type === 10
+                    ? "approved"
+                    : selectedPost?.type === 11
                       ? "rejected"
                       : "pending"
                   }`}
-                >
-                  <div className="head">
-                    <h3>
-                      {selectedPost?.type === 9 && "PPV Request Received"}
-                      {selectedPost?.type === 10 && "PPV Request Accepted"}
-                      {selectedPost?.type === 11 && "PPV Request Declined"}
-                    </h3>
-                    {selectedPost?.type === 10 && <BadgeCheck />}
-                    {selectedPost?.type === 11 && <CircleX color="#c62828" />}
-                    {selectedPost?.type === 9 && <Clock />}
-                  </div>
-                  <p className="pending_text">
-                    {selectedPost?.type === 9 &&
-                      "You received a new PPV request. Click below to view it in chat."}
-                    {selectedPost?.type === 10 &&
-                      "Your PPV request has been accepted."}
-                    {selectedPost?.type === 11 &&
-                      "Your PPV request has been declined."}
-                  </p>
+              >
+                <div className="head">
+                  <h3>
+                    {selectedPost?.type === 9 && "PPV Request Received"}
+                    {selectedPost?.type === 10 && "PPV Request Accepted"}
+                    {selectedPost?.type === 11 && "PPV Request Declined"}
+                  </h3>
+                  {selectedPost?.type === 10 && <BadgeCheck />}
+                  {selectedPost?.type === 11 && <CircleX color="#c62828" />}
+                  {selectedPost?.type === 9 && <Clock />}
                 </div>
+                <p className="pending_text">
+                  {selectedPost?.type === 9 &&
+                    "You received a new PPV request. Click below to view it in chat."}
+                  {selectedPost?.type === 10 &&
+                    "Your PPV request has been accepted."}
+                  {selectedPost?.type === 11 &&
+                    "Your PPV request has been declined."}
+                </p>
+              </div>
 
-                {/* Countdown for type 9 only */}
-                {selectedPost?.type === 9 && !isExpired && (
-                  <div className="timer_wrap mt-3">
-                    <p>Expires In</p>
-                    <FlipClockCountdown
-                      key={selectedPost._id}
-                      to={countdownTo}
-                      labels={["", "", "", ""]}
-                      renderMap={[false, true, true, true]}
-                      showSeparators={true}
-                      labelStyle={{ display: "none" }}
-                      digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}
-                    >
-                      Finished
-                    </FlipClockCountdown>
-                  </div>
-                )}
-
-                {/* Go to chat button */}
-                <div className="actions">
-                  <button
-                    type="button"
-                    className="premium-btn active-down-effect"
-                    onClick={() => {
-                      setShowModal(false);
-                      router.push(
-                        `/message?threadId=${selectedPost?.referenceId}`
-                      );
-                    }}
+              {/* Countdown for type 9 only */}
+              {selectedPost?.type === 9 && !isExpired && (
+                <div className="timer_wrap mt-3">
+                  <p>Expires In</p>
+                  <FlipClockCountdown
+                    key={selectedPost._id}
+                    to={countdownTo}
+                    labels={["", "", "", ""]}
+                    renderMap={[false, true, true, true]}
+                    showSeparators={true}
+                    labelStyle={{ display: "none" }}
+                    digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}
                   >
-                    <span>View in Chat</span>
-                  </button>
+                    Finished
+                  </FlipClockCountdown>
                 </div>
-              </>
-            )}
+              )}
+
+              {/* Go to chat button */}
+              <div className="actions">
+                <button
+                  type="button"
+                  className="premium-btn active-down-effect"
+                  onClick={() => {
+                    setShowModal(false);
+                    router.push(
+                      `/message?threadId=${selectedPost?.referenceId}`
+                    );
+                  }}
+                >
+                  <span>View in Chat</span>
+                </button>
+              </div>
+            </>
+          )}
           {/* TIMER */}
           {selectedPost?.postTag?.myStatus === "pending" && !isOwner && (
             <div className="timer_wrap mt-3">

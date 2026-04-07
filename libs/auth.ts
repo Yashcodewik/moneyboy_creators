@@ -130,19 +130,33 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
         const accessToken = existingToken?.accessToken as string | undefined;
         try {
           let res;
+if (userType === "Activities") {
+  if (!accessToken) {
+    console.log("❌ No token found → social connect FAILED");
+    return "/login";
+  }
 
-          if (accessToken && userType === "Activities") {
-            res = await serverApiPost({
-              url: API_SOCIAL_ACTIVATE,
-              values: {
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                email: user.email,
-              },
-              token: accessToken,
-            });
-          }
+  const res = await serverApiPost({
+    url: API_SOCIAL_ACTIVATE,
+    values: {
+      provider: account.provider,
+      providerAccountId: account.providerAccountId,
+      email: user.email,
+    },
+    token: accessToken,
+  });
 
+  // 🔥 CLEAR LOGS
+  if (res?.success) {
+    console.log("✅ X CONNECTED SUCCESSFULLY");
+    console.log("User:", res?.user || "No user returned");
+  } else {
+    console.log("❌ X CONNECTION FAILED");
+    console.log("Response:", res);
+  }
+
+  return "/feed";
+}
           if (userType === "Login") {
             res = await serverApiPost({
               url: API_SOCIAL_LOGIN,
