@@ -168,20 +168,93 @@ const RequestPayoutPage = () => {
                         <h3>$ 0</h3>
                       </div> */}
                       <div className="rline">
-                        <p>Wallet Balance</p>
-                        <h3>
-                          ${" "}
-                          {InitialSummary?.walletBalance?.toFixed(2) ||
-                            summary.walletBalance.toFixed(2)}
-                        </h3>
+                        <p >
+                          Available Balance
+
+                          <span
+                            style={{ position: "relative", cursor: "pointer" }}
+                            onMouseEnter={(e) => {
+                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              if (tooltip) tooltip.style.opacity = "1";
+                            }}
+                            onMouseLeave={(e) => {
+                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              if (tooltip) tooltip.style.opacity = "0";
+                            }}
+                          >
+                            ⓘ
+
+                            <span
+                              className="tooltip-box"
+                              style={{
+                                position: "absolute",
+                                bottom: "130%",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                background: "#222",
+                                color: "#fff",
+                                padding: "6px 8px",
+                                borderRadius: "6px",
+                                fontSize: "11px",
+                                whiteSpace: "nowrap",
+                                opacity: 0,
+                                pointerEvents: "none",
+                                transition: "0.2s ease",
+                                zIndex: 999,
+                              }}
+                            >
+                              Money ready to withdraw or use.
+                            </span>
+                          </span>
+                        </p>
+
+                        <h3>$ {summary.walletBalance.toFixed(2)}</h3>
                       </div>
                       <div>
-                        <p className="small">Incoming</p>
-                        <h3 className="small">
-                          ${" "}
-                          {InitialSummary?.pendingPayout?.toFixed(2) ||
-                            summary.pendingPayout.toFixed(2)}
-                        </h3>
+                        <p
+                          className="small"
+
+                        >
+                          Pending Earnings
+
+                          <span
+                            style={{ position: "relative", cursor: "pointer" }}
+                            onMouseEnter={(e) => {
+                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              if (tooltip) tooltip.style.opacity = "1";
+                            }}
+                            onMouseLeave={(e) => {
+                              const tooltip = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
+                              if (tooltip) tooltip.style.opacity = "0";
+                            }}
+                          >
+                            ⓘ
+
+                            <span
+                              className="tooltip-box"
+                              style={{
+                                position: "absolute",
+                                bottom: "130%",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                background: "#222",
+                                color: "#fff",
+                                padding: "6px 8px",
+                                borderRadius: "6px",
+                                fontSize: "11px",
+                                whiteSpace: "nowrap",
+                                opacity: 0,
+                                pointerEvents: "none",
+                                transition: "0.2s ease",
+                                zIndex: 999,
+                              }}
+                            >
+                              Processing earnings. Available soon.
+                            </span>
+                          </span>
+                        </p>
+
+                        <h3 className="small">$ {summary.pendingPayout.toFixed(2)}</h3>
                       </div>
                     </div>
 
