@@ -309,49 +309,48 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         updated = [...prev, { ...user, percentage: 5, manuallySet: false }];
       }
 
-const totalUsers = updated.length + 1;
+      const totalUsers = updated.length + 1;
 
-let creatorShare = 0;
+      let creatorShare = 0;
 
-// ✅ if only 2 → 50-50
-if (totalUsers === 2) {
-  creatorShare = 50;
-} else {
-  // ✅ more than 2 → creator gets higher but dynamic
-  creatorShare = Math.max(40, 100 - (totalUsers - 1) * 20);
-}
+      // ✅ if only 2 → 50-50
+      if (totalUsers === 2) {
+        creatorShare = 50;
+      } else {
+        // ✅ more than 2 → creator gets higher but dynamic
+        creatorShare = Math.max(40, 100 - (totalUsers - 1) * 20);
+      }
 
-const remaining = 100 - creatorShare;
+      const remaining = 100 - creatorShare;
 
-const rawShare = updated.length > 0 ? remaining / updated.length : 0;
-const equalShare = Math.max(5, Math.round(rawShare / 5) * 5);
+      const rawShare = updated.length > 0 ? remaining / updated.length : 0;
+      const equalShare = Math.max(5, Math.round(rawShare / 5) * 5);
 
       let distributed = 0;
 
-const updatedUsers = updated.map((u, index) => {
-  let val = equalShare;
+      const updatedUsers = updated.map((u, index) => {
+        let val = equalShare;
 
-  if (index === updated.length - 1) {
-    val = Math.max(5, 100 - (creatorShare + distributed));
-  }
+        if (index === updated.length - 1) {
+          val = Math.max(5, 100 - (creatorShare + distributed));
+        }
 
-  distributed += val;
+        distributed += val;
 
-  return {
-    ...u,
-    percentage: val,
-    manuallySet: false,
-  };
-});
+        return {
+          ...u,
+          percentage: val,
+          manuallySet: false,
+        };
+      });
 
-
-    setCreatorPercentage(creatorShare);
+      setCreatorPercentage(creatorShare);
       creatorPercentageRef.current = creatorShare;
 
       setCreatorManuallySet(false);
-      creatorManuallySetRef.current = false; 
+      creatorManuallySetRef.current = false;
 
-     return updatedUsers;
+      return updatedUsers;
     });
   };
 
@@ -367,45 +366,105 @@ const updatedUsers = updated.map((u, index) => {
     creatorPercentageRef.current = creatorPercentage;
   }, [creatorPercentage]);
 
- const updateUserPercentage = (changedId: string, inputValue: number) => {
-  // ✅ Force multiples of 5 only
-  const value = Math.round(inputValue / 5) * 5;
-  const totalUsers = selectedTagUsers.length + 1; // including creator
+  const updateUserPercentage = (changedId: string, inputValue: number) => {
+    // ✅ Force multiples of 5 only
+    const value = Math.round(inputValue / 5) * 5;
+    const totalUsers = selectedTagUsers.length + 1; // including creator
 
-// each other must have at least 5
-const maxAllowed = 100 - (totalUsers - 1) * 5;
+    // each other must have at least 5
+    const maxAllowed = 100 - (totalUsers - 1) * 5;
 
-const safeValue = Math.max(5, Math.min(maxAllowed, value));
+    const safeValue = Math.max(5, Math.min(maxAllowed, value));
 
-  let creator = {
-    _id: "creator",
-    percentage: creatorPercentage,
-    locked: true,
-  };
+    let creator = {
+      _id: "creator",
+      percentage: creatorPercentage,
+      locked: true,
+    };
 
-  let others = selectedTagUsers.map((u) => ({
-    _id: u._id,
-    percentage: u.percentage,
-    locked: u._id === changedId ? true : u.manuallySet || false,
-  }));
+    let others = selectedTagUsers.map((u) => ({
+      _id: u._id,
+      percentage: u.percentage,
+      locked: u._id === changedId ? true : u.manuallySet || false,
+    }));
 
-  // =========================
-  // 👉 CREATOR UPDATED
-  // =========================
-  if (changedId === "creator") {
-    creator.percentage = safeValue;
+    // =========================
+    // 👉 CREATOR UPDATED
+    // =========================
+    if (changedId === "creator") {
+      creator.percentage = safeValue;
 
-    const remaining = 100 - safeValue;
-    const split = others.length > 0 ? remaining / others.length : 0;
+      const remaining = 100 - safeValue;
+      const split = others.length > 0 ? remaining / others.length : 0;
+
+      let distributed = 0;
+
+      const updatedOthers = others.map((u, index) => {
+        let val = Math.round(split / 5) * 5;
+
+        if (index === others.length - 1) {
+          // ✅ Fix rounding difference
+          val = Math.max(5, 100 - (safeValue + distributed));
+        }
+
+        distributed += val;
+
+        return {
+          ...u,
+          percentage: val,
+          locked: false,
+        };
+      });
+
+      setCreatorPercentage(safeValue);
+
+      setSelectedTagUsers((prev) =>
+        prev.map((u) => {
+          const found = updatedOthers.find((f) => f._id === u._id);
+          return {
+            ...u,
+            percentage: found?.percentage || 0,
+            manuallySet: false,
+          };
+        }),
+      );
+
+      return;
+    }
+
+    // =========================
+    // 👉 USER UPDATED
+    // =========================
+    others = others.map((u) =>
+      u._id === changedId ? { ...u, percentage: safeValue, locked: true } : u,
+    );
+
+    const lockedTotal =
+      creator.percentage +
+      others.filter((u) => u.locked).reduce((sum, u) => sum + u.percentage, 0);
+
+    const unlocked = others.filter((u) => !u.locked);
+
+    const remaining = 100 - lockedTotal;
+    const split = unlocked.length > 0 ? remaining / unlocked.length : 0;
 
     let distributed = 0;
 
-    const updatedOthers = others.map((u, index) => {
+    const finalOthers = others.map((u, index) => {
+      if (u.locked) return u;
+
       let val = Math.round(split / 5) * 5;
 
       if (index === others.length - 1) {
-        // ✅ Fix rounding difference
-        val = Math.max(5, 100 - (safeValue + distributed));
+        const remainingForLast =
+          100 -
+          (creator.percentage +
+            others
+              .filter((x) => x.locked)
+              .reduce((s, x) => s + x.percentage, 0) +
+            distributed);
+
+        val = Math.max(5, remainingForLast);
       }
 
       distributed += val;
@@ -413,84 +472,20 @@ const safeValue = Math.max(5, Math.min(maxAllowed, value));
       return {
         ...u,
         percentage: val,
-        locked: false,
       };
     });
 
-    setCreatorPercentage(safeValue);
-
     setSelectedTagUsers((prev) =>
       prev.map((u) => {
-        const found = updatedOthers.find((f) => f._id === u._id);
+        const found = finalOthers.find((f) => f._id === u._id);
         return {
           ...u,
           percentage: found?.percentage || 0,
-          manuallySet: false,
+          manuallySet: found?.locked || false,
         };
-      })
+      }),
     );
-
-    return;
-  }
-
-  // =========================
-  // 👉 USER UPDATED
-  // =========================
-  others = others.map((u) =>
-    u._id === changedId
-      ? { ...u, percentage: safeValue, locked: true }
-      : u
-  );
-
-  const lockedTotal =
-    creator.percentage +
-    others
-      .filter((u) => u.locked)
-      .reduce((sum, u) => sum + u.percentage, 0);
-
-  const unlocked = others.filter((u) => !u.locked);
-
-  const remaining = 100 - lockedTotal;
-  const split = unlocked.length > 0 ? remaining / unlocked.length : 0;
-
-  let distributed = 0;
-
-  const finalOthers = others.map((u, index) => {
-    if (u.locked) return u;
-
-    let val = Math.round(split / 5) * 5;
-
-    if (index === others.length - 1) {
-    const remainingForLast =
-  100 -
-  (creator.percentage +
-    others
-      .filter((x) => x.locked)
-      .reduce((s, x) => s + x.percentage, 0) +
-    distributed);
-
-val = Math.max(5, remainingForLast);
-    }
-
-    distributed += val;
-
-    return {
-      ...u,
-      percentage: val,
-    };
-  });
-
-  setSelectedTagUsers((prev) =>
-    prev.map((u) => {
-      const found = finalOthers.find((f) => f._id === u._id);
-      return {
-        ...u,
-        percentage: found?.percentage || 0,
-        manuallySet: found?.locked || false,
-      };
-    })
-  );
-};
+  };
 
   const handleAccessTypeChange = (type: AccessType) => {
     setAccessType(type);
@@ -535,12 +530,12 @@ val = Math.max(5, remainingForLast);
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
-      const mp4Files = files.filter(file => file.type === "video/mp4");
+    const mp4Files = files.filter((file) => file.type === "video/mp4");
 
-  if (mp4Files.length !== files.length) {
-    showError("Only MP4 videos are allowed");
-    return;
-  }
+    if (mp4Files.length !== files.length) {
+      showError("Only MP4 videos are allowed");
+      return;
+    }
     const remainingSlots = 3 - videoCount;
     if (remainingSlots <= 0) {
       showError("You can upload maximum 3 videos");
@@ -733,8 +728,6 @@ val = Math.max(5, remainingForLast);
           }
         }
 
-
-
         // Ask user if they want to share on X
         const shareOnX = await showQuestion(
           "Post created! Would you like to share it on X (Twitter)?",
@@ -774,16 +767,16 @@ val = Math.max(5, remainingForLast);
   const collaborators: (TaggedUserWithShare & { isCreator: boolean })[] =
     selectedTagUsers.length > 0
       ? [
-        {
-          _id: "creator",
-          displayName: creator.name ?? "",
-          userName: creator.username ?? "",
-          profile: creator.profile,
-          percentage: creatorPercentage,
-          isCreator: true,
-        },
-        ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
-      ]
+          {
+            _id: "creator",
+            displayName: creator.name ?? "",
+            userName: creator.username ?? "",
+            profile: creator.profile,
+            percentage: creatorPercentage,
+            isCreator: true,
+          },
+          ...selectedTagUsers.map((u) => ({ ...u, isCreator: false })),
+        ]
       : [];
 
   const confirmClose = async () => {
@@ -812,9 +805,18 @@ val = Math.max(5, remainingForLast);
   const difference = Number((100 - totalPercentage).toFixed(2));
   return (
     <>
-      <Modal size="lg" show={show} title="Create New Post" onClose={confirmClose}>
+      <Modal
+        size="lg"
+        show={show}
+        title="Create New Post"
+        onClose={confirmClose}
+      >
         <div className="modal_containt post-modal">
-          <form className="space" onClick={(e) => e.stopPropagation()} onSubmit={formik.handleSubmit}>
+          <form
+            className="space"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={formik.handleSubmit}
+          >
             {/* <div className="modal_head">
               <h3 className="title">Create New Post</h3>
               <button type="button" className="close-btn" onClick={confirmClose}>
@@ -906,7 +908,10 @@ val = Math.max(5, remainingForLast);
             <div className="warningtext">
               <span>{accessContentMap[accessType].text}</span>
               <div className="btntooltip_wrapper">
-                <button className="info-btn" data-tooltip={accessContentMap[accessType].tooltip}>
+                <button
+                  className="info-btn"
+                  data-tooltip={accessContentMap[accessType].tooltip}
+                >
                   <CircleAlert size={16} className="svgicons info-icon" />
                 </button>
               </div>
@@ -977,8 +982,8 @@ val = Math.max(5, remainingForLast);
                         value={
                           formik.values.scheduledAt
                             ? new Date(
-                              formik.values.scheduledAt,
-                            ).toLocaleDateString("en-GB")
+                                formik.values.scheduledAt,
+                              ).toLocaleDateString("en-GB")
                             : ""
                         }
                         readOnly
@@ -1007,11 +1012,12 @@ val = Math.max(5, remainingForLast);
                         </div>
                       )}
                     </div>
-                    {formik.touched.scheduledAt && formik.errors.scheduledAt && (
-                      <div className="error-message">
-                        {formik.errors.scheduledAt}
-                      </div>
-                    )}
+                    {formik.touched.scheduledAt &&
+                      formik.errors.scheduledAt && (
+                        <div className="error-message">
+                          {formik.errors.scheduledAt}
+                        </div>
+                      )}
                   </div>
                 )}
               </div>
@@ -1027,7 +1033,7 @@ val = Math.max(5, remainingForLast);
                       alt={`preview-${index}`}
                     />
                   ) : (
-                    <video src={media.url} className="img-fluid upldimg"/>
+                    <video src={media.url} className="img-fluid upldimg" />
                   )}
                   <button
                     type="button"
@@ -1059,7 +1065,13 @@ val = Math.max(5, remainingForLast);
                           ) : (
                             <NoProfileSVG />
                           )}
-                          <button type="button" className="btn-danger" onClick={() => removeCollaborator(user._id)}><CircleX size={14} /></button>
+                          <button
+                            type="button"
+                            className="btn-danger"
+                            onClick={() => removeCollaborator(user._id)}
+                          >
+                            <CircleX size={14} />
+                          </button>
                         </div>
                       </div>
                       <div className="profile-card__info">
@@ -1080,44 +1092,44 @@ val = Math.max(5, remainingForLast);
                         )}
 
                         {accessType === "pay_per_view" && (
-                                         <div className="quantity">
-  <button
-    type="button"
-    className="qty-btn"
-    onClick={() => {
-      const current = user.percentage || 0;
-      const newVal = Math.max(5, current - 5);
-      updateUserPercentage(
-        user.isCreator ? "creator" : user._id,
-        newVal
-      );
-    }}
-  >
-    <Minus size={16} />
-  </button>
+                          <div className="quantity">
+                            <button
+                              type="button"
+                              className="qty-btn"
+                              onClick={() => {
+                                const current = user.percentage || 0;
+                                const newVal = Math.max(5, current - 5);
+                                updateUserPercentage(
+                                  user.isCreator ? "creator" : user._id,
+                                  newVal,
+                                );
+                              }}
+                            >
+                              <Minus size={16} />
+                            </button>
 
-  <input
-    type="text"
-    className="form-input text-center"
-    value={`${user.percentage || 0}%`}
-    disabled
-  />
+                            <input
+                              type="text"
+                              className="form-input text-center"
+                              value={`${user.percentage || 0}%`}
+                              disabled
+                            />
 
-  <button
-    type="button"
-    className="qty-btn"
-    onClick={() => {
-      const current = user.percentage || 0;
-      const newVal = Math.min(100, current + 5);
-      updateUserPercentage(
-        user.isCreator ? "creator" : user._id,
-        newVal
-      );
-    }}
-  >
-    <Plus size={16} />
-  </button>
-</div>
+                            <button
+                              type="button"
+                              className="qty-btn"
+                              onClick={() => {
+                                const current = user.percentage || 0;
+                                const newVal = Math.min(100, current + 5);
+                                updateUserPercentage(
+                                  user.isCreator ? "creator" : user._id,
+                                  newVal,
+                                );
+                              }}
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
                           // <input
                           //   type="number"
                           //   placeholder="Add Percentage"
@@ -1157,7 +1169,12 @@ val = Math.max(5, remainingForLast);
               </div>
             )}
 
-            <input type="file" ref={thumbnailInputRef} hidden accept="image/*" />
+            <input
+              type="file"
+              ref={thumbnailInputRef}
+              hidden
+              accept="image/*"
+            />
 
             {activeTool === "video" && (
               <div className="flex items-center gap-10">
@@ -1181,7 +1198,7 @@ val = Math.max(5, remainingForLast);
                   type="file"
                   ref={videoInputRef}
                   hidden
-                 accept="video/mp4"
+                  accept="video/mp4"
                   multiple
                   onChange={handleVideoChange}
                 />
@@ -1205,7 +1222,14 @@ val = Math.max(5, remainingForLast);
               </div>
             )}
 
-            <input type="file" hidden ref={imageInputRef} accept=".png,.jpeg,.jpg,.wbjpg,.mp4" multiple onChange={handleImageChange} />
+            <input
+              type="file"
+              hidden
+              ref={imageInputRef}
+              accept=".png,.jpeg,.jpg,.wbjpg,.mp4"
+              multiple
+              onChange={handleImageChange}
+            />
             <div className="actions tooltip_wrapper">
               <ul>
                 <li>
@@ -1267,9 +1291,17 @@ val = Math.max(5, remainingForLast);
                 </ul>
                 <button
                   type="submit"
-                  data-tooltip={!hasMedia ? "Add media to post" : "Publish post"}
+                  data-tooltip={
+                    !hasMedia ? "Add media to post" : "Publish post"
+                  }
                   className={`premium-btn active-down-effect ${isSubmitting ? "disabled" : ""}`}
-                  disabled={isSubmitting || !hasMedia || (accessType === "pay_per_view" && selectedTagUsers.length > 0 && totalPercentage !== 100)}
+                  disabled={
+                    isSubmitting ||
+                    !hasMedia ||
+                    (accessType === "pay_per_view" &&
+                      selectedTagUsers.length > 0 &&
+                      totalPercentage !== 100)
+                  }
                 >
                   <span>{isSubmitting ? "Posting..." : "Post"}</span>
                 </button>
@@ -1279,18 +1311,36 @@ val = Math.max(5, remainingForLast);
         </div>
       </Modal>
       {showTagModal && (
-        <Modal size="lg" show={show} title="Tag Other Creators" onClose={() => setShowTagModal(false)} >
+        <Modal
+          size="lg"
+          show={show}
+          title="Tag Other Creators"
+          onClose={() => setShowTagModal(false)}
+        >
           <div className="modal_containt creators-modal">
             <div className="label-input search_wrap">
-              <div className="input-placeholder-icon"><IoSearch size={22} color="#716f6f" /></div>
-              <input className="form-input" type="text" placeholder="Enter Keywords Here" value={tagSearch} onChange={(e) => searchTagUsers(e.target.value)} />
+              <div className="input-placeholder-icon">
+                <IoSearch size={22} color="#716f6f" />
+              </div>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="Enter Keywords Here"
+                value={tagSearch}
+                onChange={(e) => searchTagUsers(e.target.value)}
+              />
             </div>
             <div className="moneyboy-post__header scrollbar">
               <div className="profile-card">
                 {tagUsers.map((user) => {
-                  const selected = selectedTagUsers.some((u) => u._id === user._id,);
+                  const selected = selectedTagUsers.some(
+                    (u) => u._id === user._id,
+                  );
                   return (
-                    <label key={user._id} className={`profile-card__main radio-card ${selected ? "active" : ""}`}>
+                    <label
+                      key={user._id}
+                      className={`profile-card__main radio-card ${selected ? "active" : ""}`}
+                    >
                       <div className="profile-card__avatar-settings">
                         <div className="profile-card__avatar">
                           {user.profile ? (
@@ -1301,11 +1351,20 @@ val = Math.max(5, remainingForLast);
                         </div>
                       </div>
                       <div className="profile-card__info">
-                        <div className="profile-card__name">{user.displayName}</div>
-                        <div className="profile-card__username">@{user.userName}</div>
+                        <div className="profile-card__name">
+                          {user.displayName}
+                        </div>
+                        <div className="profile-card__username">
+                          @{user.userName}
+                        </div>
                       </div>
                       <div className="radio-indicator">
-                        <input type="checkbox" name="tagUser" checked={selected} onChange={() => toggleTagUser(user)} />
+                        <input
+                          type="checkbox"
+                          name="tagUser"
+                          checked={selected}
+                          onChange={() => toggleTagUser(user)}
+                        />
                         <span className="checkmark"></span>
                       </div>
                     </label>
@@ -1314,13 +1373,32 @@ val = Math.max(5, remainingForLast);
               </div>
             </div>
             <div className="actions creators-footer justify-end">
-              <button type="button" className="premium-btn" onClick={() => setShowTagModal(false)}><span>Tag user</span></button>
+              <button
+                type="button"
+                className="premium-btn"
+                onClick={() => setShowTagModal(false)}
+              >
+                <span>Tag user</span>
+              </button>
             </div>
           </div>
         </Modal>
       )}
       {showRecorder && (
-        <VideoRecorder onClose={() => setShowRecorder(false)} onRecorded={(file: File) => { if (videoCount >= 3) { showError("Maximum 3 videos allowed"); return; } setMediaFiles((prev) => [...prev, file]); setMediaPreviews((prev) => [...prev, { url: URL.createObjectURL(file), type: "video" },]); }} />
+        <VideoRecorder
+          onClose={() => setShowRecorder(false)}
+          onRecorded={(file: File) => {
+            if (videoCount >= 3) {
+              showError("Maximum 3 videos allowed");
+              return;
+            }
+            setMediaFiles((prev) => [...prev, file]);
+            setMediaPreviews((prev) => [
+              ...prev,
+              { url: URL.createObjectURL(file), type: "video" },
+            ]);
+          }}
+        />
       )}
     </>
   );
