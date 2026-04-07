@@ -1,18 +1,23 @@
 "use client";
-import React, { useEffect, useState } from 'react'
-import Featuredboys from '../Featuredboys';
-import CustomSelect from '../CustomSelect';
+import React, { useEffect, useState } from "react";
+import Featuredboys from "../Featuredboys";
+import CustomSelect from "../CustomSelect";
 import { BsBank2 } from "react-icons/bs";
-import { useRouter } from 'next/navigation';
-import { IoArrowBackOutline } from 'react-icons/io5';
+import { useRouter } from "next/navigation";
+import { IoArrowBackOutline } from "react-icons/io5";
 
 import ShowToast from "@/components/common/ShowToast";
-import { apiPost, getApiWithOutQuery } from '@/utils/endpoints/common';
-import { API_PAYOUT_ACCOUNTS, API_REQUEST_PAYOUT, API_WALLET_SUMMARY } from '@/utils/api/APIConstant';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '@/redux/store';
-import { fetchWallet } from '@/redux/wallet/Action';
-
+import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import {
+  API_GET_TRANSACTIONS,
+  API_PAYOUT_ACCOUNTS,
+  API_REQUEST_PAYOUT,
+  API_WALLET_SUMMARY,
+} from "@/utils/api/APIConstant";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, useAppDispatch } from "@/redux/store";
+import { fetchTransactions, fetchWallet } from "@/redux/wallet/Action";
+import { deductBalance } from "@/redux/wallet/Slice";
 
 const RequestPayoutPage = () => {
   const router = useRouter();
@@ -20,11 +25,15 @@ const RequestPayoutPage = () => {
   const [selectedMethod, setSelectedMethod] = useState<any>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const { summary: InitialSummary } = useSelector((state: any) => state.wallet);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [summary, setSummary] = useState({
     walletBalance: 0,
     pendingPayout: 0,
     totalWithdrawn: 0,
   });
+
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
@@ -58,35 +67,6 @@ const RequestPayoutPage = () => {
     }
   };
 
-  const submitPayout = async () => {
-    if (!amount || Number(amount) <= 0) {
-      return ShowToast("Enter valid amount", "error");
-    }
-
-    if (!selectedMethod) {
-      return ShowToast("Select payout method", "error");
-    }
-
-    const res = await apiPost({
-      url: API_REQUEST_PAYOUT,
-      values: {
-        amount: Number(amount),
-        method: selectedMethod?.value || selectedMethod,
-        note,
-      },
-    });
-
-    if (res?.success) {
-      ShowToast("Payout request submitted", "success");
-      setAmount("");
-      setNote("");
-      setSelectedMethod(null);
-      loadSummary();
-      dispatch(fetchWallet());
-    } else {
-      ShowToast(res?.message || "Failed", "error");
-    }
-  };
   const loadSummary = async () => {
     const res = await getApiWithOutQuery({
       url: API_WALLET_SUMMARY,
@@ -101,14 +81,80 @@ const RequestPayoutPage = () => {
     loadAccounts();
     loadSummary();
   }, []);
+
+  const walletBalance = InitialSummary?.walletBalance ?? summary.walletBalance;
+
+  const isInvalidAmount =
+    !amount || Number(amount) <= 0 || Number(amount) > walletBalance;
+
+  const submitPayout = async () => {
+    if (!amount || Number(amount) <= 0) {
+      return ShowToast("Enter valid amount", "error");
+    }
+
+    if (Number(amount) > walletBalance) {
+      return ShowToast("Amount exceeds wallet balance", "error");
+    }
+
+    if (!selectedMethod) {
+      return ShowToast("Select payout method", "error");
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const res = await apiPost({
+        url: API_REQUEST_PAYOUT,
+        values: {
+          amount: Number(amount),
+          method: selectedMethod?.value || selectedMethod,
+          note,
+        },
+      });
+
+      if (res?.success) {
+        dispatch(deductBalance(Number(amount)));
+        ShowToast("Payout request submitted", "success");
+
+        dispatch(fetchTransactions({ getApiTab: () => API_GET_TRANSACTIONS }));
+        dispatch(fetchWallet());
+
+        setAmount("");
+        setNote("");
+        setSelectedMethod(null);
+        loadSummary();
+      } else {
+        ShowToast(res?.message || "Failed", "error");
+      }
+    } catch (err) {
+      ShowToast("Something went wrong", "error");
+    } finally {
+      setIsSubmitting(false); // 🔥 stop loader
+    }
+  };
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-        <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-
-          <div className="moneyboy-feed-page-cate-buttons card hide_mobile" id="posts-tabs-btn-card">
-            <button className="cate-back-btn active-down-effect" onClick={() => router.back()}><IoArrowBackOutline className="icons" /></button>
-            <button className="page-content-type-button active-down-effect active max-w-50">Request a Payout</button>
+        <div
+          className="moneyboy-feed-page-container moneyboy-diff-content-wrappers"
+          data-scroll-zero
+          data-multiple-tabs-section
+          data-identifier="1"
+        >
+          <div
+            className="moneyboy-feed-page-cate-buttons card hide_mobile"
+            id="posts-tabs-btn-card"
+          >
+            <button
+              className="cate-back-btn active-down-effect"
+              onClick={() => router.back()}
+            >
+              <IoArrowBackOutline className="icons" />
+            </button>
+            <button className="page-content-type-button active-down-effect active max-w-50">
+              Request a Payout
+            </button>
           </div>
 
           <div className="tabs-content-wrapper-layout">
@@ -116,21 +162,27 @@ const RequestPayoutPage = () => {
               <div className="creator-content-filter-grid-container">
                 <div className="card filters-card-wrapper">
                   <div className="creator-content-cards-wrapper rqstpayout_containt">
-
                     <div className="history_wrap">
                       {/* <div className="rline">
                         <p>Total Earned</p>
                         <h3>$ 0</h3>
                       </div> */}
-                        <div className="rline">
+                      <div className="rline">
                         <p>Wallet Balance</p>
-                        <h3>$ {summary.walletBalance.toFixed(2)}</h3>
+                        <h3>
+                          ${" "}
+                          {InitialSummary?.walletBalance?.toFixed(2) ||
+                            summary.walletBalance.toFixed(2)}
+                        </h3>
                       </div>
-                      <div >
+                      <div>
                         <p className="small">Incoming</p>
-                        <h3 className="small">$ {summary.pendingPayout.toFixed(2)}</h3>
+                        <h3 className="small">
+                          ${" "}
+                          {InitialSummary?.pendingPayout?.toFixed(2) ||
+                            summary.pendingPayout.toFixed(2)}
+                        </h3>
                       </div>
-                    
                     </div>
 
                     <div>
@@ -150,7 +202,7 @@ const RequestPayoutPage = () => {
                       <div className="label-input">
                         <textarea
                           rows={3}
-                          placeholder="Lorem ipsum"
+                          placeholder="Note to admin (optional)"
                           value={note}
                           onChange={(e) => setNote(e.target.value)}
                         ></textarea>
@@ -168,15 +220,43 @@ const RequestPayoutPage = () => {
                       />
                     </div>
 
+                    {Number(amount) > walletBalance && (
+                      <p style={{ color: "red", fontSize: "12px" }}>
+                        Amount exceeds wallet balance
+                      </p>
+                    )}
+
                     <div className="btm_btn">
-                      <button className="btn-txt-gradient" onClick={submitPayout}>
+                      {/* <button
+                        className="btn-txt-gradient"
+                        onClick={submitPayout}
+                        disabled={isInvalidAmount}
+                        style={{
+                          opacity: isInvalidAmount ? 0.5 : 1,
+                          cursor: isInvalidAmount ? "not-allowed" : "pointer",
+                        }}
+                      >
                         <span>Submit</span>
+                      </button> */}
+                      <button
+                        className="btn-txt-gradient"
+                        onClick={submitPayout}
+                        disabled={isInvalidAmount || isSubmitting}
+                        style={{
+                          opacity: isInvalidAmount || isSubmitting ? 0.5 : 1,
+                          cursor:
+                            isInvalidAmount || isSubmitting
+                              ? "not-allowed"
+                              : "pointer",
+                        }}
+                      >
+                        <span>{isSubmitting ? "Processing..." : "Submit"}</span>
                       </button>
+
                       {/* <button className="btn-danger" onClick={()=>router.back()}>
                         Cancel
                       </button> */}
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -187,7 +267,7 @@ const RequestPayoutPage = () => {
 
       <Featuredboys />
     </div>
-  )
-}
+  );
+};
 
 export default RequestPayoutPage;

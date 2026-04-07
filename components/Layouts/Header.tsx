@@ -306,7 +306,6 @@ useEffect(() => {
     }
   }, [session?.isAuthenticated, dispatch]);
 
-  console.log(session, "session=============================");
 
   return (
     <>

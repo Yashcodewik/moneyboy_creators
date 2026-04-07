@@ -1,4 +1,3 @@
-// redux/store.ts
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, TypedUseSelectorHook, useSelector } from "react-redux";
 
@@ -31,7 +30,7 @@ const storage =
 const persistConfig = {
   key: "money_boy",
   storage,
-  whitelist: ["auth", "subscription", "feedPosts"] 
+  whitelist: ["auth", "subscription", "feedPosts","wallet"], // Only persist these slices
 
 };
 

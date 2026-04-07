@@ -1,16 +1,28 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchWallet, addWalletFunds } from "./Action";
+import { fetchWallet, addWalletFunds, fetchTransactions } from "./Action";
 
 interface WalletState {
   balance: number;
+
+  transactions: any[];
+  summary: any;
+
   loading: boolean;
+  transactionLoading: boolean;
+
   addingFunds: boolean;
   error: string | null;
 }
 
 const initialState: WalletState = {
   balance: 0,
+
+  transactions: [],
+  summary: null,
+
   loading: false,
+  transactionLoading: false,
+
   addingFunds: false,
   error: null,
 };
@@ -18,7 +30,19 @@ const initialState: WalletState = {
 const walletSlice = createSlice({
   name: "wallet",
   initialState,
-  reducers: {},
+  reducers: {
+    deductBalance: (state, action) => {
+      const amount = action.payload;
+
+      // update balance
+      state.balance -= amount;
+
+      // update summary also
+      if (state.summary) {
+        state.summary.walletBalance -= amount;
+      }
+    },
+  },
 
   extraReducers: (builder) => {
     /* ---------- Fetch Wallet ---------- */
@@ -50,7 +74,35 @@ const walletSlice = createSlice({
         state.addingFunds = false;
         state.error = action.payload as string;
       });
+
+    /* ---------- Fetch Transactions ---------- */
+    builder
+      .addCase(fetchTransactions.pending, (state) => {
+        state.transactionLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchTransactions.fulfilled, (state, action) => {
+        state.transactionLoading = false;
+
+        const newTransactions = action.payload?.data || [];
+
+        const isSame =
+          state.transactions.length === newTransactions.length &&
+          state.transactions[0]?._id === newTransactions[0]?._id;
+
+        if (!isSame) {
+          state.transactions = newTransactions;
+        }
+
+        state.summary = action.payload?.summary || null;
+      })
+      .addCase(fetchTransactions.rejected, (state, action) => {
+        state.transactionLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
+
+export const { deductBalance } = walletSlice.actions;
 
 export default walletSlice.reducer;
