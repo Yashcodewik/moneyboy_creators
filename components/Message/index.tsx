@@ -454,12 +454,12 @@ useEffect(() => {
     if (!activeThreadId || !activeUser?.id) return;
 
     const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
+    const isVideo = file.type === "video/mp4";
 
-    if (!isImage && !isVideo) {
-      toast.error("Please select an image or video file");
-      return;
-    }
+   if (!isImage && !isVideo) {
+  toast.error("Only images and MP4 videos are allowed");
+  return;
+}
 
     if (file.size > 100 * 1024 * 1024) {
       toast.error("File must be less than 100MB");
@@ -558,6 +558,9 @@ useEffect(() => {
   const handleAcceptPPV = async (ppvId: string) => {
     try {
       await apiPost({ url: `subscription/accept/${ppvId}`, values: {} });
+       if (activeThreadId) {
+      await dispatch(fetchMessages(activeThreadId));
+    }
       toast.success("PPV accepted!");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to accept");
@@ -583,9 +586,9 @@ useEffect(() => {
         return !file.type.startsWith("image/");
       }
 
-      if (normalizedRequestType === "VIDEO") {
-        return !file.type.startsWith("video/");
-      }
+     if (normalizedRequestType === "VIDEO") {
+      return file.type !== "video/mp4";
+    }
 
       return !file.type.startsWith("image/") && !file.type.startsWith("video/");
     });
@@ -1580,7 +1583,7 @@ useEffect(() => {
                                                   {msg.ppvRequestId.status ===
                                                     "PAID"
                                                     ? "Delivered Media"
-                                                    : "Reference File"}
+                                                    : "Preview"}
                                                 </h3>
 
                                                 <div className="upload-wrapper">
@@ -1654,11 +1657,22 @@ useEffect(() => {
                                                       ),
                                                     )}
 
-                                                  {msg.ppvRequestId.status !==
-                                                    "PAID" && (
-                                                      <>
-                                                        {msg.ppvRequestId
-                                                          .referenceFile ? (
+                                                 {msg.ppvRequestId.status === "MEDIA_UPLOADED" ? (
+                                                    // Show uploaded media as preview for creator
+                                                    msg.ppvRequestId.deliveredMedia?.map((url: string, i: number) => (
+                                                      <div className="img_wrap" key={i}>
+                                                        {msg.ppvRequestId.type === "PHOTO" ? (
+                                                          <PhotoView src={url}>
+                                                            <img src={url} className="img-fluid upldimg" alt="preview" style={{ cursor: "zoom-in" }} />
+                                                          </PhotoView>
+                                                        ) : (
+                                                          <video src={url} className="img-fluid upldimg" controls />
+                                                        )}
+                                                      </div>
+                                                    ))
+                                                  ) : msg.ppvRequestId.status !== "PAID" && (
+                                                    <>
+                                                      {msg.ppvRequestId.referenceFile ? (
                                                           <>
                                                             {msg.ppvRequestId
                                                               .type === "PHOTO" && (
@@ -1908,7 +1922,7 @@ useEffect(() => {
                                           ref={fileInputRef}
                                           type="file"
                                           hidden
-                                          accept="image/*,video/*"
+                                          accept="image/*,video/mp4"
                                           onChange={handleFileSelect}
                                           disabled={
                                             !activeThreadId || !activeUser?.id
