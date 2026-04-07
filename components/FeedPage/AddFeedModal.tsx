@@ -534,6 +534,13 @@ val = Math.max(5, remainingForLast);
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
+      const mp4Files = files.filter(file => file.type === "video/mp4");
+
+  if (mp4Files.length !== files.length) {
+    showError("Only MP4 videos are allowed");
+    return;
+  }
     const remainingSlots = 3 - videoCount;
     if (remainingSlots <= 0) {
       showError("You can upload maximum 3 videos");
@@ -1174,7 +1181,7 @@ val = Math.max(5, remainingForLast);
                   type="file"
                   ref={videoInputRef}
                   hidden
-                  accept="video/*"
+                 accept="video/mp4"
                   multiple
                   onChange={handleVideoChange}
                 />

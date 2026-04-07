@@ -38,32 +38,39 @@ const WalletTransactionsPage = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const initialTab =
-    searchParams.get("tab") === "orders"
-      ? "orders"
-      : searchParams.get("tab") === "payments"
-        ? "payments"
-        : "wallet";
+const tabParam = searchParams.get("tab");
+const initialTab =
+  tabParam === "earnings"
+    ? "earnings"
+    : tabParam === "spending"
+    ? "spending"
+    : tabParam === "orders"
+    ? "orders"
+    : tabParam === "payouts"
+    ? "payouts"
+    : "earnings"; // default
   const [activeTab, setActiveTab] = useState<
-    "wallet" | "orders" | "payments" | "details"
+    "earnings" | "spending" | "orders" | "payouts" | "details"
   >(initialTab);
+  
 
   useEffect(() => {
     if (!session?.user?.role) return;
 
     if (session.user.role === 2) {
       // CREATOR
-      if (activeTab === "wallet") setMode("earnings");
+      if (activeTab === "earnings") setMode("earnings");
+      if (activeTab === "spending") setMode("expenses");
       if (activeTab === "orders") setMode("sales");
-      if (activeTab === "payments") setMode("received");
+      if (activeTab === "payouts") setMode("sent");
     }
 
     if (session.user.role === 1) {
       // USER
-      if (activeTab === "wallet") setMode("expenses");
+      if (activeTab === "spending") setMode("expenses");
       if (activeTab === "orders") setMode("purchases");
-      if (activeTab === "payments") setMode("sent");
+
+      if (activeTab === "payouts") setMode("");
     }
 
     setPage(1);
@@ -73,6 +80,16 @@ const WalletTransactionsPage = () => {
   useEffect(() => {
     setPage(1);
   }, [activeTab, mode]);
+  const getApiTab = () => {
+  if (activeTab === "earnings" || activeTab === "spending") {
+    return "wallet";
+  }
+
+  if (activeTab === "orders") return "orders";
+  if (activeTab === "payouts") return "payments";
+
+  return "wallet";
+};
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -87,7 +104,7 @@ const WalletTransactionsPage = () => {
     ],
     queryFn: () => {
       const params = new URLSearchParams({
-        tab: activeTab,
+        tab: getApiTab(),
         mode: mode,
       });
 
@@ -103,7 +120,7 @@ const WalletTransactionsPage = () => {
         searchText,
       });
     },
-    enabled: !!mode,
+    enabled: true,
   });
 
   const transactions = data?.data || [];
@@ -115,15 +132,15 @@ const WalletTransactionsPage = () => {
 
   const getModeOptions = () => {
     // WALLET
-    if (activeTab === "wallet") {
-      if (session?.user?.role === 2) {
-        return [
-          { label: "Earnings", value: "earnings" },
-          { label: "Expenses", value: "expenses" },
-        ];
-      }
-      return [{ label: "Expenses", value: "expenses" }];
-    }
+    // if (activeTab === "wallet") {
+    //   if (session?.user?.role === 2) {
+    //     return [
+    //       { label: "Earnings", value: "earnings" },
+    //       { label: "Expenses", value: "expenses" },
+    //     ];
+    //   }
+    //   return [{ label: "Expenses", value: "expenses" }];
+    // }
 
     // ORDERS
     if (activeTab === "orders") {
@@ -137,15 +154,15 @@ const WalletTransactionsPage = () => {
     }
 
     // PAYMENTS
-    if (activeTab === "payments") {
-      if (session?.user?.role === 2) {
-        return [
-          { label: "Deposit", value: "received" },
-          { label: "Payouts", value: "sent" },
-        ];
-      }
-      return [{ label: "Deposit", value: "received" }];
-    }
+    // if (activeTab === "payments") {
+    //   if (session?.user?.role === 2) {
+    //     return [
+    //       { label: "Deposit", value: "received" },
+    //       { label: "Payouts", value: "sent" },
+    //     ];
+    //   }
+    //   return [{ label: "Deposit", value: "received" }];
+    // }
     return [];
   };
 
@@ -154,15 +171,32 @@ const WalletTransactionsPage = () => {
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-            <button className={`page-content-type-button active-down-effect ${activeTab === "wallet" ? "active" : ""}`} onClick={() => setActiveTab("wallet")}>Wallet Transactions</button>
-            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}> Request Order History</button>
-            <button className={`page-content-type-button active-down-effect ${activeTab === "payments" ? "active" : ""}`} onClick={() => setActiveTab("payments")}>Payment History</button>
-          </div>
+            
+            <button className={`page-content-type-button active-down-effect ${activeTab === "spending" ? "active" : ""}`} onClick={() => setActiveTab("spending")}>Spending</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}> PPV Request History</button>
+            {session?.user?.role === 2 && (
+              <>
+              <button className={`page-content-type-button active-down-effect ${activeTab === "earnings" ? "active" : ""}`} onClick={() => setActiveTab("earnings")}>Earnings</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => setActiveTab("payouts")}>Payouts</button>
+            </>
+            )}
+            {session?.user?.role === 1 && (
+              <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => setActiveTab("payouts")}>Deposit</button>
+            )}
+            </div>
+          {activeTab === "orders" && (
+            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => setMode("purchases")}>Sent</button>
+              {session?.user?.role === 2 && (
+                <button className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`} onClick={() => setMode("sales")}>Received</button>
+              )}
+            </div>
+          )}
           <div className="tabs-content-wrapper-layout">
             <div data-multi-dem-cards-layout>
               <div className="creator-content-filter-grid-container">
                 <div className="card filters-card-wrapper">
-                  <div className="search-features-grid-btns has-multi-tabs-btns two-row-content-wrapper wthead_wrap">
+                  {/* <div className="search-features-grid-btns has-multi-tabs-btns two-row-content-wrapper wthead_wrap">
                     <div className="creator-content-search-input">
                       <div className="label-input">
                         <div className="input-placeholder-icon">
@@ -220,11 +254,6 @@ const WalletTransactionsPage = () => {
                             <span>{startDate ? startDate.toDateString() : "Start Date"}</span>
                             <svg className="icons calendarNoteSmall" />
                           </button>
-                          {/* {activeField === "start" && (
-                            <div className="calendar-dropdown">
-                              <DatePicker selected={startDate} onChange={(date: any) => {setStartDate(date); setPage(1); setActiveField(null);}} inline/>
-                            </div>
-                          )} */}
                           {activeField === "start" && (
                             <div className="calendar-dropdown" onClick={(e) => { if (e.target === e.currentTarget) setActiveField(null); }}>
                               <div className="calendar_show">
@@ -248,11 +277,11 @@ const WalletTransactionsPage = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                   {activeTab !== "details" && (
                     <div className="creator-content-cards-wrapper wtransactions_containt">
                       <div className="rel-users-wrapper">
-                        {session?.user?.role === 2 && activeTab === "wallet" && (
+                        {session?.user?.role === 2 && activeTab === "payouts" && (
                           <>
                             <div className="history_wrap">
                               {/* <div className="rline">
@@ -303,7 +332,7 @@ const WalletTransactionsPage = () => {
                             </div>
                           </>
                         )}
-                        {session?.user?.role === 1 && activeTab === "wallet" && (
+                        {session?.user?.role === 1 && activeTab === "payouts" && (
                           <div className="payout_wrap">
                             <div>
                               <p>Current Balance</p>
@@ -324,10 +353,17 @@ const WalletTransactionsPage = () => {
                         {transactions.map((txn: any) => {
                           const isIncoming =
                             txn.toUser?._id === session?.user?.id;
-                          const otherUser = isIncoming
-                            ? txn.fromUser
-                            : txn.toUser;
-                          const isPaymentTab = activeTab === "payments";
+                         let otherUser = null;
+
+                          if (txn.type === "ADD_FUNDS") {
+                            otherUser = {
+                              displayName: "Wallet Top-up",
+                            };
+                          } else {
+                            otherUser = isIncoming ? txn.fromUser : txn.toUser;
+                          }
+                            const isDeposit = txn.type === "ADD_FUNDS";
+                          const isPaymentTab = activeTab === "payouts";
 
                           return (
                             <div className="rel-user-box" key={txn._id}>
@@ -361,8 +397,16 @@ const WalletTransactionsPage = () => {
                                       <div className="profile-card__info">
                                         {!isPaymentTab && (
                                           <>
-                                            <div className="profile-card__username tphead">{isIncoming ? "From" : "To"}</div>
-                                            <div className="profile-card__name-badge"><div className="profile-card__name">{otherUser?.displayName}</div></div>
+                                            <div className="profile-card__username tphead">
+                                              {txn.type === "ADD_FUNDS"
+                                                ? "Added Funds"
+                                                : isIncoming
+                                                ? "From"
+                                                : "To"}
+                                            </div>
+                                            <div className="profile-card__name-badge">
+                                              <div className="profile-card__name">{otherUser?.displayName || "Wallet Top-up"}</div>
+                                            </div>
                                           </>
                                         )}
                                         <div className="profile-card__username">

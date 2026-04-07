@@ -1670,8 +1670,9 @@ useEffect(() => {
                   <div className="links-block">
                     <div className="menu-links-block-label">Wallet History</div>
                     <div className="menu-links-wrapper">
+                      {session?.user?.role === 2 && (
                       <a
-                        href="/wallet-transactions?tab=wallet"
+                        href="/wallet-transactions?tab=earnings"
                         className="menu-link wallet-transactions-link"
                       >
                         <svg
@@ -1710,7 +1711,50 @@ useEffect(() => {
                             strokeLinejoin="round"
                           />
                         </svg>
-                        <span>Wallet Transactions</span>
+                        <span>Earnings</span>
+                      </a>
+                      )}
+                      <a
+                        href="/wallet-transactions?tab=spending"
+                        className="menu-link wallet-transactions-link"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="25"
+                          viewBox="0 0 24 25"
+                          fill="none"
+                        >
+                          <path
+                            d="M18.04 14.2643C17.62 14.6743 17.38 15.2643 17.44 15.8943C17.53 16.9743 18.52 17.7643 19.6 17.7643H21.5V18.9543C21.5 21.0243 19.81 22.7143 17.74 22.7143H6.26C4.19 22.7143 2.5 21.0243 2.5 18.9543V12.2243C2.5 10.1543 4.19 8.46429 6.26 8.46429H17.74C19.81 8.46429 21.5 10.1543 21.5 12.2243V13.6643H19.48C18.92 13.6643 18.41 13.8843 18.04 14.2643Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M2.5 13.1243V8.55434C2.5 7.36434 3.23 6.30429 4.34 5.88429L12.28 2.88429C13.52 2.41429 14.85 3.33432 14.85 4.66432V8.46431"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M22.5588 14.6844V16.7445C22.5588 17.2945 22.1188 17.7445 21.5588 17.7645H19.5988C18.5188 17.7645 17.5288 16.9745 17.4388 15.8945C17.3788 15.2645 17.6188 14.6745 18.0388 14.2645C18.4088 13.8845 18.9188 13.6645 19.4788 13.6645H21.5588C22.1188 13.6845 22.5588 14.1344 22.5588 14.6844Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M7 12.7143H14"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Spending</span>
                       </a>
                       <a
                         href="wallet-transactions?tab=orders"
@@ -1754,10 +1798,11 @@ useEffect(() => {
                             strokeLinejoin="round"
                           />
                         </svg>
-                        <span>Order History</span>
+                        <span>PPV Requests</span>
                       </a>
+                        {session?.user?.role === 2 && (
                       <a
-                        href="wallet-transactions?tab=payments"
+                        href="wallet-transactions?tab=payouts"
                         className="menu-link payment-history-link"
                       >
                         <svg
@@ -1798,8 +1843,55 @@ useEffect(() => {
                             strokeLinejoin="round"
                           />
                         </svg>
-                        <span>Payment History</span>
+                        <span>Payouts</span>
                       </a>
+                        )}
+                           {session?.user?.role === 1 && (
+                      <a
+                        href="wallet-transactions?tab=payouts"
+                        className="menu-link payment-history-link"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="25"
+                          viewBox="0 0 24 25"
+                          fill="none"
+                        >
+                          <path
+                            d="M22 6.71429V9.13429C22 10.7143 21 11.7143 19.42 11.7143H16V4.72429C16 3.61429 16.91 2.71429 18.02 2.71429C19.11 2.72429 20.11 3.16429 20.83 3.88429C21.55 4.61429 22 5.61429 22 6.71429Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeMiterlimit="10"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M2 7.71429V21.7143C2 22.5443 2.93998 23.0143 3.59998 22.5143L5.31 21.2343C5.71 20.9343 6.27 20.9743 6.63 21.3343L8.28998 23.0043C8.67998 23.3943 9.32002 23.3943 9.71002 23.0043L11.39 21.3243C11.74 20.9743 12.3 20.9343 12.69 21.2343L14.4 22.5143C15.06 23.0043 16 22.5343 16 21.7143V4.71429C16 3.61429 16.9 2.71429 18 2.71429H7H6C3 2.71429 2 4.50429 2 6.71429V7.71429Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeMiterlimit="10"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M6 9.71429H12"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M6.75 13.7143H11.25"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Deposit</span>
+                      </a>
+                        )}
                     </div>
                   </div>
 
