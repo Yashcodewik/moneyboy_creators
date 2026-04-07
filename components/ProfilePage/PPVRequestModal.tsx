@@ -11,7 +11,7 @@ import * as Yup from "yup";
 import { useAppDispatch } from "@/redux/store";
 import { fetchWallet } from "@/redux/wallet/Action";
 import { useRouter } from "next/navigation";
-import { showError } from "@/utils/alert";
+import { showError, showQuestion } from "@/utils/alert";
 import Modal from "../Modal";
 
 const validationSchema = Yup.object({
@@ -88,6 +88,17 @@ const PPVRequestModal = ({ show, onClose, creator, post, onSuccess, }: PPVReques
     validationSchema,
 
     onSubmit: async (values) => {
+      const confirmed = await showQuestion(
+        `By sending this request, the amount will be charged from your wallet or selected payment method.<br/><br/>
+        If the creator does not deliver the content within the agreed time, the payment will not be charged or will be refunded.`,
+        "Yes, Send It",
+        "No, Cancel",
+        true
+      );
+
+      if (!confirmed) return; //  Stop if user clicks cancel
+
+      // 🔥 STEP 2: Continue normally
       setLoading(true);
 
       const formData = new FormData();
@@ -100,6 +111,7 @@ const PPVRequestModal = ({ show, onClose, creator, post, onSuccess, }: PPVReques
       if (mediaPreview?.file) {
         formData.append("file", mediaPreview.file);
       }
+
       const res = await apiPost({
         url: API_CREATE_PPV_REQUEST,
         values: formData,
@@ -108,8 +120,6 @@ const PPVRequestModal = ({ show, onClose, creator, post, onSuccess, }: PPVReques
       setLoading(false);
 
       if (res?.success) {
-
-        // refresh wallet instantly if wallet payment
         if (paymentMethod === "wallet") {
           dispatch(fetchWallet());
         }
@@ -118,9 +128,10 @@ const PPVRequestModal = ({ show, onClose, creator, post, onSuccess, }: PPVReques
           amount: Number(values.offerPrice),
           threadPublicId: res.threadPublicId,
         });
+
         router.push(`/message?threadId=${res.threadPublicId}`);
       }
-    },
+    }
   });
 
   const [cards, setCards] = useState<any[]>([]);
