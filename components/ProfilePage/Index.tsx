@@ -721,25 +721,34 @@ const ProfilePage = () => {
           values: { postId },
         });
 
-        if (res?.success) {
-          showSuccess("Post deleted successfully");
+   if (res?.success) {
+  showSuccess("Post deleted successfully");
 
-          queryClient.setQueryData(
-            ["creator-posts", username, search, timeFilter],
-            (oldData: any) => {
-              if (!oldData) return oldData;
-              return {
-                ...oldData,
-                posts: oldData.posts.filter((p: any) => p._id !== postId),
-              };
-            },
-          );
+  // ✅ remove from UI instantly
+  queryClient.setQueryData(
+    ["creator-posts", username, search, timeFilter],
+    (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        posts: oldData.posts.filter((p: any) => p._id !== postId),
+      };
+    }
+  );
 
-          // optional safety refetch
-          queryClient.invalidateQueries({
-            queryKey: ["creator-posts"],
-          });
-        } else {
+  // ✅ refresh posts
+  queryClient.invalidateQueries({
+    queryKey: ["creator-posts"],
+  });
+
+  // ✅ refresh profile (post count)
+  queryClient.invalidateQueries({
+    queryKey: ["creator-profile", username],
+  });
+
+  // ✅ refresh sidebar counts
+  dispatch(fetchFollowerCounts());
+} else {
           showError(res?.message || "Failed to delete post");
         }
       } catch (err) {

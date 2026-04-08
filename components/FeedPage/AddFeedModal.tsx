@@ -39,6 +39,8 @@ import { showSuccess, showError, showQuestion } from "@/utils/alert";
 import { fetchFeedPosts, resetFeedPosts } from "@/redux/other/feedPostsSlice";
 import { useAppDispatch } from "@/redux/store";
 import Modal from "../Modal";
+import { useQueryClient } from "@tanstack/react-query";
+import { fetchFollowerCounts } from "@/redux/other/followActions";
 
 const accessContentMap = {
   subscriber: {
@@ -155,9 +157,11 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const [showRecorder, setShowRecorder] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [creatorManuallySet, setCreatorManuallySet] = useState(false);
@@ -530,12 +534,21 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
-    const mp4Files = files.filter((file) => file.type === "video/mp4");
+ const allowedTypes = [
+  "video/mp4",
+  "video/webm",
+  "video/ogg",
+  "video/quicktime", // .mov
+];
 
-    if (mp4Files.length !== files.length) {
-      showError("Only MP4 videos are allowed");
-      return;
-    }
+const validFiles = files.filter((file) =>
+  allowedTypes.includes(file.type)
+);
+
+if (validFiles.length !== files.length) {
+  showError("Allowed formats: MP4, WEBM, OGG, MOV");
+  return;
+}
     const remainingSlots = 3 - videoCount;
     if (remainingSlots <= 0) {
       showError("You can upload maximum 3 videos");
@@ -673,10 +686,25 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           : "photo";
         formData.append("mediaType", finalMediaType);
 
-        const res = await apiPostWithMultiForm({
-          url: API_CREATE_POST,
-          values: formData,
-        });
+        setUploadProgress(1);
+
+
+const res = await apiPostWithMultiForm({
+  url: API_CREATE_POST,
+  values: formData,
+onUploadProgress: (progressEvent) => {
+  const percent = Math.round(
+    (progressEvent.loaded * 100) / (progressEvent.total || 1)
+  );
+
+  setTimeout(() => {
+    setUploadProgress((prev) => {
+      if (percent > prev) return percent;
+      return prev;
+    });
+  }, 50);
+},
+});
         if (!res?.success) {
           // ← Catch the backend subscription error and show custom popup
           if (res?.message?.toLowerCase().includes("subscription")) {
@@ -702,6 +730,16 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
             limit: 10,
           }),
         );
+        queryClient.invalidateQueries({
+          queryKey: ["creator-posts"],
+          exact: false,
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: ["creator-profile"],
+        });
+
+        dispatch(fetchFollowerCounts());
 
         const postId = res?.post?._id || res?.postId;
         if (!postId) {
@@ -759,8 +797,12 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         console.error(error);
         showError("An error occurred while creating post");
       } finally {
-        setIsSubmitting(false);
-      }
+  setTimeout(() => {
+    setUploadProgress(0);
+  }, 1500); // 👈 keep visible for 1.5 sec
+
+  setIsSubmitting(false);
+}
     },
   });
 
@@ -1198,7 +1240,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                   type="file"
                   ref={videoInputRef}
                   hidden
-                  accept="video/mp4"
+                  accept="video/mp4,video/webm,video/ogg,video/quicktime"
                   multiple
                   onChange={handleVideoChange}
                 />
@@ -1289,6 +1331,30 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                     </button>
                   </li>
                 </ul>
+
+                {uploadProgress > 0 && (
+  <div style={{ marginTop: 10 }}>
+    <p>
+      {uploadProgress === 100
+        ? "Processing..."
+        : `Uploading: ${uploadProgress}%`}
+    </p>
+
+    <div style={{
+      width: "100%",
+      height: "6px",
+      background: "#eee",
+      borderRadius: "5px"
+    }}>
+      <div style={{
+        width: `${uploadProgress}%`,
+        height: "100%",
+        background: "#fece26",
+        transition: "0.3s"
+      }} />
+    </div>
+  </div>
+)}
                 <button
                   type="submit"
                   data-tooltip={

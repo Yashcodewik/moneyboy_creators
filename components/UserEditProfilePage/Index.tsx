@@ -224,8 +224,12 @@ const UserEditProfilePage = () => {
       setLoading(true);
       const payload = new FormData();
 
-      (Object.keys(formData) as (keyof FormData)[]).forEach((key) => {
+          (Object.keys(formData) as (keyof FormData)[]).forEach((key) => {
         const value = formData[key];
+
+        // ❌ skip dob here
+        if (key === "dob") return;
+
         if (value !== undefined && value !== "") {
           payload.append(key, value);
         }
