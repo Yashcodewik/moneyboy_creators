@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getApiByParams } from "@/utils/endpoints/common";
 import { API_GET_CMS_PAGE } from "@/utils/api/APIConstant";
+import parse from "html-react-parser";
 
 const FrequentlyQuestions = () => {
   const router = useRouter();
@@ -33,26 +34,49 @@ const FrequentlyQuestions = () => {
     fetchCmsPage();
   }, []);
 
-const splitContent = () => {
-  if (!cmsData?.content) return { top: "", bottom: "" };
+  const splitContent = () => {
+    if (!cmsData?.content) return { top: "", bottom: "" };
 
-  // normalize content (remove &nbsp;)
-  const cleanContent = cmsData.content.replace(/&nbsp;/g, " ");
+    // normalize content (remove &nbsp;)
+    const cleanContent = cmsData.content.replace(/&nbsp;/g, " ");
 
-  // split ignoring case + flexible spacing
-  const parts = cleanContent.split(/<h3[^>]*>\s*final\s*note\s*<\/h3>/i);
+    // split ignoring case + flexible spacing
+    const parts = cleanContent.split(/<h3[^>]*>\s*final\s*note\s*<\/h3>/i);
 
-  if (parts.length < 2) {
-    return { top: cmsData.content, bottom: "" };
-  }
+    if (parts.length < 2) {
+      return { top: cmsData.content, bottom: "" };
+    }
 
-  return {
-    top: parts[0],
-    bottom: `<h3>Final Note</h3>${parts[1]}`
+    return {
+      top: parts[0],
+      bottom: `<h3>Final Note</h3>${parts[1]}`
+    };
   };
-};
 
-const { top, bottom } = splitContent();
+  const { top, bottom } = splitContent();
+
+  const cleanHtml = (html: string) => {
+    if (!html) return "";
+
+    let cleaned = html;
+
+    // ✅ remove &nbsp;
+    cleaned = cleaned.replace(/&nbsp;/g, " ");
+
+    // ✅ remove empty tags (p, div, h3, h4, span etc.)
+    cleaned = cleaned.replace(/<(\w+)[^>]*>\s*<\/\1>/g, "");
+
+    // ✅ remove multiple <br>
+    cleaned = cleaned.replace(/(<br\s*\/?>\s*){2,}/g, "<br/>");
+
+    // ✅ remove wrapper div ONLY if it wraps everything
+    if (/^<div[^>]*>[\s\S]*<\/div>$/.test(cleaned)) {
+      cleaned = cleaned.replace(/^<div[^>]*>/i, "").replace(/<\/div>$/i, "");
+    }
+
+    return cleaned.trim();
+  };
+
 
   return (
     <div className="container">
@@ -84,16 +108,12 @@ const { top, bottom } = splitContent();
                 {!loading && cmsData && (
                   <>
                     {/* ✅ HEADER CONTENT */}
-                   <div
-  dangerouslySetInnerHTML={{
-    __html: top,
-  }}
-/>
+                    {parse(cleanHtml(top))}
 
                     {/* ✅ FAQ SECTIONS */}
                     {cmsData?.faqs?.map((section: any, i: number) => (
                       <React.Fragment key={i}>
-                        
+
                         {/* CATEGORY */}
                         <h3>{section.category}</h3>
 
@@ -101,10 +121,10 @@ const { top, bottom } = splitContent();
                           const key = `${i}-${j}`;
 
                           return (
-                           <div
-  className={`accordion ${openIndex === key ? "show" : ""}`}
-  key={key}
->
+                            <div
+                              className={`accordion ${openIndex === key ? "show" : ""}`}
+                              key={key}
+                            >
 
                               <div
                                 className="accordion_head"
@@ -122,7 +142,7 @@ const { top, bottom } = splitContent();
                                 <div
                                   className="accordion_body"
                                   dangerouslySetInnerHTML={{
-                                    __html: item.answer,
+                                    __html: cleanHtml(item.answer),
                                   }}
                                 />
                               )}
@@ -133,13 +153,7 @@ const { top, bottom } = splitContent();
                       </React.Fragment>
                     ))}
 
-                    {bottom && (
-  <div
-    dangerouslySetInnerHTML={{
-      __html: bottom,
-    }}
-  />
-)}
+                    {bottom && parse(cleanHtml(bottom))}
                   </>
                 )}
 
