@@ -15,7 +15,7 @@
    overflow: auto;
    /* overflow-y: scroll; */
    background: #F4F4F4;
-   scrollbar-gutter: stable both-edges;
+   /* scrollbar-gutter: stable both-edges; */
 
    /* Enables scrolling for the primary page content area */
    .header-main {
@@ -89,7 +89,7 @@
                      width: 28px;
                      height: auto;
                      path {
-                        stroke: #505050;
+                        stroke: #FFF;
                      }
                   }
                }

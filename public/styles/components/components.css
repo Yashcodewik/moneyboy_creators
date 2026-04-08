@@ -2808,6 +2808,27 @@
                justify-content: center;
                align-items: center;
                gap: 6px;
+               .icons_badge {
+                position: relative;
+                .badge {
+                  min-width: 16px;
+                  height: 16px;
+                  border-radius: 50%;
+                  justify-content: center;
+                  align-items: center;
+                  padding: 0 3px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  line-height: 1;
+                  display: flex;
+                  position: absolute;
+                  top: -3px;
+                  right: -3px;
+                  border: 1.5px solid #fff;
+                  color: var(--color-secondary);
+                  background-color: var(--color-text-active);
+                }
+               }
  
                svg {
                  width: 24px;
@@ -2838,7 +2859,7 @@
                     width: 40px;
                     height: auto;
                     path {
-
+                      stroke: #FFF;
                     }
                   }
              }

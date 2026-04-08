@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, useAppDispatch } from "@/redux/store";
 import { fetchTransactions, fetchWallet } from "@/redux/wallet/Action";
 import { deductBalance } from "@/redux/wallet/Slice";
+import { CircleQuestionMark } from "lucide-react";
 
 const RequestPayoutPage = () => {
   const router = useRouter();
@@ -167,139 +168,36 @@ const RequestPayoutPage = () => {
                         <p>Total Earned</p>
                         <h3>$ 0</h3>
                       </div> */}
-                      <div className="rline">
-                        <p>
-                          Available Balance
-                          <span
-                            style={{ position: "relative", cursor: "pointer" }}
-                            onMouseEnter={(e) => {
-                              const tooltip = e.currentTarget.querySelector(
-                                ".tooltip-box",
-                              ) as HTMLElement;
-                              if (tooltip) tooltip.style.opacity = "1";
-                            }}
-                            onMouseLeave={(e) => {
-                              const tooltip = e.currentTarget.querySelector(
-                                ".tooltip-box",
-                              ) as HTMLElement;
-                              if (tooltip) tooltip.style.opacity = "0";
-                            }}
-                          >
-                            ⓘ
-                            <span
-                              className="tooltip-box"
-                              style={{
-                                position: "absolute",
-                                bottom: "130%",
-                                left: "50%",
-                                transform: "translateX(-50%)",
-                                background: "#222",
-                                color: "#fff",
-                                padding: "6px 8px",
-                                borderRadius: "6px",
-                                fontSize: "11px",
-                                whiteSpace: "nowrap",
-                                opacity: 0,
-                                pointerEvents: "none",
-                                transition: "0.2s ease",
-                                zIndex: 999,
-                              }}
-                            >
-                              Money ready to withdraw or use.
-                            </span>
-                          </span>
-                        </p>
-
+                      <div className="small rline">
+                        <div className="btntooltip_wrapper justify-center w-full">
+                          <p className="flex items-center gap-5">Available Balance<button className="inline-flex" data-tooltip="Money ready to withdraw or use."> <CircleQuestionMark size={13} /></button></p>
+                        </div>
                         <h3>$ {InitialSummary?.walletBalance?.toFixed(2) || summary.walletBalance.toFixed(2)}</h3>
                       </div>
-                      <div>
-                        <p className="small">
-                          Pending Earnings
-                          <span
-                            style={{ position: "relative", cursor: "pointer" }}
-                            onMouseEnter={(e) => {
-                              const tooltip = e.currentTarget.querySelector(
-                                ".tooltip-box",
-                              ) as HTMLElement;
-                              if (tooltip) tooltip.style.opacity = "1";
-                            }}
-                            onMouseLeave={(e) => {
-                              const tooltip = e.currentTarget.querySelector(
-                                ".tooltip-box",
-                              ) as HTMLElement;
-                              if (tooltip) tooltip.style.opacity = "0";
-                            }}
-                          >
-                            ⓘ
-                            <span
-                              className="tooltip-box"
-                              style={{
-                                position: "absolute",
-                                bottom: "130%",
-                                left: "50%",
-                                transform: "translateX(-50%)",
-                                background: "#222",
-                                color: "#fff",
-                                padding: "6px 8px",
-                                borderRadius: "6px",
-                                fontSize: "11px",
-                                whiteSpace: "nowrap",
-                                opacity: 0,
-                                pointerEvents: "none",
-                                transition: "0.2s ease",
-                                zIndex: 999,
-                              }}
-                            >
-                              Processing earnings. Available soon.
-                            </span>
-                          </span>
-                        </p>
-
-                        <h3 className="small">
-                          $ {InitialSummary?.pendingPayout?.toFixed(2) || summary.pendingPayout.toFixed(2)}
-                        </h3>
+                      <div className="small">
+                        <div className="btntooltip_wrapper justify-center w-full">
+                          <p className="flex items-center gap-5">Pending Earnings<button className="inline-flex" data-tooltip="Processing earnings. Available soon."> <CircleQuestionMark size={13} /></button></p>
+                        </div>
+                        <h3 className="small">$ {InitialSummary?.pendingPayout?.toFixed(2) || summary.pendingPayout.toFixed(2)}</h3>
                       </div>
                     </div>
-
                     <div>
                       <label>Requested amount</label>
                       <div className="label-input">
-                        <input
-                          type="number"
-                          placeholder="Enter the Value"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                        />
+                        <input type="number" placeholder="Enter the Value" value={amount} onChange={(e) => setAmount(e.target.value)} />
                       </div>
                     </div>
-
                     <div>
                       <label>Note to admin</label>
                       <div className="label-input">
-                        <textarea
-                          rows={3}
-                          placeholder="Note to admin (optional)"
-                          value={note}
-                          onChange={(e) => setNote(e.target.value)}
-                        ></textarea>
+                        <textarea rows={3} placeholder="Note to admin (optional)" value={note} onChange={(e) => setNote(e.target.value)}></textarea>
                       </div>
                     </div>
-
                     <div>
-                      <CustomSelect
-                        label="Banking"
-                        placeholder="Select payout method"
-                        icon={<BsBank2 size={14} />}
-                        options={options}
-                        value={selectedMethod}
-                        onChange={(val: any) => setSelectedMethod(val)}
-                      />
+                      <CustomSelect label="Banking" placeholder="Select payout method" icon={<BsBank2 size={14} />} options={options} value={selectedMethod} onChange={(val: any) => setSelectedMethod(val)} />
                     </div>
-
                     {Number(amount) > walletBalance && (
-                      <p style={{ color: "red", fontSize: "12px" }}>
-                        Amount exceeds wallet balance
-                      </p>
+                      <p style={{ color: "red", fontSize: "12px" }}>Amount exceeds wallet balance</p>
                     )}
 
                     <div className="btm_btn">
@@ -314,21 +212,7 @@ const RequestPayoutPage = () => {
                       >
                         <span>Submit</span>
                       </button> */}
-                      <button
-                        className="btn-txt-gradient"
-                        onClick={submitPayout}
-                        disabled={isInvalidAmount || isSubmitting}
-                        style={{
-                          opacity: isInvalidAmount || isSubmitting ? 0.5 : 1,
-                          cursor:
-                            isInvalidAmount || isSubmitting
-                              ? "not-allowed"
-                              : "pointer",
-                        }}
-                      >
-                        <span>{isSubmitting ? "Processing..." : "Submit"}</span>
-                      </button>
-
+                      <button className="btn-txt-gradient" onClick={submitPayout} disabled={isInvalidAmount || isSubmitting} style={{ opacity: isInvalidAmount || isSubmitting ? 0.5 : 1, cursor: isInvalidAmount || isSubmitting ? "not-allowed" : "pointer", }}><span>{isSubmitting ? "Processing..." : "Submit"}</span></button>
                       {/* <button className="btn-danger" onClick={()=>router.back()}>
                         Cancel
                       </button> */}

@@ -10,6 +10,7 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 import { useAppDispatch } from "@/redux/store";
 import { useSelector } from "react-redux";
 import { fetchTransactions } from "@/redux/wallet/Action";
+import { CircleQuestionMark } from "lucide-react";
 
 const WalletTransactionsPage = () => {
   const isMobile = useDeviceType();
@@ -95,72 +96,25 @@ const WalletTransactionsPage = () => {
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-        <div
-          className="moneyboy-feed-page-container moneyboy-diff-content-wrappers"
-          data-scroll-zero
-          data-multiple-tabs-section
-          data-identifier="1"
-        >
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            <button
-              className={`page-content-type-button active-down-effect ${activeTab === "spending" ? "active" : ""}`}
-              onClick={() => setActiveTab("spending")}
-            >
-              Spending
-            </button>
-            <button
-              className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`}
-              onClick={() => setActiveTab("orders")}
-            >
-              {" "}
-              PPV Request History
-            </button>
+        <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
+          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             {session?.user?.role === 2 && (
-              <>
-                <button
-                  className={`page-content-type-button active-down-effect ${activeTab === "earnings" ? "active" : ""}`}
-                  onClick={() => setActiveTab("earnings")}
-                >
-                  Earnings
-                </button>
-                <button
-                  className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`}
-                  onClick={() => setActiveTab("payouts")}
-                >
-                  Payouts
-                </button>
-              </>
+              <button className={`page-content-type-button active-down-effect ${activeTab === "earnings" ? "active" : ""}`} onClick={() => setActiveTab("earnings")} >Earnings</button>
+            )}
+            <button className={`page-content-type-button active-down-effect ${activeTab === "spending" ? "active" : ""}`} onClick={() => setActiveTab("spending")}> Spending</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}> {" "} PPV Request History</button>
+            {session?.user?.role === 2 && (
+              <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => setActiveTab("payouts")}>Payouts</button>
             )}
             {session?.user?.role === 1 && (
-              <button
-                className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`}
-                onClick={() => setActiveTab("payouts")}
-              >
-                Deposit
-              </button>
+              <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => setActiveTab("payouts")} > Deposit </button>
             )}
           </div>
           {activeTab === "orders" && (
-            <div
-              className="moneyboy-feed-page-cate-buttons card"
-              id="posts-tabs-btn-card"
-            >
-              <button
-                className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`}
-                onClick={() => setOrderType("purchases")}
-              >
-                Sent
-              </button>
+            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => setOrderType("purchases")}>Sent</button>
               {session?.user?.role === 2 && (
-                <button
-                  className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`}
-                  onClick={() => setOrderType("sales")}
-                >
-                  Received
-                </button>
+                <button className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`} onClick={() => setOrderType("sales")}>Received</button>
               )}
             </div>
           )}
@@ -181,110 +135,20 @@ const WalletTransactionsPage = () => {
                               <>
                                 <div className="history_wrap">
                                   <div className="rline">
-                                    <p >
-                                      Available Balance
-
-                                      <span
-                                        style={{ position: "relative", cursor: "pointer" }}
-                                        onMouseEnter={(e) => {
-                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-                                          if (t) t.style.opacity = "1";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-                                          if (t) t.style.opacity = "0";
-                                        }}
-                                      >
-                                        ⓘ
-
-                                        <span
-                                          className="tooltip-box"
-                                          style={{
-                                            position: "absolute",
-                                            bottom: "130%",
-                                            left: "50%",
-                                            transform: "translateX(-50%)",
-                                            background: "#222",
-                                            color: "#fff",
-                                            padding: "6px 8px",
-                                            borderRadius: "6px",
-                                            fontSize: "11px",
-                                            whiteSpace: "nowrap",
-                                            opacity: 0,
-                                            pointerEvents: "none",
-                                            transition: "0.2s ease",
-                                            zIndex: 999,
-                                          }}
-                                        >
-                                          Money ready to withdraw or use.
-                                        </span>
-                                      </span>
-                                    </p>
-
-                                    <h3>
-                                      ${" "}
-                                      {summary?.walletBalance?.toFixed(2) || "0.00"}
-                                    </h3>
+                                    <div className="btntooltip_wrapper justify-center w-full">
+                                      <p className="flex items-center gap-5">Available Balance<button className="inline-flex" data-tooltip="Money ready to withdraw or use."> <CircleQuestionMark size={13} /></button></p>
+                                    </div>
+                                    <h3>${" "} {summary?.walletBalance?.toFixed(2) || "0.00"}</h3>
                                   </div>
                                   <div className="small">
-                                    <p
-
-                                    >
-                                      Pending Earnings
-
-                                      <span
-                                        style={{ position: "relative", cursor: "pointer" }}
-                                        onMouseEnter={(e) => {
-                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-                                          if (t) t.style.opacity = "1";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          const t = e.currentTarget.querySelector(".tooltip-box") as HTMLElement;
-                                          if (t) t.style.opacity = "0";
-                                        }}
-                                      >
-                                        ⓘ
-
-                                        <span
-                                          className="tooltip-box"
-                                          style={{
-                                            position: "absolute",
-                                            bottom: "130%",
-                                            left: "50%",
-                                            transform: "translateX(-50%)",
-                                            background: "#222",
-                                            color: "#fff",
-                                            padding: "6px 8px",
-                                            borderRadius: "6px",
-                                            fontSize: "11px",
-                                            whiteSpace: "nowrap",
-                                            opacity: 0,
-                                            pointerEvents: "none",
-                                            transition: "0.2s ease",
-                                            zIndex: 999,
-                                          }}
-                                        >
-                                          Processing earnings. Available soon.
-                                        </span>
-                                      </span>
-                                    </p>
-
-                                    <h3 className="small">
-                                      ${" "}
-                                      {summary?.totalReviewAmount?.toFixed(2) || "0.00"}
-                                    </h3>
+                                    <div className="btntooltip_wrapper justify-center w-full">
+                                      <p className="flex items-center gap-5">Pending Earnings<button className="inline-flex" data-tooltip="Processing earnings. Available soon."> <CircleQuestionMark size={13} /></button></p>
+                                    </div>
+                                    <h3 className="small">${" "} {summary?.totalReviewAmount?.toFixed(2) || "0.00"}</h3>
                                   </div>
                                 </div>
                                 <div className="payout_wrap">
-                                  <h3>Get a payout</h3>
-                                  <Link href="/request-payout">
-                                    <button
-                                      className="btn-txt-gradient"
-                                      type="button"
-                                    >
-                                      <span>Request payout</span>{" "}
-                                    </button>
-                                  </Link>
+                                  <h3>Get a payout</h3> <Link href="/request-payout"><button className="btn-txt-gradient" type="button"><span>Request payout</span>{" "}</button></Link>
                                 </div>
                               </>
                             )}

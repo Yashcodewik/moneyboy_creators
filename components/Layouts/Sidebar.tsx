@@ -14,7 +14,7 @@ import AddFeedModal from "../FeedPage/AddFeedModal";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchFollowerCounts } from "@/redux/other/followActions";
 import NoProfileSvg from "../common/NoProfileSvg";
-import { CirclePlus } from "lucide-react";
+import { CirclePlus, Menu } from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
@@ -29,52 +29,54 @@ const Sidebar: React.FC = () => {
   const followerCount = counts.followerCount;
   const followingCount = counts.followingCount;
   const postCount = counts.postCount;
-  
+
   const pathname = usePathname();
   const router = useRouter();
-  
 
-useEffect(() => {
-  const pathToPageMap: Record<string, string> = {
-    "/": "feed",
-    "/discover": "discover",
-    "/feed": "feed",
-    "/like": "likes",
-    "/wishlist": "wishlist",
-    "/subscriptions": "subscriptions",
-    "/purchased-media": "purchased-media",
-    "/store": "store",
-    "/notifications": "notifications",
-    "/message": "message",
-    "/profile": "profile",
-    "/userprofile": "userprofile",
-    "/follower": "follower",
-    "/creator-edit-profile": "creator-edit-profile",
-    "/user-edit-profile": "user-edit-profile",
-    "/blacklist": "blacklist",
-    "/block-countries": "block-countries",
-  };
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const currentPage = Object.keys(pathToPageMap).find(
-    (path) => pathname === path || pathname.startsWith(`${path}/`)
-  );
 
-  if (currentPage) {
-    setActivePage(pathToPageMap[currentPage]);
-  } else {
-    // ✅ detect username profile route
-    if (
-      pathname !== "/" &&
-      !pathname.includes("/feed") &&
-      !pathname.includes("/discover") &&
-      !pathname.includes("/like") &&
-      !pathname.includes("/wishlist") &&
-      !pathname.includes("/store")
-    ) {
-      setActivePage("profile");
+  useEffect(() => {
+    const pathToPageMap: Record<string, string> = {
+      "/": "feed",
+      "/discover": "discover",
+      "/feed": "feed",
+      "/like": "likes",
+      "/wishlist": "wishlist",
+      "/subscriptions": "subscriptions",
+      "/purchased-media": "purchased-media",
+      "/store": "store",
+      "/notifications": "notifications",
+      "/message": "message",
+      "/profile": "profile",
+      "/userprofile": "userprofile",
+      "/follower": "follower",
+      "/creator-edit-profile": "creator-edit-profile",
+      "/user-edit-profile": "user-edit-profile",
+      "/blacklist": "blacklist",
+      "/block-countries": "block-countries",
+    };
+
+    const currentPage = Object.keys(pathToPageMap).find(
+      (path) => pathname === path || pathname.startsWith(`${path}/`)
+    );
+
+    if (currentPage) {
+      setActivePage(pathToPageMap[currentPage]);
+    } else {
+      // ✅ detect username profile route
+      if (
+        pathname !== "/" &&
+        !pathname.includes("/feed") &&
+        !pathname.includes("/discover") &&
+        !pathname.includes("/like") &&
+        !pathname.includes("/wishlist") &&
+        !pathname.includes("/store")
+      ) {
+        setActivePage("profile");
+      }
     }
-  }
-}, [pathname]);
+  }, [pathname]);
   const handleNavClick = (page: string, href: string, e: React.MouseEvent) => {
     e.preventDefault();
     setActivePage(page);
@@ -91,88 +93,88 @@ useEffect(() => {
     router.push(href);
   };
 
-useEffect(() => {
-  const fetchAllData = async () => {
-    if (!session?.isAuthenticated) {
-      setProfileLoading(false);
-      return;
-    }
-
-    const publicId = session?.user?.publicId;
-
-    if (!publicId) {
-      console.error("Public ID missing in session");
-      setProfileLoading(false);
-      return;
-    }
-
-    try {
-      setProfileLoading(true);
-
-      let apiUrl = `${API_USER_PROFILE}/${publicId}`;
-
-      if (session?.user?.role === 2) {
-        apiUrl =API_CREATOR_PROFILE;;
+  useEffect(() => {
+    const fetchAllData = async () => {
+      if (!session?.isAuthenticated) {
+        setProfileLoading(false);
+        return;
       }
 
-      const profileResponse = await getApiWithOutQuery({ url: apiUrl });
+      const publicId = session?.user?.publicId;
 
-      if (profileResponse) {
-        let userData;
+      if (!publicId) {
+        console.error("Public ID missing in session");
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        setProfileLoading(true);
+
+        let apiUrl = `${API_USER_PROFILE}/${publicId}`;
 
         if (session?.user?.role === 2) {
-          if (profileResponse.user) {
-            userData = {
-              displayName: profileResponse.user.displayName,
-              username: profileResponse.user.userName,
-              firstName: profileResponse.user.firstName,
-              lastName: profileResponse.user.lastName,
-              email: profileResponse.user.email,
-              profile: profileResponse.user.profile,
-            };
-          }
-        } else {
-          if (profileResponse.success && profileResponse.data) {
-            userData = {
-              displayName: profileResponse.data.displayName,
-              username: profileResponse.data.userName,
-              firstName: profileResponse.data.firstName,
-              lastName: profileResponse.data.lastName,
-              email: profileResponse.data.email,
-              profile: profileResponse.data.profile,
-            };
-          }
+          apiUrl = API_CREATOR_PROFILE;;
         }
 
-        if (userData) setUserProfile(userData);
+        const profileResponse = await getApiWithOutQuery({ url: apiUrl });
+
+        if (profileResponse) {
+          let userData;
+
+          if (session?.user?.role === 2) {
+            if (profileResponse.user) {
+              userData = {
+                displayName: profileResponse.user.displayName,
+                username: profileResponse.user.userName,
+                firstName: profileResponse.user.firstName,
+                lastName: profileResponse.user.lastName,
+                email: profileResponse.user.email,
+                profile: profileResponse.user.profile,
+              };
+            }
+          } else {
+            if (profileResponse.success && profileResponse.data) {
+              userData = {
+                displayName: profileResponse.data.displayName,
+                username: profileResponse.data.userName,
+                firstName: profileResponse.data.firstName,
+                lastName: profileResponse.data.lastName,
+                email: profileResponse.data.email,
+                profile: profileResponse.data.profile,
+              };
+            }
+          }
+
+          if (userData) setUserProfile(userData);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setProfileLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setProfileLoading(false);
-    }
 
 
 
-    dispatch(fetchFollowerCounts());
-  };
+      dispatch(fetchFollowerCounts());
+    };
 
-  fetchAllData();
-}, [
-  session?.isAuthenticated,
-  session?.user?.role,
-  session?.user?.publicId,
-  dispatch,
-]);
+    fetchAllData();
+  }, [
+    session?.isAuthenticated,
+    session?.user?.role,
+    session?.user?.publicId,
+    dispatch,
+  ]);
 
   const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
     router.push(`/follower?tab=${tab}&id=${session?.user?.publicId}`);
   };
 
-const handleProfileClick = (username: string) => {
-  router.push(`/${username}`);
-};
+  const handleProfileClick = (username: string) => {
+    router.push(`/${username}`);
+  };
 
   return (
     <>
@@ -276,7 +278,7 @@ const handleProfileClick = (username: string) => {
                         )}
                       </div>
                       <div className="profile-card__username">
-                     @{session?.user?.userName || "username"}
+                        @{session?.user?.userName || "username"}
                       </div>
                     </div>
                   </a>
@@ -435,7 +437,7 @@ const handleProfileClick = (username: string) => {
               {session?.user?.role === 2 && (
                 <div className="sidebar-post-button card active-down-effect">
                   <a href="#" className="btn-primary" onClick={() => setAddFeedShow(true)}>
-                    <CirclePlus size={26}/>
+                    <CirclePlus size={26} />
                     <span>Create a Post</span>
                   </a>
                 </div>
@@ -450,9 +452,8 @@ const handleProfileClick = (username: string) => {
                 <li>
                   <Link
                     href="/feed"
-                    className={`active-down-effect ${
-                      activePage === "feed" ? "active" : ""
-                    }`}
+                    className={`active-down-effect ${activePage === "feed" ? "active" : ""
+                      }`}
                     onClick={(e) => handleNavClick("feed", "/feed", e)}
                   >
                     <div>
@@ -487,9 +488,8 @@ const handleProfileClick = (username: string) => {
                 <li>
                   <Link
                     href="/discover"
-                    className={`active-down-effect ${
-                      activePage === "discover" ? "active" : ""
-                    }`}
+                    className={`active-down-effect ${activePage === "discover" ? "active" : ""
+                      }`}
                     onClick={(e) => handleNavClick("discover", "/discover", e)}
                   >
                     <div>
@@ -525,9 +525,8 @@ const handleProfileClick = (username: string) => {
                     <li>
                       <Link
                         href="/like"
-                        className={`active-down-effect ${
-                          activePage === "likes" ? "active" : ""
-                        }`}
+                        className={`active-down-effect ${activePage === "likes" ? "active" : ""
+                          }`}
                         onClick={(e) => handleNavClick("likes", "/like", e)}
                       >
                         <div>
@@ -555,9 +554,8 @@ const handleProfileClick = (username: string) => {
                     <li>
                       <Link
                         href="/wishlist"
-                        className={`active-down-effect ${
-                          activePage === "wishlist" ? "active" : ""
-                        }`}
+                        className={`active-down-effect ${activePage === "wishlist" ? "active" : ""
+                          }`}
                         onClick={(e) =>
                           handleNavClick("wishlist", "/wishlist", e)
                         }
@@ -603,9 +601,8 @@ const handleProfileClick = (username: string) => {
                       <li>
                         <Link
                           href="#"
-                          className={`active-down-effect ${
-                            activePage === "subscriptions" ? "active" : ""
-                          }`}
+                          className={`active-down-effect ${activePage === "subscriptions" ? "active" : ""
+                            }`}
                           onClick={(e) =>
                             handleNavClick("subscriptions", "/subscriptions", e)
                           }
@@ -708,9 +705,8 @@ const handleProfileClick = (username: string) => {
                     <li>
                       <Link
                         href="/purchasemedia"
-                        className={`active-down-effect ${
-                          activePage === "purchased-media" ? "active" : ""
-                        }`}
+                        className={`active-down-effect ${activePage === "purchased-media" ? "active" : ""
+                          }`}
                         onClick={(e) =>
                           handleNavClick(
                             "purchased-media",
@@ -754,9 +750,8 @@ const handleProfileClick = (username: string) => {
                     <li>
                       <Link
                         href="/store?tab=marketplace"
-                        className={`active-down-effect ${
-                          activePage === "store" ? "active" : ""
-                        }`}
+                        className={`active-down-effect ${activePage === "store" ? "active" : ""
+                          }`}
                         onClick={(e) =>
                           handleNavClick("store", "/store?tab=marketplace", e)
                         }
@@ -919,97 +914,21 @@ const handleProfileClick = (username: string) => {
           </div>
         </aside>
 
-        <div className="mobile-navigations-container">
-          <div
-            className={`mobile-navigations ${
-  session?.user?.role === 2 ? "creatorlogin" : ""
-} ${!session?.isAuthenticated ? "lgout" : ""}`}
-          >
+        {/* <div className="mobile-navigations-container">
+          <div className={`mobile-navigations ${session?.user?.role === 2 ? "creatorlogin" : ""} ${!session?.isAuthenticated ? "lgout" : ""}`}>
             <nav>
               <ul>
-                {/* Mobile Navigation - Home (Feed) */}
                 <li>
-                  <Link
-                    href="#"
-                    className={activePage === "feed" ? "active" : ""}
-                    onClick={(e) => handleMobileNavClick("feed", "/feed", e)}
-                  >
+                  <Link href="#" className={activePage === "feed" ? "active" : ""} onClick={(e) => handleMobileNavClick("feed", "/feed", e)}>
                     <div>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 32 32"
-                        fill="none"
-                      >
-                        <path
-                          d="M13.4266 3.76005L4.18661 11.16C3.14661 11.9867 2.47995 13.7334 2.70661 15.0401L4.47995 25.6534C4.79995 27.5467 6.61327 29.08 8.53327 29.08H23.4666C25.3733 29.08 27.1999 27.5334 27.5199 25.6534L29.2933 15.0401C29.5066 13.7334 28.84 11.9867 27.8133 11.16L18.5733 3.77339C17.1466 2.62673 14.84 2.62671 13.4266 3.76005Z"
-                          stroke="none"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M16.0001 20.6667C17.841 20.6667 19.3334 19.1743 19.3334 17.3333C19.3334 15.4924 17.841 14 16.0001 14C14.1591 14 12.6667 15.4924 12.6667 17.3333C12.6667 19.1743 14.1591 20.6667 16.0001 20.6667Z"
-                          stroke="none"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+                        <path d="M13.4266 3.76005L4.18661 11.16C3.14661 11.9867 2.47995 13.7334 2.70661 15.0401L4.47995 25.6534C4.79995 27.5467 6.61327 29.08 8.53327 29.08H23.4666C25.3733 29.08 27.1999 27.5334 27.5199 25.6534L29.2933 15.0401C29.5066 13.7334 28.84 11.9867 27.8133 11.16L18.5733 3.77339C17.1466 2.62673 14.84 2.62671 13.4266 3.76005Z" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M16.0001 20.6667C17.841 20.6667 19.3334 19.1743 19.3334 17.3333C19.3334 15.4924 17.841 14 16.0001 14C14.1591 14 12.6667 15.4924 12.6667 17.3333C12.6667 19.1743 14.1591 20.6667 16.0001 20.6667Z" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                      <span> Home </span>
+                      <span>Home</span>
                     </div>
                   </Link>
                 </li>
-
-                {/* Mobile Navigation - Search */}
-                {/* <li>
-                  <Link
-                    href="#"
-                    className={activePage === "search" ? "active" : ""}
-                    onClick={(e) =>
-                      handleMobileNavClick("search", "/search", e)
-                    }
-                  >
-                    <div>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 25 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M20.7 11C20.7 15.97 16.67 20 11.7 20C6.72995 20 2.69995 15.97 2.69995 11C2.69995 6.03 6.72995 2 11.7 2"
-                          stroke="none"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M19.6299 20.6898C20.1599 22.2898 21.3699 22.4498 22.2999 21.0498C23.1499 19.7698 22.5899 18.7198 21.0499 18.7198C19.9099 18.7098 19.2699 19.5998 19.6299 20.6898Z"
-                          stroke="none"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.7 5H20.7"
-                          stroke="none"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.7 8H17.7"
-                          stroke="none"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span> Search </span>
-                    </div>
-                  </Link>
-                </li> */}
-
-                {/* Mobile Navigation - Discover */}
                 <li>
                   <Link
                     href="#"
@@ -1043,19 +962,15 @@ const handleProfileClick = (username: string) => {
                     </div>
                   </Link>
                 </li>
-
-                {/* Mobile Navigation - New POst */}
                 {session?.user?.role === 2 && (
                   <li>
                     <Link href="#" className={`btn-primary postbtn ${activePage === "search" ? "active" : ""}`} onClick={() => setAddFeedShow(true)}>
                       <div>
-                        <CirclePlus size={24}/>
+                        <CirclePlus size={24} />
                       </div>
                     </Link>
                   </li>
                 )}
-
-                {/* Mobile Navigation - Subscriptions */}
                 {session?.isAuthenticated && (
                   <li>
                     <Link
@@ -1117,8 +1032,6 @@ const handleProfileClick = (username: string) => {
                     </Link>
                   </li>
                 )}
-
-                {/* Mobile Navigation - Messages */}
                 {session?.isAuthenticated && (
                   <li>
                     <Link
@@ -1129,53 +1042,102 @@ const handleProfileClick = (username: string) => {
                       }
                     >
                       <div>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 25 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M22.0999 8V13C22.0999 17 20.0999 19 16.0999 19H15.5999C15.2899 19 14.9899 19.15 14.7999 19.4L13.2999 21.4C12.6399 22.28 11.5599 22.28 10.8999 21.4L9.39985 19.4C9.23985 19.18 8.86985 19 8.59985 19H8.09985C4.09985 19 2.09985 18 2.09985 13V8C2.09985 4 4.09985 2 8.09985 2H12.0999"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeMiterlimit="10"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M15.2998 4.62008C14.9698 3.63008 15.3598 2.41008 16.4398 2.07008C16.9998 1.90008 17.6998 2.04008 18.0998 2.57008C18.4798 2.02008 19.1998 1.90008 19.7598 2.07008C20.8398 2.40008 21.2298 3.63008 20.8998 4.62008C20.3898 6.19008 18.5998 7.00008 18.0998 7.00008C17.5998 7.00008 15.8298 6.20008 15.2998 4.62008Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M16.0963 11H16.1053"
-                            stroke="none"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M12.0953 11H12.1043"
-                            stroke="none"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M8.09436 11H8.10334"
-                            stroke="none"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                        <div className="icons_badge">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                            <path d="M22.0999 8V13C22.0999 17 20.0999 19 16.0999 19H15.5999C15.2899 19 14.9899 19.15 14.7999 19.4L13.2999 21.4C12.6399 22.28 11.5599 22.28 10.8999 21.4L9.39985 19.4C9.23985 19.18 8.86985 19 8.59985 19H8.09985C4.09985 19 2.09985 18 2.09985 13V8C2.09985 4 4.09985 2 8.09985 2H12.0999" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M15.2998 4.62008C14.9698 3.63008 15.3598 2.41008 16.4398 2.07008C16.9998 1.90008 17.6998 2.04008 18.0998 2.57008C18.4798 2.02008 19.1998 1.90008 19.7598 2.07008C20.8398 2.40008 21.2298 3.63008 20.8998 4.62008C20.3898 6.19008 18.5998 7.00008 18.0998 7.00008C17.5998 7.00008 15.8298 6.20008 15.2998 4.62008Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M16.0963 11H16.1053" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M12.0953 11H12.1043" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M8.09436 11H8.10334" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <span className="badge message">3</span>
+                        </div>
                         <span> Messages </span>
                       </div>
                     </Link>
                   </li>
                 )}
+              </ul>
+            </nav>
+          </div>
+        </div> */}
+
+        <div className="mobile-navigations-container">
+          <div className={`mobile-navigations ${session?.user?.role === 2 ? "creatorlogin" : ""} ${!session?.isAuthenticated ? "lgout" : ""}`}>
+            <nav>
+              <ul>
+                <li>
+                  <Link href="#" className={activePage === "feed" ? "active" : ""} onClick={(e) => handleMobileNavClick("feed", "/feed", e)}>
+                    <div>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+                        <path d="M13.4266 3.76005L4.18661 11.16C3.14661 11.9867 2.47995 13.7334 2.70661 15.0401L4.47995 25.6534C4.79995 27.5467 6.61327 29.08 8.53327 29.08H23.4666C25.3733 29.08 27.1999 27.5334 27.5199 25.6534L29.2933 15.0401C29.5066 13.7334 28.84 11.9867 27.8133 11.16L18.5733 3.77339C17.1466 2.62673 14.84 2.62671 13.4266 3.76005Z" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M16.0001 20.6667C17.841 20.6667 19.3334 19.1743 19.3334 17.3333C19.3334 15.4924 17.841 14 16.0001 14C14.1591 14 12.6667 15.4924 12.6667 17.3333C12.6667 19.1743 14.1591 20.6667 16.0001 20.6667Z" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span>Home</span>
+                    </div>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className={activePage === "discover" ? "active" : ""} onClick={(e) => handleMobileNavClick("discover", "/discover", e)}>
+                    <div>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                        <path d="M18.3001 2.1L8.37009 4.59C6.92009 4.95 5.45009 6.42 5.09009 7.87L2.60009 17.8C1.85009 20.8 3.69009 22.65 6.70009 21.9L16.6301 19.42C18.0701 19.06 19.5501 17.58 19.9101 16.14L22.4001 6.2C23.1501 3.2 21.3001 1.35 18.3001 2.1Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12.5 15.5C14.433 15.5 16 13.933 16 12C16 10.067 14.433 8.5 12.5 8.5C10.567 8.5 9 10.067 9 12C9 13.933 10.567 15.5 12.5 15.5Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span> Discover </span>
+                    </div>
+                  </Link>
+                </li>
+                {session?.user?.role === 2 && (
+                  <li>
+                    <Link href="#" className={`btn-primary postbtn ${activePage === "search" ? "active" : ""}`} onClick={() => setAddFeedShow(true)}>
+                      <div><CirclePlus size={24} /></div>
+                    </Link>
+                  </li>
+                )}
+                {/* {session?.isAuthenticated && (
+                  <li>
+                    <Link href="#" className={activePage === "subscriptions" ? "active" : ""} onClick={(e) => handleMobileNavClick("subscriptions", "/subscriptions",e,)}>
+                      <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                          <path d="M22.2998 15V9C22.2998 4 20.2998 2 15.2998 2H9.29981C4.29981 2 2.2998 4 2.2998 9V15C2.2998 20 4.29981 22 9.29981 22H15.2998C20.2998 22 22.2998 20 22.2998 15Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M2.81982 7.10986H21.7798" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M8.81982 2.10986V6.96986" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M15.7798 2.10986V6.51986" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M10.0498 14.4501V13.2501C10.0498 11.7101 11.1398 11.0801 12.4698 11.8501L13.5098 12.4501L14.5498 13.0501C15.8798 13.8201 15.8798 15.0801 14.5498 15.8501L13.5098 16.4501L12.4698 17.0501C11.1398 17.8201 10.0498 17.1901 10.0498 15.6501V14.4501V14.4501Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span> Subscriptions </span>
+                      </div>
+                    </Link>
+                  </li>
+                )} */}
+                {session?.isAuthenticated && (
+                  <li>
+                    <Link href="#" className={activePage === "message" ? "active" : ""} onClick={(e) => handleMobileNavClick("message", "/message", e)}>
+                      <div>
+                        <div className="icons_badge">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" fill="none">
+                            <path d="M22.0999 8V13C22.0999 17 20.0999 19 16.0999 19H15.5999C15.2899 19 14.9899 19.15 14.7999 19.4L13.2999 21.4C12.6399 22.28 11.5599 22.28 10.8999 21.4L9.39985 19.4C9.23985 19.18 8.86985 19 8.59985 19H8.09985C4.09985 19 2.09985 18 2.09985 13V8C2.09985 4 4.09985 2 8.09985 2H12.0999" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M15.2998 4.62008C14.9698 3.63008 15.3598 2.41008 16.4398 2.07008C16.9998 1.90008 17.6998 2.04008 18.0998 2.57008C18.4798 2.02008 19.1998 1.90008 19.7598 2.07008C20.8398 2.40008 21.2298 3.63008 20.8998 4.62008C20.3898 6.19008 18.5998 7.00008 18.0998 7.00008C17.5998 7.00008 15.8298 6.20008 15.2998 4.62008Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M16.0963 11H16.1053" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M12.0953 11H12.1043" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M8.09436 11H8.10334" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <span className="badge message">3</span>
+                        </div>
+                        <span> Messages </span>
+                      </div>
+                    </Link>
+                  </li>
+                )}
+                <li>
+                  <Link href="#" className={isMenuOpen ? "active" : ""} onClick={(e) => { e.preventDefault(); setIsMenuOpen(true); }}>
+                    <div>
+                      <Menu />
+                      <span> Menu </span>
+                    </div>
+                  </Link>
+                </li>
               </ul>
             </nav>
           </div>
@@ -1227,6 +1189,57 @@ const handleProfileClick = (username: string) => {
           </div>
         </div>
       </div>  */}
+
+      {isMenuOpen && (
+        <div className="floating-menu-container" data-floating-menu-main onClick={() => setIsMenuOpen(false)}>
+          <div className="menu-content-wrapper">
+            <div className="menu-content-container">
+              <div className="menu-close-btn" data-floating-menu-close-btn>
+                <svg xmlns="http://www.w3.org/2000/svg" width="31" height="31" viewBox="0 0 31 31" fill="none">
+                  <path d="M15.4998 0.916668C7.46442 0.916668 0.916504 7.46458 0.916504 15.5C0.916504 23.5354 7.46442 30.0833 15.4998 30.0833C23.5353 30.0833 30.0832 23.5354 30.0832 15.5C30.0832 7.46458 23.5353 0.916668 15.4998 0.916668ZM20.3998 18.8542C20.8228 19.2771 20.8228 19.9771 20.3998 20.4C20.1811 20.6188 19.904 20.7208 19.6269 20.7208C19.3498 20.7208 19.0728 20.6188 18.854 20.4L15.4998 17.0458L12.1457 20.4C11.9269 20.6188 11.6498 20.7208 11.3728 20.7208C11.0957 20.7208 10.8186 20.6188 10.5998 20.4C10.1769 19.9771 10.1769 19.2771 10.5998 18.8542L13.954 15.5L10.5998 12.1458C10.1769 11.7229 10.1769 11.0229 10.5998 10.6C11.0228 10.1771 11.7228 10.1771 12.1457 10.6L15.4998 13.9542L18.854 10.6C19.2769 10.1771 19.9769 10.1771 20.3998 10.6C20.8228 11.0229 20.8228 11.7229 20.3998 12.1458L17.0457 15.5L20.3998 18.8542Z" fill="none" />
+                </svg>
+              </div>
+              <div className="menu-content">
+                <div className="menu-links-container">
+                  <div className="links-block">
+                    <div className="menu-links-wrapper">
+                      <a href="#" className="menu-link subscriptions_icons">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                          <path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                          <path d="M11.3599 2.8125V9.2925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                          <path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                          <path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span>Subscriptions</span>
+                      </a>
+                      <a href="/purchased-media" className="menu-link purchased-media-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                          <path d="M15.59 12.6886C18.4232 12.6886 20.72 10.3918 20.72 7.55859C20.72 4.72537 18.4232 2.42859 15.59 2.42859C12.7567 2.42859 10.46 4.72537 10.46 7.55859C10.46 10.3918 12.7567 12.6886 15.59 12.6886Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" />
+                          <path d="M6.35977 19.8686C8.06081 19.8686 9.43979 18.4897 9.43979 16.7886C9.43979 15.0876 8.06081 13.7086 6.35977 13.7086C4.65873 13.7086 3.27979 15.0876 3.27979 16.7886C3.27979 18.4897 4.65873 19.8686 6.35977 19.8686Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" />
+                          <path d="M16.6201 22.4286C18.0339 22.4286 19.1801 21.2824 19.1801 19.8686C19.1801 18.4547 18.0339 17.3086 16.6201 17.3086C15.2062 17.3086 14.0601 18.4547 14.0601 19.8686C14.0601 21.2824 15.2062 22.4286 16.6201 22.4286Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" />
+                        </svg>
+                        <span>Purchased Media</span>
+                      </a>
+                      <a href="/store?tab=marketplace" className="menu-link store-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                          <path d="M3.00977 11.6486V16.1386C3.00977 20.6286 4.80977 22.4286 9.29977 22.4286H14.6898C19.1798 22.4286 20.9798 20.6286 20.9798 16.1386V11.6486" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M12 12.4286C13.83 12.4286 15.18 10.9386 15 9.10859L14.34 2.42859H9.66999L8.99999 9.10859C8.81999 10.9386 10.17 12.4286 12 12.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M18.3098 12.4286C20.3298 12.4286 21.8098 10.7886 21.6098 8.77859L21.3298 6.02859C20.9698 3.42859 19.9698 2.42859 17.3498 2.42859H14.2998L14.9998 9.43859C15.1698 11.0886 16.6598 12.4286 18.3098 12.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M5.63988 12.4286C7.28988 12.4286 8.77988 11.0886 8.93988 9.43859L9.15988 7.22859L9.63988 2.42859H6.58988C3.96988 2.42859 2.96988 3.42859 2.60988 6.02859L2.33988 8.77859C2.13988 10.7886 3.61988 12.4286 5.63988 12.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M12 17.4286C10.33 17.4286 9.5 18.2586 9.5 19.9286V22.4286H14.5V19.9286C14.5 18.2586 13.67 17.4286 12 17.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span>Marketplace</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {feedShow && (
         <AddFeedModal show={feedShow} onClose={() => setAddFeedShow(false)} />
       )}
