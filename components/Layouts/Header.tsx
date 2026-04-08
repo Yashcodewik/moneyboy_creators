@@ -176,7 +176,7 @@ const Header = () => {
 
                 walletBalance: response.user?.walletBalance ?? 0,
                 totalSubscribers: response.totalSubscribers ?? 0,
-                totalSubscriptions: response.totalSubscriptions ?? 0,
+                totalSubscriptions: response.data.totalSubscriptions ?? 0,
                 totalSpent: response.summary?.totalSpent ?? 0,
               };
             }
