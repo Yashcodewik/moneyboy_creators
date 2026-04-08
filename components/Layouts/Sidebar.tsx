@@ -15,6 +15,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchFollowerCounts } from "@/redux/other/followActions";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { CirclePlus, Menu } from "lucide-react";
+import { selectTotalUnread } from "@/redux/message/messageSlice";
 
 const Sidebar: React.FC = () => {
   const [activePage, setActivePage] = useState<string>("feed");
@@ -36,6 +37,7 @@ const Sidebar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 
+  const unread = useAppSelector(selectTotalUnread);
   useEffect(() => {
     const pathToPageMap: Record<string, string> = {
       "/": "feed",
@@ -1123,7 +1125,9 @@ const Sidebar: React.FC = () => {
                             <path d="M12.0953 11H12.1043" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M8.09436 11H8.10334" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
-                          <span className="badge message">3</span>
+                          {unread > 0 && (
+                          <span className="badge message">{unread}</span>
+                          )}
                         </div>
                         <span> Messages </span>
                       </div>

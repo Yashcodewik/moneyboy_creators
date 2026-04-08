@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Featuredboys from "../Featuredboys";
 import Link from "next/link";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import "react-datepicker/dist/react-datepicker.css";
 import { WalletTransactiontypeformate } from "../helper/creatorOptions";
 import { useDeviceType } from "@/hooks/useDeviceType";
@@ -22,10 +22,13 @@ const WalletTransactionsPage = () => {
   const { transactions, summary, transactionLoading } = useSelector(
     (state: any) => state.wallet,
   );
+  const orderParam = searchParams.get("orders");
+  const [prevTab, setPrevTab] = useState<TabType>("orders");
+  const router = useRouter();
   const tabParam = searchParams.get("tab");
-  const [orderType, setOrderType] = useState<"purchases" | "sales">(
-    "purchases",
-  );
+const [orderType, setOrderType] = useState<"purchases" | "sales">(
+  orderParam === "sales" ? "sales" : "purchases"
+);
   const initialTab =
     tabParam === "earnings"
       ? "earnings"
@@ -63,10 +66,16 @@ const WalletTransactionsPage = () => {
   }, [activeTab, orderType, session?.user?.role]);
 
   useEffect(() => {
-    if (activeTab === "orders") {
-      setOrderType("purchases");
-    }
-  }, [activeTab]);
+    if (!tabParam) return;
+
+    setActiveTab(tabParam as any);
+  }, [tabParam]);
+
+  useEffect(() => {
+    if (!orderParam) return;
+
+    setOrderType(orderParam as "purchases" | "sales");
+  }, [orderParam]);
 
   const rowsPerPage = 10;
 
@@ -93,28 +102,34 @@ const WalletTransactionsPage = () => {
     );
   }, [activeTab, mode, page, getApiTab, session?.user?.role]);
 
+type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    router.replace(`/wallet-transactions?tab=${tab}`, { scroll: false });
+  };
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
           <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
             {session?.user?.role === 2 && (
-              <button className={`page-content-type-button active-down-effect ${activeTab === "earnings" ? "active" : ""}`} onClick={() => setActiveTab("earnings")} >Earnings</button>
+              <button className={`page-content-type-button active-down-effect ${activeTab === "earnings" ? "active" : ""}`} onClick={() => handleTabChange("earnings")} >Earnings</button>
             )}
-            <button className={`page-content-type-button active-down-effect ${activeTab === "spending" ? "active" : ""}`} onClick={() => setActiveTab("spending")}> Spending</button>
-            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}> {" "} PPV Request History</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "spending" ? "active" : ""}`} onClick={() => handleTabChange("spending")}> Spending</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => handleTabChange("orders")}> {" "} PPV Request History</button>
             {session?.user?.role === 2 && (
-              <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => setActiveTab("payouts")}>Payouts</button>
+              <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => handleTabChange("payouts")}>Payouts</button>
             )}
             {session?.user?.role === 1 && (
-              <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => setActiveTab("payouts")} > Deposit </button>
+              <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => handleTabChange("payouts")} > Deposit </button>
             )}
           </div>
           {activeTab === "orders" && (
             <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => setOrderType("purchases")}>Sent</button>
+              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => {setOrderType("purchases");router.replace(`?tab=orders&order=purchases`, { scroll: false });}}>Sent</button>
               {session?.user?.role === 2 && (
-                <button className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`} onClick={() => setOrderType("sales")}>Received</button>
+                <button className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`} onClick={() => {setOrderType("sales");router.replace(`?tab=orders&order=sales`, { scroll: false });}}>Received</button>
               )}
             </div>
           )}
@@ -131,7 +146,7 @@ const WalletTransactionsPage = () => {
                       ) : (
                         <div className="rel-users-wrapper">
                           {session?.user?.role === 2 &&
-                            activeTab === "payouts" && (
+                            activeTab === "earnings" && (
                               <>
                                 <div className="history_wrap">
                                   <div className="rline">
@@ -188,6 +203,12 @@ const WalletTransactionsPage = () => {
                                 otherUser = isIncoming
                                   ? txn.fromUser
                                   : txn.toUser;
+                                  if (otherUser) {
+                                    otherUser = {
+                                      ...otherUser,
+                                      username: otherUser.userName, 
+                                    };
+                                  }
                               }
                               const isDeposit = txn.type === "ADD_FUNDS";
                               const isPaymentTab = activeTab === "payouts";
@@ -197,10 +218,16 @@ const WalletTransactionsPage = () => {
                                   <div className="rel-user-profile-action">
                                     <div className="rel-user-profile">
                                       <div className="profile-card">
-                                        <Link
-                                          href="#"
-                                          className="profile-card__main"
-                                        >
+                                       <Link
+                                        href={
+                                          txn.type === "ADD_FUNDS" || !otherUser
+                                            ? "#"
+                                            : Number(otherUser.role) === 1
+                                              ? `/userprofile/${otherUser.publicId}`
+                                              : `/${otherUser.userName}`
+                                        }
+                                        className="profile-card__main"
+                                      >
                                           {!isPaymentTab && (
                                             <div className="profile-card__avatar-settings">
                                               <div className="profile-card__avatar">
@@ -360,6 +387,7 @@ const WalletTransactionsPage = () => {
                                           type="button"
                                           onClick={() => {
                                             setSelectedTransaction(txn);
+                                            setPrevTab(activeTab);
                                             setActiveTab("details");
                                           }}
                                         >
@@ -398,7 +426,7 @@ const WalletTransactionsPage = () => {
                   className="cate-back-btn active-down-effect"
                   type="button"
                   aria-label="Go back"
-                  onClick={() => setActiveTab("orders")}
+                  onClick={() => handleTabChange(prevTab)}
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path
