@@ -1159,7 +1159,16 @@ const StorePage = () => {
                                                   src={media.url}
                                                   controls
                                                   playsInline
-                                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                  muted
+                                                  preload="metadata"
+                                                  //style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                  webkit-playsinline="true"
+                                                  style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit: "cover",
+                                                    backgroundColor: "black",
+                                                  }}
                                                 />
                                               ) : (
                                                 <div className="noprofile">No Video</div>
