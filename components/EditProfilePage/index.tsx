@@ -20,6 +20,7 @@ import { showError, showSuccess } from "@/utils/alert";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BtnGroupTabs from "../BtnGroupTabs";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 countries.registerLocale(enLocale);
 const EditProfilePage = () => {
@@ -50,6 +51,7 @@ const EditProfilePage = () => {
   };
 
   const [activeTab, setActiveTab] = useState("posts");
+  const isMobile = useDeviceType();
 
 
   useEffect(() => {
@@ -495,50 +497,90 @@ const EditProfilePage = () => {
                               <div className="input-placeholder-icon">
                                 <CalendarDays className="icons svg-icon" />
                               </div>
-                              <input type="text" placeholder="(DD/MM/YYYY)" className="form-input" readOnly value={startDate?.toLocaleDateString("en-GB") || ""} onClick={() => setActiveField("schedule")} />
-                              {activeField === "schedule" && (
-                                <div className="calendar_show">
-                                  <DatePicker selected={startDate} inline maxDate={maxAllowedDate} renderCustomHeader={({ date, changeYear, changeMonth, }) => (
-                                    <div className="flex gap-5 select_wrap" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} >
-                                      <CustomSelect
-                                        className="bg-white p-sm size-sm"
-                                        options={months}
-                                        value={date.getMonth().toString()}
-                                        onChange={(val) =>
-                                          changeMonth(Number(val))
-                                        }
-                                        searchable={false}
-                                      />
-                                      <CustomSelect
-                                        className="bg-white p-sm size-sm"
-                                        options={years}
-                                        value={date.getFullYear().toString()}
-                                        onChange={(val) =>
-                                          changeYear(Number(val))
-                                        }
-                                        searchable={false}
-                                      />
-                                    </div>
-                                  )}
-                                    onChange={(date: Date | null) => {
-                                      if (date) {
-                                        setStartDate(date); // ✅ VERY IMPORTANT
+                            {isMobile ? (
+                              // ✅ MOBILE → Native picker
+                              <input
+                                type="date"
+                                className="form-input"
+                                value={
+                                  startDate
+                                    ? startDate.toISOString().split("T")[0]
+                                    : ""
+                                }
+                                max={
+                                  maxAllowedDate
+                                    ? maxAllowedDate.toISOString().split("T")[0]
+                                    : undefined
+                                }
+                                onChange={(e) => {
+                                  const date = new Date(e.target.value);
+                                  if (!date) return;
 
-                                        const formattedDate =
-                                          date.toISOString();
-                                        formik.setFieldValue(
-                                          "dob",
-                                          formattedDate,
-                                        );
+                                  setStartDate(date);
 
-                                        const age = calculateAge(date);
-                                        formik.setFieldValue("age", age); // numeric age
-                                      }
-                                      setActiveField(null);
-                                    }}
-                                  />
-                                </div>
-                              )}
+                                  const formattedDate = date.toISOString();
+                                  formik.setFieldValue("dob", formattedDate);
+
+                                  const age = calculateAge(date);
+                                  formik.setFieldValue("age", age);
+                                }}
+                              />
+                            ) : (
+                              <>
+                                <input
+                                  type="text"
+                                  placeholder="(DD/MM/YYYY)"
+                                  className="form-input"
+                                  readOnly
+                                  value={startDate?.toLocaleDateString("en-GB") || ""}
+                                  onClick={() => setActiveField("schedule")}
+                                />
+
+                                {activeField === "schedule" && (
+                                  <div className="calendar_show">
+                                    <DatePicker
+                                      selected={startDate}
+                                      inline
+                                      maxDate={maxAllowedDate}
+                                      renderCustomHeader={({ date, changeYear, changeMonth }) => (
+                                        <div
+                                          className="flex gap-5 select_wrap"
+                                          onMouseDown={(e) => e.stopPropagation()}
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <CustomSelect
+                                            className="bg-white p-sm size-sm"
+                                            options={months}
+                                            value={date.getMonth().toString()}
+                                            onChange={(val) => changeMonth(Number(val))}
+                                            searchable={false}
+                                          />
+                                          <CustomSelect
+                                            className="bg-white p-sm size-sm"
+                                            options={years}
+                                            value={date.getFullYear().toString()}
+                                            onChange={(val) => changeYear(Number(val))}
+                                            searchable={false}
+                                          />
+                                        </div>
+                                      )}
+                                      onChange={(date: Date | null) => {
+                                        if (date) {
+                                          setStartDate(date);
+
+                                          const formattedDate = date.toISOString();
+                                          formik.setFieldValue("dob", formattedDate);
+
+                                          const age = calculateAge(date);
+                                          formik.setFieldValue("age", age);
+                                        }
+                                        setActiveField(null);
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </>
+                            )}                   
                             </div>
                             {formik.touched.dob && formik.errors.dob && (
                               <span className="error-message">

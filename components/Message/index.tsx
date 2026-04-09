@@ -2034,7 +2034,9 @@ useEffect(() => {
                                     </div>
 
                                     {/* Action buttons */}
+                                    
                                     <div className="chat-msg-action-btns">
+                                        {!isMobile && (
                                       <button
                                         ref={emojiButtonRef}
                                         className="emojis-icon-btn"
@@ -2090,7 +2092,7 @@ useEffect(() => {
                                           />
                                         </svg>
                                       </button>
-
+                                      )}
                                       {/* Voice recorder */}
                                       <button
                                         className={`voice-recorder-icon-btn ${isRecording ? "recording" : ""}`}
@@ -2207,6 +2209,7 @@ useEffect(() => {
                                         </div>
                                       )}
                                     </div>
+                                    
                                   </div>
                                 </div>
                               )}
