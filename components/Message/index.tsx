@@ -128,26 +128,29 @@ const MessagePage = () => {
     return () => clearInterval(interval);
   }, [session?.user?.id]);
 
-
-
-  // Scroll to bottom whenever messages change or active thread changes.
-  // Using a sentinel <div> at the bottom + scrollIntoView inside rAF
-  // guarantees the DOM has fully painted before we scroll.
-  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+// 1. scrollToBottom function
+const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+  requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
     });
-  };
+  });
+};
 
-  useEffect(() => {
-    // Smooth scroll when a new message arrives
-    scrollToBottom("smooth");
-  }, [messages]);
+// 2. Scroll when isChatLoading turns FALSE — instant on initial load (no animation flash)
+useEffect(() => {
+  if (!isChatLoading && activeThreadId && messages.length > 0) {
+    scrollToBottom("instant"); // ← keep instant here, smooth would look weird on first open
+  }
+}, [isChatLoading]);
 
-  useEffect(() => {
-    // Instant jump when switching to a different thread (no animation flash)
-    scrollToBottom("instant");
-  }, [activeThreadId]);
+// 3. Scroll when a new message arrives — smooth for live messages
+useEffect(() => {
+  if (isChatLoading) return;
+  if (messages.length === 0) return;
+
+  scrollToBottom("smooth"); // ← changed from "instant" to "smooth"
+}, [messages.length]);
 
   useEffect(() => {
     const handler = ({ ppvId, status, deliveredMedia }: any) => {
@@ -353,9 +356,10 @@ useEffect(() => {
     }
   }, [searchedMessages]);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
+useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = (e instanceof TouchEvent ? e.touches[0]?.target : e.target) as Node;
+      if (!target) return;
 
       if (
         emojiRef.current &&
@@ -368,8 +372,17 @@ useEffect(() => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (isMobile) {
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      if (isMobile) {
+        document.removeEventListener("touchstart", handleClickOutside);
+      }
+    };
+  }, [isMobile]);
 
   const desktopStyle: React.CSSProperties = {
     translate: "none",
@@ -1140,7 +1153,7 @@ useEffect(() => {
                                       }}
                                     >
                                       {isMobile && activeThreadId && (
-                                        <button className="backbtnicon active-down-effect" onClick={() => { dispatch(setActiveThread(null)); router.replace("/message"); }}><ArrowLeft size={22} /></button>
+                                        <button className="backbtnicon active-down-effect" onClick={(e) => { e.stopPropagation(); dispatch(setActiveThread(null)); router.replace("/message"); }}><ArrowLeft size={22} /></button>
                                       )}
                                       <div className="profile-card__avatar-settings">
                                         <div className="profile-card__avatar">
