@@ -99,13 +99,30 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [isReported, setIsReported] = useState(post.isReported);
 
   /* Close menu on outside click */
+  // useEffect(() => {
+  //   const handleClickOutside = (e: MouseEvent) => {
+  //     const target = e.target as Node;
+  //     if (
+  //       emojiRef.current &&
+  //       !emojiRef.current.contains(target) &&
+  //       !textareaRef.current?.contains(target) &&
+  //       !emojiButtonRef.current?.contains(target)
+  //     ) {
+  //       setShowEmojiPicker(false);
+  //     }
+  //   };
+
+  //   document.addEventListener("click", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
+
       if (
         emojiRef.current &&
         !emojiRef.current.contains(target) &&
-        !textareaRef.current?.contains(target) &&
         !emojiButtonRef.current?.contains(target)
       ) {
         setShowEmojiPicker(false);
@@ -204,16 +221,16 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     setShowEmojiPicker(false);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
-        setShowEmojiPicker(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (e: MouseEvent) => {
+  //     if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+  //       setShowEmojiPicker(false);
+  //     }
+  //   };
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  //   document.addEventListener("click", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
 
   useEffect(() => {
     Object.values(playerRefs.current).forEach((ref: any) => {
@@ -391,6 +408,9 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [showTaggedUsers]);
+
+
+
   return (
     <>
       <div className="moneyboy-post__container card">

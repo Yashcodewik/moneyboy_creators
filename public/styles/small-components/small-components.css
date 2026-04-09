@@ -969,7 +969,7 @@
                 transition: var(--transition-fast);
                 will-change: transform;
 
-                img, video {
+                img, video, .plyr {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
