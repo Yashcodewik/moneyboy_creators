@@ -19,7 +19,9 @@ const VideoPlayerFeed = memo(({ src }: { src: string }) => {
       source={source}
       options={{
         controls: ["play", "progress", "mute", "fullscreen"],
+        autoplay: false,
       }}
+      playsInline
     />
   );
 });

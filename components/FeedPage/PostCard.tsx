@@ -99,21 +99,41 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [isReported, setIsReported] = useState(post.isReported);
 
   /* Close menu on outside click */
+  // useEffect(() => {
+  //   const handleClickOutside = (e: MouseEvent) => {
+  //     const target = e.target as Node;
+  //     if (
+  //       emojiRef.current &&
+  //       !emojiRef.current.contains(target) &&
+  //       !textareaRef.current?.contains(target) &&
+  //       !emojiButtonRef.current?.contains(target)
+  //     ) {
+  //       setShowEmojiPicker(false);
+  //     }
+  //   };
+
+  //   document.addEventListener("click", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
+
       if (
         emojiRef.current &&
         !emojiRef.current.contains(target) &&
-        !textareaRef.current?.contains(target) &&
         !emojiButtonRef.current?.contains(target)
       ) {
         setShowEmojiPicker(false);
       }
     };
 
-   document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -204,16 +224,16 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     setShowEmojiPicker(false);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
-        setShowEmojiPicker(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (e: MouseEvent) => {
+  //     if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+  //       setShowEmojiPicker(false);
+  //     }
+  //   };
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  //   document.addEventListener("click", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
 
   useEffect(() => {
     Object.values(playerRefs.current).forEach((ref: any) => {
@@ -279,10 +299,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   };
 
   const handleSeeMoreComments = () => {
-  router.push(
-    `/post?page&publicId=${post.publicId}&comment=open`
-  );
-};
+    router.push(
+      `/post?page&publicId=${post.publicId}&comment=open`
+    );
+  };
 
   const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
     const aLikes = a.likeCount ?? a.likes?.length ?? 0;
@@ -293,28 +313,28 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const topComment = sortedComments[0];
   const hasMoreComments = sortedComments.length > 1;
 
-useEffect(() => {
-  let lastScrollY = window.scrollY;
+  // useEffect(() => {
+  //   let lastScrollY = window.scrollY;
 
-  const handleScroll = () => {
-    const currentScrollY = window.scrollY;
+  //   const handleScroll = () => {
+  //     const currentScrollY = window.scrollY;
 
-    // ✅ ignore tiny scroll (iOS fix)
-    if (Math.abs(currentScrollY - lastScrollY) < 5) return;
+  //     // ✅ ignore tiny scroll (iOS fix)
+  //     if (Math.abs(currentScrollY - lastScrollY) < 5) return;
 
-    if (showComment) {
-      setShowComment(false);
-    }
+  //     if (showComment) {
+  //       setShowComment(false);
+  //     }
 
-    lastScrollY = currentScrollY;
-  };
+  //     lastScrollY = currentScrollY;
+  //   };
 
-  window.addEventListener("scroll", handleScroll);
+  //   window.addEventListener("scroll", handleScroll);
 
-  return () => {
-    window.removeEventListener("scroll", handleScroll);
-  };
-}, [showComment]);
+  //   return () => {
+  //     window.removeEventListener("scroll", handleScroll);
+  //   };
+  // }, [showComment]);
 
   const handleSendTip = async (
     amount: number,
@@ -391,6 +411,9 @@ useEffect(() => {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [showTaggedUsers]);
+
+
+
   return (
     <>
       <div className="moneyboy-post__container card">
@@ -758,7 +781,7 @@ useEffect(() => {
                       return;
                     }
 
-                   if (isReported) return;
+                    if (isReported) return;
 
                     session?.user?.id !== post.userId && setShowReportModal(true);
                   }}
@@ -844,17 +867,21 @@ useEffect(() => {
                     placeholder="Add a comment here"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
+
                   />
                   <div
                     ref={emojiButtonRef}
                     className="input-placeholder-icon"
-                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // 🔥 VERY IMPORTANT
+                      setShowEmojiPicker((prev) => !prev);
+                    }}
                   >
                     <i className="icons emojiSmile svg-icon"></i>
                   </div>
                 </div>
                 {showEmojiPicker && (
-                  <div ref={emojiRef} className="emoji-picker-wrapper">
+                  <div ref={emojiRef} className="emoji-picker-wrapper"  onClick={(e) => e.stopPropagation()}>
                     <EmojiPicker
                       onEmojiClick={onEmojiClick}
                       autoFocusSearch={false}
@@ -935,10 +962,10 @@ useEffect(() => {
                       </Link>
                     </li>
                   </ul>
-                  {hasMoreComments && (<button  onClick={(e) => {
-      e.stopPropagation(); // 🔥 VERY IMPORTANT
-      handleSeeMoreComments();
-    }}className="btn-primary active-down-effect-2x" >See more <ArrowUpRight size={14} /></button>)}
+                  {hasMoreComments && (<button onClick={(e) => {
+                    e.stopPropagation(); // 🔥 VERY IMPORTANT
+                    handleSeeMoreComments();
+                  }} className="btn-primary active-down-effect-2x" >See more <ArrowUpRight size={14} /></button>)}
                 </div>
               </div>
             )}
@@ -947,10 +974,10 @@ useEffect(() => {
       </div>
 
       {showReportModal && (
-        <ReportModal show={showReportModal} post={post}   onClose={(reported?: boolean) => {
-    if (reported) setIsReported(true); // ✅ FIX
-    setShowReportModal(false);
-  }}/>
+        <ReportModal show={showReportModal} post={post} onClose={(reported?: boolean) => {
+          if (reported) setIsReported(true); // ✅ FIX
+          setShowReportModal(false);
+        }} />
       )}
       {showTipModal && (
         <TipModal onClose={() => setShowTipModal(false)} onConfirm={handleSendTip} creator={{ displayName: post?.creatorInfo?.displayName, userName: post?.creatorInfo?.userName, profile: post?.creatorInfo?.profile, }} />

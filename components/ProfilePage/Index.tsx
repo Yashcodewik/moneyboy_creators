@@ -202,9 +202,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-            url: API_CREATOR_PROFILE_BY_ID,
-            params: username,
-          });
+          url: API_CREATOR_PROFILE_BY_ID,
+          params: username,
+        });
 
       return response;
     },
@@ -658,7 +658,7 @@ const ProfilePage = () => {
 
     const hasMedia = Boolean(realMedia);
 
-    const handlePostClick = (post: any , isPaid: boolean) => {
+    const handlePostClick = (post: any, isPaid: boolean) => {
       if (!session?.isAuthenticated && isPaid) {
         router.push("/login");
         return;
@@ -721,34 +721,34 @@ const ProfilePage = () => {
           values: { postId },
         });
 
-   if (res?.success) {
-  showSuccess("Post deleted successfully");
+        if (res?.success) {
+          showSuccess("Post deleted successfully");
 
-  // ✅ remove from UI instantly
-  queryClient.setQueryData(
-    ["creator-posts", username, search, timeFilter],
-    (oldData: any) => {
-      if (!oldData) return oldData;
-      return {
-        ...oldData,
-        posts: oldData.posts.filter((p: any) => p._id !== postId),
-      };
-    }
-  );
+          // ✅ remove from UI instantly
+          queryClient.setQueryData(
+            ["creator-posts", username, search, timeFilter],
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              return {
+                ...oldData,
+                posts: oldData.posts.filter((p: any) => p._id !== postId),
+              };
+            }
+          );
 
-  // ✅ refresh posts
-  queryClient.invalidateQueries({
-    queryKey: ["creator-posts"],
-  });
+          // ✅ refresh posts
+          queryClient.invalidateQueries({
+            queryKey: ["creator-posts"],
+          });
 
-  // ✅ refresh profile (post count)
-  queryClient.invalidateQueries({
-    queryKey: ["creator-profile", username],
-  });
+          // ✅ refresh profile (post count)
+          queryClient.invalidateQueries({
+            queryKey: ["creator-profile", username],
+          });
 
-  // ✅ refresh sidebar counts
-  dispatch(fetchFollowerCounts());
-} else {
+          // ✅ refresh sidebar counts
+          dispatch(fetchFollowerCounts());
+        } else {
           showError(res?.message || "Failed to delete post");
         }
       } catch (err) {
@@ -824,38 +824,18 @@ const ProfilePage = () => {
         key={post?.publicId}
       >
         <div className="creator-content-card">
-          <div
-            className="creator-content-card__media"
-            onClick={() => handlePostClick(post, isSubscriberPost || isPPVPost)}
-          >
-            <div
-              className={`creator-card__img 
-            ${!hasMedia ? "nomedia" : ""} 
-            ${
-              !session?.isAuthenticated && (isSubscriberPost || isPPVPost)
-                ? // ? "prime_cont"
-                  ""
-                : ""
-            }`}
-            >
+          <div className="creator-content-card__media" onClick={() => handlePostClick(post, isSubscriberPost || isPPVPost)}>
+            <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
-                <img src={firstMedia} alt="Creator Content" />
+                <img src={firstMedia} alt="Creator Content" loading="lazy" />
               )}
               {mediaType === "video" && firstMedia && (
-                <video
-                  preload="metadata"
-                  controls={canViewContent}
-                  onClick={(e) => {
-                    if (!canViewContent) e.preventDefault();
-                  }}
-                  style={{ width: "100%" }}
-                >
-                  <source src={firstMedia} />
-                </video>
+                <video src={firstMedia} playsInline muted preload="metadata" controls={canViewContent} poster={`${firstMedia}#t=0.5`} onLoadedData={(e) => { e.currentTarget.currentTime = 0.1; }} style={{ width: "100%", pointerEvents: canViewContent ? "auto" : "none", }} />
               )}
             </div>
+
             {(isSubscriberPost && !isSubscribed) ||
-            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={(e) => {
@@ -953,7 +933,7 @@ const ProfilePage = () => {
             ) : null}
             <div
               className="creator-media-card__overlay"
-              // onClick={(e) => e.stopPropagation()}
+            // onClick={(e) => e.stopPropagation()}
             >
               <div className="creator-media-card__stats">
                 {isOwner &&
@@ -1241,9 +1221,8 @@ const ProfilePage = () => {
           )}
 
           <div
-            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${
-              layoutTab === "list" ? "layout-list" : "layout-grid"
-            }`}
+            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${layoutTab === "list" ? "layout-list" : "layout-grid"
+              }`}
             data-direct-cards-layout
             data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
           >
@@ -1755,9 +1734,9 @@ const ProfilePage = () => {
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                              "default",
-                              { month: "long", year: "numeric" },
-                            )
+                            "default",
+                            { month: "long", year: "numeric" },
+                          )
                           : ""}
                       </span>
                     </div>
