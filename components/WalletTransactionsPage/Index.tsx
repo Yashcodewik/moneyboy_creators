@@ -26,9 +26,32 @@ const WalletTransactionsPage = () => {
   const [prevTab, setPrevTab] = useState<TabType>("orders");
   const router = useRouter();
   const tabParam = searchParams.get("tab");
-const [orderType, setOrderType] = useState<"purchases" | "sales">(
-  orderParam === "sales" ? "sales" : "purchases"
-);
+const [orderType, setOrderType] = useState<"purchases" | "sales">(() => {
+  // ✅ If URL param exists → use it
+  if (orderParam === "sales") return "sales";
+  if (orderParam === "purchases") return "purchases";
+
+  // ✅ Default based on role
+  if (session?.user?.role === 2) return "sales";      // Received
+  if (session?.user?.role === 1) return "purchases";  // Sent
+
+  return "purchases"; // fallback
+});
+
+useEffect(() => {
+  if (orderParam) {
+    setOrderType(orderParam as "purchases" | "sales");
+    return;
+  }
+
+  // ✅ role-based fallback after session loads
+  if (session?.user?.role === 2) {
+    setOrderType("sales");
+  } else if (session?.user?.role === 1) {
+    setOrderType("purchases");
+  }
+}, [orderParam, session?.user?.role]);
+
   const initialTab =
     tabParam === "earnings"
       ? "earnings"
@@ -127,10 +150,10 @@ type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
           </div>
           {activeTab === "orders" && (
             <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
-              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => {setOrderType("purchases");router.replace(`?tab=orders&order=purchases`, { scroll: false });}}>Sent</button>
               {session?.user?.role === 2 && (
                 <button className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`} onClick={() => {setOrderType("sales");router.replace(`?tab=orders&order=sales`, { scroll: false });}}>Received</button>
               )}
+              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => {setOrderType("purchases");router.replace(`?tab=orders&order=purchases`, { scroll: false });}}>Sent</button>
             </div>
           )}
           <div className="tabs-content-wrapper-layout">

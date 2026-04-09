@@ -8428,7 +8428,7 @@ textarea:focus {
               content: "";
               position: absolute;
               inset: 0;
-              background: #0000007a;
+              background: #0000007a url('/images/logo/profile-badge.png') center/50% no-repeat;
               opacity: 0;
               transition: var(--transition-normal);
               z-index: 1;

@@ -112,7 +112,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+   document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -211,7 +211,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -293,19 +293,28 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const topComment = sortedComments[0];
   const hasMoreComments = sortedComments.length > 1;
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (showComment) {
-        setShowComment(false);
-      }
-    };
+useEffect(() => {
+  let lastScrollY = window.scrollY;
 
-    window.addEventListener("scroll", handleScroll);
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [showComment]);
+    // ✅ ignore tiny scroll (iOS fix)
+    if (Math.abs(currentScrollY - lastScrollY) < 5) return;
+
+    if (showComment) {
+      setShowComment(false);
+    }
+
+    lastScrollY = currentScrollY;
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => {
+    window.removeEventListener("scroll", handleScroll);
+  };
+}, [showComment]);
 
   const handleSendTip = async (
     amount: number,
