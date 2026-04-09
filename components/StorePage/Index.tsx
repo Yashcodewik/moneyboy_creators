@@ -319,7 +319,6 @@ const StorePage = () => {
     );
   };
   const handleCreatorClick = (creator: any) => {
-    // SAME creator clicked → close store
     if (selectedCreator?.publicId === creator.publicId) {
       setSelectedCreator(null);
       return;
@@ -574,6 +573,7 @@ const StorePage = () => {
                         >
                           <div
                             className="icons_wrap"
+                            role="button"
                             onClick={() => handleCreatorClick(creator)}
                           >
                             {creator.profile ? (
@@ -613,16 +613,7 @@ const StorePage = () => {
                                 </svg>
                               </div>
                             )}
-
-                            <button className="btn_close">
-                              <img
-                                alt="Profile Badge"
-                                className="max-w-22"
-                                src="/images/logo/profile-badge.png"
-                              />
-                            </button>
                           </div>
-
                           <span>{creator.displayName}</span>
                         </li>
                       ))}
