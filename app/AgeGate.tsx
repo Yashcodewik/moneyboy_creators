@@ -48,7 +48,7 @@ export default function AgeGate() {
         </ul>
         <div className="actions">
           <button className="premium-btn active-down-effect" onClick={handleAgree}><span>I Agree, Enter Now</span></button>
-          <button className="cate-back-btn active-down-effect" onClick={handleDisagree}>I Do Not Agree, Leave Site</button>
+          <button className="cate-back-btn active-down-effect text-black" onClick={handleDisagree}>I Do Not Agree, Leave Site</button>
         </div>
       </div>
     </Modal>

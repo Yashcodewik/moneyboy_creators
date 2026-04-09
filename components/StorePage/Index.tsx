@@ -1080,15 +1080,8 @@ const StorePage = () => {
                             </div>
                             <div className="creater-content-filters-layouts">
                               <div className="creator-content-select-filter">
-                                <CustomSelect
-                                  className="bg-white p-sm size-sm"
-                                  label="All Time"
-                                  options={timeOptions}
-                                  value={time}
-                                  searchable={false}
-                                  onChange={(value) => {
-                                    if (typeof value === "string") {
-                                      setTime(value as TimeFilter);
+                                <CustomSelect className="bg-white p-sm size-sm" label="All Time" options={timeOptions} value={time} searchable={false} onChange={(value) => {
+                                    if (typeof value === "string") {setTime(value as TimeFilter);
                                     }
                                   }}
                                 />

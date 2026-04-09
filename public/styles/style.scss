@@ -101,14 +101,22 @@ textarea:focus {
   bottom: 87px;
   right: 15px;
   .premium-btn {
-    aspect-ratio: 1;
+    padding: 0px;
     border-radius: 100%;
     justify-content: center;
     align-items: center;
-    max-width: 32px;
+    width: 32px;
     height: 32px;
     display: flex;
+    background: transparent;
+    border: 0px;
+    flex-shrink: 0;
+    -webkit-appearance: none;
+      appearance: none;
+      border: none;
+      outline: none;
     svg {
+      border-radius: 100%;
       transform: scale(1.15);
       will-change: transform;
       transition: var(--transition-fast);
@@ -2368,6 +2376,12 @@ textarea:focus {
   grid-column: 1 / -1 !important;
 }
 
+
+// Color Start
+.text-black {
+  color:#000;
+}
+
 /* Login Page Start */
 .login_wrap {
   height: 100%;
@@ -3386,6 +3400,7 @@ textarea:focus {
     }
   }
   .close-btn {
+    color:#000;
     cursor: pointer;
     display: block;
     margin-left: auto;

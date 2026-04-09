@@ -22,7 +22,7 @@ const Modal: React.FC<ModalProps> = ({show, title, onClose, children, footer, si
             {title && (
               <div className="modal-header">
                 <h5 className="modal-title">{title}</h5>
-                <button className="btn-close" onClick={onClose}><CgClose size={22} /></button>
+                <button className="btn-close" onClick={onClose}><CgClose size={22} color="#000"/></button>
               </div>
             )}
             <div className="modal-body">{children}</div>
