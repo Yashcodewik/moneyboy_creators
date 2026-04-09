@@ -245,7 +245,14 @@ const SubscriptionsPage = () => {
                   {/* Tab Content */}
                   <div className="creator-content-cards-wrapper subscriptions_containt">
                     {loading && subscribers.length === 0 && <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
-
+                  {!loading &&
+                    ((activeTab === "subscribers" && subscribers.length === 0) ||
+                      (activeTab === "subscriptions" && subscriptions.length === 0)) && (
+                      <div className="nofound">
+                        <h3 className="first">No media found</h3>
+                        <h3 className="second">No media found</h3>
+                      </div>
+                  )}
                     {activeTab === "subscribers" && (
                       <div className="rel-users-wrapper">
                         {subscribers?.map((item: any) => {
