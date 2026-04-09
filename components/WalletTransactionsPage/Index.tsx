@@ -26,31 +26,71 @@ const WalletTransactionsPage = () => {
   const [prevTab, setPrevTab] = useState<TabType>("orders");
   const router = useRouter();
   const tabParam = searchParams.get("tab");
-const [orderType, setOrderType] = useState<"purchases" | "sales">(() => {
-  // ✅ If URL param exists → use it
-  if (orderParam === "sales") return "sales";
-  if (orderParam === "purchases") return "purchases";
+  const [orderType, setOrderType] = useState<"purchases" | "sales">(() => {
+    // ✅ If URL param exists → use it
+    if (orderParam === "sales") return "sales";
+    if (orderParam === "purchases") return "purchases";
 
-  // ✅ Default based on role
-  if (session?.user?.role === 2) return "sales";      // Received
-  if (session?.user?.role === 1) return "purchases";  // Sent
+    // ✅ Default based on role
+    if (session?.user?.role === 2) return "sales";      // Received
+    if (session?.user?.role === 1) return "purchases";  // Sent
 
-  return "purchases"; // fallback
-});
+    return "purchases"; // fallback
+  });
 
-useEffect(() => {
-  if (orderParam) {
-    setOrderType(orderParam as "purchases" | "sales");
-    return;
-  }
+  useEffect(() => {
+    const tooltips = document.querySelectorAll("[data-tooltip]");
 
-  // ✅ role-based fallback after session loads
-  if (session?.user?.role === 2) {
-    setOrderType("sales");
-  } else if (session?.user?.role === 1) {
-    setOrderType("purchases");
-  }
-}, [orderParam, session?.user?.role]);
+    const handleMouseEnter = (el: Element) => {
+      const rect = el.getBoundingClientRect();
+
+      const spaceTop = rect.top;
+      const spaceBottom = window.innerHeight - rect.bottom;
+      const spaceLeft = rect.left;
+      const spaceRight = window.innerWidth - rect.right;
+
+      el.classList.remove(
+        "tooltip-top",
+        "tooltip-bottom",
+        "tooltip-left",
+        "tooltip-right"
+      );
+
+      if (spaceTop > 80) {
+        el.classList.add("tooltip-top");
+      } else if (spaceBottom > 80) {
+        el.classList.add("tooltip-bottom");
+      } else if (spaceRight > 120) {
+        el.classList.add("tooltip-right");
+      } else {
+        el.classList.add("tooltip-left");
+      }
+    };
+
+    tooltips.forEach((el) => {
+      const listener = () => handleMouseEnter(el);
+      el.addEventListener("mouseenter", listener);
+
+      // cleanup
+      return () => {
+        el.removeEventListener("mouseenter", listener);
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    if (orderParam) {
+      setOrderType(orderParam as "purchases" | "sales");
+      return;
+    }
+
+    // ✅ role-based fallback after session loads
+    if (session?.user?.role === 2) {
+      setOrderType("sales");
+    } else if (session?.user?.role === 1) {
+      setOrderType("purchases");
+    }
+  }, [orderParam, session?.user?.role]);
 
   const initialTab =
     tabParam === "earnings"
@@ -125,7 +165,7 @@ useEffect(() => {
     );
   }, [activeTab, mode, page, getApiTab, session?.user?.role]);
 
-type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
+  type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     router.replace(`/wallet-transactions?tab=${tab}`, { scroll: false });
@@ -135,12 +175,12 @@ type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
         <div className="moneyboy-feed-page-container moneyboy-diff-content-wrappers" data-scroll-zero data-multiple-tabs-section data-identifier="1">
-          <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+          <div className="moneyboy-feed-page-cate-buttons card small" id="posts-tabs-btn-card">
             {session?.user?.role === 2 && (
               <button className={`page-content-type-button active-down-effect ${activeTab === "earnings" ? "active" : ""}`} onClick={() => handleTabChange("earnings")} >Earnings</button>
             )}
             <button className={`page-content-type-button active-down-effect ${activeTab === "spending" ? "active" : ""}`} onClick={() => handleTabChange("spending")}> Spending</button>
-            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => handleTabChange("orders")}> {" "} PPV Request History</button>
+            <button className={`page-content-type-button active-down-effect ${activeTab === "orders" ? "active" : ""}`} onClick={() => handleTabChange("orders")}> {" "} {isMobile ? "PPV Request" : "PPV Request History"}</button>
             {session?.user?.role === 2 && (
               <button className={`page-content-type-button active-down-effect ${activeTab === "payouts" ? "active" : ""}`} onClick={() => handleTabChange("payouts")}>Payouts</button>
             )}
@@ -149,11 +189,11 @@ type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
             )}
           </div>
           {activeTab === "orders" && (
-            <div className="moneyboy-feed-page-cate-buttons card" id="posts-tabs-btn-card">
+            <div className="moneyboy-feed-page-cate-buttons card small" id="posts-tabs-btn-card">
               {session?.user?.role === 2 && (
-                <button className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`} onClick={() => {setOrderType("sales");router.replace(`?tab=orders&order=sales`, { scroll: false });}}>Received</button>
+                <button className={`page-content-type-button active-down-effect ${mode === "sales" ? "active" : ""}`} onClick={() => { setOrderType("sales"); router.replace(`?tab=orders&order=sales`, { scroll: false }); }}>Received</button>
               )}
-              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => {setOrderType("purchases");router.replace(`?tab=orders&order=purchases`, { scroll: false });}}>Sent</button>
+              <button className={`page-content-type-button active-down-effect ${mode === "purchases" ? "active" : ""}`} onClick={() => { setOrderType("purchases"); router.replace(`?tab=orders&order=purchases`, { scroll: false }); }}>Sent</button>
             </div>
           )}
           <div className="tabs-content-wrapper-layout">
@@ -226,12 +266,12 @@ type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
                                 otherUser = isIncoming
                                   ? txn.fromUser
                                   : txn.toUser;
-                                  if (otherUser) {
-                                    otherUser = {
-                                      ...otherUser,
-                                      username: otherUser.userName, 
-                                    };
-                                  }
+                                if (otherUser) {
+                                  otherUser = {
+                                    ...otherUser,
+                                    username: otherUser.userName,
+                                  };
+                                }
                               }
                               const isDeposit = txn.type === "ADD_FUNDS";
                               const isPaymentTab = activeTab === "payouts";
@@ -241,16 +281,16 @@ type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
                                   <div className="rel-user-profile-action">
                                     <div className="rel-user-profile">
                                       <div className="profile-card">
-                                       <Link
-                                        href={
-                                          txn.type === "ADD_FUNDS" || !otherUser
-                                            ? "#"
-                                            : Number(otherUser.role) === 1
-                                              ? `/userprofile/${otherUser.publicId}`
-                                              : `/${otherUser.userName}`
-                                        }
-                                        className="profile-card__main"
-                                      >
+                                        <Link
+                                          href={
+                                            txn.type === "ADD_FUNDS" || !otherUser
+                                              ? "#"
+                                              : Number(otherUser.role) === 1
+                                                ? `/userprofile/${otherUser.publicId}`
+                                                : `/${otherUser.userName}`
+                                          }
+                                          className="profile-card__main"
+                                        >
                                           {!isPaymentTab && (
                                             <div className="profile-card__avatar-settings">
                                               <div className="profile-card__avatar">

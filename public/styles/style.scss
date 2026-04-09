@@ -1947,6 +1947,13 @@ textarea:focus {
   color: #fece26;
   background-color: #010405;
 }
+/* ========== Mobile Screen Size ========== */
+@media screen and (max-width: 767px) {
+  .moneyboy-feed-page-container .moneyboy-feed-page-cate-buttons.small .page-content-type-button {
+    font-size: 12px !important;
+  }
+}
+
 .moneyboy-feed-page-container {
   .moneyboy-feed-page-cate-buttons {
     .page-content-type-button {
@@ -6183,6 +6190,22 @@ textarea:focus {
      font-weight: 300;
     }
   }
+  /* ========== Mobile Screen Size ========== */
+  @media screen and (max-width: 767px) {
+  .btntooltip_wrapper {
+    z-index: 9;
+    button[data-tooltip] {
+      &::after {
+        max-width: min(160px, 90vw);
+        width: max-content;
+        white-space: normal;
+        word-break: break-word;
+        left: 50%;
+        transform: translateX(-50%) translateY(6px);
+      }
+    }
+  }
+}
 }
 .payout_wrap {
   gap: 10px;

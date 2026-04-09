@@ -37,4 +37,11 @@
     .col-4-cards-layout {
         gap: 10px;
     }
+    .creator-media-card.card {
+        .creator-media-card__desc {
+            h5 {
+                max-width: 140px !important;
+            }
+        }
+    }
 }

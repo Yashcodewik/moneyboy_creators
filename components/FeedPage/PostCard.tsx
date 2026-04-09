@@ -112,7 +112,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       }
     };
 
-   document.addEventListener("click", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -279,10 +279,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   };
 
   const handleSeeMoreComments = () => {
-  router.push(
-    `/post?page&publicId=${post.publicId}&comment=open`
-  );
-};
+    router.push(
+      `/post?page&publicId=${post.publicId}&comment=open`
+    );
+  };
 
   const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
     const aLikes = a.likeCount ?? a.likes?.length ?? 0;
@@ -293,28 +293,28 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const topComment = sortedComments[0];
   const hasMoreComments = sortedComments.length > 1;
 
-useEffect(() => {
-  let lastScrollY = window.scrollY;
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
 
-  const handleScroll = () => {
-    const currentScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
 
-    // ✅ ignore tiny scroll (iOS fix)
-    if (Math.abs(currentScrollY - lastScrollY) < 5) return;
+      // ✅ ignore tiny scroll (iOS fix)
+      if (Math.abs(currentScrollY - lastScrollY) < 5) return;
 
-    if (showComment) {
-      setShowComment(false);
-    }
+      if (showComment) {
+        setShowComment(false);
+      }
 
-    lastScrollY = currentScrollY;
-  };
+      lastScrollY = currentScrollY;
+    };
 
-  window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
-  return () => {
-    window.removeEventListener("scroll", handleScroll);
-  };
-}, [showComment]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [showComment]);
 
   const handleSendTip = async (
     amount: number,
@@ -758,7 +758,7 @@ useEffect(() => {
                       return;
                     }
 
-                   if (isReported) return;
+                    if (isReported) return;
 
                     session?.user?.id !== post.userId && setShowReportModal(true);
                   }}
@@ -839,35 +839,18 @@ useEffect(() => {
             <div className="moneyboy-comment-wrap">
               <div className="comment-wrap">
                 <div className="label-input">
-                  <textarea
-                    ref={textareaRef}
-                    placeholder="Add a comment here"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                  />
-                  <div
-                    ref={emojiButtonRef}
-                    className="input-placeholder-icon"
-                    onClick={() => setShowEmojiPicker((prev) => !prev)}
-                  >
-                    <i className="icons emojiSmile svg-icon"></i>
-                  </div>
+                  <textarea ref={textareaRef} placeholder="Add a comment here" value={newComment} onChange={(e) => setNewComment(e.target.value)}/>
+                  {!isMobile && (
+                    <div ref={emojiButtonRef} className="input-placeholder-icon" onClick={() => setShowEmojiPicker((prev) => !prev)}><i className="icons emojiSmile svg-icon"></i></div>
+                  )}
                 </div>
-                {showEmojiPicker && (
+                {showEmojiPicker && !isMobile && (
                   <div ref={emojiRef} className="emoji-picker-wrapper">
-                    <EmojiPicker
-                      onEmojiClick={onEmojiClick}
-                      autoFocusSearch={false}
-                      skinTonesDisabled
-                      previewConfig={{ showPreview: false }}
-                    />
+                    <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }}/>
                   </div>
                 )}
               </div>
-              <button
-                className="premium-btn active-down-effect"
-                onClick={handleAddComment}
-              >
+              <button className="premium-btn active-down-effect" onClick={handleAddComment}>
                 <svg width="40" height="35" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z" fill="url(#paint0_linear_4464_314)" />
                   <defs>
@@ -935,10 +918,10 @@ useEffect(() => {
                       </Link>
                     </li>
                   </ul>
-                  {hasMoreComments && (<button  onClick={(e) => {
-      e.stopPropagation(); // 🔥 VERY IMPORTANT
-      handleSeeMoreComments();
-    }}className="btn-primary active-down-effect-2x" >See more <ArrowUpRight size={14} /></button>)}
+                  {hasMoreComments && (<button onClick={(e) => {
+                    e.stopPropagation(); // 🔥 VERY IMPORTANT
+                    handleSeeMoreComments();
+                  }} className="btn-primary active-down-effect-2x" >See more <ArrowUpRight size={14} /></button>)}
                 </div>
               </div>
             )}
@@ -947,10 +930,10 @@ useEffect(() => {
       </div>
 
       {showReportModal && (
-        <ReportModal show={showReportModal} post={post}   onClose={(reported?: boolean) => {
-    if (reported) setIsReported(true); // ✅ FIX
-    setShowReportModal(false);
-  }}/>
+        <ReportModal show={showReportModal} post={post} onClose={(reported?: boolean) => {
+          if (reported) setIsReported(true); // ✅ FIX
+          setShowReportModal(false);
+        }} />
       )}
       {showTipModal && (
         <TipModal onClose={() => setShowTipModal(false)} onConfirm={handleSendTip} creator={{ displayName: post?.creatorInfo?.displayName, userName: post?.creatorInfo?.userName, profile: post?.creatorInfo?.profile, }} />
