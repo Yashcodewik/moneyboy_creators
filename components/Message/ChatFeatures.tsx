@@ -26,9 +26,8 @@ const ChatFeatures = ({
 }) => {
   const [searchText, setSearchText] = useState("");
   const router = useRouter();
-  const { isBlocked, isHidden, isMute } = useAppSelector((state) => state.message);
-
-
+  const { isBlockedByYou, isBlockedByOther, isHidden, isMute } =
+  useAppSelector((state) => state.message);
 
   const dispatch = useAppDispatch();
 
@@ -286,7 +285,9 @@ const ChatFeatures = ({
               ></path>
             </svg>
           </div>
-          <span>{isBlocked ? "Unblock Messages" : "Block Messages"}</span>
+         <span>
+          {isBlockedByYou ? "Unblock Messages" : "Block Messages"}
+        </span>
         </li>
         <li onClick={onReport}>
           <div className="icon report-icon">
