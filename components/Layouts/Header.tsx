@@ -363,18 +363,21 @@ const Header = () => {
                     type="text"
                     placeholder="Search here"
                     value={headerSearch}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setHeaderSearch(value);
+                   onChange={(e) => {
+  const value = e.target.value;
+  setHeaderSearch(value);
 
-                      if (value.trim()) {
-                        if (pathname !== "/discover") {
-                          router.push("/discover");
-                        } else {
-                          router.replace(`/discover?search=${encodeURIComponent(value)}`);
-                        }
-                      }
-                    }}
+  if (pathname !== "/discover") {
+    router.push("/discover");
+  }
+
+  // ✅ ALWAYS update URL
+  router.replace(
+    value
+      ? `/discover?search=${encodeURIComponent(value)}`
+      : `/discover`
+  );
+}}
 
                   />
                 </div>
@@ -443,18 +446,21 @@ const Header = () => {
                                       type="text"
                                       placeholder="Search here..."
                                       value={headerSearch}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        setHeaderSearch(value);
+                                onChange={(e) => {
+  const value = e.target.value;
+  setHeaderSearch(value);
 
-                                        if (value.trim()) {
-                                          if (pathname !== "/discover") {
-                                            router.push("/discover");
-                                          } else {
-                                            router.replace(`/discover?search=${encodeURIComponent(value)}`);
-                                          }
-                                        }
-                                      }}
+  if (pathname !== "/discover") {
+    router.push("/discover");
+  }
+
+  // ✅ ALWAYS update URL
+  router.replace(
+    value
+      ? `/discover?search=${encodeURIComponent(value)}`
+      : `/discover`
+  );
+}}
                                       autoFocus
 
                                     />

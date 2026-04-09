@@ -482,6 +482,7 @@ const EditProfilePage = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 name="gender"
+                                 disabled
                               />
                             </div>
 

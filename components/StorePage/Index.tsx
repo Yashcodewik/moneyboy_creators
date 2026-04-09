@@ -4,7 +4,7 @@ import CustomSelect from "../CustomSelect";
 import { timeOptions } from "../helper/creatorOptions";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlayCircle } from "lucide-react";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 import { CgClose } from "react-icons/cg";
@@ -95,6 +95,34 @@ const StorePage = () => {
 
   const [specialBannerError, setSpecialBannerError] = useState(false);
   const [videoErrors, setVideoErrors] = useState<Record<string, boolean>>({});
+
+  const videoRefs = useRef<{ [key: string]: HTMLVideoElement }>({});
+  const [playingId, setPlayingId] = useState<string | null>(null);
+
+  const handlePlayClick = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const video = videoRefs.current[id];
+    if (!video) return;
+
+    // pause all others
+    Object.entries(videoRefs.current).forEach(([key, v]) => {
+      if (v && key !== id) {
+        v.pause();
+        v.currentTime = 0;
+      }
+    });
+
+    if (video.paused) {
+      video.muted = false;
+      video.play();
+      setPlayingId(id);
+    } else {
+      video.pause();
+      setPlayingId(null);
+    }
+  };
 
   useEffect(() => {
     if (tabFromUrl === "marketplace" || tabFromUrl === "mystore") {
@@ -319,7 +347,6 @@ const StorePage = () => {
     );
   };
   const handleCreatorClick = (creator: any) => {
-    // SAME creator clicked → close store
     if (selectedCreator?.publicId === creator.publicId) {
       setSelectedCreator(null);
       return;
@@ -574,6 +601,7 @@ const StorePage = () => {
                         >
                           <div
                             className="icons_wrap"
+                            role="button"
                             onClick={() => handleCreatorClick(creator)}
                           >
                             {creator.profile ? (
@@ -613,16 +641,7 @@ const StorePage = () => {
                                 </svg>
                               </div>
                             )}
-
-                            <button className="btn_close">
-                              <img
-                                alt="Profile Badge"
-                                className="max-w-22"
-                                src="/images/logo/profile-badge.png"
-                              />
-                            </button>
                           </div>
-
                           <span>{creator.displayName}</span>
                         </li>
                       ))}
@@ -1136,1062 +1155,255 @@ const StorePage = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card" data-layout-toggle-rows={layout === "list" ? true : undefined}>
-                          {subActiveTab === "all" && (
-                            <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tabdata__active>
-                              {loadingPaidPosts && (
-                                <div className="loadingtext">
-                                  {"Loading".split("").map((char, i) => (
-                                    <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s`, }}>{char}</span>
-                                  ))}
-                                </div>
-                              )}
-                              <div className="col-4-cards-layout">
-                                {!loadingPaidPosts &&
-                                  paidPosts.map((post) => {
-                                    const media = getPostMedia(post);
-                                    const isOwnPost =
-                                      isCreator &&
-                                      post.userId === loggedInUserId;
-                                    const isSaved = post.isSaved;
-                                    const taggedUsers =
-                                      post?.collaboration?.taggedUsers ?? [];
-                                    return (
-                                      <div className="creator-media-card card" key={post._id}>
-                                        <div className="creator-media-card__media-wrapper">
-                                          <div className="creator-media-card__media">
-                                            {media.type === "video" ? (
-                                              media.url &&
-                                                !videoErrors[post._id] ? (
-                                                // <Plyr options={{controls: ["play", "fullscreen"],}} source={{type: "video", sources: [{src: media.url, type: media.url.endsWith(".mp4") ? "video/mp4" : media.url.endsWith(".webm") ? "video/webm" : "video/mp4",},],}}/>
-                                                <video
-                                                  src={media.url}
-                                                  controls
-                                                  playsInline
-                                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                                />
-                                              ) : (
-                                                <div className="noprofile">No Video</div>
-                                              )
-                                            ) : media.type === "photo" ? (
-                                              <img src={media.url} alt="Post Image" />
-                                            ) : (
-                                              <div className="noprofile">
-                                                <svg
-                                                  width="40"
-                                                  height="40"
-                                                  viewBox="0 0 66 54"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    className="animate-m"
-                                                    d="M65.4257 49.6477L64.1198 52.8674..."
-                                                    fill="url(#paint_video_fallback)"
-                                                  />
-                                                  <defs>
-                                                    <linearGradient
-                                                      id="paint_video_fallback"
-                                                      x1="0"
-                                                      y1="27"
-                                                      x2="66"
-                                                      y2="27"
-                                                      gradientUnits="userSpaceOnUse"
-                                                    >
-                                                      <stop stopColor="#FDAB0A" />
-                                                      <stop
-                                                        offset="0.4"
-                                                        stopColor="#FECE26"
-                                                      />
-                                                      <stop
-                                                        offset="1"
-                                                        stopColor="#FE990B"
-                                                      />
-                                                    </linearGradient>
-                                                  </defs>
-                                                </svg>
-                                              </div>
-                                            )}
-                                          </div>
-                                          <div className="creator-media-card__overlay">
-                                            <div className="creator-media-card__stats">
-                                              {!isOwnPost &&
-                                                !post.isUnlocked &&
-                                                !post.isSubscribed && (
-                                                  <div
-                                                    className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""}`}
-                                                    onClick={(e) =>
-                                                      handleSaveToggle(e, post)
-                                                    }
-                                                  >
-                                                    <svg
-                                                      xmlns="http://www.w3.org/2000/svg"
-                                                      width="24"
-                                                      height="24"
-                                                      viewBox="0 0 24 24"
-                                                      fill="none"
-                                                    >
-                                                      <path
-                                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      ></path>
-                                                    </svg>
-                                                  </div>
-                                                )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <div className="profile-card">
-                                          <Link
-                                            href="#"
-                                            className="profile-card__main"
-                                          >
-                                            {/* <div className="profile-card__avatar-settings">
-                                                <div className="profile-card__avatar">
-                                                  <img
-                                                    src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
-                                                    alt="MoneyBoy Social Profile Avatar"
-                                                  />
-                                                </div>
-                                              </div> */}
-                                            <div className="profile-card__info">
-                                              <div className="profile-card__name-badge">
-                                                <div className="profile-card__name">
-                                                  {post.text}
-                                                </div>
-                                                {/* <div className="profile-card__badge">
-                                                    <img
-                                                      src="/images/logo/profile-badge.png"
-                                                      alt="MoneyBoy Social Profile Badge"
-                                                    />
-                                                  </div> */}
-                                                {taggedUsers.length > 0 && (
-                                                  <div
-                                                    className="tagview"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      e.preventDefault();
-                                                      showTaggedUserList([
-                                                        ...(post?.collaboration
-                                                          ?.taggedBy
-                                                          ? [
-                                                            {
-                                                              user: post
-                                                                .collaboration
-                                                                .taggedBy,
-                                                            },
-                                                          ]
-                                                          : []),
-                                                        ...(post?.collaboration
-                                                          ?.taggedUsers || []),
-                                                      ]);
-                                                    }}
-                                                  >
-                                                    <ul className="taglist">
-                                                      {taggedUsers
-                                                        .slice(0, 2)
-                                                        .map(
-                                                          (
-                                                            tag: any,
-                                                            index: number,
-                                                          ) => (
-                                                            <li key={index}>
-                                                              {tag?.user
-                                                                ?.profile ? (
-                                                                <img
-                                                                  className="user_icons"
-                                                                  src={
-                                                                    tag.user
-                                                                      .profile
-                                                                  }
-                                                                  alt={
-                                                                    tag?.user
-                                                                      ?.userName ||
-                                                                    "user"
-                                                                  }
-                                                                  onError={(
-                                                                    e: any,
-                                                                  ) => {
-                                                                    e.currentTarget.style.display =
-                                                                      "none";
-                                                                  }}
-                                                                />
-                                                              ) : (
-                                                                <div className="nomedia">
-                                                                  <span>
-                                                                    {(
-                                                                      tag?.user
-                                                                        ?.userName ||
-                                                                      "U"
-                                                                    )
-                                                                      .charAt(0)
-                                                                      .toUpperCase()}
-                                                                  </span>
-                                                                </div>
-                                                              )}
-                                                            </li>
-                                                          ),
-                                                        )}
-                                                      {taggedUsers.length >
-                                                        2 && (
-                                                          <li className="more-count">
-                                                            +
-                                                            {taggedUsers.length -
-                                                              2}
-                                                          </li>
-                                                        )}
-                                                    </ul>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </Link>
-                                        </div>
-                                        <div className="creator-media-card__btn">
-                                          <>
-                                            {post.isUnlocked && (
-                                              <a
-                                                className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                onClick={() =>
-                                                  handlePostRedirect(
-                                                    post,
-                                                    isOwnPost,
-                                                  )
-                                                }
-                                              >
-                                                <span>Purchased</span>
-                                              </a>
-                                            )}
-                                            {/* SUBSCRIBED */}
-                                            {!post.isUnlocked &&
-                                              post.isSubscribed &&
-                                              post.accessType ===
-                                              "subscriber" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                  onClick={() =>
-                                                    handlePostRedirect(
-                                                      post,
-                                                      isOwnPost,
-                                                    )
-                                                  }
-                                                >
-                                                  <span>Subscribed</span>
-                                                </Link>
-                                              )}
-                                            {/* PAY PER VIEW */}
-                                            {!post.isUnlocked &&
-                                              post.accessType ===
-                                              "pay_per_view" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline"
-                                                  onClick={(e) => {
-                                                    if (isOwnPost) {
-                                                      e.preventDefault();
-                                                      return;
-                                                    }
-                                                    setUnlockModalPost(post);
-                                                  }}
-                                                >
-                                                  <svg
-                                                    className="only-fill-hover-effect"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="20"
-                                                    height="20"
-                                                    viewBox="0 0 20 20"
-                                                    fill="none"
-                                                  >
-                                                    <path
-                                                      d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                                      fill="url(#paint0_linear_745_155)"
-                                                    ></path>
-                                                    <defs>
-                                                      <linearGradient
-                                                        id="paint0_linear_745_155"
-                                                        x1="1.99456"
-                                                        y1="0.916991"
-                                                        x2="26.1808"
-                                                        y2="6.81415"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FECE26"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#E5741F"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                    </defs>
-                                                  </svg>
-                                                  <span>${post.price}</span>
-                                                </Link>
-                                              )}
-                                            {!post.isUnlocked &&
-                                              !post.isSubscribed &&
-                                              post.accessType ===
-                                              "subscriber" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                  onClick={(e) => {
-                                                    if (isOwnPost) {
-                                                      e.preventDefault();
-                                                      return;
-                                                    }
-                                                    setSubscriptionPlan(
-                                                      "MONTHLY",
-                                                    );
-                                                    setShowSubscriptionModal(
-                                                      true,
-                                                    );
-                                                  }}
-                                                >
-                                                  <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="20"
-                                                    height="20"
-                                                    viewBox="0 0 20 20"
-                                                    fill="none"
-                                                  >
-                                                    <path
-                                                      d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                                      stroke="url(#paint0_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <path
-                                                      d="M5.41602 18.3333H14.5827"
-                                                      stroke="url(#paint1_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <path
-                                                      d="M7.91602 11.6667H12.0827"
-                                                      stroke="url(#paint2_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <defs>
-                                                      <linearGradient
-                                                        id="paint0_linear_745_209"
-                                                        x1="9.9704"
-                                                        y1="1.65417"
-                                                        x2="9.9704"
-                                                        y2="15.8167"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                      <linearGradient
-                                                        id="paint1_linear_745_209"
-                                                        x1="9.99935"
-                                                        y1="18.3333"
-                                                        x2="9.99935"
-                                                        y2="19.3333"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                      <linearGradient
-                                                        id="paint2_linear_745_209"
-                                                        x1="9.99935"
-                                                        y1="11.6667"
-                                                        x2="9.99935"
-                                                        y2="12.6667"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                    </defs>
-                                                  </svg>
-                                                  <span>For Subscribers</span>
-                                                </Link>
-                                              )}
-                                          </>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                {!loadingPaidPosts &&
-                                  paidPosts.length === 0 && (
-                                    <div className="nofound grid-span-4">
-                                      <h3 className="first">No media found</h3>
-                                      <h3 className="second">No media found</h3>
-                                    </div>
-                                  )}
-                              </div>
-                              {renderPagination()}
-                            </div>
-                          )}
-                          {subActiveTab === "videos" && (
-                            <div
-                              className="creator-content-type-container-wrapper"
-                              data-multi-tabs-content-tabdata__active
-                            >
-                              {loadingPaidPosts && (
-                                <div className="loadingtext">
-                                  {"Loading".split("").map((char, i) => (
-                                    <span
-                                      key={i}
-                                      style={{
-                                        animationDelay: `${(i + 1) * 0.1}s`,
-                                      }}
-                                    >
-                                      {char}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                              <div className="col-4-cards-layout">
-                                {!loadingPaidPosts &&
-                                  videoPosts.map((post) => {
-                                    const media = getPostMedia(post);
-                                    const isOwnPost =
-                                      isCreator &&
-                                      post.userId === loggedInUserId;
-                                    const isSaved = post.isSaved;
-                                    const taggedUsers =
-                                      post?.collaboration?.taggedUsers ?? [];
-                                    return (
-                                      <div
-                                        className="creator-media-card card"
-                                        key={post._id}
-                                      >
-                                        <div className="creator-media-card__media-wrapper">
-                                          <div className="creator-media-card__media">
-                                            {media.url &&
-                                              !videoErrors[post._id] ? (
-                                              <Plyr
-                                                options={{
-                                                  controls: [
-                                                    "play-large",
-                                                    "play",
-                                                    "progress",
-                                                    "current-time",
-                                                    "mute",
-                                                    "fullscreen",
-                                                  ],
-                                                }}
-                                                source={{
-                                                  type: "video",
-                                                  sources: [
-                                                    {
-                                                      src: media.url,
-                                                      type: "video/webm",
-                                                    },
-                                                  ],
-                                                }}
-                                              />
-                                            ) : (
-                                              <div className="noprofile">
-                                                <svg
-                                                  width="40"
-                                                  height="40"
-                                                  viewBox="0 0 66 54"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    className="animate-m"
-                                                    d="M65.4257 49.6477L64.1198 52.8674..."
-                                                    fill="url(#paint_video_fallback)"
-                                                  />
-                                                  <defs>
-                                                    <linearGradient
-                                                      id="paint_video_fallback"
-                                                      x1="0"
-                                                      y1="27"
-                                                      x2="66"
-                                                      y2="27"
-                                                      gradientUnits="userSpaceOnUse"
-                                                    >
-                                                      <stop stopColor="#FDAB0A" />
-                                                      <stop
-                                                        offset="0.4"
-                                                        stopColor="#FECE26"
-                                                      />
-                                                      <stop
-                                                        offset="1"
-                                                        stopColor="#FE990B"
-                                                      />
-                                                    </linearGradient>
-                                                  </defs>
-                                                </svg>
-                                              </div>
-                                            )}
-                                          </div>
-                                          <div className="creator-media-card__overlay">
-                                            <div className="creator-media-card__stats">
-                                              {!isOwnPost &&
-                                                !post.isUnlocked &&
-                                                !post.isSubscribed && (
-                                                  <div
-                                                    className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""}`}
-                                                    onClick={(e) =>
-                                                      handleSaveToggle(e, post)
-                                                    }
-                                                  >
-                                                    <svg
-                                                      xmlns="http://www.w3.org/2000/svg"
-                                                      width="24"
-                                                      height="24"
-                                                      viewBox="0 0 24 24"
-                                                      fill="none"
-                                                    >
-                                                      <path
-                                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                                                        stroke="white"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                      ></path>
-                                                    </svg>
-                                                  </div>
-                                                )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <div className="profile-card">
-                                          <Link
-                                            href="#"
-                                            className="profile-card__main"
-                                          >
-                                            {/* <div className="profile-card__avatar-settings">
-                                                <div className="profile-card__avatar">
-                                                  <img
-                                                    src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
-                                                    alt="MoneyBoy Social Profile Avatar"
-                                                  />
-                                                </div>
-                                              </div> */}
-                                            <div className="profile-card__info">
-                                              <div className="profile-card__name-badge">
-                                                <div className="profile-card__name">
-                                                  {post.text}
-                                                </div>
-                                                {/* <div className="profile-card__badge">
-                                                    <img
-                                                      src="/images/logo/profile-badge.png"
-                                                      alt="MoneyBoy Social Profile Badge"
-                                                    />
-                                                  </div> */}
-                                                {taggedUsers.length > 0 && (
-                                                  <div
-                                                    className="tagview"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      e.preventDefault();
-                                                      showTaggedUserList([
-                                                        ...(post?.collaboration
-                                                          ?.taggedBy
-                                                          ? [
-                                                            {
-                                                              user: post
-                                                                .collaboration
-                                                                .taggedBy,
-                                                            },
-                                                          ]
-                                                          : []),
-                                                        ...(post?.collaboration
-                                                          ?.taggedUsers || []),
-                                                      ]);
-                                                    }}
-                                                  >
-                                                    <ul className="taglist">
-                                                      {taggedUsers
-                                                        .slice(0, 2)
-                                                        .map(
-                                                          (
-                                                            tag: any,
-                                                            index: number,
-                                                          ) => (
-                                                            <li key={index}>
-                                                              {tag?.user
-                                                                ?.profile ? (
-                                                                <img
-                                                                  className="user_icons"
-                                                                  src={
-                                                                    tag.user
-                                                                      .profile
-                                                                  }
-                                                                  alt={
-                                                                    tag?.user
-                                                                      ?.userName ||
-                                                                    "user"
-                                                                  }
-                                                                  onError={(
-                                                                    e: any,
-                                                                  ) => {
-                                                                    e.currentTarget.style.display =
-                                                                      "none";
-                                                                  }}
-                                                                />
-                                                              ) : (
-                                                                <div className="nomedia">
-                                                                  <span>
-                                                                    {(
-                                                                      tag?.user
-                                                                        ?.userName ||
-                                                                      "U"
-                                                                    )
-                                                                      .charAt(0)
-                                                                      .toUpperCase()}
-                                                                  </span>
-                                                                </div>
-                                                              )}
-                                                            </li>
-                                                          ),
-                                                        )}
-                                                      {taggedUsers.length >
-                                                        2 && (
-                                                          <li className="more-count">
-                                                            +
-                                                            {taggedUsers.length -
-                                                              2}
-                                                          </li>
-                                                        )}
-                                                    </ul>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </Link>
-                                        </div>
-                                        <div className="creator-media-card__btn">
-                                          <>
-                                            {post.isUnlocked && (
-                                              <a
-                                                className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                onClick={() =>
-                                                  handlePostRedirect(
-                                                    post,
-                                                    isOwnPost,
-                                                  )
-                                                }
-                                              >
-                                                <span>Purchased</span>
-                                              </a>
-                                            )}
-                                            {/* SUBSCRIBED */}
-                                            {!post.isUnlocked &&
-                                              post.isSubscribed &&
-                                              post.accessType ===
-                                              "subscriber" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                  onClick={() =>
-                                                    handlePostRedirect(
-                                                      post,
-                                                      isOwnPost,
-                                                    )
-                                                  }
-                                                >
-                                                  <span>Subscribed</span>
-                                                </Link>
-                                              )}
-                                            {/* PAY PER VIEW */}
-                                            {!post.isUnlocked &&
-                                              post.accessType ===
-                                              "pay_per_view" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline"
-                                                  onClick={(e) => {
-                                                    if (isOwnPost) {
-                                                      e.preventDefault();
-                                                      return;
-                                                    }
-                                                    setUnlockModalPost(post);
-                                                  }}
-                                                >
-                                                  <svg
-                                                    className="only-fill-hover-effect"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="20"
-                                                    height="20"
-                                                    viewBox="0 0 20 20"
-                                                    fill="none"
-                                                  >
-                                                    <path
-                                                      d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                                      fill="url(#paint0_linear_745_155)"
-                                                    ></path>
-                                                    <defs>
-                                                      <linearGradient
-                                                        id="paint0_linear_745_155"
-                                                        x1="1.99456"
-                                                        y1="0.916991"
-                                                        x2="26.1808"
-                                                        y2="6.81415"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FECE26"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#E5741F"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                    </defs>
-                                                  </svg>
-                                                  <span>${post.price}</span>
-                                                </Link>
-                                              )}
-                                            {!post.isUnlocked &&
-                                              !post.isSubscribed &&
-                                              post.accessType ===
-                                              "subscriber" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                  onClick={(e) => {
-                                                    if (isOwnPost) {
-                                                      e.preventDefault();
-                                                      return;
-                                                    }
-                                                    setSubscriptionPlan(
-                                                      "MONTHLY",
-                                                    );
-                                                    setShowSubscriptionModal(
-                                                      true,
-                                                    );
-                                                  }}
-                                                >
-                                                  <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="20"
-                                                    height="20"
-                                                    viewBox="0 0 20 20"
-                                                    fill="none"
-                                                  >
-                                                    <path
-                                                      d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                                      stroke="url(#paint0_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <path
-                                                      d="M5.41602 18.3333H14.5827"
-                                                      stroke="url(#paint1_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <path
-                                                      d="M7.91602 11.6667H12.0827"
-                                                      stroke="url(#paint2_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <defs>
-                                                      <linearGradient
-                                                        id="paint0_linear_745_209"
-                                                        x1="9.9704"
-                                                        y1="1.65417"
-                                                        x2="9.9704"
-                                                        y2="15.8167"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                      <linearGradient
-                                                        id="paint1_linear_745_209"
-                                                        x1="9.99935"
-                                                        y1="18.3333"
-                                                        x2="9.99935"
-                                                        y2="19.3333"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                      <linearGradient
-                                                        id="paint2_linear_745_209"
-                                                        x1="9.99935"
-                                                        y1="11.6667"
-                                                        x2="9.99935"
-                                                        y2="12.6667"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                    </defs>
-                                                  </svg>
-                                                  <span>For Subscribers</span>
-                                                </Link>
-                                              )}
-                                          </>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                {!loadingPaidPosts &&
-                                  videoPosts.length === 0 && (
-                                    <div className="nofound grid-span-4">
-                                      <h3 className="first">No media found</h3>
-                                      <h3 className="second">No media found</h3>
-                                    </div>
-                                  )}
-                              </div>
-                              {renderPagination()}
-                            </div>
-                          )}
-                          <div
-                            className="creator-content-type-container-wrapper"
-                            data-multi-tabs-content-tab
-                          >
-                            {subActiveTab === "photos" && (
-                              <>
+                        <div className="marketplace_wrap">
+                          <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card" data-layout-toggle-rows={layout === "list" ? true : undefined}>
+                            {subActiveTab === "all" && (
+                              <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tabdata__active>
+                                {loadingPaidPosts && (
+                                  <div className="loadingtext">
+                                    {"Loading".split("").map((char, i) => (
+                                      <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s`, }}>{char}</span>
+                                    ))}
+                                  </div>
+                                )}
                                 <div className="col-4-cards-layout">
-                                  {photoPosts.map((post) => {
-                                    const media = getPostMedia(post);
-                                    const isOwnPost =
-                                      isCreator &&
-                                      post.userId === loggedInUserId;
-                                    const isSaved = post.isSaved;
-                                    const taggedUsers =
-                                      post?.collaboration?.taggedUsers ?? [];
-                                    return (
-                                      <div
-                                        className="creator-media-card card"
-                                        key={post._id}
-                                      >
-                                        <div className="creator-media-card__media-wrapper">
-                                          <div className="creator-media-card__media">
-                                            <img
-                                              src={media.url}
-                                              alt="Post Image"
-                                            />
-                                          </div>
-                                          <div className="creator-media-card__overlay">
-                                            <div className="creator-media-card__stats">
-                                              {!isOwnPost &&
-                                                !post.isUnlocked &&
-                                                !post.isSubscribed && (
-                                                  <div
-                                                    className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""}`}
-                                                    onClick={(e) =>
-                                                      handleSaveToggle(e, post)
-                                                    }
-                                                  >
-                                                    <svg
-                                                      xmlns="http://www.w3.org/2000/svg"
-                                                      width="21"
-                                                      height="20"
-                                                      viewBox="0 0 21 20"
-                                                      fill="none"
+                                  {!loadingPaidPosts &&
+                                    paidPosts.map((post) => {
+                                      const media = getPostMedia(post);
+                                      const isOwnPost =
+                                        isCreator &&
+                                        post.userId === loggedInUserId;
+                                      const isSaved = post.isSaved;
+                                      const taggedUsers =
+                                        post?.collaboration?.taggedUsers ?? [];
+                                      return (
+                                        <div className="creator-media-card card" key={post._id}>
+                                          <div className="creator-media-card__media-wrapper">
+
+                                            <div className="creator-media-card__media">
+                                              {media.type === "video" ? (
+                                                media.url && !videoErrors[post._id] ? (
+                                                  <>
+                                                    <video ref={(el) => { if (el) videoRefs.current[post._id] = el; else delete videoRefs.current[post._id]; }} src={media.url || ""} playsInline muted preload="metadata" />
+                                                    {playingId !== post._id && (
+                                                      <Link href="#" className="ply_btn" onClick={(e) => handlePlayClick(e, post._id)}><PlayCircle strokeWidth={1} size={32} /></Link>
+                                                    )}
+                                                  </>
+                                                ) : (
+                                                  <div className="noprofile">No Video</div>
+                                                )
+                                              ) : media.type === "photo" ? (
+                                                <img src={media.url || ""} alt="Post Image" />
+                                              ) : (
+                                                <div className="noprofile">
+                                                  <svg width="40" height="40" viewBox="0 0 66 54" fill="none">
+                                                    <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674..." fill="url(#paint_video_fallback)" />
+                                                    <defs>
+                                                      <linearGradient id="paint_video_fallback" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                                        <stop stopColor="#FDAB0A" />
+                                                        <stop offset="0.4" stopColor="#FECE26" />
+                                                        <stop offset="1" stopColor="#FE990B" />
+                                                      </linearGradient>
+                                                    </defs>
+                                                  </svg>
+                                                </div>
+                                              )}
+                                            </div>
+
+
+                                            {/* <div className="creator-media-card__media">
+                                              {media.type === "video" ? (media.url && !videoErrors[post._id] ? (
+                                                <>
+                                                  <video ref={(el) => { if (el) videoRefs.current[post._id] = el; else delete videoRefs.current[post._id]; }} src={media.url} playsInline muted preload="metadata" />
+                                                  {playingId !== post._id && (
+                                                    <Link href="#" className="ply_btn" onClick={(e) => handlePlayClick(e, post._id)}><PlayCircle strokeWidth={1} size={32} /></Link>
+                                                  )}
+                                                </>
+                                              ) : (
+                                                <div className="noprofile">
+                                                  <svg width="40" height="40" viewBox="0 0 66 54" fill="none">
+                                                    <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674..." fill="url(#paint_video_fallback)" />
+                                                    <defs>
+                                                      <linearGradient id="paint_video_fallback" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                                        <stop stopColor="#FDAB0A" />
+                                                        <stop offset="0.4" stopColor="#FECE26" />
+                                                        <stop offset="1" stopColor="#FE990B" />
+                                                      </linearGradient>
+                                                    </defs>
+                                                  </svg>
+                                                </div>
+                                              )
+                                              ) : media.type === "photo" ? (
+                                                <img src={media.url} alt="Post Image" />
+                                              ) : (
+                                                <div className="noprofile">
+                                                  <svg width="40" height="40" viewBox="0 0 66 54" fill="none">
+                                                    <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674..." fill="url(#paint_video_fallback)" />
+                                                    <defs>
+                                                      <linearGradient id="paint_video_fallback" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                                        <stop stopColor="#FDAB0A" />
+                                                        <stop offset="0.4" stopColor="#FECE26" />
+                                                        <stop offset="1" stopColor="#FE990B" />
+                                                      </linearGradient>
+                                                    </defs>
+                                                  </svg>
+                                                </div>
+                                              )}
+                                            </div> */}
+                                            <div className="creator-media-card__overlay">
+                                              <div className="creator-media-card__stats">
+                                                {!isOwnPost &&
+                                                  !post.isUnlocked &&
+                                                  !post.isSubscribed && (
+                                                    <div
+                                                      className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""}`}
+                                                      onClick={(e) =>
+                                                        handleSaveToggle(e, post)
+                                                      }
                                                     >
-                                                      <path
-                                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                                        stroke="none"
-                                                        stroke-width="1.5"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
-                                                        stroke="none"
-                                                        stroke-width="1.5"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                      ></path>
-                                                      <path
-                                                        d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
-                                                        stroke="none"
-                                                        stroke-width="1.5"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                      ></path>
-                                                    </svg>
-                                                  </div>
-                                                )}
+                                                      <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="24"
+                                                        height="24"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                      >
+                                                        <path
+                                                          d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                                          stroke="white"
+                                                          strokeWidth="1.5"
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                        ></path>
+                                                        <path
+                                                          d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                                          stroke="white"
+                                                          strokeWidth="1.5"
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                        ></path>
+                                                        <path
+                                                          d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                                          stroke="white"
+                                                          strokeWidth="1.5"
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                        ></path>
+                                                      </svg>
+                                                    </div>
+                                                  )}
+                                              </div>
                                             </div>
                                           </div>
-                                        </div>
-                                        <div className="profile-card">
-                                          <Link
-                                            href="#"
-                                            className="profile-card__main"
-                                          >
-                                            {/* <div className="profile-card__avatar-settings">
-                                              <div className="profile-card__avatar">
-                                                <img
-                                                  src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
-                                                  alt="MoneyBoy Social Profile Avatar"
-                                                />
-                                              </div>
-                                            </div> */}
-                                            <div className="profile-card__info">
-                                              <div className="profile-card__name-badge">
-                                                <div className="profile-card__name">
-                                                  {post.text}
-                                                </div>
-                                                {/* <div className="profile-card__badge">
-                                                  <img
-                                                    src="/images/logo/profile-badge.png"
-                                                    alt="MoneyBoy Social Profile Badge"
-                                                  />
+                                          <div className="profile-card">
+                                            <Link
+                                              href="#"
+                                              className="profile-card__main"
+                                            >
+                                              {/* <div className="profile-card__avatar-settings">
+                                                  <div className="profile-card__avatar">
+                                                    <img
+                                                      src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
+                                                      alt="MoneyBoy Social Profile Avatar"
+                                                    />
+                                                  </div>
                                                 </div> */}
-                                                {taggedUsers.length > 0 && (
-                                                  <div
-                                                    className="tagview"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      e.preventDefault();
-                                                      showTaggedUserList([
-                                                        ...(post?.collaboration
-                                                          ?.taggedBy
-                                                          ? [
-                                                            {
-                                                              user: post
-                                                                .collaboration
-                                                                .taggedBy,
-                                                            },
-                                                          ]
-                                                          : []),
-                                                        ...(post?.collaboration
-                                                          ?.taggedUsers || []),
-                                                      ]);
-                                                    }}
-                                                  >
-                                                    <ul className="taglist">
-                                                      {taggedUsers
-                                                        .slice(0, 2)
-                                                        .map(
-                                                          (
-                                                            tag: any,
-                                                            index: number,
-                                                          ) => (
-                                                            <li key={index}>
-                                                              {tag?.user
-                                                                ?.profile ? (
-                                                                <img
-                                                                  className="user_icons"
-                                                                  src={
-                                                                    tag.user
-                                                                      .profile
-                                                                  }
-                                                                  alt={
-                                                                    tag?.user
-                                                                      ?.userName ||
-                                                                    "user"
-                                                                  }
-                                                                  onError={(
-                                                                    e: any,
-                                                                  ) => {
-                                                                    e.currentTarget.style.display =
-                                                                      "none";
-                                                                  }}
-                                                                />
-                                                              ) : (
-                                                                <div className="nomedia">
-                                                                  <span>
-                                                                    {(
+                                              <div className="profile-card__info">
+                                                <div className="profile-card__name-badge">
+                                                  <div className="profile-card__name">
+                                                    {post.text}
+                                                  </div>
+                                                  {/* <div className="profile-card__badge">
+                                                      <img
+                                                        src="/images/logo/profile-badge.png"
+                                                        alt="MoneyBoy Social Profile Badge"
+                                                      />
+                                                    </div> */}
+                                                  {taggedUsers.length > 0 && (
+                                                    <div
+                                                      className="tagview"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        showTaggedUserList([
+                                                          ...(post?.collaboration
+                                                            ?.taggedBy
+                                                            ? [
+                                                              {
+                                                                user: post
+                                                                  .collaboration
+                                                                  .taggedBy,
+                                                              },
+                                                            ]
+                                                            : []),
+                                                          ...(post?.collaboration
+                                                            ?.taggedUsers || []),
+                                                        ]);
+                                                      }}
+                                                    >
+                                                      <ul className="taglist">
+                                                        {taggedUsers
+                                                          .slice(0, 2)
+                                                          .map(
+                                                            (
+                                                              tag: any,
+                                                              index: number,
+                                                            ) => (
+                                                              <li key={index}>
+                                                                {tag?.user
+                                                                  ?.profile ? (
+                                                                  <img
+                                                                    className="user_icons"
+                                                                    src={
+                                                                      tag.user
+                                                                        .profile
+                                                                    }
+                                                                    alt={
                                                                       tag?.user
                                                                         ?.userName ||
-                                                                      "U"
-                                                                    )
-                                                                      .charAt(0)
-                                                                      .toUpperCase()}
-                                                                  </span>
-                                                                </div>
-                                                              )}
+                                                                      "user"
+                                                                    }
+                                                                    onError={(
+                                                                      e: any,
+                                                                    ) => {
+                                                                      e.currentTarget.style.display =
+                                                                        "none";
+                                                                    }}
+                                                                  />
+                                                                ) : (
+                                                                  <div className="nomedia">
+                                                                    <span>
+                                                                      {(
+                                                                        tag?.user
+                                                                          ?.userName ||
+                                                                        "U"
+                                                                      )
+                                                                        .charAt(0)
+                                                                        .toUpperCase()}
+                                                                    </span>
+                                                                  </div>
+                                                                )}
+                                                              </li>
+                                                            ),
+                                                          )}
+                                                        {taggedUsers.length >
+                                                          2 && (
+                                                            <li className="more-count">
+                                                              +
+                                                              {taggedUsers.length -
+                                                                2}
                                                             </li>
-                                                          ),
-                                                        )}
-                                                      {taggedUsers.length >
-                                                        2 && (
-                                                          <li className="more-count">
-                                                            +
-                                                            {taggedUsers.length -
-                                                              2}
-                                                          </li>
-                                                        )}
-                                                    </ul>
-                                                  </div>
-                                                )}
+                                                          )}
+                                                      </ul>
+                                                    </div>
+                                                  )}
+                                                </div>
                                               </div>
-                                            </div>
-                                          </Link>
-                                        </div>
-
-                                        <div className="creator-media-card__btn mt-auto">
-                                          <>
-                                            {post.isUnlocked && (
-                                              <a
-                                                className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                onClick={() =>
-                                                  handlePostRedirect(
-                                                    post,
-                                                    isOwnPost,
-                                                  )
-                                                }
-                                              >
-                                                <span>Purchased</span>
-                                              </a>
-                                            )}
-                                            {!post.isUnlocked &&
-                                              post.isSubscribed &&
-                                              post.accessType ===
-                                              "subscriber" && (
+                                            </Link>
+                                          </div>
+                                          <div className="creator-media-card__btn">
+                                            <>
+                                              {post.isUnlocked && (
                                                 <a
                                                   className="btn-txt-gradient shimmer btn-outline grey-variant"
                                                   onClick={() =>
@@ -2201,172 +1413,958 @@ const StorePage = () => {
                                                     )
                                                   }
                                                 >
-                                                  <span>Subscribed</span>
+                                                  <span>Purchased</span>
                                                 </a>
                                               )}
-                                            {!post.isUnlocked &&
-                                              post.accessType ===
-                                              "pay_per_view" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline"
-                                                  onClick={(e) => {
-                                                    if (isOwnPost) {
-                                                      e.preventDefault();
-                                                      return;
+                                              {/* SUBSCRIBED */}
+                                              {!post.isUnlocked &&
+                                                post.isSubscribed &&
+                                                post.accessType ===
+                                                "subscriber" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                    onClick={() =>
+                                                      handlePostRedirect(
+                                                        post,
+                                                        isOwnPost,
+                                                      )
                                                     }
-                                                    setUnlockModalPost(post);
-                                                  }}
-                                                >
-                                                  <svg
-                                                    className="only-fill-hover-effect"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="20"
-                                                    height="20"
-                                                    viewBox="0 0 20 20"
-                                                    fill="none"
                                                   >
-                                                    <path
-                                                      d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
-                                                      fill="url(#paint0_linear_745_155)"
-                                                    ></path>
-                                                    <defs>
-                                                      <linearGradient
-                                                        id="paint0_linear_745_155"
-                                                        x1="1.99456"
-                                                        y1="0.916991"
-                                                        x2="26.1808"
-                                                        y2="6.81415"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FECE26"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#E5741F"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                    </defs>
-                                                  </svg>
-                                                  <span>${post.price}</span>
-                                                </Link>
-                                              )}
-
-                                            {!post.isUnlocked &&
-                                              !post.isSubscribed &&
-                                              post.accessType ===
-                                              "subscriber" && (
-                                                <Link
-                                                  href="#"
-                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
-                                                  onClick={(e) => {
-                                                    if (isOwnPost) {
-                                                      e.preventDefault();
-                                                      return;
-                                                    }
-                                                    setSubscriptionPlan(
-                                                      "MONTHLY",
-                                                    );
-                                                    setShowSubscriptionModal(
-                                                      true,
-                                                    );
-                                                  }}
-                                                >
-                                                  <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="20"
-                                                    height="20"
-                                                    viewBox="0 0 20 20"
-                                                    fill="none"
+                                                    <span>Subscribed</span>
+                                                  </Link>
+                                                )}
+                                              {/* PAY PER VIEW */}
+                                              {!post.isUnlocked &&
+                                                post.accessType ===
+                                                "pay_per_view" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline"
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
+                                                      setUnlockModalPost(post);
+                                                    }}
                                                   >
-                                                    <path
-                                                      d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
-                                                      stroke="url(#paint0_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <path
-                                                      d="M5.41602 18.3333H14.5827"
-                                                      stroke="url(#paint1_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <path
-                                                      d="M7.91602 11.6667H12.0827"
-                                                      stroke="url(#paint2_linear_745_209)"
-                                                      strokeWidth="1.5"
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                    ></path>
-                                                    <defs>
-                                                      <linearGradient
-                                                        id="paint0_linear_745_209"
-                                                        x1="9.9704"
-                                                        y1="1.65417"
-                                                        x2="9.9704"
-                                                        y2="15.8167"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                      <linearGradient
-                                                        id="paint1_linear_745_209"
-                                                        x1="9.99935"
-                                                        y1="18.3333"
-                                                        x2="9.99935"
-                                                        y2="19.3333"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                      <linearGradient
-                                                        id="paint2_linear_745_209"
-                                                        x1="9.99935"
-                                                        y1="11.6667"
-                                                        x2="9.99935"
-                                                        y2="12.6667"
-                                                        gradientUnits="userSpaceOnUse"
-                                                      >
-                                                        <stop stopColor="#FFCD84"></stop>
-                                                        <stop
-                                                          offset="1"
-                                                          stopColor="#FEA10A"
-                                                        ></stop>
-                                                      </linearGradient>
-                                                    </defs>
-                                                  </svg>
-                                                  <span>For Subscribers</span>
-                                                </Link>
-                                              )}
-                                          </>
+                                                    <svg
+                                                      className="only-fill-hover-effect"
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width="20"
+                                                      height="20"
+                                                      viewBox="0 0 20 20"
+                                                      fill="none"
+                                                    >
+                                                      <path
+                                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                                        fill="url(#paint0_linear_745_155)"
+                                                      ></path>
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="paint0_linear_745_155"
+                                                          x1="1.99456"
+                                                          y1="0.916991"
+                                                          x2="26.1808"
+                                                          y2="6.81415"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FECE26"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#E5741F"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                      </defs>
+                                                    </svg>
+                                                    <span>${post.price}</span>
+                                                  </Link>
+                                                )}
+                                              {!post.isUnlocked &&
+                                                !post.isSubscribed &&
+                                                post.accessType ===
+                                                "subscriber" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
+                                                      setSubscriptionPlan(
+                                                        "MONTHLY",
+                                                      );
+                                                      setShowSubscriptionModal(
+                                                        true,
+                                                      );
+                                                    }}
+                                                  >
+                                                    <svg
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width="20"
+                                                      height="20"
+                                                      viewBox="0 0 20 20"
+                                                      fill="none"
+                                                    >
+                                                      <path
+                                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                                        stroke="url(#paint0_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <path
+                                                        d="M5.41602 18.3333H14.5827"
+                                                        stroke="url(#paint1_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <path
+                                                        d="M7.91602 11.6667H12.0827"
+                                                        stroke="url(#paint2_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="paint0_linear_745_209"
+                                                          x1="9.9704"
+                                                          y1="1.65417"
+                                                          x2="9.9704"
+                                                          y2="15.8167"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                        <linearGradient
+                                                          id="paint1_linear_745_209"
+                                                          x1="9.99935"
+                                                          y1="18.3333"
+                                                          x2="9.99935"
+                                                          y2="19.3333"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                        <linearGradient
+                                                          id="paint2_linear_745_209"
+                                                          x1="9.99935"
+                                                          y1="11.6667"
+                                                          x2="9.99935"
+                                                          y2="12.6667"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                      </defs>
+                                                    </svg>
+                                                    <span>For Subscribers</span>
+                                                  </Link>
+                                                )}
+                                            </>
+                                          </div>
                                         </div>
-                                      </div>
-                                    );
-                                  })}
+                                      );
+                                    })}
                                   {!loadingPaidPosts &&
-                                    photoPosts.length === 0 && (
+                                    paidPosts.length === 0 && (
                                       <div className="nofound grid-span-4">
-                                        <h3 className="first">
-                                          No media found
-                                        </h3>
-                                        <h3 className="second">
-                                          No media found
-                                        </h3>
+                                        <h3 className="first">No media found</h3>
+                                        <h3 className="second">No media found</h3>
                                       </div>
                                     )}
                                 </div>
                                 {renderPagination()}
-                              </>
+                              </div>
                             )}
+                            {subActiveTab === "videos" && (
+                              <div
+                                className="creator-content-type-container-wrapper"
+                                data-multi-tabs-content-tabdata__active
+                              >
+                                {loadingPaidPosts && (
+                                  <div className="loadingtext">
+                                    {"Loading".split("").map((char, i) => (
+                                      <span
+                                        key={i}
+                                        style={{
+                                          animationDelay: `${(i + 1) * 0.1}s`,
+                                        }}
+                                      >
+                                        {char}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="col-4-cards-layout">
+                                  {!loadingPaidPosts &&
+                                    videoPosts.map((post) => {
+                                      const media = getPostMedia(post);
+                                      const isOwnPost =
+                                        isCreator &&
+                                        post.userId === loggedInUserId;
+                                      const isSaved = post.isSaved;
+                                      const taggedUsers =
+                                        post?.collaboration?.taggedUsers ?? [];
+                                      return (
+                                        <div
+                                          className="creator-media-card card"
+                                          key={post._id}
+                                        >
+                                          <div className="creator-media-card__media-wrapper">
+                                            <div className="creator-media-card__media">
+                                              {media.url && !videoErrors[post._id] ? (
+                                                <>
+                                                  <video ref={(el) => { if (el) videoRefs.current[post._id] = el; else delete videoRefs.current[post._id]; }} src={media.url} playsInline muted preload="metadata" />
+                                                  {playingId !== post._id && (
+                                                    <Link href="#" className="ply_btn" onClick={(e) => handlePlayClick(e, post._id)}><PlayCircle strokeWidth={1} size={32} /></Link>
+                                                  )}
+                                                </>
+                                              ) : (
+                                                <div className="noprofile">
+                                                  <svg width="40" height="40" viewBox="0 0 66 54" fill="none">
+                                                    <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674..." fill="url(#paint_video_fallback)" />
+                                                    <defs>
+                                                      <linearGradient id="paint_video_fallback" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                                        <stop stopColor="#FDAB0A" />
+                                                        <stop offset="0.4" stopColor="#FECE26" />
+                                                        <stop offset="1" stopColor="#FE990B" />
+                                                      </linearGradient>
+                                                    </defs>
+                                                  </svg>
+                                                </div>
+                                              )}
+                                            </div>
+                                            <div className="creator-media-card__overlay">
+                                              <div className="creator-media-card__stats">
+                                                {!isOwnPost &&
+                                                  !post.isUnlocked &&
+                                                  !post.isSubscribed && (
+                                                    <div
+                                                      className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""}`}
+                                                      onClick={(e) =>
+                                                        handleSaveToggle(e, post)
+                                                      }
+                                                    >
+                                                      <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="24"
+                                                        height="24"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                      >
+                                                        <path
+                                                          d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                                          stroke="white"
+                                                          strokeWidth="1.5"
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                        ></path>
+                                                        <path
+                                                          d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                                          stroke="white"
+                                                          strokeWidth="1.5"
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                        ></path>
+                                                        <path
+                                                          d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                                          stroke="white"
+                                                          strokeWidth="1.5"
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                        ></path>
+                                                      </svg>
+                                                    </div>
+                                                  )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="profile-card">
+                                            <Link
+                                              href="#"
+                                              className="profile-card__main"
+                                            >
+                                              {/* <div className="profile-card__avatar-settings">
+                                                  <div className="profile-card__avatar">
+                                                    <img
+                                                      src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
+                                                      alt="MoneyBoy Social Profile Avatar"
+                                                    />
+                                                  </div>
+                                                </div> */}
+                                              <div className="profile-card__info">
+                                                <div className="profile-card__name-badge">
+                                                  <div className="profile-card__name">
+                                                    {post.text}
+                                                  </div>
+                                                  {/* <div className="profile-card__badge">
+                                                      <img
+                                                        src="/images/logo/profile-badge.png"
+                                                        alt="MoneyBoy Social Profile Badge"
+                                                      />
+                                                    </div> */}
+                                                  {taggedUsers.length > 0 && (
+                                                    <div
+                                                      className="tagview"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        showTaggedUserList([
+                                                          ...(post?.collaboration
+                                                            ?.taggedBy
+                                                            ? [
+                                                              {
+                                                                user: post
+                                                                  .collaboration
+                                                                  .taggedBy,
+                                                              },
+                                                            ]
+                                                            : []),
+                                                          ...(post?.collaboration
+                                                            ?.taggedUsers || []),
+                                                        ]);
+                                                      }}
+                                                    >
+                                                      <ul className="taglist">
+                                                        {taggedUsers
+                                                          .slice(0, 2)
+                                                          .map(
+                                                            (
+                                                              tag: any,
+                                                              index: number,
+                                                            ) => (
+                                                              <li key={index}>
+                                                                {tag?.user
+                                                                  ?.profile ? (
+                                                                  <img
+                                                                    className="user_icons"
+                                                                    src={
+                                                                      tag.user
+                                                                        .profile
+                                                                    }
+                                                                    alt={
+                                                                      tag?.user
+                                                                        ?.userName ||
+                                                                      "user"
+                                                                    }
+                                                                    onError={(
+                                                                      e: any,
+                                                                    ) => {
+                                                                      e.currentTarget.style.display =
+                                                                        "none";
+                                                                    }}
+                                                                  />
+                                                                ) : (
+                                                                  <div className="nomedia">
+                                                                    <span>
+                                                                      {(
+                                                                        tag?.user
+                                                                          ?.userName ||
+                                                                        "U"
+                                                                      )
+                                                                        .charAt(0)
+                                                                        .toUpperCase()}
+                                                                    </span>
+                                                                  </div>
+                                                                )}
+                                                              </li>
+                                                            ),
+                                                          )}
+                                                        {taggedUsers.length >
+                                                          2 && (
+                                                            <li className="more-count">
+                                                              +
+                                                              {taggedUsers.length -
+                                                                2}
+                                                            </li>
+                                                          )}
+                                                      </ul>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </Link>
+                                          </div>
+                                          <div className="creator-media-card__btn">
+                                            <>
+                                              {post.isUnlocked && (
+                                                <a
+                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                  onClick={() =>
+                                                    handlePostRedirect(
+                                                      post,
+                                                      isOwnPost,
+                                                    )
+                                                  }
+                                                >
+                                                  <span>Purchased</span>
+                                                </a>
+                                              )}
+                                              {/* SUBSCRIBED */}
+                                              {!post.isUnlocked &&
+                                                post.isSubscribed &&
+                                                post.accessType ===
+                                                "subscriber" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                    onClick={() =>
+                                                      handlePostRedirect(
+                                                        post,
+                                                        isOwnPost,
+                                                      )
+                                                    }
+                                                  >
+                                                    <span>Subscribed</span>
+                                                  </Link>
+                                                )}
+                                              {/* PAY PER VIEW */}
+                                              {!post.isUnlocked &&
+                                                post.accessType ===
+                                                "pay_per_view" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline"
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
+                                                      setUnlockModalPost(post);
+                                                    }}
+                                                  >
+                                                    <svg
+                                                      className="only-fill-hover-effect"
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width="20"
+                                                      height="20"
+                                                      viewBox="0 0 20 20"
+                                                      fill="none"
+                                                    >
+                                                      <path
+                                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                                        fill="url(#paint0_linear_745_155)"
+                                                      ></path>
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="paint0_linear_745_155"
+                                                          x1="1.99456"
+                                                          y1="0.916991"
+                                                          x2="26.1808"
+                                                          y2="6.81415"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FECE26"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#E5741F"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                      </defs>
+                                                    </svg>
+                                                    <span>${post.price}</span>
+                                                  </Link>
+                                                )}
+                                              {!post.isUnlocked &&
+                                                !post.isSubscribed &&
+                                                post.accessType ===
+                                                "subscriber" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
+                                                      setSubscriptionPlan(
+                                                        "MONTHLY",
+                                                      );
+                                                      setShowSubscriptionModal(
+                                                        true,
+                                                      );
+                                                    }}
+                                                  >
+                                                    <svg
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width="20"
+                                                      height="20"
+                                                      viewBox="0 0 20 20"
+                                                      fill="none"
+                                                    >
+                                                      <path
+                                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                                        stroke="url(#paint0_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <path
+                                                        d="M5.41602 18.3333H14.5827"
+                                                        stroke="url(#paint1_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <path
+                                                        d="M7.91602 11.6667H12.0827"
+                                                        stroke="url(#paint2_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="paint0_linear_745_209"
+                                                          x1="9.9704"
+                                                          y1="1.65417"
+                                                          x2="9.9704"
+                                                          y2="15.8167"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                        <linearGradient
+                                                          id="paint1_linear_745_209"
+                                                          x1="9.99935"
+                                                          y1="18.3333"
+                                                          x2="9.99935"
+                                                          y2="19.3333"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                        <linearGradient
+                                                          id="paint2_linear_745_209"
+                                                          x1="9.99935"
+                                                          y1="11.6667"
+                                                          x2="9.99935"
+                                                          y2="12.6667"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                      </defs>
+                                                    </svg>
+                                                    <span>For Subscribers</span>
+                                                  </Link>
+                                                )}
+                                            </>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  {!loadingPaidPosts &&
+                                    videoPosts.length === 0 && (
+                                      <div className="nofound grid-span-4">
+                                        <h3 className="first">No media found</h3>
+                                        <h3 className="second">No media found</h3>
+                                      </div>
+                                    )}
+                                </div>
+                                {renderPagination()}
+                              </div>
+                            )}
+                            <div
+                              className="creator-content-type-container-wrapper"
+                              data-multi-tabs-content-tab
+                            >
+                              {subActiveTab === "photos" && (
+                                <>
+                                  <div className="col-4-cards-layout">
+                                    {photoPosts.map((post) => {
+                                      const media = getPostMedia(post);
+                                      const isOwnPost =
+                                        isCreator &&
+                                        post.userId === loggedInUserId;
+                                      const isSaved = post.isSaved;
+                                      const taggedUsers =
+                                        post?.collaboration?.taggedUsers ?? [];
+                                      return (
+                                        <div
+                                          className="creator-media-card card"
+                                          key={post._id}
+                                        >
+                                          <div className="creator-media-card__media-wrapper">
+                                            <div className="creator-media-card__media">
+                                              <img src={media.url} alt="Post Image" />
+                                            </div>
+                                            <div className="creator-media-card__overlay">
+                                              <div className="creator-media-card__stats">
+                                                {!isOwnPost &&
+                                                  !post.isUnlocked &&
+                                                  !post.isSubscribed && (
+                                                    <div
+                                                      className={`creator-media-card__stats-btn wishlist-icon ${isSaved ? "active" : ""}`}
+                                                      onClick={(e) =>
+                                                        handleSaveToggle(e, post)
+                                                      }
+                                                    >
+                                                      <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="21"
+                                                        height="20"
+                                                        viewBox="0 0 21 20"
+                                                        fill="none"
+                                                      >
+                                                        <path
+                                                          d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                                          stroke="none"
+                                                          stroke-width="1.5"
+                                                          stroke-linecap="round"
+                                                          stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                          d="M14.7666 1.66687H6.73327C4.95827 1.66687 3.5166 3.11687 3.5166 4.88354V16.6252C3.5166 18.1252 4.5916 18.7585 5.90827 18.0335L9.97494 15.7752C10.4083 15.5335 11.1083 15.5335 11.5333 15.7752L15.5999 18.0335C16.9166 18.7669 17.9916 18.1335 17.9916 16.6252V4.88354C17.9833 3.11687 16.5416 1.66687 14.7666 1.66687Z"
+                                                          stroke="none"
+                                                          stroke-width="1.5"
+                                                          stroke-linecap="round"
+                                                          stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                          d="M8.4585 7.5415C9.94183 8.08317 11.5585 8.08317 13.0418 7.5415"
+                                                          stroke="none"
+                                                          stroke-width="1.5"
+                                                          stroke-linecap="round"
+                                                          stroke-linejoin="round"
+                                                        ></path>
+                                                      </svg>
+                                                    </div>
+                                                  )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="profile-card">
+                                            <Link
+                                              href="#"
+                                              className="profile-card__main"
+                                            >
+                                              {/* <div className="profile-card__avatar-settings">
+                                                <div className="profile-card__avatar">
+                                                  <img
+                                                    src="https://res.cloudinary.com/drhj03nvv/image/upload/v1772686652/profile/1772686649940-cropped.jpg.jpg"
+                                                    alt="MoneyBoy Social Profile Avatar"
+                                                  />
+                                                </div>
+                                              </div> */}
+                                              <div className="profile-card__info">
+                                                <div className="profile-card__name-badge">
+                                                  <div className="profile-card__name">
+                                                    {post.text}
+                                                  </div>
+                                                  {/* <div className="profile-card__badge">
+                                                    <img
+                                                      src="/images/logo/profile-badge.png"
+                                                      alt="MoneyBoy Social Profile Badge"
+                                                    />
+                                                  </div> */}
+                                                  {taggedUsers.length > 0 && (
+                                                    <div
+                                                      className="tagview"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        showTaggedUserList([
+                                                          ...(post?.collaboration
+                                                            ?.taggedBy
+                                                            ? [
+                                                              {
+                                                                user: post
+                                                                  .collaboration
+                                                                  .taggedBy,
+                                                              },
+                                                            ]
+                                                            : []),
+                                                          ...(post?.collaboration
+                                                            ?.taggedUsers || []),
+                                                        ]);
+                                                      }}
+                                                    >
+                                                      <ul className="taglist">
+                                                        {taggedUsers
+                                                          .slice(0, 2)
+                                                          .map(
+                                                            (
+                                                              tag: any,
+                                                              index: number,
+                                                            ) => (
+                                                              <li key={index}>
+                                                                {tag?.user
+                                                                  ?.profile ? (
+                                                                  <img
+                                                                    className="user_icons"
+                                                                    src={
+                                                                      tag.user
+                                                                        .profile
+                                                                    }
+                                                                    alt={
+                                                                      tag?.user
+                                                                        ?.userName ||
+                                                                      "user"
+                                                                    }
+                                                                    onError={(
+                                                                      e: any,
+                                                                    ) => {
+                                                                      e.currentTarget.style.display =
+                                                                        "none";
+                                                                    }}
+                                                                  />
+                                                                ) : (
+                                                                  <div className="nomedia">
+                                                                    <span>
+                                                                      {(
+                                                                        tag?.user
+                                                                          ?.userName ||
+                                                                        "U"
+                                                                      )
+                                                                        .charAt(0)
+                                                                        .toUpperCase()}
+                                                                    </span>
+                                                                  </div>
+                                                                )}
+                                                              </li>
+                                                            ),
+                                                          )}
+                                                        {taggedUsers.length >
+                                                          2 && (
+                                                            <li className="more-count">
+                                                              +
+                                                              {taggedUsers.length -
+                                                                2}
+                                                            </li>
+                                                          )}
+                                                      </ul>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </Link>
+                                          </div>
+
+                                          <div className="creator-media-card__btn mt-auto">
+                                            <>
+                                              {post.isUnlocked && (
+                                                <a
+                                                  className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                  onClick={() =>
+                                                    handlePostRedirect(
+                                                      post,
+                                                      isOwnPost,
+                                                    )
+                                                  }
+                                                >
+                                                  <span>Purchased</span>
+                                                </a>
+                                              )}
+                                              {!post.isUnlocked &&
+                                                post.isSubscribed &&
+                                                post.accessType ===
+                                                "subscriber" && (
+                                                  <a
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                    onClick={() =>
+                                                      handlePostRedirect(
+                                                        post,
+                                                        isOwnPost,
+                                                      )
+                                                    }
+                                                  >
+                                                    <span>Subscribed</span>
+                                                  </a>
+                                                )}
+                                              {!post.isUnlocked &&
+                                                post.accessType ===
+                                                "pay_per_view" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline"
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
+                                                      setUnlockModalPost(post);
+                                                    }}
+                                                  >
+                                                    <svg
+                                                      className="only-fill-hover-effect"
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width="20"
+                                                      height="20"
+                                                      viewBox="0 0 20 20"
+                                                      fill="none"
+                                                    >
+                                                      <path
+                                                        d="M10.001 0.916992C12.2126 0.916992 13.7238 1.51554 14.6475 2.66211C15.5427 3.77366 15.751 5.24305 15.751 6.66699V7.66895C16.6879 7.79136 17.4627 8.06745 18.0312 8.63574C18.8947 9.49918 19.0849 10.8389 19.085 12.5V14.166C19.085 15.8272 18.8946 17.1668 18.0312 18.0303C17.1677 18.8935 15.8291 19.083 14.168 19.083H5.83496C4.17365 19.083 2.83421 18.8938 1.9707 18.0303C1.10735 17.1668 0.917969 15.8272 0.917969 14.166V12.5C0.917997 10.8389 1.10726 9.49918 1.9707 8.63574C2.53913 8.06742 3.31408 7.79232 4.25098 7.66992V6.66699C4.25098 5.24305 4.45925 3.77366 5.35449 2.66211C6.27812 1.51554 7.78932 0.916992 10.001 0.916992ZM5.83496 9.08301C4.1632 9.08301 3.4178 9.30991 3.03125 9.69629C2.64478 10.0828 2.418 10.8282 2.41797 12.5V14.166C2.41797 15.8378 2.64487 16.5832 3.03125 16.9697C3.41774 17.3562 4.16293 17.583 5.83496 17.583H14.168C15.8395 17.583 16.5841 17.356 16.9707 16.9697C17.3571 16.5832 17.585 15.8378 17.585 14.166V12.5C17.5849 10.8282 17.3572 10.0828 16.9707 9.69629C16.5841 9.3101 15.8393 9.08301 14.168 9.08301H5.83496ZM10.001 10.5C11.5657 10.5 12.8348 11.7684 12.835 13.333C12.835 14.8978 11.5658 16.167 10.001 16.167C8.43632 16.1668 7.16797 14.8977 7.16797 13.333C7.16814 11.7685 8.43643 10.5002 10.001 10.5ZM10.001 12C9.26486 12.0002 8.66814 12.5969 8.66797 13.333C8.66797 14.0693 9.26475 14.6668 10.001 14.667C10.7374 14.667 11.335 14.0694 11.335 13.333C11.3348 12.5968 10.7372 12 10.001 12ZM10.001 2.41699C8.04601 2.41699 7.05717 2.93971 6.52246 3.60352C5.95984 4.30235 5.75098 5.33302 5.75098 6.66699V7.58398C5.77888 7.58387 5.80687 7.58301 5.83496 7.58301H14.168C14.1957 7.58301 14.2234 7.58388 14.251 7.58398V6.66699C14.251 5.33302 14.0421 4.30235 13.4795 3.60352C12.9448 2.93971 11.9559 2.41699 10.001 2.41699Z"
+                                                        fill="url(#paint0_linear_745_155)"
+                                                      ></path>
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="paint0_linear_745_155"
+                                                          x1="1.99456"
+                                                          y1="0.916991"
+                                                          x2="26.1808"
+                                                          y2="6.81415"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FECE26"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#E5741F"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                      </defs>
+                                                    </svg>
+                                                    <span>${post.price}</span>
+                                                  </Link>
+                                                )}
+
+                                              {!post.isUnlocked &&
+                                                !post.isSubscribed &&
+                                                post.accessType ===
+                                                "subscriber" && (
+                                                  <Link
+                                                    href="#"
+                                                    className="btn-txt-gradient shimmer btn-outline grey-variant"
+                                                    onClick={(e) => {
+                                                      if (isOwnPost) {
+                                                        e.preventDefault();
+                                                        return;
+                                                      }
+                                                      setSubscriptionPlan(
+                                                        "MONTHLY",
+                                                      );
+                                                      setShowSubscriptionModal(
+                                                        true,
+                                                      );
+                                                    }}
+                                                  >
+                                                    <svg
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width="20"
+                                                      height="20"
+                                                      viewBox="0 0 20 20"
+                                                      fill="none"
+                                                    >
+                                                      <path
+                                                        d="M13.9173 15.8167H6.08399C5.73399 15.8167 5.34232 15.5417 5.22565 15.2083L1.77565 5.55834C1.28399 4.17501 1.85899 3.75001 3.04232 4.60001L6.29232 6.92501C6.83399 7.30001 7.45065 7.10834 7.68399 6.50001L9.15065 2.59167C9.61732 1.34167 10.3923 1.34167 10.859 2.59167L12.3257 6.50001C12.559 7.10834 13.1757 7.30001 13.709 6.92501L16.759 4.75001C18.059 3.81667 18.684 4.29168 18.1507 5.80001L14.784 15.225C14.659 15.5417 14.2673 15.8167 13.9173 15.8167Z"
+                                                        stroke="url(#paint0_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <path
+                                                        d="M5.41602 18.3333H14.5827"
+                                                        stroke="url(#paint1_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <path
+                                                        d="M7.91602 11.6667H12.0827"
+                                                        stroke="url(#paint2_linear_745_209)"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                      ></path>
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="paint0_linear_745_209"
+                                                          x1="9.9704"
+                                                          y1="1.65417"
+                                                          x2="9.9704"
+                                                          y2="15.8167"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                        <linearGradient
+                                                          id="paint1_linear_745_209"
+                                                          x1="9.99935"
+                                                          y1="18.3333"
+                                                          x2="9.99935"
+                                                          y2="19.3333"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                        <linearGradient
+                                                          id="paint2_linear_745_209"
+                                                          x1="9.99935"
+                                                          y1="11.6667"
+                                                          x2="9.99935"
+                                                          y2="12.6667"
+                                                          gradientUnits="userSpaceOnUse"
+                                                        >
+                                                          <stop stopColor="#FFCD84"></stop>
+                                                          <stop
+                                                            offset="1"
+                                                            stopColor="#FEA10A"
+                                                          ></stop>
+                                                        </linearGradient>
+                                                      </defs>
+                                                    </svg>
+                                                    <span>For Subscribers</span>
+                                                  </Link>
+                                                )}
+                                            </>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    {!loadingPaidPosts &&
+                                      photoPosts.length === 0 && (
+                                        <div className="nofound grid-span-4">
+                                          <h3 className="first">
+                                            No media found
+                                          </h3>
+                                          <h3 className="second">
+                                            No media found
+                                          </h3>
+                                        </div>
+                                      )}
+                                  </div>
+                                  {renderPagination()}
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

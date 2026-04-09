@@ -420,7 +420,16 @@ const UserEditProfilePage = () => {
                               <input type="text" placeholder="User Name *" value={formData.userName} disabled readOnly />
                             </div>
                             {/* Gender */}
-                            <CustomSelect label="Select Your Gender" icon={<svg className="icons groupUser svg-icon" />} options={genderOptions} value={formData.gender} onChange={(val) => handleFormChange("gender", val as string)} />
+                            <div className="label-input">
+                              <div className="input-placeholder-icon">
+                                <svg className="icons groupUser svg-icon" />
+                              </div>
+                              <input
+                                type="text"
+                                value="Male"
+                                disabled
+                              />
+                          </div>
                             {/* Date of Birth */}
                             <div className="label-input calendar-dropdown" ref={calendarRef}>
                               <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
