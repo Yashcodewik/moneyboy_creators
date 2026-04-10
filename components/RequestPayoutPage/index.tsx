@@ -144,7 +144,7 @@ const RequestPayoutPage = () => {
           data-identifier="1"
         >
           <div
-            className="moneyboy-feed-page-cate-buttons card hide_mobile"
+            className="moneyboy-feed-page-cate-buttons card"
             id="posts-tabs-btn-card"
           >
             <button

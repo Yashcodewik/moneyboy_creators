@@ -112,12 +112,12 @@ textarea:focus {
     border: 0px;
     flex-shrink: 0;
     -webkit-appearance: none;
-      appearance: none;
-      border: none;
-      outline: none;
+    appearance: none;
+    border: none;
+    outline: none;
     svg {
       border-radius: 100%;
-      transform: scale(1.15);
+      // transform: scale(1.15);
       will-change: transform;
       transition: var(--transition-fast);
     }
@@ -281,7 +281,6 @@ textarea:focus {
   }
 }
 @keyframes skloading {0% {background-position: 200% 0;}100% {background-position: -200% 0;}}
-/* shimmer animation */
 @keyframes shimmer {
   0%   { transform: translateX(-150%) skewX(-20deg); }
   100% { transform: translateX(150%) skewX(-20deg); }
