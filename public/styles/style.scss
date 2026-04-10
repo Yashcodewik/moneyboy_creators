@@ -90,7 +90,7 @@ textarea:focus {
 }
 
 .updownarrow {
-  z-index: 99;
+  z-index: 98;
   aspect-ratio: 1;
   border-radius: 100%;
   justify-content: center;
@@ -125,7 +125,50 @@ textarea:focus {
 }
 
 .prime_cont {
-  filter: blur(3px);
+  filter: blur(3px) !important;
+}
+
+.post_playbtn {
+  position: relative;
+  .ply_btn {
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 30px;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    transition: var(--transition-fast);
+    border: 1px solid #fff3;
+    svg {
+      stroke: white;
+      circle {
+        stroke: transparent;
+      }
+    }
+  }
+  &.plyr {
+      max-width: 182px;
+  }
+  .plyr.plyr--video {
+    height: 100%;
+  }
+  video {
+    object-fit: cover;
+    object-position: center;
+    width: 100%;
+    height: 100%;
+  }
+  .plyr__poster {
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: cover;
+  }
 }
 
 /* Animation Start */
@@ -503,6 +546,106 @@ textarea:focus {
   svg {
     width: 24px;
     height: 24px;
+  }
+}
+
+/* ===== Premium BUTTON ===== */
+.premium-btn {
+  &:active {
+    transform: scale(0.97);
+  }
+  &.disabled,
+  &:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+}
+/* ===== UPLOAD BUTTON ===== */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes spin-border {
+  to { --angle: 360deg; }
+}
+.upload-btn {
+  --angle: 0deg;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 0 3px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: #000;
+  overflow: hidden;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background: conic-gradient( from var(--angle), #e5741f, #fece26, #e5741f, #fece26, #e5741f);
+    animation: spin-border 2.4s linear infinite;
+    z-index: 0;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: inherit;
+    background: #000;
+    z-index: 1;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    &::before { animation-play-state: paused; }
+  }
+  .wave-canvas {
+    position: absolute;
+    inset: 2px;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    border-radius: 10px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .btn-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 12px 0;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    .progress-text {
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      font-family: var(--font-family-heading);
+    }
+    .progress-bar {
+      width: 88%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(93.25deg, #e5741f -49.57%, #fece26 98.1%);
+      border-radius: inherit;
+      transition: width 0.3s ease;
+    }
   }
 }
 
@@ -2254,7 +2397,7 @@ textarea:focus {
   cursor: pointer;
 }
 .w-fit {
-  width: fit-content;
+  width: fit-content !important;
 } 
 .max-w-22 {
   max-width: 22px;
@@ -2321,7 +2464,7 @@ textarea:focus {
   max-width: 50%;
 }
 .w-full {
-  width: 100%;
+  width: 100% !important;
 }
 .mw-fit {
   max-width: -webkit-fill-available;
@@ -5223,8 +5366,11 @@ textarea:focus {
         gap: 8px;
         button {
           max-width: 47%;
-          font-size: 14px;
+          font-size: 12px !important;
           line-height: normal;
+          span {
+            font-size: 12px !important;
+          }
         }
       }
     }
@@ -6210,20 +6356,20 @@ textarea:focus {
   }
   /* ========== Mobile Screen Size ========== */
   @media screen and (max-width: 767px) {
-  .btntooltip_wrapper {
-    z-index: 9;
-    button[data-tooltip] {
-      &::after {
-        max-width: min(160px, 90vw);
-        width: max-content;
-        white-space: normal;
-        word-break: break-word;
-        left: 50%;
-        transform: translateX(-50%) translateY(6px);
+    .btntooltip_wrapper {
+      z-index: 9;
+      button[data-tooltip] {
+        &::after {
+          max-width: min(160px, 90vw);
+          width: max-content;
+          white-space: normal;
+          word-break: break-word;
+          left: 50%;
+          transform: translateX(-50%) translateY(6px);
+        }
       }
     }
   }
-}
 }
 .payout_wrap {
   gap: 10px;
