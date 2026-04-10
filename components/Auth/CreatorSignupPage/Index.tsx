@@ -246,20 +246,13 @@ setOtpOpen(true);
                 <div className="moneyboy-post__container card">
                   <div className="head">
                     <div className="backicons">
-                      <button
-                        className="cate-back-btn active-down-effect"
-                        onClick={() => router.push("/")}
-                      >
-                        <span>
-                          <IoArrowBackOutline className="icons" />
-                        </span>
+                      <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}>
+                        <span><IoArrowBackOutline className="icons" /></span>
                       </button>
                     </div>
                     <div className="textcont">
                       <h3 className="heading">Creator Sign Up</h3>
-                      <p className="mb-10">
-                        Sign up to make money and interact with your fans!
-                      </p>
+                      <p className="mb-10">Sign up to make money and interact with your fans!</p>
                     </div>
                   </div>
                   <div className="loginbtn_wrap">

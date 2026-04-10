@@ -20,6 +20,7 @@ import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import { countryOptions } from "@/components/helper/creatorOptions";
 import CustomSelect from "@/components/CustomSelect";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 countries.registerLocale(enLocale);
 
@@ -53,6 +54,7 @@ const SignupPage = () => {
   const [emailForOtp, setEmailForOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const isMobile = useDeviceType();
 
   const formik = useFormik({
     initialValues: {
@@ -162,8 +164,19 @@ const SignupPage = () => {
         <div className="main_cont">
           <img src="/images/logo.svg" className="logo_wrap" />
           <div className="moneyboy-post__container card">
-            <h3 className="heading">User Sign up</h3>
-            <p>Sign up to interact with your idols!</p>
+            <div className="flex">
+              {isMobile && (
+                <div className="backicons">
+                  <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}>
+                    <span><IoArrowBackOutline className="icons" /></span>
+                  </button>
+                </div>
+              )}
+              <div className="w-full">
+                <h3 className="heading">User Sign up</h3>
+                <p>Sign up to interact with your idols!</p>
+              </div>
+            </div>
             <div className="loginbtn_wrap">
               <button
                 className="google-button active-down-effect "

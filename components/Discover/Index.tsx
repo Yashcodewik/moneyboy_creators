@@ -6,12 +6,7 @@ import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
-import {
-  fetchDiscoverCreators,
-  resetCreators,
-  setPage,
-  updateCreatorSavedState,
-} from "@/redux/discover/discoverCreatorsSlice";
+import { fetchDiscoverCreators, resetCreators, setPage, updateCreatorSavedState,} from "@/redux/discover/discoverCreatorsSlice";
 import NoProfileSvg from "../common/NoProfileSvg";
 
 const Dashboard = () => {
@@ -21,22 +16,7 @@ const Dashboard = () => {
   const searchParams = useSearchParams();
   const querySearch = searchParams.get("search");
 
-  type FilterType =
-    | "category"
-    | "feature"
-    | "country"
-    | "city"
-    | "bodyType"
-    | "sexualOrientation"
-    | "age"
-    | "eyeColor"
-    | "hairColor"
-    | "ethnicity"
-    | "height"
-    | "style"
-    | "size"
-    | "popularity"
-    | null;
+  type FilterType = | "category" | "feature" | "country" | "city" | "bodyType" | "sexualOrientation" | "age" | "eyeColor" | "hairColor" | "ethnicity" | "height" | "style" | "size" | "popularity" | null;
 
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [search, setSearch] = useState(querySearch || "");
@@ -72,7 +52,7 @@ useEffect(() => {
       ...(session?.user && { userPublicId: session.user.publicId }),
     }) as any,
   ).finally(() => {
-    setHasFetched(true); // ✅ mark fetched
+    setHasFetched(true);
   });
 }, [page, search, filterValues, sessionLoaded, session?.user?.publicId]);
 
@@ -146,55 +126,6 @@ useEffect(() => {
     router.push(`/${username}`);
   };
 
-  // const renderPagination = () => {
-  //   if (totalPages <= 1) return null;
-
-  //   const pages: (number | string)[] = [];
-  //   if (totalPages <= 6) {
-  //     for (let i = 1; i <= totalPages; i++) pages.push(i);
-  //   } else {
-  //     pages.push(1, 2, 3);
-  //     if (page > 4) pages.push("...");
-  //     if (page > 3 && page < totalPages - 2) pages.push(page);
-  //     if (page < totalPages - 3) pages.push("...");
-  //     pages.push(totalPages - 1, totalPages);
-  //   }
-
-  //   return (
-  //     <div className="pagination_wrap">
-  //       {/* PREVIOUS */}
-  //       <button
-  //         className="btn-prev"
-  //         disabled={page === 1}
-  //         onClick={() => dispatch(setPage(page - 1))}
-  //       >
-  //         <CircleArrowLeft color="#000" />
-  //       </button>
-
-  //       {/* PAGE NUMBERS */}
-  //       {pages.map((p, i) =>
-  //         p === "..." ? (
-  //           <button key={i} className="premium-btn shimmer" disabled>
-  //             <span>…</span>
-  //           </button>
-  //         ) : (
-  //           <button key={i} className={page === p ? "premium-btn shimmer" : "btn-primary"} onClick={() => dispatch(setPage(p as number))}>
-  //             <span>{p}</span>
-  //           </button>
-  //         ),
-  //       )}
-
-  //       {/* NEXT */}
-  //       <button
-  //         className="btn-next"
-  //         disabled={page === totalPages}
-  //         onClick={() => dispatch(setPage(page + 1))}
-  //       >
-  //         <CircleArrowRight color="#000" />
-  //       </button>
-  //     </div>
-  //   );
-  // };
   const renderPagination = () => {
     if (!totalPages || totalPages <= 1) return null;
 
@@ -219,48 +150,15 @@ useEffect(() => {
 
     return (
       <div className="pagination_wrap">
-        {/* PREVIOUS */}
-        <button
-          className="btn-prev"
-          disabled={page === 1 || loading}
-          onClick={() => {
-            if (!loading) dispatch(setPage(page - 1));
-          }}
-        >
-          <CircleArrowLeft color="#000" />
-        </button>
-
-        {/* PAGE NUMBERS */}
+        <button className="btn-prev" disabled={page === 1 || loading} onClick={() => {if (!loading) dispatch(setPage(page - 1));}}><CircleArrowLeft color="#000" /></button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <button key={i} className="premium-btn shimmer" disabled>
-              <span>…</span>
-            </button>
+            <button key={i} className="premium-btn shimmer" disabled><span>…</span></button>
           ) : (
-            <button
-              key={i}
-              className={page === p ? "premium-btn shimmer" : "btn-primary"}
-              onClick={() => {
-                if (!loading && p !== page) {
-                  dispatch(setPage(p as number));
-                }
-              }}
-            >
-              <span>{p}</span>
-            </button>
+            <button key={i} className={page === p ? "premium-btn shimmer" : "btn-primary"} onClick={() => {if (!loading && p !== page) {dispatch(setPage(p as number));}}}><span>{p}</span></button>
           ),
         )}
-
-        {/* NEXT */}
-        <button
-          className="btn-next"
-          disabled={page === totalPages || loading}
-          onClick={() => {
-            if (!loading) dispatch(setPage(page + 1));
-          }}
-        >
-          <CircleArrowRight color="#000" />
-        </button>
+        <button className="btn-next" disabled={page === totalPages || loading} onClick={() => {if (!loading) dispatch(setPage(page + 1));}}><CircleArrowRight color="#000" /></button>
       </div>
     );
   };
@@ -283,9 +181,7 @@ useEffect(() => {
                     <h3 className="second">No media found</h3>
                   </div>
                 )}
-                {!loading &&
-                  creators.length > 0 &&
-                  creators.map((creator: any) => {
+                {!loading && creators.length > 0 && creators.map((creator: any) => {
                     const isSaved = creator.issaved;
                     return (
                       <div key={creator.creatorUserId} className="user-profile-card-wrapper" data-creator-profile-card onClick={() => handleProfileClick(creator.userName)}>

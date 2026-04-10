@@ -1,13 +1,13 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import SideBar from "./SideBar";
-import { CircleX, BadgeCheck, MessageCircleMore, Loader, Check, Send, ArrowLeft,} from "lucide-react";
+import { CircleX, BadgeCheck, MessageCircleMore, Loader, Check, Send, ArrowLeft, } from "lucide-react";
 import "@/public/styles/small-components/small-components.css";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import socket from "@/libs/socket";
-import {apiPost, apiPostWithMultiForm, getApi, getApiByParams,} from "@/utils/endpoints/common";
+import { apiPost, apiPostWithMultiForm, getApi, getApiByParams, } from "@/utils/endpoints/common";
 import { API_MESSAGE_CHAT_UPLOAD_MEDIA } from "@/utils/api/APIConstant";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plyr } from "plyr-react";
@@ -17,12 +17,12 @@ import ChatFeatures from "./ChatFeatures";
 import Link from "next/link";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { clearConversation, deleteThread, fetchMessages, fetchMessageUnreadCount, fetchSidebar, reportThread,} from "@/redux/message/messageActions";
-import { addSocketMessage, clearMessages, markMessagesReadFromSocket, resetThreadUnread, setActiveThread, setThreadDetails, updatePPVStatus,} from "@/redux/message/messageSlice";
+import { clearConversation, deleteThread, fetchMessages, fetchMessageUnreadCount, fetchSidebar, reportThread, } from "@/redux/message/messageActions";
+import { addSocketMessage, clearMessages, markMessagesReadFromSocket, resetThreadUnread, setActiveThread, setThreadDetails, updatePPVStatus, } from "@/redux/message/messageSlice";
 import CustomAudioPlayer from "../common/CustomAudioPlayer";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut,} from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut, } from "lucide-react";
 import { showError, showSuccess } from "@/utils/alert";
 import Modal from "../Modal";
 
@@ -111,10 +111,10 @@ const MessagePage = () => {
   }, []);
 
   useEffect(() => {
-  if (threadPublicIdFromUrl) {
-    dispatch(resetThreadUnread(threadPublicIdFromUrl));
-  }
-}, [threadPublicIdFromUrl]);
+    if (threadPublicIdFromUrl) {
+      dispatch(resetThreadUnread(threadPublicIdFromUrl));
+    }
+  }, [threadPublicIdFromUrl]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -128,29 +128,29 @@ const MessagePage = () => {
     return () => clearInterval(interval);
   }, [session?.user?.id]);
 
-// 1. scrollToBottom function
-const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
-  requestAnimationFrame(() => {
+  // 1. scrollToBottom function
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+      });
     });
-  });
-};
+  };
 
-// 2. Scroll when isChatLoading turns FALSE — instant on initial load (no animation flash)
-useEffect(() => {
-  if (!isChatLoading && activeThreadId && messages.length > 0) {
-    scrollToBottom("instant"); // ← keep instant here, smooth would look weird on first open
-  }
-}, [isChatLoading]);
+  // 2. Scroll when isChatLoading turns FALSE — instant on initial load (no animation flash)
+  useEffect(() => {
+    if (!isChatLoading && activeThreadId && messages.length > 0) {
+      scrollToBottom("instant"); // ← keep instant here, smooth would look weird on first open
+    }
+  }, [isChatLoading]);
 
-// 3. Scroll when a new message arrives — smooth for live messages
-useEffect(() => {
-  if (isChatLoading) return;
-  if (messages.length === 0) return;
+  // 3. Scroll when a new message arrives — smooth for live messages
+  useEffect(() => {
+    if (isChatLoading) return;
+    if (messages.length === 0) return;
 
-  scrollToBottom("smooth"); // ← changed from "instant" to "smooth"
-}, [messages.length]);
+    scrollToBottom("smooth"); // ← changed from "instant" to "smooth"
+  }, [messages.length]);
 
   useEffect(() => {
     const handler = ({ ppvId, status, deliveredMedia }: any) => {
@@ -162,47 +162,47 @@ useEffect(() => {
     };
   }, [dispatch]);
 
-useEffect(() => {
-  if (!threadPublicIdFromUrl) {
-    // ✅ header click → no threadId → show list
-    dispatch(setActiveThread(null));
-    return;
-  }
+  useEffect(() => {
+    if (!threadPublicIdFromUrl) {
+      // ✅ header click → no threadId → show list
+      dispatch(setActiveThread(null));
+      return;
+    }
 
-  // ✅ profile click → open chat (mobile + desktop both)
-  dispatch(setActiveThread(threadPublicIdFromUrl));
-}, [threadPublicIdFromUrl, dispatch]);
+    // ✅ profile click → open chat (mobile + desktop both)
+    dispatch(setActiveThread(threadPublicIdFromUrl));
+  }, [threadPublicIdFromUrl, dispatch]);
 
 
-useEffect(() => {
-  if (!session?.user?.id || !activeThreadId) return;
+  useEffect(() => {
+    if (!session?.user?.id || !activeThreadId) return;
 
-  dispatch(resetThreadUnread(activeThreadId));
+    dispatch(resetThreadUnread(activeThreadId));
 
-  socket.emit("markRead", {
-    threadId: activeThreadId,
-    userId: session.user.id,
-  });
-}, [activeThreadId, session?.user?.id, messages.length]);
+    socket.emit("markRead", {
+      threadId: activeThreadId,
+      userId: session.user.id,
+    });
+  }, [activeThreadId, session?.user?.id, messages.length]);
 
-// messagesRead listener — always active, never torn down on thread change
-useEffect(() => {
-  if (!session?.user?.id) return;
+  // messagesRead listener — always active, never torn down on thread change
+  useEffect(() => {
+    if (!session?.user?.id) return;
 
-  const handleMessagesRead = ({ threadId, readerId }: { threadId: string; readerId: string }) => {
-    console.log("📨 messagesRead received:", { threadId, readerId });
-    console.log("👤 my session userId:", session.user.id);
-    console.log("🔁 will dispatch?", readerId !== session.user.id);
-    if (readerId === session.user.id) return;
-    dispatch(markMessagesReadFromSocket(threadId));
-  };
+    const handleMessagesRead = ({ threadId, readerId }: { threadId: string; readerId: string }) => {
+      console.log("📨 messagesRead received:", { threadId, readerId });
+      console.log("👤 my session userId:", session.user.id);
+      console.log("🔁 will dispatch?", readerId !== session.user.id);
+      if (readerId === session.user.id) return;
+      dispatch(markMessagesReadFromSocket(threadId));
+    };
 
-  socket.on("messagesRead", handleMessagesRead);
+    socket.on("messagesRead", handleMessagesRead);
 
-  return () => {
-    socket.off("messagesRead", handleMessagesRead);
-  };
-}, [session?.user?.id, dispatch]);
+    return () => {
+      socket.off("messagesRead", handleMessagesRead);
+    };
+  }, [session?.user?.id, dispatch]);
 
   useEffect(() => {
     if (!activeThreadId) return;
@@ -263,25 +263,25 @@ useEffect(() => {
     };
   }, [activeThreadId, session?.user?.id]);
 
-useEffect(() => {
-  if (!activeThreadId) return;
+  useEffect(() => {
+    if (!activeThreadId) return;
 
-  const joinRoom = () => {
-    console.log("🚪 Joining thread room:", activeThreadId);
-    socket.emit("joinThread", activeThreadId);
-  };
+    const joinRoom = () => {
+      console.log("🚪 Joining thread room:", activeThreadId);
+      socket.emit("joinThread", activeThreadId);
+    };
 
-  console.log("🔌 socket.connected at join time:", socket.connected);
-  console.log("🧵 activeThreadId at join time:", activeThreadId);
+    console.log("🔌 socket.connected at join time:", socket.connected);
+    console.log("🧵 activeThreadId at join time:", activeThreadId);
 
-  joinRoom(); // ← remove the if(socket.connected) check, always call
+    joinRoom(); // ← remove the if(socket.connected) check, always call
 
-  socket.on("connect", joinRoom);
+    socket.on("connect", joinRoom);
 
-  return () => {
-    socket.off("connect", joinRoom);
-  };
-}, [activeThreadId]);
+    return () => {
+      socket.off("connect", joinRoom);
+    };
+  }, [activeThreadId]);
 
   const sendMessage = () => {
     if (!newComment.trim()) return;
@@ -356,7 +356,7 @@ useEffect(() => {
     }
   }, [searchedMessages]);
 
-useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       const target = (e instanceof TouchEvent ? e.touches[0]?.target : e.target) as Node;
       if (!target) return;
@@ -596,9 +596,9 @@ useEffect(() => {
   const handleAcceptPPV = async (ppvId: string) => {
     try {
       await apiPost({ url: `subscription/accept/${ppvId}`, values: {} });
-       if (activeThreadId) {
-      await dispatch(fetchMessages(activeThreadId));
-    }
+      if (activeThreadId) {
+        await dispatch(fetchMessages(activeThreadId));
+      }
       toast.success("PPV accepted!");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to accept");
@@ -624,9 +624,9 @@ useEffect(() => {
         return !file.type.startsWith("image/");
       }
 
-     if (normalizedRequestType === "VIDEO") {
-      return file.type !== "video/mp4";
-    }
+      if (normalizedRequestType === "VIDEO") {
+        return file.type !== "video/mp4";
+      }
 
       return !file.type.startsWith("image/") && !file.type.startsWith("video/");
     });
@@ -1150,7 +1150,7 @@ useEffect(() => {
                           <div className="messages-empty">
                             <div className="messages-empty-card">
                               <div className="messages-empty-icon">
-                                <Loader size={28} className="loader" color="#FFF"/>
+                                <Loader size={28} className="loader" color="#FFF" />
                               </div>
                               <h3>Loading chat</h3>
                               <p>Please wait while we load the conversation details.</p>
@@ -1223,25 +1223,11 @@ useEffect(() => {
 
                                 {/* Actions */}
                                 <div className="chat-room-header-btns">
-                                  <div
-                                    className="btn-txt-gradient"
-                                    onClick={() => {
-                                    if (!activeUser) return;
-                                    if (isBlockedByOther) {
-                                        showError("You are blocked by this user");
-                                        return;
-                                      }
-
-                                    if (activeUser.role === 1) {
-                                      router.push(`/userprofile/${activeUser.publicId}`);
-                                    } else {
-                                      if (!activeUser.username) return;
-                                      router.push(`/${activeUser.username}`);
-                                    }
-                                  }}
-                                  >
-                                    <span>View Profile</span>
-                                  </div>
+                                  {!isMobile && (
+                                    <button className="btn-txt-gradient" onClick={() => { if (!activeUser) return; if (activeUser.role === 1) { router.push(`/userprofile/${activeUser.publicId}`); } else { if (!activeUser.username) return; router.push(`/${activeUser.username}`); } }}>
+                                      <span>View Profile</span>
+                                    </button>
+                                  )}
 
                                   {/* More Options */}
                                   <div className="rel-user-more-opts-wrapper">
@@ -1533,8 +1519,8 @@ useEffect(() => {
                                                   </div>
                                                 )}
 
-                                                {/* EXPIRY COUNTDOWN */}
-                                        {/* {(msg.ppvRequestId.status === "PENDING" || msg.ppvRequestId.status === "MEDIA_UPLOADED") && 
+                                              {/* EXPIRY COUNTDOWN */}
+                                              {/* {(msg.ppvRequestId.status === "PENDING" || msg.ppvRequestId.status === "MEDIA_UPLOADED") && 
                                           msg.ppvRequestId.expiresAt && (() => {
                                             const msLeft = new Date(msg.ppvRequestId.expiresAt).getTime() - Date.now();
                                             const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
@@ -1625,101 +1611,101 @@ useEffect(() => {
                                                 </p>
                                               </div>
                                               {msg.ppvRequestId.deliveredMedia?.length > 0 && (
-                                              <div className="cont_wrap">
-                                                <h3>
-                                                  {msg.ppvRequestId.status ===
-                                                    "PAID"
-                                                    ? "Delivered Media"
-                                                    : "Preview"}
-                                                </h3>
+                                                <div className="cont_wrap">
+                                                  <h3>
+                                                    {msg.ppvRequestId.status ===
+                                                      "PAID"
+                                                      ? "Delivered Media"
+                                                      : "Preview"}
+                                                  </h3>
 
-                                                <div className="upload-wrapper">
-                                                  {uploadingMap[
-                                                    msg.ppvRequestId._id
-                                                  ] && (
-                                                      <div className="img_wrap loadingtext">
-                                                        {`Uploading ${uploadProgressMap[msg.ppvRequestId._id] || 0}%`
-                                                          .split("")
-                                                          .map((char, i) => (
-                                                            <span
-                                                              key={i}
-                                                              style={{
-                                                                animationDelay: `${(i + 1) * 0.1}s`,
-                                                              }}
-                                                            >
-                                                              {char}
-                                                            </span>
-                                                          ))}
-                                                      </div>
-                                                    )}
-                                                  {msg.ppvRequestId.status ===
-                                                    "PAID" &&
-                                                    msg.ppvRequestId.deliveredMedia?.map(
-                                                      (
-                                                        url: string,
-                                                        i: number,
-                                                      ) => (
-                                                        <div
-                                                          className="img_wrap"
-                                                          key={i}
-                                                        >
-                                                          {msg.ppvRequestId
-                                                            .type === "PHOTO" ? (
-                                                            <PhotoView src={url}>
-                                                              <img
-                                                                src={url}
-                                                                className="img-fluid upldimg"
-                                                                alt="delivered"
+                                                  <div className="upload-wrapper">
+                                                    {uploadingMap[
+                                                      msg.ppvRequestId._id
+                                                    ] && (
+                                                        <div className="img_wrap loadingtext">
+                                                          {`Uploading ${uploadProgressMap[msg.ppvRequestId._id] || 0}%`
+                                                            .split("")
+                                                            .map((char, i) => (
+                                                              <span
+                                                                key={i}
                                                                 style={{
-                                                                  cursor:
-                                                                    "zoom-in",
+                                                                  animationDelay: `${(i + 1) * 0.1}s`,
+                                                                }}
+                                                              >
+                                                                {char}
+                                                              </span>
+                                                            ))}
+                                                        </div>
+                                                      )}
+                                                    {msg.ppvRequestId.status ===
+                                                      "PAID" &&
+                                                      msg.ppvRequestId.deliveredMedia?.map(
+                                                        (
+                                                          url: string,
+                                                          i: number,
+                                                        ) => (
+                                                          <div
+                                                            className="img_wrap"
+                                                            key={i}
+                                                          >
+                                                            {msg.ppvRequestId
+                                                              .type === "PHOTO" ? (
+                                                              <PhotoView src={url}>
+                                                                <img
+                                                                  src={url}
+                                                                  className="img-fluid upldimg"
+                                                                  alt="delivered"
+                                                                  style={{
+                                                                    cursor:
+                                                                      "zoom-in",
+                                                                  }}
+                                                                />
+                                                              </PhotoView>
+                                                            ) : (
+                                                              <Plyr
+                                                                source={{
+                                                                  type: "video",
+                                                                  sources: [
+                                                                    {
+                                                                      src: url,
+                                                                      type: "video/mp4",
+                                                                    },
+                                                                  ],
+                                                                }}
+                                                                options={{
+                                                                  controls: [
+                                                                    "play-large",
+                                                                    "play",
+                                                                    "progress",
+                                                                    "current-time",
+                                                                    "mute",
+                                                                    "volume",
+                                                                    "fullscreen",
+                                                                  ],
                                                                 }}
                                                               />
+                                                            )}
+                                                          </div>
+                                                        ),
+                                                      )}
+
+                                                    {msg.ppvRequestId.status === "MEDIA_UPLOADED" ? (
+                                                      // Show uploaded media as preview for creator
+                                                      msg.ppvRequestId.deliveredMedia?.map((url: string, i: number) => (
+                                                        <div className="img_wrap" key={i}>
+                                                          {msg.ppvRequestId.type === "PHOTO" ? (
+                                                            <PhotoView src={url}>
+                                                              <img src={url} className="img-fluid upldimg" alt="preview" style={{ cursor: "zoom-in" }} />
                                                             </PhotoView>
                                                           ) : (
-                                                            <Plyr
-                                                              source={{
-                                                                type: "video",
-                                                                sources: [
-                                                                  {
-                                                                    src: url,
-                                                                    type: "video/mp4",
-                                                                  },
-                                                                ],
-                                                              }}
-                                                              options={{
-                                                                controls: [
-                                                                  "play-large",
-                                                                  "play",
-                                                                  "progress",
-                                                                  "current-time",
-                                                                  "mute",
-                                                                  "volume",
-                                                                  "fullscreen",
-                                                                ],
-                                                              }}
-                                                            />
+                                                            <video src={url} className="img-fluid upldimg" controls />
                                                           )}
                                                         </div>
-                                                      ),
-                                                    )}
-
-                                                 {msg.ppvRequestId.status === "MEDIA_UPLOADED" ? (
-                                                    // Show uploaded media as preview for creator
-                                                    msg.ppvRequestId.deliveredMedia?.map((url: string, i: number) => (
-                                                      <div className="img_wrap" key={i}>
-                                                        {msg.ppvRequestId.type === "PHOTO" ? (
-                                                          <PhotoView src={url}>
-                                                            <img src={url} className="img-fluid upldimg" alt="preview" style={{ cursor: "zoom-in" }} />
-                                                          </PhotoView>
-                                                        ) : (
-                                                          <video src={url} className="img-fluid upldimg" controls />
-                                                        )}
-                                                      </div>
-                                                    ))
-                                                  ) : msg.ppvRequestId.status !== "PAID" && (
-                                                    <>
-                                                      {msg.ppvRequestId.referenceFile ? (
+                                                      ))
+                                                    ) : msg.ppvRequestId.status !== "PAID" && (
+                                                      <>
+                                                        {msg.ppvRequestId.referenceFile ? (
                                                           <>
                                                             {msg.ppvRequestId
                                                               .type === "PHOTO" && (
@@ -1801,8 +1787,8 @@ useEffect(() => {
                                                         )}
                                                       </>
                                                     )}
+                                                  </div>
                                                 </div>
-                                              </div>
                                               )}
 
                                               {/* ACTIONS */}
@@ -1906,7 +1892,7 @@ useEffect(() => {
                                         and kick things off.
                                       </p>
                                       <div className="start-actions"> */}
-                                        {/* <button
+                                {/* <button
                                           className="btn-primary"
                                           onClick={() =>
                                             textareaRef.current?.focus()
@@ -1914,7 +1900,7 @@ useEffect(() => {
                                         >
                                           Start chatting <Send size={22} />
                                         </button> */}
-                                        {/* <button
+                                {/* <button
                                           className="hello-btn"
                                           onClick={() => {
                                             if (
@@ -1957,7 +1943,7 @@ useEffect(() => {
                             </div>
 
                             {/* ── Footer ── */}
-                            { 
+                            {
                               !isBlockedByOther &&
                               !isBlockedByYou && (
                                 <div className="chat-room-footer-layout">
@@ -2068,64 +2054,64 @@ useEffect(() => {
                                     </div>
 
                                     {/* Action buttons */}
-                                    
+
                                     <div className="chat-msg-action-btns">
-                                        {!isMobile && (
-                                      <button
-                                        ref={emojiButtonRef}
-                                        className="emojis-icon-btn"
-                                        onClick={() =>
-                                          setShowEmojiPicker((prev) => !prev)
-                                        }
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="35"
-                                          height="35"
-                                          viewBox="0 0 35 35"
-                                          fill="none"
+                                      {!isMobile && (
+                                        <button
+                                          ref={emojiButtonRef}
+                                          className="emojis-icon-btn"
+                                          onClick={() =>
+                                            setShowEmojiPicker((prev) => !prev)
+                                          }
                                         >
-                                          <rect
-                                            x="0.5"
-                                            y="0.5"
-                                            width="34"
-                                            height="34"
-                                            rx="17"
-                                            stroke="none"
-                                          />
-                                          <path
-                                            d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeMiterlimit="10"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                        </svg>
-                                      </button>
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="35"
+                                            height="35"
+                                            viewBox="0 0 35 35"
+                                            fill="none"
+                                          >
+                                            <rect
+                                              x="0.5"
+                                              y="0.5"
+                                              width="34"
+                                              height="34"
+                                              rx="17"
+                                              stroke="none"
+                                            />
+                                            <path
+                                              d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z"
+                                              stroke="none"
+                                              strokeWidth="1.5"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                            <path
+                                              d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z"
+                                              stroke="none"
+                                              strokeWidth="1.5"
+                                              strokeMiterlimit="10"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                            <path
+                                              d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z"
+                                              stroke="none"
+                                              strokeWidth="1.5"
+                                              strokeMiterlimit="10"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                            <path
+                                              d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z"
+                                              stroke="none"
+                                              strokeWidth="1.5"
+                                              strokeMiterlimit="10"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                        </button>
                                       )}
                                       {/* Voice recorder */}
                                       <button
@@ -2197,32 +2183,11 @@ useEffect(() => {
                                       </button>
 
                                       {/* Send button */}
-                                      <button
-                                        className="btn-txt-simple send-msg-btn"
-                                        onClick={sendMessage}
-                                      >
-                                        <span>Send</span>
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="24"
-                                          height="24"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                        >
-                                          <path
-                                            d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M10.1094 13.6505L13.6894 10.0605"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
+                                      <button className="btn-txt-simple send-msg-btn" onClick={sendMessage}>
+                                        {!isMobile && (<span>Send</span>)}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                          <path d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          <path d="M10.1094 13.6505L13.6894 10.0605" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                         </svg>
                                       </button>
 
@@ -2243,7 +2208,7 @@ useEffect(() => {
                                         </div>
                                       )}
                                     </div>
-                                    
+
                                   </div>
                                 </div>
                               )}
