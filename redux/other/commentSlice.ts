@@ -97,6 +97,9 @@ const commentSlice = createSlice({
         comment.isLiked = false;
         comment.likeCount = Math.max(0, (comment.likeCount || 1) - 1);
       } else {
+        if (comment.isDisliked) {
+          comment.dislikeCount = Math.max(0, (comment.dislikeCount || 1) - 1);
+        }
         comment.isLiked = true;
         comment.isDisliked = false;
         comment.likeCount = (comment.likeCount || 0) + 1;
@@ -128,10 +131,18 @@ const commentSlice = createSlice({
   for (const postId in state.comments) {
     const comment = state.comments[postId].find(c => c._id === commentId);
     if (comment) {
-      comment.isDisliked = !comment.isDisliked;
+      const wasDisliked = Boolean(comment.isDisliked);
 
-      if (comment.isDisliked) {
-        comment.isLiked = false;
+      if (wasDisliked) {
+        comment.isDisliked = false;
+        comment.dislikeCount = Math.max(0, (comment.dislikeCount || 1) - 1);
+      } else {
+        if (comment.isLiked) {
+          comment.isLiked = false;
+          comment.likeCount = Math.max(0, (comment.likeCount || 1) - 1);
+        }
+        comment.isDisliked = true;
+        comment.dislikeCount = (comment.dislikeCount || 0) + 1;
       }
     }
   }

@@ -1693,6 +1693,15 @@
                       animation: heartLikedPopUpAnimation 0.45s ease-out;
                     }
                   }
+
+                  &.stable-like-btn {
+                    min-width: 52px;
+
+                    svg {
+                      transform: none !important;
+                      animation: none !important;
+                    }
+                  }
                 }
               }
         
