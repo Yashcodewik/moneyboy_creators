@@ -2262,6 +2262,10 @@ textarea:focus {
 .max-w-200 {
   max-width: 200px;
 }
+.size-28 {
+  width: 28px;
+  height: 28px;
+}
 .h-full {
   height: 100%;
 }
@@ -8386,9 +8390,18 @@ textarea:focus {
               color: #fff;
               max-width: 18px;
             }
-            &:hover {
+            &:not(:disabled):hover {
               svg {
                 color: #fece26;
+              }
+            }
+            &:disabled {
+              opacity: 0.5;
+              background: #222;
+              box-shadow: none;
+              cursor: not-allowed;
+              svg {
+                color: #888;
               }
             }
           }

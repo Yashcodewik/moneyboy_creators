@@ -403,9 +403,9 @@
     }
 
     .msg-page-wrapper {
-        max-height: calc(calc(100dvh - 185px));
-        min-height: calc(calc(100dvh - 185px));
-        height: calc(calc(100dvh - 185px));
+        max-height: calc(calc(100dvh - 145px));
+        min-height: calc(calc(100dvh - 145px));
+        height: calc(calc(100dvh - 145px));
 
         .msg-page-container {
             position: relative;
