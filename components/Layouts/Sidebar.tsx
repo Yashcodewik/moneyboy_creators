@@ -1207,7 +1207,19 @@ const Sidebar: React.FC = () => {
                 <div className="menu-links-container">
                   <div className="links-block">
                     <div className="menu-links-wrapper">
-                      <a href="#" className="menu-link subscriptions_icons">
+                      <a href="#" className="menu-link subscriptions_icons"
+                      onClick={(e) => {
+                          e.preventDefault();
+
+                          if (session?.user?.role === 2) {
+                            handleNavClick("subscriptions", "/subscriptions", e);
+                          } else if (session?.user?.role === 1) {
+                            handleNavClick("subscriptions", "/subscriptions", e);
+                          }
+
+                          setIsMenuOpen(false); 
+                        }}
+                      >
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M29.3332 20.0013V12.0013C29.3332 5.33464 26.6665 2.66797 19.9998 2.66797H11.9998C5.33317 2.66797 2.6665 5.33464 2.6665 12.0013V20.0013C2.6665 26.668 5.33317 29.3346 11.9998 29.3346H19.9998C26.6665 29.3346 29.3332 26.668 29.3332 20.0013Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                           <path d="M3.35986 9.48047H28.6399" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -1215,7 +1227,9 @@ const Sidebar: React.FC = () => {
                           <path d="M20.6401 2.8125V8.6925" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                           <path d="M13 19.2681V17.6681C13 15.6148 14.4533 14.7748 16.2267 15.8015L17.6133 16.6015L19 17.4015C20.7733 18.4281 20.7733 20.1081 19 21.1348L17.6133 21.9348L16.2267 22.7348C14.4533 23.7615 13 22.9215 13 20.8681V19.2681V19.2681Z" stroke="black" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
-                        <span>Subscriptions</span>
+                        <span>
+                          {session?.user?.role === 2 ? "Subscribers" : "Subscriptions"}
+                        </span>
                       </a>
                       <a href="/purchased-media" className="menu-link purchased-media-link">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
