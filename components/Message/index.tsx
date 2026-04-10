@@ -464,15 +464,38 @@ useEffect(() => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     if (!activeThreadId || !activeUser?.id) return;
 
-    const isImage = file.type.startsWith("image/");
-    const isVideo = file.type === "video/mp4";
+        const allowedImageTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
 
-   if (!isImage && !isVideo) {
-  toast.error("Only images and MP4 videos are allowed");
-  return;
-}
+      const allowedVideoTypes = [
+        "video/mp4",
+        "video/quicktime", // .mov
+        "video/webm",
+        "video/ogg",
+      ];
+
+      const allowedAudioTypes = [
+        "audio/mpeg", // mp3
+        "audio/wav",
+      ];
+
+      const isImage = allowedImageTypes.includes(file.type);
+      const isVideo = allowedVideoTypes.includes(file.type);
+      const isAudio = allowedAudioTypes.includes(file.type);
+
+      if (!isImage && !isVideo && !isAudio) {
+        toast.error(
+          "Only JPG, PNG, WEBP, MP4, MOV, WEBM, OGG, MP3, WAV files are allowed"
+        );
+        return;
+      }
 
     if (file.size > 100 * 1024 * 1024) {
       toast.error("File must be less than 100MB");
@@ -507,13 +530,15 @@ useEffect(() => {
       }
 
       socket.emit("mediaMessageUploaded", {
+        senderId: session.user.id,  
         threadId: activeThreadId,
         messageId: res._id,
       });
 
       if (res && !res.error) {
-        dispatch(addSocketMessage(res));
+        toast.success("Media uploaded");
       }
+      await dispatch(fetchMessages(activeThreadId));
     } catch (error) {
       toast.error("Upload failed");
     } finally {
@@ -781,7 +806,7 @@ useEffect(() => {
       });
 
       if (res && !res.error) {
-        dispatch(addSocketMessage(res));
+        toast.success("Voice Uploaded");
         socket.emit("mediaMessageUploaded", {
           threadId: activeThreadId,
           messageId: res._id,
@@ -1144,6 +1169,11 @@ useEffect(() => {
                                       onClick={() => {
                                         if (!activeUser) return;
 
+                                         if (isBlockedByOther) {
+                                        showError("You are blocked by this user");
+                                        return;
+                                      }
+
                                         if (activeUser?.role === 1) {
                                           router.push(`/userprofile/${activeUser.publicId}`);
                                         } else {
@@ -1197,6 +1227,10 @@ useEffect(() => {
                                     className="btn-txt-gradient"
                                     onClick={() => {
                                     if (!activeUser) return;
+                                    if (isBlockedByOther) {
+                                        showError("You are blocked by this user");
+                                        return;
+                                      }
 
                                     if (activeUser.role === 1) {
                                       router.push(`/userprofile/${activeUser.publicId}`);
@@ -1935,7 +1969,7 @@ useEffect(() => {
                                           ref={fileInputRef}
                                           type="file"
                                           hidden
-                                          accept="image/*,video/mp4"
+                                          accept=".jpg,.jpeg,.png,.webp,.mp4,.mov,.webm,.ogg,.mp3,.wav"
                                           onChange={handleFileSelect}
                                           disabled={
                                             !activeThreadId || !activeUser?.id

@@ -90,7 +90,7 @@ const Filter: React.FC<FilterProps> = ({ search, setSearch, setPage, filterValue
                         <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                       </svg>
                     </div>
-                    <input ref={searchInputRef} type="text" placeholder="Search here" value={search} onChange={(e) => setSearch(e.target.value)} onFocus={() => setIsSearchActive(true)} onBlur={() => { if (!search) setIsSearchActive(false); }} />
+                      <input ref={searchInputRef} type="text" placeholder="Search here" value={search} onChange={(e) => setSearch(e.target.value)} onFocus={() => setIsSearchActive(true)} onBlur={() => { if (!search) setIsSearchActive(false); }} />
                     {isSearchActive && (<button className="btn-danger icon" onMouseDown={(e) => { e.preventDefault(); setSearch(""); setIsSearchActive(false); searchInputRef.current?.blur(); }}><CircleX size={18} /></button>)}
                   </div>
                 </div>

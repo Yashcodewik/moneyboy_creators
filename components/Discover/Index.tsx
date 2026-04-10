@@ -67,14 +67,14 @@ useEffect(() => {
   dispatch(
     fetchDiscoverCreators({
       page,
-      search: querySearch || "",
+      search,
       filters: filterValues,
       ...(session?.user && { userPublicId: session.user.publicId }),
     }) as any,
   ).finally(() => {
     setHasFetched(true); // ✅ mark fetched
   });
-}, [page, querySearch, filterValues, sessionLoaded, session?.user?.publicId]);
+}, [page, search, filterValues, sessionLoaded, session?.user?.publicId]);
 
   useEffect(() => {
     dispatch(resetCreators());

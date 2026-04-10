@@ -199,8 +199,8 @@ const WalletTransactionsPage = () => {
           <div className="tabs-content-wrapper-layout">
             <div data-multi-dem-cards-layout>
               <div className="creator-content-filter-grid-container">
-                <div className="card filters-card-wrapper">
-                  {activeTab !== "details" && (
+                {activeTab !== "details" && (
+                <div className="card filters-card-wrapper">    
                     <div className="creator-content-cards-wrapper wtransactions_containt">
                       {transactionLoading ? (
                         <div className="loadingtext">
@@ -238,7 +238,7 @@ const WalletTransactionsPage = () => {
                                   <p>Current Balance</p>
                                   <h3>
                                     ${" "}
-                                    {summary?.totalSpent?.toFixed(2) || "0.00"}
+                                    {summary?.walletBalance?.toFixed(2) || "0.00"}
                                   </h3>
                                 </div>
                                 <Link href="/add-funds?tab=addfunds">
@@ -470,8 +470,8 @@ const WalletTransactionsPage = () => {
                         </div>
                       )}
                     </div>
-                  )}
                 </div>
+                )}
               </div>
             </div>
           </div>
