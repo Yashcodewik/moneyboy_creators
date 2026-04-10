@@ -6359,13 +6359,63 @@ textarea:focus {
     .btntooltip_wrapper {
       z-index: 9;
       button[data-tooltip] {
+        position: relative;
         &::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          top: 120%;
+          left: 50%;
+          transform: translateX(-50%) translateY(6px);
           max-width: min(160px, 90vw);
           width: max-content;
           white-space: normal;
           word-break: break-word;
+          background: #1f1f1f;
+          color: #fff;
+          padding: 6px 8px;
+          border-radius: 6px;
+          font-size: 11px;
+          opacity: 0;
+          pointer-events: none;
+          transition: 0.2s ease;
+          z-index: 999;
+          height: fit-content;
+          text-align: center;
+        }
+        &::before {
+          content: "";
+          position: absolute;
+          top: 110%;
           left: 50%;
-          transform: translateX(-50%) translateY(6px);
+          transform: translateX(-50%);
+          border: 5px solid transparent;
+          border-bottom-color: #1f1f1f;
+          opacity: 0;
+          transition: 0.2s ease;
+        }
+        &:hover::after,
+        &:hover::before {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+        &.left {
+          &::after {
+            left: auto;
+            right: 0;
+            top: 120%;
+            transform: translateY(6px);
+          }
+          &::before {
+            left: auto;
+            right: 10px;
+            top: 110%;
+            transform: none;
+            border-bottom-color: #1f1f1f;
+          }
+          &:hover::after,
+          &:hover::before {
+            transform: translateY(0);
+          }
         }
       }
     }

@@ -220,7 +220,7 @@ const WalletTransactionsPage = () => {
                                   </div>
                                   <div className="small">
                                     <div className="btntooltip_wrapper justify-center w-full">
-                                      <p className="flex items-center gap-5">Pending Earnings<button className="inline-flex" data-tooltip="Processing earnings. Available soon."> <CircleQuestionMark size={13} /></button></p>
+                                      <p className="flex items-center gap-5">Pending Earnings<button className="inline-flex left" data-tooltip="Processing earnings. Available soon."> <CircleQuestionMark size={13} /></button></p>
                                     </div>
                                     <h3 className="small">${" "} {summary?.totalReviewAmount?.toFixed(2) || "0.00"}</h3>
                                   </div>
