@@ -118,8 +118,6 @@ const PostPage = () => {
     }
   }, [showComment, post?._id, dispatch]);
 
-  console.log(post, "router===========================router===========");
-
   useEffect(() => {
     if (!publicId) return;
     const fetchPost = async () => {
@@ -338,11 +336,7 @@ const PostPage = () => {
     );
   }
 
-  const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
-    const aLikes = a.likeCount ?? a.likes?.length ?? 0;
-    const bLikes = b.likeCount ?? b.likes?.length ?? 0;
-    return bLikes - aLikes;
-  });
+  const sortedComments = [...postComments].filter(Boolean);
 
   if (!post) {
     return <div className="nodeta">Post not found</div>;

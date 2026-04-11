@@ -63,9 +63,9 @@ const currentUserId = session?.user?.id;
     );
     useEffect(() => {
         if (postId) {
-            dispatch(fetchComments(postId));
+            dispatch(fetchComments({ postId, currentUserId }));
         }
-    }, [postId]);
+    }, [dispatch, postId, currentUserId]);
 
     const handleSubmit = () => {
         if (!commentText.trim()) return;
@@ -197,10 +197,10 @@ const currentUserId = session?.user?.id;
                         <div className="like-deslike-wrap">
                             <ul>
                                 <li>
-                                    <Link href="#" className={`comment-like-btn`} onClick={(e) => {e.preventDefault(); dispatch(likeComment({ commentId: comment._id }));}}><ThumbsUp  strokeWidth={2} /> {comment.likeCount}</Link>
+                                    <Link href="#" className={`comment-like-btn`} onClick={async (e) => {e.preventDefault(); await dispatch(likeComment({ commentId: comment._id, currentUserId })); dispatch(fetchComments({ postId, currentUserId }));}}><ThumbsUp  strokeWidth={2} /> {comment.likeCount}</Link>
                                 </li>
                                 <li>
-                                    <Link href="#" className={`comment-dislike-btn`} onClick={(e) => {e.preventDefault(); dispatch(dislikeComment({ commentId: comment._id }));}}><ThumbsDown strokeWidth={2} /> {comment.dislikeCount}</Link>
+                                    <Link href="#" className={`comment-dislike-btn`} onClick={async (e) => {e.preventDefault(); await dispatch(dislikeComment({ commentId: comment._id, currentUserId })); dispatch(fetchComments({ postId, currentUserId }));}}><ThumbsDown strokeWidth={2} /> {comment.dislikeCount}</Link>
                                 </li>
                             </ul>
                         </div>
