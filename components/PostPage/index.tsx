@@ -45,6 +45,8 @@ import {
   X,
 } from "lucide-react";
 import { fetchWallet } from "@/redux/wallet/Action";
+
+
 const PostPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -93,7 +95,9 @@ const PostPage = () => {
     overflow: "hidden",
     transition: "transform 0.25s ease",
   };
+
   const isOwnPost = (session?.user as any)?.id === post?.userId;
+
   useEffect(() => {
     if (!isMobile) return;
     const overlay = document.querySelector(".mobile-popup-overlay");
@@ -107,6 +111,7 @@ const PostPage = () => {
       overlay.classList.remove("active");
     };
   }, [open, isMobile]);
+  
   const [showComment, setShowComment] = useState(false);
   const commentsState = useAppSelector((state) => state.comments);
   const commentParam = searchParams.get("comment");
