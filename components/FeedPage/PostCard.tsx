@@ -10,8 +10,6 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
 import { addComment, dislikeComment, fetchComments, likeComment,} from "../../redux/other/commentSlice";
-import { Plyr } from "plyr-react";
-import "plyr-react/plyr.css";
 
 interface PostCardProps {
   post: any;
@@ -21,7 +19,7 @@ interface PostCardProps {
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { ArrowUpRight, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import { useDecryptedSession } from "@/libs/useDecryptedSession";``
 import ReportModal from "../ReportModal";
 import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
@@ -388,24 +386,10 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
           <div className="profile-card">
             <div className="profile-card__main pointer">
               <div className="profile-card__avatar-settings">
-                <div
-                  className="profile-card__avatar"
-                  onClick={() => {
-                    handleProfileClick(post.creatorInfo?.userName);
-                  }}
-                >
+                <div className="profile-card__avatar" onClick={() => {handleProfileClick(post.creatorInfo?.userName);}}>
                   {post.creatorInfo?.profile &&
                     !avatarErrorMap[post.creatorInfo.publicId] ? (
-                    <img
-                      src={post.creatorInfo.profile}
-                      alt="MoneyBoy Social Profile Avatar"
-                      onError={() =>
-                        setAvatarErrorMap((prev) => ({
-                          ...prev,
-                          [post.creatorInfo.publicId]: true,
-                        }))
-                      }
-                    />
+                    <img src={post.creatorInfo.profile} alt="MoneyBoy Social Profile Avatar" onError={() => setAvatarErrorMap((prev) => ({...prev, [post.creatorInfo.publicId]: true,}))}/>
                   ) : (
                     <div className="noprofile">
                       <svg

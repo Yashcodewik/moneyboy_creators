@@ -93,11 +93,11 @@ const WishlistPage = () => {
           limit: 9,
           search: searchTerm,
           type:
-  subActiveTab === "videos"
-    ? "video"
-    : subActiveTab === "photos"
-    ? "photo"
-    : undefined,
+            subActiveTab === "videos"
+              ? "video"
+              : subActiveTab === "photos"
+                ? "photo"
+                : undefined,
           time,
         }) as any
       );
@@ -189,17 +189,42 @@ const WishlistPage = () => {
   /* ========== PAGINATION ========== */
   const renderPagination = () => {
     if (!totalPages || totalPages <= 1) return null;
+
+    const pages: (number | "...")[] = [];
+
+    // Always show first page
+    pages.push(1);
+
+    // Show left dots
+    if (page > 3) {
+      pages.push("...");
+    }
+
+    // Middle pages
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+      pages.push(i);
+    }
+
+    // Show right dots
+    if (page < totalPages - 2) {
+      pages.push("...");
+    }
+
+    // Always show last page
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+
     return (
       <div className="pagination_wrap">
-        <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-          <CircleArrowLeft />
-        </button>
-        <span>
-          {page} / {totalPages}
-        </span>
-        <button disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
-          <CircleArrowRight />
-        </button>
+        <button type="button" className="btn-prev" disabled={page === 1 || mediaLoading} onClick={() => setPage((p) => p - 1)}><CircleArrowLeft color="#000" /></button>
+        {pages.map((p, i) =>
+          p === "..." ? (<button key={`dots-${i}`} className="premium-btn shimmer" disabled><span>…</span></button>
+          ) : (
+            <button key={`page-${p}`} type="button" className={page === p ? "premium-btn shimmer" : "btn-primary"} onClick={() => setPage(p as number)}><span>{p}</span></button>
+          )
+        )}
+        <button type="button" className="btn-next" disabled={page === totalPages || mediaLoading} onClick={() => setPage((p) => p + 1)}><CircleArrowRight color="#000" /></button>
       </div>
     );
   };
@@ -324,7 +349,7 @@ const WishlistPage = () => {
                   <div className="creator-content-filter-grid-container">
                     <div className="card filters-card-wrapper">
                       <div className="search-features-grid-btns">
-                         <SearchInput searchInput={searchInput} onSearchChange={handleSearchChange} />
+                        <SearchInput searchInput={searchInput} onSearchChange={handleSearchChange} />
                         <div className="creater-content-filters-layouts">
                           <div className="creator-content-select-filter">
                             <CustomSelect className="bg-white p-sm size-sm" label="All Time" options={timeOptions} value={time} searchable={false} onChange={(val) => { setTime(Array.isArray(val) ? val[0] : val); setPage(1); }} />
@@ -394,7 +419,7 @@ const WishlistPage = () => {
                   <div data-multi-dem-cards-layout={true}>
                     <div className="creator-content-filter-grid-container" data-multiple-tabs-section={true}>
                       <div className="search-features-grid-btns has-multi-tabs-btns">
-                       <SearchInput searchInput={searchInput} onSearchChange={handleSearchChange} />
+                        <SearchInput searchInput={searchInput} onSearchChange={handleSearchChange} />
                         {/* Videos / Photos sub-tabs */}
                         <div className="creator-content-tabs-btn-wrapper">
                           <div className="multi-tabs-action-buttons">
@@ -424,7 +449,7 @@ const WishlistPage = () => {
                         </div>
                       </div>
                       <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout" data-multi-child-grid-layout-wishlist={true} {...(layout === "list" ? { "data-layout-toggle-rows": true } : {})}>
-                       {subActiveTab === null && renderMediaCards(false)}  {subActiveTab === "videos" && renderMediaCards(true)} {subActiveTab === "photos" && renderMediaCards(false)} {renderPagination()}
+                        {subActiveTab === null && renderMediaCards(false)}  {subActiveTab === "videos" && renderMediaCards(true)} {subActiveTab === "photos" && renderMediaCards(false)} {renderPagination()}
                       </div>
                     </div>
                   </div>

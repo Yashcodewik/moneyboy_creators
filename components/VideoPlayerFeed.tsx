@@ -1,12 +1,10 @@
 "use client";
-
 import { memo, useRef, useMemo, useEffect } from "react";
 import { Plyr } from "plyr-react";
 import "plyr-react/plyr.css";
 
 const VideoPlayerFeed = memo(({ src }: { src: string }) => {
   const ref = useRef<any>(null);
-
   const source = useMemo(
     () => ({
       type: "video" as const,
@@ -14,91 +12,29 @@ const VideoPlayerFeed = memo(({ src }: { src: string }) => {
     }),
     [src]
   );
-
   useEffect(() => {
-    const player = ref.current?.plyr;
+    const player = ref.current;
     if (!player) return;
-
-    const video = player.media;
-
-    // ✅ MUST for iOS
-    if (video) {
-      video.setAttribute("playsinline", "true");
-      video.setAttribute("webkit-playsinline", "true");
-    }
-
-    const container = player.elements?.container;
-    if (!container) return;
-
-    const handleClick = (e: any) => {
-      const btn = e.target.closest('[data-plyr="fullscreen"]');
-
-      if (!btn) return;
-
-      const v = player.media;
-
-      // ✅ ONLY override on iOS
-      const isIOS =
-        /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-        !(window as any).MSStream;
-
-      if (isIOS && v?.webkitEnterFullscreen) {
-        e.preventDefault(); // stop broken default
-        v.webkitEnterFullscreen(); // ✅ native iOS fullscreen
+    const handleReady = () => {
+      const video = player.media;
+      if (video instanceof HTMLVideoElement) {
+        video.setAttribute("playsinline", "true");
+        video.setAttribute("webkit-playsinline", "true");
+        video.muted = true;
+        video.controls = true;
       }
     };
-
-    container.addEventListener("click", handleClick);
-
+    if (player?.on) {player.on("ready", handleReady);}
     return () => {
-      container.removeEventListener("click", handleClick);
+      if (player?.off) {player.off("ready", handleReady);}
     };
   }, []);
 
   return (
-    <Plyr
-      key={src}
-      ref={ref}
-      source={source}
-      options={{
-        controls: ["play", "progress", "mute", "fullscreen"], // ✅ default UI
-        autoplay: false,
-        muted: true,
-      }}
-      playsInline
-    />
+    <Plyr ref={ref} source={source} options={{controls: ["play", "progress", "mute", "fullscreen"], autoplay: false, muted: true, fullscreen: {enabled: true, iosNative: true,},}}/>
   );
 });
 
 VideoPlayerFeed.displayName = "VideoPlayerFeed";
 
 export default VideoPlayerFeed;
-// "use client";
-// import { memo, useRef, useMemo } from "react";
-// import { Plyr } from "plyr-react";
-
-// const VideoPlayerFeed = memo(({ src }: { src: string }) => {
-//   const ref = useRef<any>(null);
-
-//   const source = useMemo(
-//     () => ({
-//       type: "video" as const,
-//       sources: [{ src, type: "video/mp4" as const }],
-//     }),
-//     [src]
-//   );
-
-//   return (
-//     <Plyr
-//       ref={ref}
-//       source={source}
-//       options={{
-//         controls: ["play", "progress", "mute", "fullscreen"],
-//         autoplay: false,
-//       }}
-//       playsInline
-//     />
-//   );
-// });
-
-// export default VideoPlayerFeed;
