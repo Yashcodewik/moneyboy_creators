@@ -142,8 +142,6 @@ const Header = () => {
 
         const response = await getApiWithOutQuery({ url: apiUrl });
 
-        console.log("Profile API Response:", response);
-
         if (response) {
           let userData;
 

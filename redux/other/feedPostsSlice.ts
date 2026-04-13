@@ -5,6 +5,7 @@ import {
   API_GET_POPULAR_POSTS,
 } from "@/utils/api/APIConstant";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
+import { addComment } from "./commentSlice";
 
 /* ✅ NEW IMPORT */
 import { savePost, unsavePost } from "../other/savedPostsSlice";
@@ -237,6 +238,13 @@ const feedPostsSlice = createSlice({
             post.isSaved = false;
           }
         });
+      })
+
+      .addCase(addComment.fulfilled, (state, action) => {
+        const post = state.posts[action.payload.postId];
+        if (post) {
+          post.commentCount = (post.commentCount || 0) + 1;
+        }
       })
 
       .addCase(fetchFeedPosts.rejected, (state, action) => {
