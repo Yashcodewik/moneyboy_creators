@@ -66,6 +66,22 @@ export default function SocketProvider({
     }
   }, [session?.user?.id, dispatch]);
 
+  useEffect(() => {
+  if (!session?.user?.id) return;
+
+  const handleUnreadCount = ({ count }: { count: number }) => {
+    console.log("🔥 SOCKET UNREAD COUNT RECEIVED:", count);
+
+    dispatch(setMessageUnreadCount(count));
+  };
+
+  socket.on("unreadCount", handleUnreadCount);
+
+  return () => {
+    socket.off("unreadCount", handleUnreadCount);
+  };
+}, [session?.user?.id, dispatch]);
+
   // ✅ New message + unread count listeners
   useEffect(() => {
     if (!session?.user?.id) return;
