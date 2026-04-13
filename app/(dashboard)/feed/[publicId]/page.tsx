@@ -24,7 +24,7 @@ export default function FeedPostPage() {
 
   return (
     <div className="moneyboy-posts-wrapper">
-      <PostCard post={post} onLike={() => {}} onSave={() => {}} />
+      <PostCard post={post} onLike={async () => true}   onSave={() => {}} />
     </div>
   );
 }
