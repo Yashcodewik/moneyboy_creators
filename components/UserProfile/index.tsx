@@ -265,35 +265,44 @@ const UserProfilepage = () => {
 
   /* ================= LIKE ================= */
 
-  const handleLike = async (postId: string) => {
-    if (!isLoggedIn) return router.push("/login");
-    if (likeLoading[postId]) return;
+const handleLike = async (postId: string): Promise<boolean> => {
+  if (!isLoggedIn) {
+    router.push("/login");
+    return false;
+  }
 
-    const post = posts[postId];
-    setLikeLoading((p) => ({ ...p, [postId]: true }));
+  if (likeLoading[postId]) return false;
 
-    // optimistic update
-    dispatch(
-      updateFeedPost({
-        postId,
-        data: {
-          isLiked: !post.isLiked,
-          likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1,
-        },
-      }),
-    );
+  const post = posts[postId];
+  setLikeLoading((p) => ({ ...p, [postId]: true }));
 
-    const res = await apiPost({
-      url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
-      values: { postId },
-    });
+  // optimistic update
+  dispatch(
+    updateFeedPost({
+      postId,
+      data: {
+        isLiked: !post.isLiked,
+        likeCount: post.isLiked
+          ? post.likeCount - 1
+          : post.likeCount + 1,
+      },
+    }),
+  );
 
-    if (!res?.success) {
-      dispatch(updateFeedPost({ postId, data: post }));
-    }
+  const res = await apiPost({
+    url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
+    values: { postId },
+  });
 
+  if (!res?.success) {
+    dispatch(updateFeedPost({ postId, data: post }));
     setLikeLoading((p) => ({ ...p, [postId]: false }));
-  };
+    return false; // ❌ failed
+  }
+
+  setLikeLoading((p) => ({ ...p, [postId]: false }));
+  return true; // ✅ success
+};
 
   /* ================= SAVE / UNSAVE ================= */
 
