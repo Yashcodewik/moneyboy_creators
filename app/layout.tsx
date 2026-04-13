@@ -22,15 +22,13 @@ import AgeGate from "./AgeGate";
 import SocketProvider from "./providers/SocketProvider";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://moneyboy.com"), // IMPORTANT
-
+  metadataBase: new URL("https://moneyboy.com"),
   title: {
     default: "Moneyboy Creators",
     template: "%s | Moneyboy Creators",
   },
 
-  description:
-    "Monetize your content and connect with fans on Moneyboy Creators platform.",
+  description:"Monetize your content and connect with fans on Moneyboy Creators platform.",
 
   keywords: [
     "moneyboy",
@@ -56,10 +54,10 @@ export const metadata: Metadata = {
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Moneyboy Creators",
     description: "Start earning from your content today.",
-    images:"/images/micons.png",
+    images:"/images/logo/white-logo-square.png",
   },
 
   robots: {
