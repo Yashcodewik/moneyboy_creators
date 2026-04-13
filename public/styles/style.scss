@@ -6374,7 +6374,7 @@ textarea:focus {
   /* ========== Mobile Screen Size ========== */
   @media screen and (max-width: 767px) {
     .btntooltip_wrapper {
-      z-index: 9;
+      z-index: 0;
       button[data-tooltip] {
         position: relative;
         &::after {
