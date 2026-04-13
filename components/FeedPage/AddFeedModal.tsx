@@ -686,14 +686,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           showError(res?.message || "Failed to create post");
           return;
         }
-        dispatch(resetFeedPosts());
-        await dispatch(
-          fetchFeedPosts({
-            userId: (session?.user as any)?.id,
-            page: 1,
-            limit: 10,
-          }),
-        );
+       
         queryClient.invalidateQueries({
           queryKey: ["creator-posts"],
           exact: false,
@@ -711,24 +704,44 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           return;
         }
 
-        if (selectedTagUsers.length > 0) {
-          const tagRes = await apiPost({
-            url: API_TAG_USERS_TO_POST,
-            values: {
-              postId,
-              creatorPercentage: Number(creatorPercentage || 0),
-              taggedUsers: selectedTagUsers.map((u) => ({
-                userId: u._id,
-                percentage: Number(u.percentage),
-              })),
-            },
-          });
+      if (selectedTagUsers.length > 0) {
+  const tagRes = await apiPost({
+    url: API_TAG_USERS_TO_POST,
+    values: {
+      postId,
+      creatorPercentage: Number(creatorPercentage || 0),
+      taggedUsers: selectedTagUsers.map((u) => ({
+        userId: u._id,
+        percentage: Number(u.percentage),
+      })),
+    },
+  });
 
-          if (!tagRes?.success) {
-            showError(tagRes?.message || "Tagging failed");
-            return;
-          }
-        }
+  if (!tagRes?.success) {
+    showError(tagRes?.message || "Tagging failed");
+    return;
+  }
+
+  // ✅ ADD HERE
+  dispatch(resetFeedPosts());
+  await dispatch(
+    fetchFeedPosts({
+      userId: (session?.user as any)?.id,
+      page: 1,
+      limit: 10,
+    })
+  );
+}
+if (selectedTagUsers.length === 0) {
+  dispatch(resetFeedPosts());
+  await dispatch(
+    fetchFeedPosts({
+      userId: (session?.user as any)?.id,
+      page: 1,
+      limit: 10,
+    })
+  );
+}
 
         // Ask user if they want to share on X
         const shareOnX = await showQuestion(
