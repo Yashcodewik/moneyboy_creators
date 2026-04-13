@@ -361,8 +361,7 @@ const WalletTransactionsPage = () => {
                                                 </div>
                                                 <div className="profile-card__name-badge">
                                                   <div className="profile-card__name">
-                                                    {otherUser?.displayName ||
-                                                      "Wallet Top-up"}
+                                                    {otherUser?.displayName || txn.type === "PROFILE_PROMOTION" ? "Profile Promotion" : "Wallet Top-up"}
                                                   </div>
                                                 </div>
                                               </>
@@ -653,12 +652,18 @@ const WalletTransactionsPage = () => {
                                     Subscription purchased by{" "}
                                     {selectedTransaction?.fromUser?.displayName}
                                   </p>
-                                ) : (
-                                  <p className="text-bold">
-                                    Product purchased by{" "}
-                                    {selectedTransaction?.fromUser?.displayName}
-                                  </p>
-                                )}
+                                ) : selectedTransaction?.type ===
+                                  "PROFILE_PROMOTION" ? (
+                                    <p className="text-bold">
+                                      Profile promotion purchased by{" "}
+                                      {selectedTransaction?.fromUser?.displayName}
+                                    </p>
+                                  ) : (
+                                    <p className="text-bold">
+                                      Product purchased by{" "}
+                                      {selectedTransaction?.fromUser?.displayName}
+                                    </p>
+                                  )}
                               </div>
                             </div>
                           </div>

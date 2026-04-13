@@ -626,8 +626,15 @@ const MessagePage = () => {
         return !file.type.startsWith("image/");
       }
 
+     const allowedVideoTypes = [
+        "video/mp4",
+        "video/quicktime", // .mov
+        "video/webm",
+        "video/ogg",
+      ];
+
       if (normalizedRequestType === "VIDEO") {
-        return file.type !== "video/mp4";
+        return !allowedVideoTypes.includes(file.type);
       }
 
       return !file.type.startsWith("image/") && !file.type.startsWith("video/");
@@ -635,12 +642,12 @@ const MessagePage = () => {
 
     if (hasInvalidFile) {
       toast.error(
-        normalizedRequestType === "PHOTO"
-          ? "Please upload only image files"
-          : normalizedRequestType === "VIDEO"
-            ? "Please upload only video files"
-            : "Please upload only image or video files",
-      );
+          normalizedRequestType === "PHOTO"
+            ? "Only JPG, PNG, WEBP images are allowed"
+            : normalizedRequestType === "VIDEO"
+              ? "Only MP4, MOV, WEBM, OGG videos are allowed"
+              : "Only image or video files are allowed",
+        );
       return;
     }
 
@@ -1581,14 +1588,12 @@ const MessagePage = () => {
                                                       type="file"
                                                       multiple
                                                       hidden
-                                                      accept={
-                                                        msg.ppvRequestId.type ===
-                                                          "PHOTO"
-                                                          ? "image/*"
-                                                          : msg.ppvRequestId
-                                                            .type === "VIDEO"
-                                                            ? "video/*"
-                                                            : "image/*,video/*"
+                                                     accept={
+                                                        msg.ppvRequestId.type === "PHOTO"
+                                                          ? ".jpg,.jpeg,.png,.webp"
+                                                          : msg.ppvRequestId.type === "VIDEO"
+                                                          ? ".mp4,.mov,.webm,.ogg"
+                                                          : ".jpg,.jpeg,.png,.webp,.mp4,.mov,.webm,.ogg"
                                                       }
                                                       id={`upload-${msg.ppvRequestId._id}`}
                                                       disabled={
