@@ -21,7 +21,8 @@ export enum UserStatus {
 const AccountSecurity = ({ profile }: any) => {
   const { session } = useDecryptedSession();
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "", });
-  const [showPass, setShowPass] = useState(false);
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
   const prevBlockedCountriesRef = useRef<string[]>([]);
@@ -199,13 +200,13 @@ const handleDisconnectX = async () => {
             </div>
             <div className="label-input one password">
               <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-              <input type={showPass ? "text" : "password"} placeholder="Current Password *" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value, })} />
-              <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
+              <input type={showCurrentPass ? "text" : "password"} placeholder="Current Password *" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value, })} />
+              <span onClick={() => setShowCurrentPass(!showCurrentPass)} className="input-placeholder-icon eye-icon">{showCurrentPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
             </div>
             <div className="label-input password">
               <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
-              <input type={showPass ? "text" : "password"} placeholder="New Password *" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value, })} />
-              <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon" >{showPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
+              <input type={showNewPass ? "text" : "password"} placeholder="New Password *" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value, })} />
+              <span onClick={() => setShowNewPass(!showNewPass)} className="input-placeholder-icon eye-icon" >{showNewPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
             </div>
             <div className="label-input password">
               <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>

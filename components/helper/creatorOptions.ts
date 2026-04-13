@@ -230,7 +230,7 @@ export const typeOptions = [
 export const timeOptions = [
   { label: "Most Recent", value: "most_recent" },
   { label: "Today", value: "today" },
-  { label: "Last Week", value: "last_7_days" },
+  { label: "Last Week", value: "this_week" },
   { label: "Last Month", value: "last_30_days" },
   { label: "All Time", value: "all_time" },
 ];

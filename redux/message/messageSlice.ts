@@ -127,7 +127,7 @@ const messageSlice = createSlice({
               ...chat,
               unreadCount: isActiveChat
                 ? 0
-                : (chat.unreadCount || 0) + 1,
+               : (chat.unreadCount ?? 0) + 1,
               lastMessage: msg.message || "",
             }
             : chat

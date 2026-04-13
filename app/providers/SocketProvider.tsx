@@ -84,16 +84,11 @@ export default function SocketProvider({
       dispatch(addSocketMessage(msg));
     };
 
-    const handleUnreadCount = ({ count }: { count: number }) => {
-      dispatch(setMessageUnreadCount(count));
-    };
-
     socket.on("newMessage", handleNewMessage);
-    socket.on("unreadCount", handleUnreadCount);
+
 
     return () => {
       socket.off("newMessage", handleNewMessage);
-      socket.off("unreadCount", handleUnreadCount);
     };
   }, [session?.user?.id, dispatch]);
 
