@@ -20,28 +20,21 @@ import "plyr-react/plyr.css";
 
 interface PostCardProps {
   post: any;
-  onLike: (postId: string) => void;
+  onLike: (postId: string) => Promise<boolean>;
   onSave: (post: any) => void;
-  onCommentAdded?: (postId: string) => void;
 }
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { ArrowUpRight, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import CustomSelect from "../CustomSelect";
-import { CgClose } from "react-icons/cg";
 import ReportModal from "../ReportModal";
 import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
-import ShowToast from "../common/ShowToast";
 import { fetchWallet } from "@/redux/wallet/Action";
-import VideoPlayer from "../Purchased-MediaPage/VideoPlayer";
 import VideoPlayerFeed from "../VideoPlayerFeed";
 import { showError, showSuccess } from "@/utils/alert";
 
-const moreUsers = ["alex", "rohan", "meera", "sam", "disha"];
-
-const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
+const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   const [open, setOpen] = useState(false);
   const [showTaggedUsers, setShowTaggedUsers] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -59,7 +52,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const tagButtonRef = useRef<HTMLButtonElement | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [newComment, setNewComment] = useState("");
-  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [showReportModal, setShowReportModal] = useState(false);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const firstMedia =
@@ -80,6 +72,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     left: "auto",
     transition: "all 0.2s ease",
   };
+  
   const mobileStyle: React.CSSProperties = {
     position: "fixed",
     left: "0%",
@@ -195,7 +188,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     );
 
     if (res?.meta?.requestStatus === "fulfilled") {
-      onCommentAdded?.(post._id); // ✅ only runs if provided
       setNewComment("");
     }
   };
@@ -271,11 +263,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   }, []);
 
   const handleProfileClick = (username: string) => {
-    // if (!session?.user?.id) {
-    //   router.push("/login");
-    //   return;
-    // }
-
     router.push(`/${username}`);
   };
 
@@ -296,28 +283,28 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const topComment = sortedComments[0];
   const hasMoreComments = sortedComments.length > 1;
 
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
+  // useEffect(() => {
+  //   let lastScrollY = window.scrollY;
 
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+  //   const handleScroll = () => {
+  //     const currentScrollY = window.scrollY;
 
-      // ✅ ignore tiny scroll (iOS fix)
-      if (Math.abs(currentScrollY - lastScrollY) < 5) return;
+  //     // ✅ ignore tiny scroll (iOS fix)
+  //     if (Math.abs(currentScrollY - lastScrollY) < 5) return;
 
-      if (showComment) {
-        setShowComment(false);
-      }
+  //     if (showComment) {
+  //       setShowComment(false);
+  //     }
 
-      lastScrollY = currentScrollY;
-    };
+  //     lastScrollY = currentScrollY;
+  //   };
 
-    window.addEventListener("scroll", handleScroll);
+  //   window.addEventListener("scroll", handleScroll);
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [showComment]);
+  //   return () => {
+  //     window.removeEventListener("scroll", handleScroll);
+  //   };
+  // }, [showComment]);
 
   const handleSendTip = async (
     amount: number,
@@ -329,7 +316,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     }
 
     if (session.user.id === post.userId) {
-      await showError("You cannot send tip to yourself"); // ✅ replaced
+      await showError("You cannot send tip to yourself");
       return;
     }
 
@@ -342,7 +329,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
         }),
       ).unwrap();
 
-      await showSuccess("Tip sent successfully ❤️"); // ✅ replaced
+      await showSuccess("Tip sent successfully ❤️");
 
       if (paymentMethod === "wallet") {
         dispatch(fetchWallet()); // refresh wallet instantly
@@ -357,6 +344,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
       );
     }
   };
+
+
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -375,6 +364,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [open]);
+
+
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -723,11 +714,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                 <Link
                   data-tooltip="Like"
                   href="#"
-                  className={`post-like-btn ${post.isLiked ? "active" : ""}`}
-                  onClick={(e) => {
+                  className={`post-like-btn stable-like-btn ${post.isLiked ? "active" : ""}`}
+                  onClick={async (e) => {
                     e.preventDefault();
-
-                    onLike(post._id);
+                    await onLike(post._id);
                   }}
                 >
                   <svg
@@ -745,7 +735,16 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  <span>{post.likeCount || 0}</span>
+                  <span
+                    style={{
+                      minWidth: "2ch",
+                      display: "inline-flex",
+                      justifyContent: "flex-start",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {post.likeCount || 0}
+                  </span>
                 </Link>
               </li>
               {/* Comment */}

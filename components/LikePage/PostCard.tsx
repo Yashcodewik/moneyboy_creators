@@ -54,12 +54,11 @@ export interface ApiCreatorInfo {
 }
 interface PostCardProps {
   post: any;
-  onLike: (postId: string) => Promise<void>;
+  onLike: (postId: string) => Promise<boolean>;
   onSave: (postId: string, isSaved: boolean) => Promise<void>;
-  onCommentAdded: (postId: string) => void;
 }
 
-const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
+const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   const router = useRouter();
   const { session } = useDecryptedSession();
   const currentUserId = session?.user?.id;
@@ -73,8 +72,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const emojiButtonRef = useRef<HTMLDivElement | null>(null);
   const [showTipModal, setShowTipModal] = useState(false);
   const tagButtonRef = useRef<HTMLButtonElement | null>(null);
-  const [liked, setLiked] = useState(post.isLiked);
-  const [likeCount, setLikeCount] = useState(post.likes);
   const [saved, setSaved] = useState(post.isSaved);
   const [showReportModal, setShowReportModal] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -168,10 +165,8 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   //   });
   // };
   useEffect(() => {
-    setLiked(post.isLiked);
-    setLikeCount(post.likes);
     setSaved(post.isSaved);
-  }, [post.isLiked, post.likes, post.isSaved]);
+  }, [post.isSaved]);
 
   const firstMedia =
     post?.media?.[0]?.mediaFiles?.[0] ||
@@ -249,7 +244,6 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     );
 
     if (res?.meta?.requestStatus === "fulfilled") {
-      onCommentAdded?.(post._id); // ✅ only runs if provided
       setNewComment("");
     }
   };

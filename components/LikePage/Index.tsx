@@ -2,13 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { API_LIKE_POST, API_UNLIKE_POST, } from "@/utils/api/APIConstant";
-import { apiPost } from "@/utils/endpoints/common";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
 import { fetchLikedPosts } from "../../redux/likedPosts/Action";
-import { resetLikedPosts, updateLikedPost, } from "@/redux/likedPosts/Slice";
+import { resetLikedPosts } from "@/redux/likedPosts/Slice";
 import { useSession } from "next-auth/react";
-import { incrementFeedPostCommentCount, updateFeedPost, } from "@/redux/other/feedPostsSlice";
+import { updateFeedPost, } from "@/redux/other/feedPostsSlice";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import CustomSelect from "../CustomSelect";
 import Featuredboys from "../Featuredboys";
@@ -19,6 +17,7 @@ import { timeOptions } from "../helper/creatorOptions";
 import { PhotoProvider } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
 import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
+import { togglePostLike } from "@/redux/other/postInteractions";
 
 /* ========== TYPES ========== */
 type ContentTab = "posts" | "videos" | "photos";
@@ -33,7 +32,6 @@ const LikePage = () => {
   const [contentTab, setContentTab] = useState<ContentTab>("posts");
   const [time, setTime] = useState("all_time");
   const [searchText, setSearchText] = useState("");
-  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
   const { items: posts, pagination, loading } = useAppSelector(
     (state) => state.likedPosts
@@ -88,50 +86,9 @@ const LikePage = () => {
   const handleLike = async (postId: string) => {
     if (!isLoggedIn) {
       router.push("/login");
-      return;
+      return false;
     }
-
-    if (likeLoading[postId]) return;
-
-    const post = posts.find((p: any) => p._id === postId);
-    if (!post) return;
-
-    const isCurrentlyLiked = post.isLiked;
-
-    setLikeLoading((prev) => ({ ...prev, [postId]: true }));
-
-    // Optimistic update
-    dispatch(
-      updateLikedPost({
-        postId,
-        data: {
-          isLiked: !isCurrentlyLiked,
-          likeCount: isCurrentlyLiked
-            ? Math.max((post.likeCount || 1) - 1, 0)
-            : (post.likeCount || 0) + 1,
-        },
-      })
-    );
-
-    const res = await apiPost({
-      url: isCurrentlyLiked ? API_UNLIKE_POST : API_LIKE_POST,
-      values: { postId },
-    });
-
-    // rollback
-    if (!res?.success) {
-      dispatch(
-        updateLikedPost({
-          postId,
-          data: {
-            isLiked: isCurrentlyLiked,
-            likeCount: post.likeCount,
-          },
-        })
-      );
-    }
-
-    setLikeLoading((prev) => ({ ...prev, [postId]: false }));
+    return dispatch(togglePostLike(postId));
   };
 
   /* ========== SAVE HANDLER ========== */
@@ -160,20 +117,17 @@ const LikePage = () => {
     setSaveLoading((prev) => ({ ...prev, [postId]: false }));
   };
 
-  /* ========== COMMENT COUNT ========== */
-  const incrementCommentCount = (postId: string) => {
-    dispatch(incrementFeedPostCommentCount(postId));
-  };
-
   /* ========== FILTER POSTS ========== */
   const filteredPosts = useMemo(() => {
+    const likedOnlyPosts = posts.filter((p: any) => p.isLiked !== false);
+
     if (contentTab === "videos") {
-      return posts.filter((p: any) => p.media?.[0]?.type === "video");
+      return likedOnlyPosts.filter((p: any) => p.media?.[0]?.type === "video");
     }
     if (contentTab === "photos") {
-      return posts.filter((p: any) => p.media?.[0]?.type === "photo");
+      return likedOnlyPosts.filter((p: any) => p.media?.[0]?.type === "photo");
     }
-    return posts;
+    return likedOnlyPosts;
   }, [posts, contentTab]);
 
 
@@ -247,7 +201,7 @@ const LikePage = () => {
                     <div className="nofound"><h3 className="first">No media found</h3><h3 className="second">No media found</h3></div>
                   )}
                   {!loading && filteredPosts.map((post: any) => (
-                    <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} onCommentAdded={incrementCommentCount} />
+                    <PostCard key={post._id} post={post} onLike={handleLike} onSave={handleSave} />
                   ))}
                 </InfiniteScrollWrapper>
               </div>

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { fetchLikedPosts } from "./Action";
+import { addComment } from "@/redux/other/commentSlice";
 
 interface LikedPostsState {
   items: any[];
@@ -66,6 +67,12 @@ const likedPostsSlice = createSlice({
         state.items =
           pagination.page === 1 ? posts : [...state.items, ...posts];
         state.pagination = pagination;
+      })
+      .addCase(addComment.fulfilled, (state, action) => {
+        const post = state.items.find((item) => item._id === action.payload.postId);
+        if (post) {
+          post.commentCount = (post.commentCount || 0) + 1;
+        }
       })
       .addCase(fetchLikedPosts.rejected, (state, action) => {
         state.loading = false;
