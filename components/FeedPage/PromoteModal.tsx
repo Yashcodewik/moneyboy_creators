@@ -10,6 +10,10 @@ import ShowToast from "@/components/common/ShowToast";
 import { useEffect, useState } from "react";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
 import Modal from "../Modal";
+import { fetchWallet } from "@/redux/wallet/Action";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/redux/store";
+import { showError, showQuestion, showSuccess } from "@/utils/alert";
 
 const PromoteModal = ({
   onClose,
@@ -23,6 +27,7 @@ const PromoteModal = ({
   const [paymentType, setPaymentType] = useState("wallet");
   const [plans, setPlans] = useState<any[]>([]);
   const [activePromotion, setActivePromotion] = useState<any>(null);
+  const [loadingPromotion, setLoadingPromotion] = useState(true);
 
   const selectedPlan = plans.find((p) => Number(p.days) === Number(duration));
   const pricePerDay = Number(selectedPlan?.price || 0);
@@ -31,32 +36,45 @@ const PromoteModal = ({
     ? (pricePerDay * Number(duration)).toFixed(2)
     : "0.00";
 
+    const dispatch = useDispatch<AppDispatch>();
+
   // ================= API =================
-  const handlePromote = async () => {
-    try {
-      setLoading(true);
+const handlePromote = async () => {
+ 
+  const confirm = await showQuestion(
+    `Are you sure you want to promote your profile for ${duration} days?\n\nTotal: $${totalPrice}`,
+    "Yes, Promote",
+    "Cancel"
+  );
 
-      const response = await apiPost({
-        url: API_PROMOTE_PROFILE,
-        values: {
-          duration,
-          price: Number(totalPrice),
-          paymentType,
-        },
-      });
+  if (!confirm) return; 
 
-      if (response?.success) {
-        ShowToast("Profile promoted successfully 🚀", "success");
-        onClose();
-      } else {
-        ShowToast(response?.message || "Something went wrong", "error");
-      }
-    } catch (err) {
-      ShowToast("Something went wrong", "error");
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    const response = await apiPost({
+      url: API_PROMOTE_PROFILE,
+      values: {
+        duration,
+        price: Number(totalPrice),
+        paymentType,
+      },
+    });
+
+    if (response?.success) {
+      showSuccess("Profile promoted successfully 🚀");
+
+      dispatch(fetchWallet());
+      onClose();
+    } else {
+      showError(response?.message || "Something went wrong");
     }
-  };
+  } catch (err) {
+    showError("Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ================= FETCH =================
   const fetchPromotions = async () => {
@@ -80,21 +98,25 @@ const PromoteModal = ({
     }
   };
 
-  const fetchActivePromotion = async () => {
-    try {
-      const res = await getApiWithOutQuery({
-        url: API_GET_ACTIVE_PROMOTION,
-      });
+const fetchActivePromotion = async () => {
+  try {
+    setLoadingPromotion(true);
 
-      if (res?.success && res.data && Object.keys(res.data).length > 0) {
-        setActivePromotion(res.data);
-      } else {
-        setActivePromotion(null);
-      }
-    } catch {
+    const res = await getApiWithOutQuery({
+      url: API_GET_ACTIVE_PROMOTION,
+    });
+
+    if (res?.success && res.data && Object.keys(res.data).length > 0) {
+      setActivePromotion(res.data);
+    } else {
       setActivePromotion(null);
     }
-  };
+  } catch {
+    setActivePromotion(null);
+  } finally {
+    setLoadingPromotion(false);
+  }
+};
 
   useEffect(() => {
     if (!show) return;
@@ -128,6 +150,22 @@ const PromoteModal = ({
 
     return () => clearInterval(timer);
   }, [activePromotion]);
+
+  if (loadingPromotion) {
+  return (
+    <Modal className="promote_wrap" size="md" show={show} title=" " onClose={onClose}>
+      <div className="modal_containt promote-modal">
+        <div className="loadingtext">
+          {"Loading...".split("").map((char, i) => (
+            <span key={i} style={{ animationDelay: `${i * 0.1}s` }}>
+              {char}
+            </span>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
   // ================= ACTIVE UI =================
   if (activePromotion) {
