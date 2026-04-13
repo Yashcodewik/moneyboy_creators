@@ -2,8 +2,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { API_LIKE_POST, API_UNLIKE_POST } from "@/utils/api/APIConstant";
-import { apiPost } from "@/utils/endpoints/common";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import PostCard from "./PostCard";
 import Featuredboys from "../Featuredboys";
@@ -14,7 +12,6 @@ import {
   fetchFeedPosts,
   fetchFollowingPosts,
   fetchPopularPosts,
-  incrementFeedPostCommentCount,
   updateFeedPost,
 } from "@/redux/other/feedPostsSlice";
 import { PhotoProvider } from "react-photo-view";
@@ -31,6 +28,7 @@ import {
 } from "lucide-react";
 import BtnGroupTabs from "../BtnGroupTabs";
 import { useDeviceType } from "@/hooks/useDeviceType";
+import { togglePostLike } from "@/redux/other/postInteractions";
 
 type TabType = "feed" | "following" | "popular";
 const LIMIT = 4;
@@ -42,7 +40,6 @@ const FeedPage = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const [activeTab, setActiveTab] = useState<TabType>("feed");
-  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
   const {
@@ -143,33 +140,11 @@ const FeedPage = () => {
 
   /* ================= LIKE ================= */
   const handleLike = async (postId: string) => {
-    if (!isLoggedIn) return router.push("/login");
-    if (likeLoading[postId]) return;
-
-    const post = posts[postId];
-    setLikeLoading((p) => ({ ...p, [postId]: true }));
-
-    // optimistic update
-    dispatch(
-      updateFeedPost({
-        postId,
-        data: {
-          isLiked: !post.isLiked,
-          likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1,
-        },
-      }),
-    );
-
-    const res = await apiPost({
-      url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
-      values: { postId },
-    });
-
-    if (!res?.success) {
-      dispatch(updateFeedPost({ postId, data: post }));
+    if (!isLoggedIn) {
+      router.push("/login");
+      return false;
     }
-
-    setLikeLoading((p) => ({ ...p, [postId]: false }));
+    return dispatch(togglePostLike(postId));
   };
 
   /* ================= SAVE / UNSAVE ================= */
@@ -219,11 +194,6 @@ const FeedPage = () => {
     }
 
     setSaveLoading((p) => ({ ...p, [postId]: false }));
-  };
-
-  /* ================= COMMENTS ================= */
-  const incrementCommentCount = (postId: string) => {
-    dispatch(incrementFeedPostCommentCount(postId));
   };
 
   /* ================= UI HELPERS ================= */
@@ -381,7 +351,6 @@ const FeedPage = () => {
                             post={post}
                             onLike={handleLike}
                             onSave={handleSave}
-                            onCommentAdded={incrementCommentCount}
                           />
                         ))}
                   </InfiniteScrollWrapper>

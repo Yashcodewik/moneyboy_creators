@@ -74,6 +74,8 @@ const UserEditProfilePage = () => {
   const [tab, setTab] = useState<0 | 1>(0);
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+    const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
@@ -515,15 +517,15 @@ const UserEditProfilePage = () => {
                           {/* Password */}
                           <div className="label-input one password">
                             <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
-                            <input type={showPass ? "text" : "password"} placeholder="Current Password *" value={passwordData.currentPassword} onChange={(e) => handlePasswordChange("currentPassword", e.target.value)} />
-                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}</span>
+                            <input type={showCurrentPass ? "text" : "password"} placeholder="Current Password *" value={passwordData.currentPassword} onChange={(e) => handlePasswordChange("currentPassword", e.target.value)} />
+                            <span onClick={() => setShowCurrentPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showCurrentPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}</span>
                           </div>
 
                           {/* New Password */}
                           <div className="label-input password">
                             <div className="input-placeholder-icon"><i className="icons lock svg-icon" /></div>
-                            <input type={showPass ? "text" : "password"} placeholder="New Password *" value={passwordData.newPassword} onChange={(e) => handlePasswordChange("newPassword", e.target.value)} />
-                            <span onClick={() => setShowPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}</span>
+                            <input type={showNewPass ? "text" : "password"} placeholder="New Password *" value={passwordData.newPassword} onChange={(e) => handlePasswordChange("newPassword", e.target.value)} />
+                            <span onClick={() => setShowNewPass((prev) => !prev)} className="input-placeholder-icon eye-icon">{showNewPass ? (<i className="icons eye-slash svg-icon" />) : (<i className="icons eye svg-icon" />)}</span>
                           </div>
 
                           {/* Confirm Password */}

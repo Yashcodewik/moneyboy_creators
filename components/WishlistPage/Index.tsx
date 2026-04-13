@@ -23,6 +23,33 @@ interface SavedCreator { creatorUserId: string; displayName: string; userName: s
 
 type TopTab = "moneyboys" | "savedMedia";
 
+const SearchInput = ({
+  searchInput,
+  onSearchChange,
+}: {
+  searchInput: string;
+  onSearchChange: (value: string) => void;
+}) => (
+  <div className="creator-content-search-input">
+    <div className="label-input">
+      <div className="input-placeholder-icon">
+        <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <input
+        type="text"
+        placeholder="Enter keyword here"
+        value={searchInput}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
+    </div>
+  </div>
+);
+
 const WishlistPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -281,26 +308,7 @@ const WishlistPage = () => {
     </div>
   );
 
-  const SearchInput = () => (
-    <div className="creator-content-search-input">
-      <div className="label-input">
-        <div className="input-placeholder-icon">
-          <svg className="svg-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M20 11C20 15.97 15.97 20 11 20C6.03 20 2 15.97 2 11C2 6.03 6.03 2 11 2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M18.9299 20.6898C19.4599 22.2898 20.6699 22.4498 21.5999 21.0498C22.4499 19.7698 21.8899 18.7198 20.3499 18.7198C19.2099 18.7098 18.5699 19.5998 18.9299 20.6898Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M14 5H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M14 8H17" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <input
-          type="text"
-          placeholder="Enter keyword here"
-          value={searchInput}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-      </div>
-    </div>
-  );
+
 
   /* ========== RENDER ========== */
   return (
@@ -316,7 +324,7 @@ const WishlistPage = () => {
                   <div className="creator-content-filter-grid-container">
                     <div className="card filters-card-wrapper">
                       <div className="search-features-grid-btns">
-                        <SearchInput />
+                         <SearchInput searchInput={searchInput} onSearchChange={handleSearchChange} />
                         <div className="creater-content-filters-layouts">
                           <div className="creator-content-select-filter">
                             <CustomSelect className="bg-white p-sm size-sm" label="All Time" options={timeOptions} value={time} searchable={false} onChange={(val) => { setTime(Array.isArray(val) ? val[0] : val); setPage(1); }} />
@@ -386,7 +394,7 @@ const WishlistPage = () => {
                   <div data-multi-dem-cards-layout={true}>
                     <div className="creator-content-filter-grid-container" data-multiple-tabs-section={true}>
                       <div className="search-features-grid-btns has-multi-tabs-btns">
-                        <SearchInput />
+                       <SearchInput searchInput={searchInput} onSearchChange={handleSearchChange} />
                         {/* Videos / Photos sub-tabs */}
                         <div className="creator-content-tabs-btn-wrapper">
                           <div className="multi-tabs-action-buttons">

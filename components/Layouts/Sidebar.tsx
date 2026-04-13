@@ -1010,7 +1010,9 @@ const Sidebar: React.FC = () => {
                             </Link>
                           </li>
                           <li>
-                            <Link href="/purchased-media" className="menu-link purchased-media-link">
+                            <Link href="/purchased-media" onClick={(e) => { e.preventDefault(); 
+                              handleNavClick("purchased-media", "/purchased-media", e);
+                              setIsMenuOpen(false); }} className="menu-link purchased-media-link">
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                                 <path d="M15.59 12.6886C18.4232 12.6886 20.72 10.3918 20.72 7.55859C20.72 4.72537 18.4232 2.42859 15.59 2.42859C12.7567 2.42859 10.46 4.72537 10.46 7.55859C10.46 10.3918 12.7567 12.6886 15.59 12.6886Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" />
                                 <path d="M6.35977 19.8686C8.06081 19.8686 9.43979 18.4897 9.43979 16.7886C9.43979 15.0876 8.06081 13.7086 6.35977 13.7086C4.65873 13.7086 3.27979 15.0876 3.27979 16.7886C3.27979 18.4897 4.65873 19.8686 6.35977 19.8686Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" />
@@ -1020,7 +1022,9 @@ const Sidebar: React.FC = () => {
                             </Link>
                           </li>
                           <li>
-                            <Link href="/store?tab=marketplace" className="menu-link store-link">
+                            <Link href="/store?tab=marketplace" onClick={(e) => { e.preventDefault();
+                              handleNavClick("store", "/store?tab=marketplace", e);
+                            setIsMenuOpen(false);}} className="menu-link store-link">
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                                 <path d="M3.00977 11.6486V16.1386C3.00977 20.6286 4.80977 22.4286 9.29977 22.4286H14.6898C19.1798 22.4286 20.9798 20.6286 20.9798 16.1386V11.6486" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 <path d="M12 12.4286C13.83 12.4286 15.18 10.9386 15 9.10859L14.34 2.42859H9.66999L8.99999 9.10859C8.81999 10.9386 10.17 12.4286 12 12.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
