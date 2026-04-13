@@ -11,6 +11,7 @@ import {
 } from "@/utils/alert";
 import { CgClose } from "react-icons/cg";
 import Modal from "../Modal";
+import { MdCameraswitch } from "react-icons/md";
 
 type Props = {
   onClose: () => void;
@@ -214,13 +215,28 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
 
   const switchCamera = async () => {
     try {
-      stopCamera();
+      if (isRecording) {
+        showWarning("Stop recording before switching camera");
+        return;
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      const newFacingMode = facingMode === "user" ? "environment" : "user";
+      setFacingMode(newFacingMode);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newFacingMode },
+        audio: true,
+      });
 
-      setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
+      streamRef.current = stream;
 
-      setTimeout(() => {
-        startCamera();
-      }, 200);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        await videoRef.current.play();
+      }
     } catch (err) {
       console.error(err);
       showError("Unable to switch camera");
@@ -228,103 +244,43 @@ const VideoRecorder = ({ onClose, onRecorded }: Props) => {
   };
 
   return (
-    <Modal
-      show={true}
-      onClose={handleClose}
-      title=" "
-      className="videorecord_wrap"
-    >
+    <Modal show={true} onClose={handleClose} title=" " className="videorecord_wrap">
       <div className="modal_containt videorecord-modal">
         <div className="video_wrap">
+          {cameraEnabled && recordedChunks.length === 0 && (
+            <button onClick={switchCamera} className="switch_btn"><MdCameraswitch size={16} color="#fece26" /></button>
+          )}
           {/* LIVE CAMERA */}
           {cameraEnabled && recordedChunks.length === 0 && (
-            <video
-              key={recordedChunks.length}
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              style={{ width: "100%", borderRadius: 8, background: "#000" }}
-            />
+            <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", }} />
           )}
           {/* PLAYBACK */}
           {recordedChunks.length > 0 && playbackUrl && (
-            <video
-              src={playbackUrl}
-              controls
-              style={{
-                width: "100%",
-                borderRadius: 8,
-                background: "#000",
-              }}
-            />
+            <video src={playbackUrl} controls playsInline style={{ width: "100%", }} />
           )}
         </div>
         {loading && (
           <div className="loadingtext">
-            {"Loading".split("").map((char, i) => (
-              <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-                {char}
-              </span>
-            ))}
+            {"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}
           </div>
         )}
         <div className="actions">
           {!cameraEnabled && !loading && (
-            <button
-              className="premium-btn active-down-effect"
-              onClick={startCamera}
-            >
-              <span>Enable Camera</span>
-            </button>
+            <button className="premium-btn active-down-effect" onClick={startCamera}><span>Enable Camera</span></button>
           )}
           {cameraEnabled && !isRecording && recordedChunks.length === 0 && (
-            <>
-              <button
-                className="premium-btn active-down-effect"
-                onClick={startRecording}
-              >
-                <span>Start Recording</span>
-              </button>
-
-              {/* ✅ ADD THIS BUTTON */}
-              <button
-                className="btn-grey active-down-effect"
-                onClick={switchCamera}
-              >
-                <span>
-                  {facingMode === "user" ? "Back Camera" : "Front Camera"}
-                </span>
-              </button>
-            </>
+            <button className="premium-btn active-down-effect" onClick={startRecording}><span>Start Recording</span></button>
           )}
           {isRecording && (
-            <button
-              className="btn-danger active-down-effect"
-              onClick={stopRecording}
-            >
-              <span>Stop Recording</span>
-            </button>
+            <button className="btn-danger active-down-effect" onClick={stopRecording}><span>Stop Recording</span></button>
           )}
           {!isRecording && recordedChunks.length > 0 && (
             <>
-              <button
-                className="premium-btn active-down-effect"
-                onClick={handleSubmit}
-              >
-                <span>Use Recording</span>
-              </button>
-              <button
-                className="btn-primary active-down-effect"
-                onClick={retakeVideo}
-              >
-                <span>Retake</span>
-              </button>
+              <button className="premium-btn active-down-effect" onClick={handleSubmit}><span>Use Recording</span></button>
+              <button className="btn-primary active-down-effect" onClick={retakeVideo}><span>Retake</span></button>
             </>
           )}
-          <button className="btn-danger" onClick={handleClose}>
-            Cancel
-          </button>
+          <button className="btn-danger" onClick={handleClose}>Cancel</button>
         </div>
       </div>
     </Modal>

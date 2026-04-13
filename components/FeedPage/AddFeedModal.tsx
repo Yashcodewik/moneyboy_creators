@@ -1392,9 +1392,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         <VideoRecorder
           onClose={() => setShowRecorder(false)}
           onRecorded={(file: File) => {
-            if (videoCount >= 3) {
-              showError("Maximum 3 videos allowed");
-              return;
+            if (videoCount >= 3) {showError("Maximum 3 videos allowed"); return;
             }
             setMediaFiles((prev) => [...prev, file]);
             setMediaPreviews((prev) => [

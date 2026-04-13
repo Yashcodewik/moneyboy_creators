@@ -5326,6 +5326,24 @@ textarea:focus {
         height: -webkit-fill-available;
       }
     }
+    .video_wrap {
+      position: relative;
+      .switch_btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 10;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid #fece26;
+      }
+    }
     .vdocont_wrap {
       width: 100%;
       border: 2px solid #f4f4f4;
