@@ -2522,7 +2522,6 @@ textarea:focus {
   grid-column: 1 / -1 !important;
 }
 
-
 // Color Start
 .text-black {
   color:#000;
@@ -3489,7 +3488,7 @@ textarea:focus {
   /* ========== Mobile Screen Size ========== */
   @media screen and (max-width: 767px) {
     .otp-modal {
-      max-width: 100%;
+      max-width: 95%;
       margin: 0px 15px;
     }
   }
@@ -9188,6 +9187,25 @@ textarea:focus {
                           color: var(--color-secondary);
                         }
                       }
+                    }
+                  }
+                  .timer_wrap {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    p {
+                      color: #020202;
+                      font-size: 20px;
+                      font-weight: 500;
+                      line-height: 100%;
+                      text-transform: capitalize;
+                      font-family: var(--font-family-heading);
+                    }
+                    .fcc__unit_time,
+                    .fcc__separator {
+                      margin-bottom: 0 !important;
                     }
                   }
                   /* ========== Mobile Screen Size ========== */

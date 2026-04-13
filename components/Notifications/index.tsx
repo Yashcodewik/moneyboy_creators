@@ -71,18 +71,18 @@ const NotificationPage = () => {
   }, []);
 
   useEffect(() => {
-  if (!socket) return;
+    if (!socket) return;
 
-  const handleNewNotification = () => {
-    fetchNotifications(1);
-  };
+    const handleNewNotification = () => {
+      fetchNotifications(1);
+    };
 
-  socket.on("newNotification", handleNewNotification);
+    socket.on("newNotification", handleNewNotification);
 
-  return () => {
-    socket.off("newNotification", handleNewNotification);
-  };
-}, []);
+    return () => {
+      socket.off("newNotification", handleNewNotification);
+    };
+  }, []);
 
   const fetchMoreNotifications = () => {
     if (!hasMore) return;
@@ -226,17 +226,17 @@ const NotificationPage = () => {
                   scrollableTarget="feed-scroll-container"
                 >
                   {notifications.map((noti) => (
-                    <div className="noti-item" key={noti._id}   onClick={() => {
-    if ([3, 4, 9, 10, 11,8].includes(noti.type)) {
-      setSelectedPost(noti);
-      setShowModal(true);
-    }
-  }}
-  style={{
-    cursor: [3, 4, 9, 10, 11,8].includes(noti.type)
-      ? "pointer"
-      : "default",
-  }}
+                    <div className="noti-item" key={noti._id} onClick={() => {
+                      if ([3, 4, 9, 10, 11, 8].includes(noti.type)) {
+                        setSelectedPost(noti);
+                        setShowModal(true);
+                      }
+                    }}
+                      style={{
+                        cursor: [3, 4, 9, 10, 11, 8].includes(noti.type)
+                          ? "pointer"
+                          : "default",
+                      }}
                     >
                       <div
                         className="noti-item--icon"
@@ -359,109 +359,98 @@ const NotificationPage = () => {
         className="notipost_wrap"
       >
         <form className="modal_containt notipost-modal">
-          <div
-            className="post_wrap"
-            style={{
-              display: [9, 10, 11].includes(selectedPost?.type)
-                ? "none"
-                : "block",
-            }}
-          >
-            {/* POST IMAGES */}
-            <div className="img_wrap">
-              <Swiper
-                modules={[Navigation, Pagination, Autoplay]}
-                spaceBetween={20}
-                slidesPerView={1}
-                navigation={selectedPost?.postPreview?.media?.length > 1}
-                pagination={{ clickable: true }}
-                autoplay={
+          <div className="w-full" style={{ display: [9, 10, 11].includes(selectedPost?.type) ? "none" : "block", }}>
+            <div className="post_wrap">
+              {/* POST IMAGES */}
+              <div className="img_wrap">
+                <Swiper modules={[Navigation, Pagination, Autoplay]} spaceBetween={20} slidesPerView={1} navigation={selectedPost?.postPreview?.media?.length > 1} pagination={{ clickable: true }} autoplay={
                   selectedPost?.postPreview?.media?.length > 1
                     ? { delay: 3000 }
                     : false
                 }
-                loop={selectedPost?.postPreview?.media?.length > 1}
-              >
-                {selectedPost?.postPreview?.media?.length > 0 &&
-                  selectedPost.postPreview.media.map(
-                    (mediaUrl: string, i: number) => (
-                      <SwiperSlide key={i}>
-                        {selectedPost?.postPreview?.mediaType === "video" ? (
-                          <video src={mediaUrl} controls />
-                        ) : (
-                          <img src={mediaUrl} alt="post media" />
-                        )}
-                      </SwiperSlide>
-                    )
-                  )}
-              </Swiper>
-            </div>
-            {/* DETAILS */}
-            <div className="details_wrap">
-              {/* earning */}
-              <div className="charge_wrap">
-                <p>Earnings From This Post</p>
-                <div className="right_box">
-                  {selectedPost?.postPreview?.accessType === "pay_per_view" && (
-                    <span className="premium-btn">
-                      <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
-                    </span>
-                  )}
-                  {selectedPost?.postPreview?.accessType === "subscriber" && (
-                    <span className="premium-btn success">
-                      <span>Subscription</span>
-                    </span>
-                  )}
-                  {selectedPost?.postPreview?.accessType === "free" && (
-                    <span className="premium-btn gray">
-                      <span>Free</span>
-                    </span>
-                  )}
-                </div>
+                  loop={selectedPost?.postPreview?.media?.length > 1}
+                >
+                  {selectedPost?.postPreview?.media?.length > 0 &&
+                    selectedPost.postPreview.media.map(
+                      (mediaUrl: string, i: number) => (
+                        <SwiperSlide key={i}>
+                          {selectedPost?.postPreview?.mediaType === "video" ? (
+                            <video src={mediaUrl} controls />
+                          ) : (
+                            <img src={mediaUrl} alt="post media" />
+                          )}
+                        </SwiperSlide>
+                      )
+                    )}
+                </Swiper>
               </div>
-              <p>{selectedPost?.postPreview?.text}</p>
-              <ul>
-                {selectedPost?.postTag?.taggedBy && (
-                  <li
-                    key={selectedPost.postTag.taggedBy._id}
-                    onClick={() => goToProfile(selectedPost.postTag.taggedBy)}
-                  >
-                    <img
-                      src={
-                        selectedPost.postTag.taggedBy.profile ||
-                        "/images/logo/black-logo-square.png"
-                      }
-                      alt="Profile Avatar"
-                      className="user_icons"
-                    />
-                    <span>@{selectedPost.postTag.taggedBy.userName}</span>
-                  </li>
-                )}
-                {selectedPost?.postTag?.taggedUsers
-                  ?.filter((u: any) => u?.user)
-                  .map((u: any) => (
-                    <li key={u.user?._id} onClick={() => goToProfile(u.user)}>
+              {/* DETAILS */}
+              <div className="details_wrap">
+                {/* earning */}
+                <div className="charge_wrap">
+                  <p>Earnings From This Post</p>
+                  <div className="right_box">
+                    {selectedPost?.postPreview?.accessType === "pay_per_view" && (
+                      <span className="premium-btn">
+                        <span>{selectedPost?.postTag?.myPercentage ?? 0}%</span>
+                      </span>
+                    )}
+                    {selectedPost?.postPreview?.accessType === "subscriber" && (
+                      <span className="premium-btn success">
+                        <span>Subscription</span>
+                      </span>
+                    )}
+                    {selectedPost?.postPreview?.accessType === "free" && (
+                      <span className="premium-btn gray">
+                        <span>Free</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <p>{selectedPost?.postPreview?.text}</p>
+                <ul>
+                  {selectedPost?.postTag?.taggedBy && (
+                    <li
+                      key={selectedPost.postTag.taggedBy._id}
+                      onClick={() => goToProfile(selectedPost.postTag.taggedBy)}
+                    >
                       <img
                         src={
-                          u.user?.profile ||
+                          selectedPost.postTag.taggedBy.profile ||
                           "/images/logo/black-logo-square.png"
                         }
                         alt="Profile Avatar"
                         className="user_icons"
                       />
-                      <span>@{u.user?.userName}</span>
+                      <span>@{selectedPost.postTag.taggedBy.userName}</span>
                     </li>
-                  ))}
-              </ul>
+                  )}
+                  {selectedPost?.postTag?.taggedUsers
+                    ?.filter((u: any) => u?.user)
+                    .map((u: any) => (
+                      <li key={u.user?._id} onClick={() => goToProfile(u.user)}>
+                        <img
+                          src={
+                            u.user?.profile ||
+                            "/images/logo/black-logo-square.png"
+                          }
+                          alt="Profile Avatar"
+                          className="user_icons"
+                        />
+                        <span>@{u.user?.userName}</span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
             </div>
           </div>
           {selectedPost?.postTag && ![9, 10, 11].includes(selectedPost?.type) && (
             <div
               className={`approval_wrap ${selectedPost?.postTag?.myStatus === "approved"
-                  ? "approved"
-                  : selectedPost?.postTag?.myStatus === "rejected"
-                    ? "rejected"
-                    : "pending"
+                ? "approved"
+                : selectedPost?.postTag?.myStatus === "rejected"
+                  ? "rejected"
+                  : "pending"
                 }`}
             >
               {selectedPost?.postTag?.myStatus === "approved" && (
@@ -507,10 +496,10 @@ const NotificationPage = () => {
             <>
               <div
                 className={`approval_wrap ${selectedPost?.type === 10
-                    ? "approved"
-                    : selectedPost?.type === 11
-                      ? "rejected"
-                      : "pending"
+                  ? "approved"
+                  : selectedPost?.type === 11
+                    ? "rejected"
+                    : "pending"
                   }`}
               >
                 <div className="head">
