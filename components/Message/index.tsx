@@ -25,6 +25,8 @@ import "react-photo-view/dist/react-photo-view.css";
 import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut, } from "lucide-react";
 import { showError, showSuccess } from "@/utils/alert";
 import Modal from "../Modal";
+import FlipClockCountdown from "@leenguyen/react-flip-clock-countdown";
+import "@leenguyen/react-flip-clock-countdown/dist/index.css";
 
 const MessagePage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -464,38 +466,38 @@ const MessagePage = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (!activeThreadId || !activeUser?.id) return;
 
-        const allowedImageTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp",
-      ];
+    const allowedImageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
 
-      const allowedVideoTypes = [
-        "video/mp4",
-        "video/quicktime", // .mov
-        "video/webm",
-        "video/ogg",
-      ];
+    const allowedVideoTypes = [
+      "video/mp4",
+      "video/quicktime", // .mov
+      "video/webm",
+      "video/ogg",
+    ];
 
-      const allowedAudioTypes = [
-        "audio/mpeg", // mp3
-        "audio/wav",
-      ];
+    const allowedAudioTypes = [
+      "audio/mpeg", // mp3
+      "audio/wav",
+    ];
 
-      const isImage = allowedImageTypes.includes(file.type);
-      const isVideo = allowedVideoTypes.includes(file.type);
-      const isAudio = allowedAudioTypes.includes(file.type);
+    const isImage = allowedImageTypes.includes(file.type);
+    const isVideo = allowedVideoTypes.includes(file.type);
+    const isAudio = allowedAudioTypes.includes(file.type);
 
-      if (!isImage && !isVideo && !isAudio) {
-        toast.error(
-          "Only JPG, PNG, WEBP, MP4, MOV, WEBM, OGG, MP3, WAV files are allowed"
-        );
-        return;
-      }
+    if (!isImage && !isVideo && !isAudio) {
+      toast.error(
+        "Only JPG, PNG, WEBP, MP4, MOV, WEBM, OGG, MP3, WAV files are allowed"
+      );
+      return;
+    }
 
     if (file.size > 100 * 1024 * 1024) {
       toast.error("File must be less than 100MB");
@@ -530,7 +532,7 @@ const MessagePage = () => {
       }
 
       socket.emit("mediaMessageUploaded", {
-        senderId: session.user.id,  
+        senderId: session.user.id,
         threadId: activeThreadId,
         messageId: res._id,
       });
@@ -1169,10 +1171,10 @@ const MessagePage = () => {
                                       onClick={() => {
                                         if (!activeUser) return;
 
-                                         if (isBlockedByOther) {
-                                        showError("You are blocked by this user");
-                                        return;
-                                      }
+                                        if (isBlockedByOther) {
+                                          showError("You are blocked by this user");
+                                          return;
+                                        }
 
                                         if (activeUser?.role === 1) {
                                           router.push(`/userprofile/${activeUser.publicId}`);
@@ -1599,16 +1601,12 @@ const MessagePage = () => {
 
                                               <div className="cont_wrap">
                                                 <h3>Type</h3>
-                                                <p>
-                                                  {msg.ppvRequestId.type.toLowerCase()}
-                                                </p>
+                                                <p>{msg.ppvRequestId.type.toLowerCase()}</p>
                                               </div>
 
                                               <div className="cont_wrap">
                                                 <h3>Description</h3>
-                                                <p>
-                                                  {msg.ppvRequestId.description}
-                                                </p>
+                                                <p>{msg.ppvRequestId.description}</p>
                                               </div>
                                               {msg.ppvRequestId.deliveredMedia?.length > 0 && (
                                                 <div className="cont_wrap">
@@ -1864,6 +1862,12 @@ const MessagePage = () => {
                                                     )}
                                                 </div>
                                               </div>
+
+                                              <div className="timer_wrap mt-3">
+                                                <p>Expires In</p>
+                                                <FlipClockCountdown to={new Date().getTime() + 5 * 60 * 1000} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>Finished</FlipClockCountdown>
+                                              </div>
+
                                             </div>
                                           )}
                                         </div>
@@ -1935,13 +1939,9 @@ const MessagePage = () => {
                                   </div>
                                 )}
                                 {/* Scroll sentinel - always at the very bottom */}
-                                <div
-                                  ref={messagesEndRef}
-                                  style={{ height: 1, flexShrink: 0 }}
-                                />
+                                <div ref={messagesEndRef} style={{ height: 0.5, flexShrink: 0 }}/>
                               </div>
                             </div>
-
                             {/* ── Footer ── */}
                             {
                               !isBlockedByOther &&
@@ -2009,12 +2009,7 @@ const MessagePage = () => {
 
                                     {/* Text input */}
                                     <div className="chat-msg-typing-input">
-                                      <input
-                                        ref={textareaRef}
-                                        type="text"
-                                        placeholder="Send a message..."
-                                        value={newComment}
-                                        onChange={(e) => {
+                                      <input ref={textareaRef} type="text" placeholder="Send a message..." value={newComment} onChange={(e) => {
                                           setNewComment(e.target.value);
                                           if (
                                             !activeThreadId ||
@@ -2057,158 +2052,43 @@ const MessagePage = () => {
 
                                     <div className="chat-msg-action-btns">
                                       {!isMobile && (
-                                        <button
-                                          ref={emojiButtonRef}
-                                          className="emojis-icon-btn"
-                                          onClick={() =>
-                                            setShowEmojiPicker((prev) => !prev)
-                                          }
-                                        >
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="35"
-                                            height="35"
-                                            viewBox="0 0 35 35"
-                                            fill="none"
-                                          >
-                                            <rect
-                                              x="0.5"
-                                              y="0.5"
-                                              width="34"
-                                              height="34"
-                                              rx="17"
-                                              stroke="none"
-                                            />
-                                            <path
-                                              d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z"
-                                              stroke="none"
-                                              strokeWidth="1.5"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            />
-                                            <path
-                                              d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z"
-                                              stroke="none"
-                                              strokeWidth="1.5"
-                                              strokeMiterlimit="10"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            />
-                                            <path
-                                              d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z"
-                                              stroke="none"
-                                              strokeWidth="1.5"
-                                              strokeMiterlimit="10"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            />
-                                            <path
-                                              d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z"
-                                              stroke="none"
-                                              strokeWidth="1.5"
-                                              strokeMiterlimit="10"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            />
+                                        <button ref={emojiButtonRef} className="emojis-icon-btn" onClick={() => setShowEmojiPicker((prev) => !prev)}>
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
+                                            <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"/>
+                                            <path d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                                           </svg>
                                         </button>
                                       )}
                                       {/* Voice recorder */}
-                                      <button
-                                        className={`voice-recorder-icon-btn ${isRecording ? "recording" : ""}`}
-                                        type="button"
-                                        onMouseDown={handleVoicePressStart}
-                                        onMouseUp={handleVoicePressEnd}
-                                        onMouseLeave={
-                                          isRecording
-                                            ? () => stopRecording()
-                                            : undefined
-                                        }
-                                        onTouchStart={handleVoicePressStart}
-                                        onTouchEnd={handleVoicePressEnd}
-                                        onTouchCancel={() => stopRecording(true)}
-                                        disabled={uploading}
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="35"
-                                          height="35"
-                                          viewBox="0 0 35 35"
-                                          fill="none"
-                                        >
-                                          <rect
-                                            x="0.5"
-                                            y="0.5"
-                                            width="34"
-                                            height="34"
-                                            rx="17"
-                                            stroke="none"
-                                          />
-                                          <path
-                                            d="M11.4434 15.6387V16.9845C11.4434 20.3253 14.1588 23.0408 17.4996 23.0408C20.8404 23.0408 23.5559 20.3253 23.5559 16.9845V15.6387"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M17.5007 20.2715C19.2502 20.2715 20.6673 18.8544 20.6673 17.1048V12.7507C20.6673 11.0011 19.2502 9.58398 17.5007 9.58398C15.7511 9.58398 14.334 11.0011 14.334 12.7507V17.1048C14.334 18.8544 15.7511 20.2715 17.5007 20.2715Z"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M16.4004 13.0905C17.1129 12.8292 17.8887 12.8292 18.6012 13.0905"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M16.8672 14.7687C17.2868 14.6578 17.7222 14.6578 18.1418 14.7687"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                          <path
-                                            d="M17.5 23.041V25.416"
-                                            stroke="none"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
+                                      <button className={`voice-recorder-icon-btn ${isRecording ? "recording" : ""}`} type="button" onMouseDown={handleVoicePressStart} onMouseUp={handleVoicePressEnd} onMouseLeave={isRecording ? () => stopRecording() : undefined} onTouchStart={handleVoicePressStart} onTouchEnd={handleVoicePressEnd} onTouchCancel={() => stopRecording(true)} disabled={uploading}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
+                                          <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"/>
+                                          <path d="M11.4434 15.6387V16.9845C11.4434 20.3253 14.1588 23.0408 17.4996 23.0408C20.8404 23.0408 23.5559 20.3253 23.5559 16.9845V15.6387" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          <path d="M17.5007 20.2715C19.2502 20.2715 20.6673 18.8544 20.6673 17.1048V12.7507C20.6673 11.0011 19.2502 9.58398 17.5007 9.58398C15.7511 9.58398 14.334 11.0011 14.334 12.7507V17.1048C14.334 18.8544 15.7511 20.2715 17.5007 20.2715Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          <path d="M16.4004 13.0905C17.1129 12.8292 17.8887 12.8292 18.6012 13.0905" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          <path d="M16.8672 14.7687C17.2868 14.6578 17.7222 14.6578 18.1418 14.7687" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          <path d="M17.5 23.041V25.416" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                         </svg>
                                       </button>
-
                                       {/* Send button */}
                                       <button className="btn-txt-simple send-msg-btn" onClick={sendMessage}>
                                         {!isMobile && (<span>Send</span>)}
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                          <path d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                          <path d="M10.1094 13.6505L13.6894 10.0605" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          <path d="M7.39969 6.32015L15.8897 3.49015C19.6997 2.22015 21.7697 4.30015 20.5097 8.11015L17.6797 16.6002C15.7797 22.3102 12.6597 22.3102 10.7597 16.6002L9.91969 14.0802L7.39969 13.2402C1.68969 11.3402 1.68969 8.23015 7.39969 6.32015Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M10.1094 13.6505L13.6894 10.0605" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                       </button>
 
                                       {/* Emoji picker */}
                                       {showEmojiPicker && (
-                                        <div
-                                          ref={emojiRef}
-                                          className="emoji-picker-wrapper"
-                                        >
-                                          <EmojiPicker
-                                            onEmojiClick={onEmojiClick}
-                                            autoFocusSearch={false}
-                                            skinTonesDisabled
-                                            previewConfig={{ showPreview: false }}
-                                            height={360}
-                                            width={340}
-                                          />
+                                        <div ref={emojiRef} className="emoji-picker-wrapper">
+                                          <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={360} width={340}/>
                                         </div>
                                       )}
                                     </div>
-
                                   </div>
                                 </div>
                               )}
