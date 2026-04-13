@@ -9,7 +9,14 @@ import "react-photo-view/dist/react-photo-view.css";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
-import { addComment, dislikeComment, fetchComments, likeComment, } from "../../redux/other/commentSlice";
+import {
+  addComment,
+  dislikeComment,
+  fetchComments,
+  likeComment,
+} from "../../redux/other/commentSlice";
+import { Plyr } from "plyr-react";
+import "plyr-react/plyr.css";
 
 interface PostCardProps {
   post: any;
@@ -46,12 +53,16 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [showReportModal, setShowReportModal] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
+  const firstMedia =
+    post?.media?.[0]?.mediaFiles?.[0] ||
+    "/images/profile-avatars/profile-avatar-6.jpg";
   const router = useRouter();
   const [avatarErrorMap, setAvatarErrorMap] = useState<Record<string, boolean>>(
     {},
   );
   const { session } = useDecryptedSession();
-
+  const currentUserId = session?.user?.id;
   const desktopStyle: React.CSSProperties = {
     transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
     height: open ? "auto" : "0px",
@@ -165,9 +176,9 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
 
   useEffect(() => {
     if (showComment && post._id) {
-      dispatch(fetchComments(post._id));
+      dispatch(fetchComments({ postId: post._id, currentUserId }));
     }
-  }, [showComment, post._id, dispatch]);
+  }, [showComment, post._id, currentUserId, dispatch]);
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -180,13 +191,18 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
       setNewComment("");
     }
   };
-  const handleLikeComment = (commentId: string) => {
-    dispatch(likeComment({ commentId }));
+
+  const handleLikeComment = async (commentId: string) => {
+    await dispatch(likeComment({ commentId, currentUserId }));
+    dispatch(fetchComments({ postId: post._id, currentUserId }));
   };
 
-  const handleDislikeComment = (commentId: string) => {
-    dispatch(dislikeComment({ commentId }));
+  const handleDislikeComment = async (commentId: string) => {
+    await dispatch(dislikeComment({ commentId, currentUserId }));
+    dispatch(fetchComments({ postId: post._id, currentUserId }));
   };
+
+
   const onEmojiClick = (emojiData: EmojiClickData) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -255,9 +271,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   };
 
   const handleSeeMoreComments = () => {
-    router.push(
-      `/post?page&publicId=${post.publicId}&comment=open`
-    );
+    router.push(`/post?page&publicId=${post.publicId}&comment=open`);
   };
 
   const sortedComments = [...postComments].filter(Boolean).sort((a, b) => {
@@ -294,7 +308,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
 
   const handleSendTip = async (
     amount: number,
-    paymentMethod: "wallet" | "card"
+    paymentMethod: "wallet" | "card",
   ) => {
     if (!session?.user?.id) {
       router.push("/login");
@@ -311,7 +325,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
         sendTip({
           creatorId: post.userId,
           amount,
-          paymentMethod
+          paymentMethod,
         }),
       ).unwrap();
 
@@ -326,7 +340,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
       console.error("Tip failed:", err);
 
       await showError(
-        err?.data?.message || err?.message || "Failed to send tip"
+        err?.data?.message || err?.message || "Failed to send tip",
       );
     }
   };
@@ -372,7 +386,6 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [showTaggedUsers]);
 
-
   return (
     <>
       <div className="moneyboy-post__container card">
@@ -380,15 +393,47 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
           <div className="profile-card">
             <div className="profile-card__main pointer">
               <div className="profile-card__avatar-settings">
-                <div className="profile-card__avatar" onClick={() => { handleProfileClick(post.creatorInfo?.userName); }}>
-                  {post.creatorInfo?.profile && !avatarErrorMap[post.creatorInfo.publicId] ? (
-                    <img src={post.creatorInfo.profile} alt="MoneyBoy Social Profile Avatar" onError={() => setAvatarErrorMap((prev) => ({ ...prev, [post.creatorInfo.publicId]: true, }))} />
+                <div
+                  className="profile-card__avatar"
+                  onClick={() => {
+                    handleProfileClick(post.creatorInfo?.userName);
+                  }}
+                >
+                  {post.creatorInfo?.profile &&
+                  !avatarErrorMap[post.creatorInfo.publicId] ? (
+                    <img
+                      src={post.creatorInfo.profile}
+                      alt="MoneyBoy Social Profile Avatar"
+                      onError={() =>
+                        setAvatarErrorMap((prev) => ({
+                          ...prev,
+                          [post.creatorInfo.publicId]: true,
+                        }))
+                      }
+                    />
                   ) : (
                     <div className="noprofile">
-                      <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                      <svg
+                        width="40"
+                        height="40"
+                        viewBox="0 0 66 54"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          className="animate-m"
+                          d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                          fill="url(#paint0_linear_4470_53804)"
+                        />
                         <defs>
-                          <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                          <linearGradient
+                            id="paint0_linear_4470_53804"
+                            x1="0"
+                            y1="27"
+                            x2="66"
+                            y2="27"
+                            gradientUnits="userSpaceOnUse"
+                          >
                             <stop stop-color="#FDAB0A" />
                             <stop offset="0.4" stop-color="#FECE26" />
                             <stop offset="1" stop-color="#FE990B" />
@@ -400,18 +445,32 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
                 </div>
               </div>
               <div className="profile-card__info">
-                <div className="profile-card__name-badge" onClick={() => { handleProfileClick(post.creatorInfo?.userName); }}>
-                  <div className="profile-card__name">{post.creatorInfo?.displayName}</div>
+                <div
+                  className="profile-card__name-badge"
+                  onClick={() => {
+                    handleProfileClick(post.creatorInfo?.userName);
+                  }}
+                >
+                  <div className="profile-card__name">
+                    {post.creatorInfo?.displayName}
+                  </div>
                   <div className="profile-card__badge">
-                    <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                    <img
+                      src="/images/logo/profile-badge.png"
+                      alt="MoneyBoy Social Profile Badge"
+                    />
                   </div>
                 </div>
                 <div className="profile-card__username tagged_userlist">
                   @{post.creatorInfo?.userName}
-
                   {/* Show tagged creators preview */}
                   {post.taggedCreators?.length > 0 && (
-                    <button type="button" ref={tagButtonRef} className="active-down-effect" onClick={() => setShowTaggedUsers(prev => !prev)}>
+                    <button
+                      type="button"
+                      ref={tagButtonRef}
+                      className="active-down-effect"
+                      onClick={() => setShowTaggedUsers((prev) => !prev)}
+                    >
                       <ul className="taglist">
                         {post.taggedCreators.slice(0, 3).map((user: any) => (
                           <li key={user._id}>
@@ -432,7 +491,6 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
                       </ul>
                     </button>
                   )}
-
                   {/* Dropdown list */}
                   {post.taggedCreators?.length > 0 && showTaggedUsers && (
                     <div ref={tagMenuRef} className="user-dropdown">
@@ -590,7 +648,9 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
               {/* Send Tip */}
 
               <li>
-                <Link href="#" data-tooltip="Send Tip"
+                <Link
+                  href="#"
+                  data-tooltip="Send Tip"
                   onClick={(e) => {
                     e.preventDefault();
                     if (isOwnPost) return;
@@ -651,7 +711,8 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
 
               {/* Like */}
               <li>
-                <Link data-tooltip="Like"
+                <Link
+                  data-tooltip="Like"
                   href="#"
                   className={`post-like-btn stable-like-btn ${post.isLiked ? "active" : ""}`}
                   onClick={async (e) => {
@@ -688,7 +749,8 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
               </li>
               {/* Comment */}
               <li>
-                <Link data-tooltip="Comment"
+                <Link
+                  data-tooltip="Comment"
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
@@ -737,7 +799,8 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
             <ul>
               {/* Share */}
               <li>
-                <Link data-tooltip="Report"
+                <Link
+                  data-tooltip="Report"
                   href="#"
                   className={isReported ? "active" : ""}
                   onClick={(e) => {
@@ -750,7 +813,8 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
 
                     if (isReported) return;
 
-                    session?.user?.id !== post.userId && setShowReportModal(true);
+                    session?.user?.id !== post.userId &&
+                      setShowReportModal(true);
                   }}
                 >
                   <svg
@@ -781,7 +845,8 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
               </li>
               {/* Save */}
               <li>
-                <Link data-tooltip="Wishlist"
+                <Link
+                  data-tooltip="Wishlist"
                   href="#"
                   className={`post-save-btn ${post.isSaved ? "active" : ""}`}
                   onClick={(e) => {
@@ -829,22 +894,57 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
             <div className="moneyboy-comment-wrap">
               <div className="comment-wrap">
                 <div className="label-input">
-                  <textarea ref={textareaRef} placeholder="Add a comment here" value={newComment} onChange={(e) => setNewComment(e.target.value)} />
+                  <textarea
+                    ref={textareaRef}
+                    placeholder="Add a comment here"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                  />
                   {!isMobile && (
-                    <div ref={emojiButtonRef} className="input-placeholder-icon" onClick={() => setShowEmojiPicker((prev) => !prev)}><i className="icons emojiSmile svg-icon"></i></div>
+                    <div
+                      ref={emojiButtonRef}
+                      className="input-placeholder-icon"
+                      onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    >
+                      <i className="icons emojiSmile svg-icon"></i>
+                    </div>
                   )}
                 </div>
                 {showEmojiPicker && !isMobile && (
                   <div ref={emojiRef} className="emoji-picker-wrapper">
-                    <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} />
+                    <EmojiPicker
+                      onEmojiClick={onEmojiClick}
+                      autoFocusSearch={false}
+                      skinTonesDisabled
+                      previewConfig={{ showPreview: false }}
+                    />
                   </div>
                 )}
               </div>
-              <button className="premium-btn active-down-effect" onClick={handleAddComment}>
-                <svg width="40" height="35" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z" fill="url(#paint0_linear_4464_314)" />
+              <button
+                className="premium-btn active-down-effect"
+                onClick={handleAddComment}
+              >
+                <svg
+                  width="40"
+                  height="35"
+                  viewBox="0 0 40 35"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
+                    fill="url(#paint0_linear_4464_314)"
+                  />
                   <defs>
-                    <linearGradient id="paint0_linear_4464_314" x1="2.37044" y1="-1.89024e-06" x2="54.674" y2="14.6715" gradientUnits="userSpaceOnUse">
+                    <linearGradient
+                      id="paint0_linear_4464_314"
+                      x1="2.37044"
+                      y1="-1.89024e-06"
+                      x2="54.674"
+                      y2="14.6715"
+                      gradientUnits="userSpaceOnUse"
+                    >
                       <stop stopColor="#FECE26" />
                       <stop offset="1" stopColor="#E5741F" />
                     </linearGradient>
@@ -862,14 +962,42 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
                       <div className="profile-card__avatar-settings">
                         <div className="profile-card__avatar">
                           {topComment.userId?.profile &&
-                            !avatarErrorMap[topComment.userId._id] ? (
-                            <img src={topComment.userId.profile} alt={topComment.userId?.userName || "User profile"} onError={() => setAvatarErrorMap((prev) => ({ ...prev, [topComment.userId._id]: true, }))} />
+                          !avatarErrorMap[topComment.userId._id] ? (
+                            <img
+                              src={topComment.userId.profile}
+                              alt={
+                                topComment.userId?.userName || "User profile"
+                              }
+                              onError={() =>
+                                setAvatarErrorMap((prev) => ({
+                                  ...prev,
+                                  [topComment.userId._id]: true,
+                                }))
+                              }
+                            />
                           ) : (
                             <div className="noprofile">
-                              <svg width="40" height="40" viewBox="0 0 66 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path className="animate-m" d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z" fill="url(#paint0_linear_4470_53804)" />
+                              <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 66 54"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  className="animate-m"
+                                  d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                  fill="url(#paint0_linear_4470_53804)"
+                                />
                                 <defs>
-                                  <linearGradient id="paint0_linear_4470_53804" x1="0" y1="27" x2="66" y2="27" gradientUnits="userSpaceOnUse">
+                                  <linearGradient
+                                    id="paint0_linear_4470_53804"
+                                    x1="0"
+                                    y1="27"
+                                    x2="66"
+                                    y2="27"
+                                    gradientUnits="userSpaceOnUse"
+                                  >
                                     <stop stop-color="#FDAB0A" />
                                     <stop offset="0.4" stop-color="#FECE26" />
                                     <stop offset="1" stop-color="#FE990B" />
@@ -882,20 +1010,74 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
                       </div>
                       <div className="profile-card__info">
                         <div className="profile-card__name-badge">
-                          <div className="profile-card__name">{topComment.userId?.displayName}</div>
+                          <div className="profile-card__name">
+                            {topComment.userId?.displayName}
+                          </div>
                         </div>
-                        <div className="profile-card__username">@{topComment.userId?.userName}</div>
+                        <div className="profile-card__username">
+                          @{topComment.userId?.userName}
+                        </div>
                       </div>
                     </div>
                   </a>
                   <div className="moneyboy-post__upload-more-info">
-                    <div className="moneyboy-post__upload-time">{formatRelativeTime(topComment.createdAt)}</div>
+                    <div className="moneyboy-post__upload-time">
+                      {formatRelativeTime(topComment.createdAt)}
+                    </div>
                   </div>
                 </div>
                 <div className="moneyboy-post__desc">
                   <p>{topComment.comment}</p>
                 </div>
-                
+                <div className="like-deslike-wrap">
+                  <ul>
+                    <li className={topComment.isLiked ? "active" : ""}>
+                      <Link
+                        href="#"
+                        className={`comment-like-btn ${topComment.isLiked ? "active" : ""}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleLikeComment(topComment._id);
+                        }}
+                      >
+                        <ThumbsUp color="black" strokeWidth={2} />
+                        <span>
+                          {topComment.likeCount ??
+                            topComment.likes?.length ??
+                            0}
+                        </span>
+                      </Link>
+                    </li>
+                    <li className={topComment.isDisliked ? "active" : ""}>
+                      <Link
+                        href="#"
+                        className={`comment-dislike-btn ${topComment.isDisliked ? "active" : ""}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDislikeComment(topComment._id);
+                        }}
+                      >
+                        <ThumbsDown color="black" strokeWidth={2} />
+                        <span>
+                          {topComment.dislikeCount ??
+                            topComment.dislikes?.length ??
+                            0}
+                        </span>
+                      </Link>
+                    </li>
+                  </ul>
+                  {hasMoreComments && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // 🔥 VERY IMPORTANT
+                        handleSeeMoreComments();
+                      }}
+                      className="btn-primary active-down-effect-2x"
+                    >
+                      See more <ArrowUpRight size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -903,13 +1085,25 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
       </div>
 
       {showReportModal && (
-        <ReportModal show={showReportModal} post={post} onClose={(reported?: boolean) => {
-          if (reported) setIsReported(true); // ✅ FIX
-          setShowReportModal(false);
-        }} />
+        <ReportModal
+          show={showReportModal}
+          post={post}
+          onClose={(reported?: boolean) => {
+            if (reported) setIsReported(true); // ✅ FIX
+            setShowReportModal(false);
+          }}
+        />
       )}
       {showTipModal && (
-        <TipModal onClose={() => setShowTipModal(false)} onConfirm={handleSendTip} creator={{ displayName: post?.creatorInfo?.displayName, userName: post?.creatorInfo?.userName, profile: post?.creatorInfo?.profile, }} />
+        <TipModal
+          onClose={() => setShowTipModal(false)}
+          onConfirm={handleSendTip}
+          creator={{
+            displayName: post?.creatorInfo?.displayName,
+            userName: post?.creatorInfo?.userName,
+            profile: post?.creatorInfo?.profile,
+          }}
+        />
       )}
     </>
   );

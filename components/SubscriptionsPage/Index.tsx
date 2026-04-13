@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Featuredboys from "../Featuredboys";
 import CustomSelect from "../CustomSelect";
 import Link from "next/link";
@@ -14,6 +13,7 @@ import {
 import { useSelector } from "react-redux";
 import { apiPost } from "@/utils/endpoints/common";
 import BtnGroupTabs from "../BtnGroupTabs";
+import { CircleX } from "lucide-react";
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", {
@@ -52,6 +52,9 @@ const SubscriptionsPage = () => {
 
   const rowsPerPage = 10;
   const tabFromUrl = searchParams.get("tab");
+
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isCreator =
     session?.isAuthenticated && session?.user?.role === 2;
@@ -118,6 +121,17 @@ const SubscriptionsPage = () => {
     }
   };
 
+  const [debouncedSearch, setDebouncedSearch] = useState(searchText);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchText);
+      setPage(1);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
@@ -137,10 +151,9 @@ const SubscriptionsPage = () => {
             <div data-multi-dem-cards-layout>
               <div className="creator-content-filter-grid-container">
                 <div className="card filters-card-wrapper">
-
                   {/* Search and Filters Section */}
                   <div className="search-features-grid-btns has-multi-tabs-btns one-row-content-wrapper">
-                    <div className="creator-content-search-input">
+                    <div className={`creator-content-search-input ${isSearchActive ? "w-full" : ""}`}>
                       <div className="label-input">
                         <div className="input-placeholder-icon">
                           <svg
@@ -177,82 +190,53 @@ const SubscriptionsPage = () => {
                             />
                           </svg>
                         </div>
-                        <input
-                          type="text"
-                          placeholder="Enter keyword here"
-                          value={searchText}
-                          onChange={(e) => {
-                            setSearchText(e.target.value);
-                            setPage(1);
-                          }}
-                        />
+                        <input ref={searchInputRef} type="text" placeholder="Enter keyword here" value={searchText} onChange={(e) => setSearchText(e.target.value)} onFocus={() => setIsSearchActive(true)} onBlur={() => { setTimeout(() => { if (!searchText) setIsSearchActive(false); }, 100); }} />
+                        {isSearchActive && (
+                          <button style={{marginLeft: "5px"}} className="btn-danger icon" onMouseDown={(e) => { e.preventDefault(); setSearchText(""); setIsSearchActive(false); searchInputRef.current?.blur(); setPage(1); }}><CircleX size={18} /></button>
+                        )}
                       </div>
                     </div>
+                    {!isSearchActive && (
+                      <div className="creater-content-filters-layouts w-fit">
+                        <div className="creator-content-select-filter group_select">
+                          <CustomSelect className="bg-white p-sm size-sm"
+                            label="All Status"
+                            options={statusOptions}
+                            value={status}
+                            onChange={(val: any) => {
+                              setStatus(val);
+                              setPage(1);
+                            }}
+                            searchable={false}
+                          />
 
-                    <div className="creater-content-filters-layouts">
-                      <div className="creator-content-select-filter group_select">
-
-                        <CustomSelect className="bg-white p-sm size-sm"
-                          label="All Status"
-                          options={statusOptions}
-                          value={status}
-                          onChange={(val: any) => {
-                            setStatus(val);
-                            setPage(1);
-                          }}
-                          searchable={false}
-                        />
-
-                        <CustomSelect
-                          className="bg-white p-sm size-sm"
-                          label="All Time"
-                          options={timeOptions}
-                          value={time}
-                          onChange={(val: any) => {
-                            setTime(val);
-                            setPage(1);
-                          }}
-                          searchable={false}
-                        />
-                        {/* <div className="custom-select-element bg-white p-sm size-sm">
-                          <div className="custom-select-label-wrapper">
-                            <div className="custom-select-icon-txt">
-                              <span className="custom-select-label-txt">All Creators</span>
-                            </div>
-                            <div className="custom-select-chevron">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                                <path d="M20.4201 8.95L13.9001 15.47C13.1301 16.24 11.8701 16.24 11.1001 15.47L4.58008 8.95" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            </div>
-                          </div>
-                          <div className="custom-select-options-dropdown-wrapper" data-custom-select-dropdown style={{translate: "none", rotate: "none", scale: "none", overflow: "hidden", display: "none", opacity: 0, transform: "translate(0px, -10px)", height: "0px",}}>
-                            <div className="custom-select-options-dropdown-container">
-                              <div className="custom-select-options-lists-container">
-                                <ul className="custom-select-options-list" data-custom-select-options-list>
-                                  <li className="custom-select-option"><span> Option 1</span></li>
-                                  <li className="custom-select-option"><span> Option 2</span></li>
-                                  <li className="custom-select-option"><span> Option 3</span></li>
-                                  <li className="custom-select-option"><span> Option 4</span></li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div> */}
+                          <CustomSelect
+                            className="bg-white p-sm size-sm"
+                            label="All Time"
+                            options={timeOptions}
+                            value={time}
+                            onChange={(val: any) => {
+                              setTime(val);
+                              setPage(1);
+                            }}
+                            searchable={false}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Tab Content */}
                   <div className="creator-content-cards-wrapper subscriptions_containt">
                     {loading && subscribers.length === 0 && <div className="loadingtext">{"Loading".split("").map((char, i) => (<span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>{char}</span>))}</div>}
-                  {!loading &&
-                    ((activeTab === "subscribers" && subscribers.length === 0) ||
-                      (activeTab === "subscriptions" && subscriptions.length === 0)) && (
-                      <div className="nofound">
-                        <h3 className="first">No media found</h3>
-                        <h3 className="second">No media found</h3>
-                      </div>
-                  )}
+                    {!loading &&
+                      ((activeTab === "subscribers" && subscribers.length === 0) ||
+                        (activeTab === "subscriptions" && subscriptions.length === 0)) && (
+                        <div className="nofound">
+                          <h3 className="first">No media found</h3>
+                          <h3 className="second">No media found</h3>
+                        </div>
+                      )}
                     {activeTab === "subscribers" && (
                       <div className="rel-users-wrapper">
                         {subscribers?.map((item: any) => {
