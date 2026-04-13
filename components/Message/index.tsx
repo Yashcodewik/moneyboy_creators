@@ -813,6 +813,7 @@ const MessagePage = () => {
           threadId: activeThreadId,
           messageId: res._id,
         });
+        await dispatch(fetchMessages(activeThreadId));
       } else {
         toast.error(res?.error || "Voice upload failed");
       }
@@ -1360,6 +1361,9 @@ const MessagePage = () => {
                                       ? msg.ppvRequestId.creatorId._id
                                       : msg.ppvRequestId.creatorId);
 
+                                      const isExpired = msg.ppvRequestId?.status === "EXPIRED" ||
+                                  new Date(msg.ppvRequestId?.expiresAt).getTime() < Date.now();
+
                                   return (
                                     <React.Fragment key={msg._id}>
                                       {showDateDivider && (
@@ -1504,6 +1508,11 @@ const MessagePage = () => {
                                                     request rejected
                                                   </div>
                                                 )}
+                                                {isExpired && (
+                                                <div className="warning_wrap danger">
+                                                  This request is expired, try new one
+                                                </div>
+                                              )}
 
                                               {msg.ppvRequestId.status ===
                                                 "ACCEPTED" && (
@@ -1541,7 +1550,7 @@ const MessagePage = () => {
                                         } */}
 
                                               {/* UPLOAD BOX — CREATOR ONLY + PENDING */}
-                                              {isCreator &&
+                                              {isCreator && !isExpired &&
                                                 msg.ppvRequestId.status ===
                                                 "PENDING" && (
                                                   <div
@@ -1805,7 +1814,7 @@ const MessagePage = () => {
 
                                                 <div className="right">
                                                   {/* CREATOR SIDE — PENDING */}
-                                                  {isCreator &&
+                                                  {isCreator && !isExpired && 
                                                     msg.ppvRequestId.status ===
                                                     "PENDING" && (
                                                       <>
@@ -1815,7 +1824,7 @@ const MessagePage = () => {
                                                             if (
                                                               !msg.ppvRequestId
                                                                 .deliveredMedia
-                                                                ?.length
+                                                                ?.length  
                                                             ) {
                                                               showError(
                                                                 "Please upload media first",
@@ -1862,11 +1871,14 @@ const MessagePage = () => {
                                                     )}
                                                 </div>
                                               </div>
-
+                                            {!isExpired &&
+                                              (msg.ppvRequestId.status === "PENDING" ||
+                                              msg.ppvRequestId.status === "MEDIA_UPLOADED") && (
                                               <div className="timer_wrap mt-3">
                                                 <p>Expires In</p>
-                                                <FlipClockCountdown to={new Date().getTime() + 5 * 60 * 1000} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>Finished</FlipClockCountdown>
+                                                <FlipClockCountdown to={new Date(msg.ppvRequestId?.expiresAt).getTime()} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>Finished</FlipClockCountdown>
                                               </div>
+                                            )}
 
                                             </div>
                                           )}

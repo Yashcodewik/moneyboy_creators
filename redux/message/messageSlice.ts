@@ -128,14 +128,18 @@ const messageSlice = createSlice({
               unreadCount: isActiveChat
                 ? 0
                : (chat.unreadCount ?? 0) + 1,
-              lastMessage: msg.message || "",
+              lastMessage:
+  msg.message ||
+  (msg.type === 5 ? "PPV Request" : ""),
             }
             : chat
         );
       } else {
         state.chatList.unshift({
           publicId: msg.threadId,
-          lastMessage: msg.message || "",
+         lastMessage:
+  msg.message ||
+  (msg.type === 5 ? "PPV Request" : ""),
           unreadCount: 1,
           user: {
             id: msg.senderId?._id,
