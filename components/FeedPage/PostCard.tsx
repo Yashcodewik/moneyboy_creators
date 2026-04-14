@@ -208,8 +208,16 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     dispatch(fetchComments({ postId: post._id, currentUserId }));
   };
 
+  useEffect(() => {
+  if (isMobile) {
+    setShowEmojiPicker(false);
+  }
+}, [isMobile]);
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
+
+     if (isMobile) return;
+     
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -898,7 +906,10 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
                     <div
                       ref={emojiButtonRef}
                       className="input-placeholder-icon"
-                      onClick={() => setShowEmojiPicker((prev) => !prev)}
+                      onClick={() => {
+  if (isMobile) return; // 🚫 block on mobile
+  setShowEmojiPicker((prev) => !prev);
+}}
                     >
                       <i className="icons emojiSmile svg-icon"></i>
                     </div>

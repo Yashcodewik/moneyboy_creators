@@ -95,16 +95,16 @@ export const buildAuthOptions = (req?: NextRequest | any): NextAuthOptions => ({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
 
-    TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID!,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "2.0",
-      authorization: {
-        params: {
-          scope: "users.read tweet.read users.email",
-        },
-      },
-    }),
+ TwitterProvider({
+  clientId: process.env.TWITTER_CLIENT_ID!,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+  version: "2.0",
+  authorization: {
+    params: {
+      scope: "tweet.read tweet.write users.read offline.access",
+    },
+  },
+}),
   ],
 
   session: { strategy: "jwt" },
@@ -136,12 +136,19 @@ if (userType === "Activities") {
     return "/login";
   }
 
+  console.log("TWITTER ACCOUNT:", account);
+
+const twitterAccessToken = account?.access_token;
+const twitterRefreshToken = account?.refresh_token;
+
   const res = await serverApiPost({
     url: API_SOCIAL_ACTIVATE,
     values: {
       provider: account.provider,
       providerAccountId: account.providerAccountId,
       email: user.email,
+        accessToken: twitterAccessToken,
+  refreshToken: twitterRefreshToken,
     },
     token: accessToken,
   });

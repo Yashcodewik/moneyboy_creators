@@ -245,6 +245,7 @@ const StorePage = () => {
   const [time, setTime] = useState<TimeFilter>("all_time");
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const [creatorPage, setCreatorPage] = useState(1);
 
   // ========== Creator / Store State ==========
   const [selectedCreator, setSelectedCreator] = useState<any | null>(null);
@@ -299,7 +300,12 @@ const StorePage = () => {
     if (creatorFromUrl) { setActiveMainTab("marketplace"); return; }
     setActiveMainTab(isCreator ? "mystore" : "marketplace");
   }, [tabFromUrl, creatorFromUrl, isCreator]);
-  useEffect(() => { dispatch(fetchAllCreators({ page: 1, creatorPublicId: creatorFromUrl || undefined })); }, [dispatch, creatorFromUrl]);
+  useEffect(() => {
+    dispatch(fetchAllCreators({
+      page: creatorPage,
+      creatorPublicId: creatorFromUrl || undefined
+    }));
+  }, [dispatch, creatorPage, creatorFromUrl]);
   useEffect(() => {
     if (!creatorFromUrl || !creators?.length) return;
     const creator = creators.find((c) => c.publicId === creatorFromUrl);
@@ -493,17 +499,68 @@ const StorePage = () => {
                     <div className="head_text">
                       <h5 className="flex items-end justify-center"><img src="/images/logo/profile-badge.png" alt="M Icons" className="max-w-22" />{" "}Creators</h5>
                       <div className="btn-controls">
-                        <button className="moneyboy-swiper-control-btn" disabled={isBeginning} onClick={() => swiperRef.current?.slidePrev()}><ChevronLeft size={18} /></button>
-                        <button className="moneyboy-swiper-control-btn" disabled={isEnd} onClick={() => swiperRef.current?.slideNext()}><ChevronRight size={18} /></button>
+                        <button
+                          className="moneyboy-swiper-control-btn"
+                          disabled={isBeginning && creatorPage === 1}
+                          onClick={() => {
+                            if (isBeginning && creatorPage > 1) {
+                              setCreatorPage((prev) => prev - 1);
+                            } else {
+                              swiperRef.current?.slidePrev();
+                            }
+                          }}
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+
+                        <button
+                          className="moneyboy-swiper-control-btn"
+                          disabled={isEnd && creatorPage === creatorsPagination?.totalPages}
+                          onClick={() => {
+                            if (isEnd && creatorPage < creatorsPagination?.totalPages) {
+                              setCreatorPage((prev) => prev + 1);
+                            } else {
+                              swiperRef.current?.slideNext();
+                            }
+                          }}
+                        >
+                          <ChevronRight size={18} />
+                        </button>
                       </div>
                     </div>
-                    <Swiper onSwiper={(swiper) => {swiperRef.current = swiper; setTimeout(() => { swiper.update(); setIsBeginning(swiper.isBeginning); setIsEnd(swiper.isEnd); }, 100);}} onSlideChange={(swiper) => { setIsBeginning(swiper.isBeginning); setIsEnd(swiper.isEnd);}} slidesPerView="auto" spaceBetween={0} watchOverflow={true} observer={true} observeParents={true} className="creators-swiper">
+                    <Swiper
+                      onSwiper={(swiper) => {
+                        swiperRef.current = swiper;
+                        setIsBeginning(swiper.isBeginning);
+                        setIsEnd(swiper.isEnd);
+                      }}
+                      onSlideChange={(swiper) => {
+                        setIsBeginning(swiper.isBeginning);
+                        setIsEnd(swiper.isEnd);
+                      }}
+                      onReachEnd={() => setIsEnd(true)}
+                      onReachBeginning={() => setIsBeginning(true)}
+                      slidesPerView="auto"
+                      spaceBetween={0}
+                      watchOverflow={true}
+                      observer={true}
+                      observeParents={true}
+                      className="creators-swiper"
+                    >
                       {creators.map((creator) => (
                         <SwiperSlide key={creator._id} style={{ width: "auto" }}>
-                          <div className={`creator-item ${selectedCreator?.publicId === creator.publicId ? "active" : ""}`} onClick={() => handleCreatorClick(creator)}>
+                          <div
+                            className={`creator-item ${selectedCreator?.publicId === creator.publicId ? "active" : ""
+                              }`}
+                            onClick={() => handleCreatorClick(creator)}
+                          >
                             <div className="icons_wrap">
                               {creator.profile ? (
-                                <img src={creator.profile} alt={creator.displayName} className="creator-avatar" />
+                                <img
+                                  src={creator.profile}
+                                  alt={creator.displayName}
+                                  className="creator-avatar"
+                                />
                               ) : (
                                 <NoProfilePlaceholder />
                               )}
@@ -525,7 +582,7 @@ const StorePage = () => {
                           <div className="hero-type-card--content-container">
                             <h2>Unlock exclusive content</h2>
                             <div className="hero-type-card--desc"><p>Discover Top Moneyboys, Trending & New Content photos, videos.</p></div>
-                            <button className="btn-txt-gradient shimmer btn-outline p-sm"><span>Shop Now</span></button>
+                            {/* <button className="btn-txt-gradient shimmer btn-outline p-sm"><span>Shop Now</span></button> */}
                           </div>
                         </div>
                       </div>
