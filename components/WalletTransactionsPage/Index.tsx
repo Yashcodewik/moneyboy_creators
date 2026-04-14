@@ -11,6 +11,7 @@ import { useAppDispatch } from "@/redux/store";
 import { useSelector } from "react-redux";
 import { fetchTransactions } from "@/redux/wallet/Action";
 import { CircleQuestionMark } from "lucide-react";
+import { clearTransactions } from "@/redux/wallet/Slice";
 
 const WalletTransactionsPage = () => {
   const isMobile = useDeviceType();
@@ -154,6 +155,8 @@ const WalletTransactionsPage = () => {
   useEffect(() => {
     if (!session?.user?.role) return;
 
+    dispatch(clearTransactions());
+
     dispatch(
       fetchTransactions({
         activeTab,
@@ -170,6 +173,27 @@ const WalletTransactionsPage = () => {
     setActiveTab(tab);
     router.replace(`/wallet-transactions?tab=${tab}`, { scroll: false });
   };
+
+const getStatusLabel = (txn: any, isIncoming: any) => {
+  const effectiveStatus = isIncoming
+    ? (txn.toUserStatus ?? txn.status)
+    : (txn.fromUserStatus ?? txn.status);
+
+  if (effectiveStatus === "SUCCESS") return "Success";
+
+  if (effectiveStatus === "HELD") {
+    return isIncoming ? "Waiting for acceptance" : "Pending Approval";
+  }
+
+  if (effectiveStatus === "PENDING") {
+    return isIncoming ? "Pending Earnings" : "Processing";
+  }
+
+  if (effectiveStatus === "REFUNDED") return "Refunded";
+
+  return effectiveStatus;
+};
+
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -254,9 +278,9 @@ const WalletTransactionsPage = () => {
 
                           {transactions.length > 0 ? (
                             transactions.map((txn: any) => {
-                              const isIncoming =
-                                txn.toUser?._id === session?.user?.id;
+                              const isIncoming = String(txn.toUser?._id) === String(session?.user?.id);
                               let otherUser = null;
+                              
 
                               if (txn.type === "ADD_FUNDS") {
                                 otherUser = {
@@ -274,8 +298,8 @@ const WalletTransactionsPage = () => {
                                 }
                               }
                               const isDeposit = txn.type === "ADD_FUNDS";
-                              const isPaymentTab = activeTab === "payouts";
-
+                              const isPaymentTab = activeTab === "payouts";  
+                              const label = getStatusLabel(txn, isIncoming);               
                               return (
                                 <div className="rel-user-box" key={txn._id}>
                                   <div className="rel-user-profile-action">
@@ -361,25 +385,25 @@ const WalletTransactionsPage = () => {
                                                 </div>
                                                 <div className="profile-card__name-badge">
                                                   <div className="profile-card__name">
-                                                    {otherUser?.displayName || txn.type === "PROFILE_PROMOTION" ? "Profile Promotion" : "Wallet Top-up"}
+                                                    {txn.type === "PROFILE_PROMOTION"
+                                                      ? "Profile Promotion"
+                                                      : otherUser?.displayName || "Wallet Top-up"}
                                                   </div>
                                                 </div>
                                               </>
                                             )}
                                             <div className="profile-card__username">
-                                              {txn.status === "SUCCESS" && (
-                                                <span className="badge success">
-                                                  Success
-                                                </span>
-                                              )}
+                                             <span
+                                                className={`badge ${
+                                                  label === "Success" ? "success" : "pending"
+                                                }`}
+                                              >
+                                                {label}
+                                              </span>
+
                                               <span className="badge gray">
                                                 {txn.paymentMethod || "card"}
                                               </span>
-                                              {txn.status === "PENDING" && (
-                                                <span className="badge pending">
-                                                  In Review
-                                                </span>
-                                              )}
                                             </div>
                                           </div>
                                         </Link>
