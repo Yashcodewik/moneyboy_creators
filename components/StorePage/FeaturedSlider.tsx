@@ -30,7 +30,7 @@ export default function FeaturedContentSlider({
   const dispatch = useDispatch<AppDispatch>();
   const { session } = useDecryptedSession();
   const router = useRouter();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRefs = useRef<{ [key: string]: HTMLVideoElement }>({});
   const loggedInUserId = session?.user?.id;
   const [mediaErrors, setMediaErrors] = useState<Record<string, boolean>>({});
 
@@ -70,21 +70,24 @@ export default function FeaturedContentSlider({
     }
   };
 
-  const handleVideoHover = (video: HTMLVideoElement) => {
-    video.muted = true;
-    video.currentTime = 0;
-    video.play();
+  useEffect(() => {
+    const videos = Object.values(videoRefs.current);
 
-    setTimeout(() => {
-      video.pause();
-      video.currentTime = 0;
-    }, 2500); // 2.5 sec preview
-  };
+    videos.forEach((video) => {
+      if (!video) return;
 
-  const handleVideoLeave = (video: HTMLVideoElement) => {
-    video.pause();
-    video.currentTime = 0;
-  };
+      // ✅ Force load video
+      video.load();
+
+      // ✅ Safari trick: move slightly forward
+      try {
+        video.currentTime = 0.01;
+      } catch (e) { }
+
+      // ❌ DO NOT call play()
+    });
+  }, [featuredPosts]);
+
   return (
     <Swiper
       modules={[Navigation]}
@@ -107,22 +110,60 @@ export default function FeaturedContentSlider({
               <div className="featured-content-premium-card-container">
                 <div className="featured-content-bg-img">
                   {post.media?.[0]?.type === "video" &&
-                  post.media?.[0]?.mediaFiles?.[0] &&
-                  !mediaErrors[post._id] ? (
+                    post.media?.[0]?.mediaFiles?.[0] &&
+                    !mediaErrors[post._id] ? (
+                    // <video
+                    //   src={post.media[0].mediaFiles[0]}
+                    //   muted
+                    //   playsInline
+                    //   preload="metadata"
+                    //   onMouseEnter={(e) => handleVideoHover(e.currentTarget)}
+                    //   onMouseLeave={(e) => handleVideoLeave(e.currentTarget)}
+                    //   onError={() =>
+                    //     setMediaErrors((prev) => ({
+                    //       ...prev,
+                    //       [post._id]: true,
+                    //     }))
+                    //   }
+                    // />
                     <video
+                      ref={(el) => {
+                        if (el) {
+                          videoRefs.current[post._id] = el;
+                        }
+                      }}
                       src={post.media[0].mediaFiles[0]}
                       muted
                       playsInline
-                      preload="metadata"
-                      onMouseEnter={(e) => handleVideoHover(e.currentTarget)}
-                      onMouseLeave={(e) => handleVideoLeave(e.currentTarget)}
-                      onError={() =>
-                        setMediaErrors((prev) => ({
-                          ...prev,
-                          [post._id]: true,
-                        }))
-                      }
+                      webkit-playsinline="true"
+                      preload="auto"
+                      loop
+                      onLoadedData={(e) => {
+                        const video = e.currentTarget;
+                        video.pause();
+                        video.currentTime = 0;
+                        const playPromise = video.play();
+                        if (playPromise !== undefined) {
+                          playPromise.then(() => {
+                            video.pause();
+                          });
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        const v = e.currentTarget;
+                        v.play().catch(() => { });
+                      }}
+                      onMouseLeave={(e) => {
+                        const v = e.currentTarget;
+                        v.pause();
+                        v.currentTime = 0;
+                      }}
+                      onClick={(e) => {
+                        const v = e.currentTarget;
+                        v.play().catch(() => { });
+                      }}
                     />
+
                   ) : post.media?.[0]?.mediaFiles?.[0] &&
                     !mediaErrors[post._id] ? (
                     <img

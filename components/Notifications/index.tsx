@@ -240,8 +240,8 @@ const NotificationPage = () => {
                   {/* ✅ EMPTY STATE */}
                   {!loading && notifications.length === 0 && (
                     <div className="nofound">
-                      <h3 className="first">No notifications found</h3>
-                      <h3 className="second">No notifications found</h3>
+                      <h3 className="first">No Data found</h3>
+                      <h3 className="second">No Data found</h3>
                     </div>
                   )}
                   {notifications.map((noti) => (

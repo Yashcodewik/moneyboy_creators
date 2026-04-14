@@ -140,13 +140,96 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
   const mediaUrl = media?.mediaFiles?.[0] || "";
   const isOwnPost = isCreator && post.userId === loggedInUserId;
   const isSaved = post.isSaved;
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+
+
+  const playPreview = async (id: string) => {
+    const video = videoRefs.current[id];
+    if (!video) return;
+
+    try {
+      video.muted = true; // MUST for Safari
+      video.currentTime = 0;
+      await video.play();
+    } catch (err) {
+      console.log("Play blocked:", err);
+    }
+  };
+
+
+  const stopPreview = (id: string) => {
+    const video = videoRefs.current[id];
+    if (!video) return;
+
+    video.pause();
+    video.currentTime = 0;
+  };
+
+  useEffect(() => {
+    Object.values(videoRefs.current).forEach((video) => {
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+
+        const playPromise = video.play();
+
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              video.pause(); // render first frame only
+            })
+            .catch(() => { });
+        }
+      }
+    });
+  }, [mediaUrl]);
+
+
 
   const renderMedia = () => {
     if (mediaType === "video") {
       if (mediaUrl && !videoErrors[post._id]) {
         return (
           <div className="creator-media-card__media post_playbtn">
-            <video ref={(el) => { if (el) videoRefs.current[post._id] = el; else delete videoRefs.current[post._id]; }} src={mediaUrl} playsInline muted preload="metadata" />
+            <video
+              ref={(el) => {
+                if (el) videoRefs.current[post._id] = el;
+              }}
+              src={mediaUrl}
+              muted
+              playsInline
+              webkit-playsinline="true"
+              loop
+              preload="auto"
+              onMouseEnter={() => {
+                if (!isTouchDevice) playPreview(post._id);
+              }}
+              onMouseLeave={() => {
+                if (!isTouchDevice) stopPreview(post._id);
+              }}
+              onClick={(e) => {
+                if (!isTouchDevice) return;
+
+                const video = videoRefs.current[post._id];
+                if (!video) return;
+
+                Object.values(videoRefs.current).forEach((v) => {
+                  if (v && v !== video) {
+                    v.pause();
+                    v.currentTime = 0;
+                  }
+                });
+
+                video.muted = true;
+                video.currentTime = 0;
+
+                video.play().catch(() => { });
+
+              }}
+            />
+
             {playingId !== post._id && (
               <Link href="#" className="ply_btn" onClick={(e) => onPlayClick(e, post._id)}><PlayCircle strokeWidth={1} size={32} /></Link>
             )}
