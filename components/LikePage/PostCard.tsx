@@ -212,8 +212,18 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
     `/post?page&publicId=${post.publicId}&comment=open`
   );
 };
+useEffect(() => {
+  if (isMobile) {
+    setShowEmojiPicker(false);
+  }
+}, [isMobile]);
+
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
+
+    if (isMobile) return; // 🚫 block mobile
+
+
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -522,11 +532,20 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
             <div className="comment-wrap">
               <div className="label-input">
                 <textarea ref={textareaRef} placeholder="Add a comment here" value={newComment} onChange={(e) => setNewComment(e.target.value)} />
-                <div ref={emojiButtonRef} className="input-placeholder-icon" onClick={() => setShowEmojiPicker((prev) => !prev)}>
-                  <i className="icons emojiSmile svg-icon"></i>
-                </div>
+                {!isMobile && (
+  <div
+    ref={emojiButtonRef}
+    className="input-placeholder-icon"
+    onClick={() => {
+      if (isMobile) return;
+      setShowEmojiPicker((prev) => !prev);
+    }}
+  >
+    <i className="icons emojiSmile svg-icon"></i>
+  </div>
+)}
               </div>
-              {showEmojiPicker && (
+              {showEmojiPicker && !isMobile && (
                 <div ref={emojiRef} className="emoji-picker-wrapper">
                   <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={360} width={340} />
                 </div>

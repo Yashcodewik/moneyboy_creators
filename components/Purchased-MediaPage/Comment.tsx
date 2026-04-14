@@ -8,30 +8,32 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { addComment, dislikeComment, fetchComments, likeComment } from "@/redux/other/commentSlice";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
+import { useDeviceType } from "@/hooks/useDeviceType";
 const timeAgo = (dateString: string) => {
-  const now = new Date();
-  const date = new Date(dateString);
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const now = new Date();
+    const date = new Date(dateString);
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (seconds < 60) return "Just now";
 
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} min ago`;
+    if (seconds < 60) return "Just now";
 
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} h ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
 
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} days ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} h ago`;
 
-  const weeks = Math.floor(days / 7);
-  if (weeks < 4) return `${weeks} weeks ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} days ago`;
 
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months} months ago`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return `${weeks} weeks ago`;
 
-  const years = Math.floor(days / 365);
-  return `${years} years ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months} months ago`;
+
+    const years = Math.floor(days / 365);
+    return `${years} years ago`;
 };
 
 const CommentsSection = memo(function CommentsSection({
@@ -47,8 +49,8 @@ const CommentsSection = memo(function CommentsSection({
     const [commentText, setCommentText] = useState("");
 
     const { session } = useDecryptedSession();
-
-const currentUserId = session?.user?.id;
+    const isMobile = useDeviceType();
+    const currentUserId = session?.user?.id;
 
 
     const dispatch = useDispatch<AppDispatch>();
@@ -89,9 +91,20 @@ const currentUserId = session?.user?.id;
                             value={commentText}
                             onChange={(e) => setCommentText(e.target.value)}
                         />
-                        <div className="input-placeholder-icon" ref={emojiBtnRef} onClick={() => setShowEmojiPicker((prev) => !prev)}><i className="icons emojiSmile svg-icon"></i></div>
+                        {!isMobile && (
+                            <div
+                                className="input-placeholder-icon"
+                                ref={emojiBtnRef}
+                                onClick={() => {
+                                    if (isMobile) return;
+                                    setShowEmojiPicker((prev) => !prev);
+                                }}
+                            >
+                                <i className="icons emojiSmile svg-icon"></i>
+                            </div>
+                        )}
                     </div>
-                    {showEmojiPicker && (
+                    {showEmojiPicker && !isMobile && (
                         <div className="emoji-picker-wrapper">
                             <EmojiPicker
                                 autoFocusSearch={false}
@@ -99,30 +112,32 @@ const currentUserId = session?.user?.id;
                                 previewConfig={{ showPreview: false }}
                                 height={360}
                                 width={340}
-                                 onEmojiClick={(emojiData) => {
-                                const emoji = emojiData.emoji;
-                                
+                                onEmojiClick={(emojiData) => {
 
-                                if (!textareaRef.current) return;
+                                    if (isMobile) return;
+                                    const emoji = emojiData.emoji;
 
-                                const textarea = textareaRef.current;
-                                const start = textarea.selectionStart;
-                                const end = textarea.selectionEnd;
 
-                                const newText =
-                                commentText.substring(0, start) +
-                                emoji +
-                                commentText.substring(end);
+                                    if (!textareaRef.current) return;
 
-                                setCommentText(newText);
+                                    const textarea = textareaRef.current;
+                                    const start = textarea.selectionStart;
+                                    const end = textarea.selectionEnd;
 
-                                // move cursor after emoji
-                                setTimeout(() => {
-                                textarea.focus();
-                                textarea.selectionStart = textarea.selectionEnd =
-                                    start + emoji.length;
-                                }, 0);
-                            }}
+                                    const newText =
+                                        commentText.substring(0, start) +
+                                        emoji +
+                                        commentText.substring(end);
+
+                                    setCommentText(newText);
+
+                                    // move cursor after emoji
+                                    setTimeout(() => {
+                                        textarea.focus();
+                                        textarea.selectionStart = textarea.selectionEnd =
+                                            start + emoji.length;
+                                    }, 0);
+                                }}
                             />
                         </div>
                     )}
@@ -145,17 +160,17 @@ const currentUserId = session?.user?.id;
 
             {/* ================= Render Top Comment Only ================= */}
             <div className="scrollbar">
-            {loading && comments.length === 0 && (
-                <div className="loadingtext">
-                    {"Loading".split("").map((char, i) => (
-                    <span
-                        key={i}
-                        style={{ animationDelay: `${(i + 1) * 0.1}s` }}
-                    >
-                        {char}
-                    </span>
-                    ))}
-                </div>
+                {loading && comments.length === 0 && (
+                    <div className="loadingtext">
+                        {"Loading".split("").map((char, i) => (
+                            <span
+                                key={i}
+                                style={{ animationDelay: `${(i + 1) * 0.1}s` }}
+                            >
+                                {char}
+                            </span>
+                        ))}
+                    </div>
                 )}
                 {!loading && comments.length === 0 && (
                     <p>No comments yet</p>
@@ -170,44 +185,44 @@ const currentUserId = session?.user?.id;
                     );
 
                     return (
-                    <div key={comment._id} className="card gap-15 comment_show">
-                        <div className="moneyboy-post__header">
-                            <a href="#" className="profile-card">
-                                <div className="profile-card__main">
-                                    <div className="profile-card__avatar-settings">
-                                        <div className="profile-card__avatar">
-                                            <img src={comment.userId?.profile || "/images/profile-avatars/profile-avatar-6.jpg"} alt="User profile" />
+                        <div key={comment._id} className="card gap-15 comment_show">
+                            <div className="moneyboy-post__header">
+                                <a href="#" className="profile-card">
+                                    <div className="profile-card__main">
+                                        <div className="profile-card__avatar-settings">
+                                            <div className="profile-card__avatar">
+                                                <img src={comment.userId?.profile || "/images/profile-avatars/profile-avatar-6.jpg"} alt="User profile" />
+                                            </div>
+                                        </div>
+                                        <div className="profile-card__info">
+                                            <div className="profile-card__name-badge">
+                                                <div className="profile-card__name">{comment.userId?.displayName || "User"}</div>
+                                            </div>
+                                            <div className="profile-card__username">@{comment.userId?.username || "User"}</div>
                                         </div>
                                     </div>
-                                    <div className="profile-card__info">
-                                        <div className="profile-card__name-badge">
-                                            <div className="profile-card__name">{comment.userId?.displayName || "User"}</div>
-                                        </div>
-                                        <div className="profile-card__username">@{comment.userId?.username || "User"}</div>
-                                    </div>
+                                </a>
+                                <div className="moneyboy-post__upload-more-info">
+                                    <div className="moneyboy-post__upload-time">{timeAgo(comment.createdAt)}</div>
                                 </div>
-                            </a>
-                            <div className="moneyboy-post__upload-more-info">
-                                <div className="moneyboy-post__upload-time">{timeAgo(comment.createdAt)}</div>
+                            </div>
+                            <div className="moneyboy-post__desc">
+                                <p>{comment.comment}</p>
+                            </div>
+                            <div className="like-deslike-wrap">
+                                <ul>
+                                    <li>
+                                        <Link href="#" className={`comment-like-btn`} onClick={async (e) => { e.preventDefault(); await dispatch(likeComment({ commentId: comment._id, currentUserId })); dispatch(fetchComments({ postId, currentUserId })); }}><ThumbsUp strokeWidth={2} /> {comment.likeCount}</Link>
+                                    </li>
+                                    <li>
+                                        <Link href="#" className={`comment-dislike-btn`} onClick={async (e) => { e.preventDefault(); await dispatch(dislikeComment({ commentId: comment._id, currentUserId })); dispatch(fetchComments({ postId, currentUserId })); }}><ThumbsDown strokeWidth={2} /> {comment.dislikeCount}</Link>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                        <div className="moneyboy-post__desc">
-                            <p>{comment.comment}</p>
-                        </div>
-                        <div className="like-deslike-wrap">
-                            <ul>
-                                <li>
-                                    <Link href="#" className={`comment-like-btn`} onClick={async (e) => {e.preventDefault(); await dispatch(likeComment({ commentId: comment._id, currentUserId })); dispatch(fetchComments({ postId, currentUserId }));}}><ThumbsUp  strokeWidth={2} /> {comment.likeCount}</Link>
-                                </li>
-                                <li>
-                                    <Link href="#" className={`comment-dislike-btn`} onClick={async (e) => {e.preventDefault(); await dispatch(dislikeComment({ commentId: comment._id, currentUserId })); dispatch(fetchComments({ postId, currentUserId }));}}><ThumbsDown strokeWidth={2} /> {comment.dislikeCount}</Link>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                )
-})
-        }
+                    )
+                })
+                }
 
             </div>
         </div>

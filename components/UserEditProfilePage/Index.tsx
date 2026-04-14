@@ -15,6 +15,7 @@ import ImageCropModal from "./ImageCropModal";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import { useSession } from "next-auth/react";
+import { useDeviceType } from "@/hooks/useDeviceType";
 countries.registerLocale(enLocale);
 
 // ========== Enums & Constants ==========
@@ -107,6 +108,7 @@ const UserEditProfilePage = () => {
   const [cropOpen, setCropOpen] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"avatar" | "cover" | null>(null);
+  const isMobile = useDeviceType();
 
   const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -433,22 +435,107 @@ const UserEditProfilePage = () => {
                               />
                           </div>
                             {/* Date of Birth */}
-                            <div className="label-input calendar-dropdown" ref={calendarRef}>
-                              <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
-                              <input type="text" placeholder="Date of Birth (DD/MM/YYYY)" className="form-input" readOnly value={selectedDate ? selectedDate.toLocaleDateString("en-GB") : ""} onClick={(e) => { e.stopPropagation(); setCalendarOpen(true); }} />
-                              {calendarOpen && (
-                                <div className="calendar_show shadow" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                                  <DatePicker selected={selectedDate} inline renderCustomHeader={({ date, changeYear, changeMonth, }) => (
-                                    <div className="flex gap-5 select_wrap p-2" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                                      <CustomSelect options={months} searchable={false} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} />
-                                      <CustomSelect options={years} searchable={false} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} />
-                                    </div>
-                                  )}
-                                    onChange={(date: Date | null) => { setSelectedDate(date); if (date) { handleFormChange("dob", date.toISOString()); } setCalendarOpen(false); }}
-                                  />
-                                </div>
-                              )}
-                            </div>
+                       <div className="label-input calendar-dropdown" ref={calendarRef}>
+  <div className="input-placeholder-icon">
+    <CalendarDays className="icons svg-icon" />
+  </div>
+
+  {isMobile ? (
+    // ✅ MOBILE
+    <input
+      type="date"
+      className="form-input"
+      value={
+        selectedDate && !isNaN(selectedDate.getTime())
+          ? selectedDate.toISOString().split("T")[0]
+          : ""
+      }
+      onChange={(e) => {
+        const value = e.target.value;
+
+        // ✅ CLEAR FIX
+        if (!value) {
+          setSelectedDate(null);
+          handleFormChange("dob", "");
+          return;
+        }
+
+        const date = new Date(value);
+
+        // ✅ SAFETY
+        if (isNaN(date.getTime())) return;
+
+        setSelectedDate(date);
+        handleFormChange("dob", date.toISOString());
+      }}
+    />
+  ) : (
+    // ✅ DESKTOP
+    <>
+      <input
+        type="text"
+        placeholder="(DD/MM/YYYY)"
+        className="form-input"
+        readOnly
+        value={
+          selectedDate && !isNaN(selectedDate.getTime())
+            ? selectedDate.toLocaleDateString("en-GB")
+            : ""
+        }
+        onClick={(e) => {
+          e.stopPropagation();
+          setCalendarOpen(true);
+        }}
+      />
+
+      {calendarOpen && (
+        <div
+          className="calendar_show shadow"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <DatePicker
+            selected={selectedDate}
+            inline
+            renderCustomHeader={({ date, changeYear, changeMonth }) => (
+              <div className="flex gap-5 select_wrap p-2">
+                <CustomSelect
+                  options={months}
+                  searchable={false}
+                  value={date.getMonth().toString()}
+                  onChange={(val) => changeMonth(Number(val))}
+                />
+                <CustomSelect
+                  options={years}
+                  searchable={false}
+                  value={date.getFullYear().toString()}
+                  onChange={(val) => changeYear(Number(val))}
+                />
+              </div>
+            )}
+            onChange={(date: Date | null) => {
+              // ✅ CLEAR FIX
+              if (!date) {
+                setSelectedDate(null);
+                handleFormChange("dob", "");
+                setCalendarOpen(false);
+                return;
+              }
+
+              // ✅ SAFETY
+              if (isNaN(date.getTime())) return;
+
+              setSelectedDate(date);
+              handleFormChange("dob", date.toISOString());
+
+              setCalendarOpen(false);
+            }}
+          />
+        </div>
+      )}
+    </>
+  )}
+</div>
                             {/* Country */}
                             <CustomSelect
                               label="Select Country *"

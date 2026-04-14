@@ -128,6 +128,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [creatorManuallySet, setCreatorManuallySet] = useState(false);
   const creatorManuallySetRef = useRef(false);
+  const [shareOnX, setShareOnX] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
   const [selectedTagUsers, setSelectedTagUsers] = useState<
@@ -530,23 +531,6 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     e.target.value = "";
   };
 
-  const handleShareOnX = async () => {
-    try {
-      const postUrl = `${window.location.origin}/${creator.username}`;
-
-      const shareText = formik.values.text
-        ? formik.values.text.substring(0, 200)
-        : "Check out my latest post!";
-
-      const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        shareText,
-      )}&url=${encodeURIComponent(postUrl)}`;
-
-      window.open(tweetUrl, "_blank", "width=550,height=420");
-    } catch (err) {
-      showError("Failed to open X share");
-    }
-  };
 
   const formik = useFormik({
     initialValues: {
@@ -633,7 +617,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         formData.append("text", values.text);
         formData.append("accessType", values.accessType);
         formData.append("isScheduled", values.isScheduled ? "true" : "false");
-
+formData.append("shareOnX", shareOnX ? "true" : "false");
         if (values.accessType === "pay_per_view") {
           formData.append("price", values.price);
         }
@@ -743,30 +727,7 @@ if (selectedTagUsers.length === 0) {
   );
 }
 
-        // Ask user if they want to share on X
-        const shareOnX = await showQuestion(
-          "Post created! Would you like to share it on X (Twitter)?",
-          "Share on X",
-          "Skip",
-        );
-
-        if (shareOnX) {
-          const postPublicId = res?.post?.publicId;
-          const postUrl = postPublicId
-            ? `${window.location.origin}/post?publicId=${postPublicId}`
-            : `${window.location.origin}/${creator.username}`;
-
-          const shareText = formik.values.text
-            ? formik.values.text.substring(0, 200)
-            : "Check out my latest post!";
-
-          const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(postUrl)}`;
-          window.open(
-            tweetUrl,
-            "_blank",
-            "width=550,height=420,noopener,noreferrer",
-          );
-        }
+ 
 
         showSuccess("Post created successfully");
         onClose();
@@ -1302,7 +1263,7 @@ if (selectedTagUsers.length === 0) {
                         !hasMedia ? "Add media to share on X" : "Share on X"
                       }
                       disabled={!hasMedia}
-                      onClick={handleShareOnX}
+                      onClick={() => setShareOnX((prev) => !prev)}
                     >
                       <FaXTwitter size={20} />
                     </button>

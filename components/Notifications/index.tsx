@@ -225,6 +225,25 @@ const NotificationPage = () => {
                   hasMore={hasMore}
                   scrollableTarget="feed-scroll-container"
                 >
+
+                  {loading && notifications.length === 0 && (
+                    <div className="loadingtext">
+                      <img src="/images/micons.png" alt="M" className="loading-letter-img" />
+                      {"oneyBoy".split("").map((char, i) => (
+                        <span key={i} style={{ animationDelay: `${(i + 2) * 0.1}s` }}>
+                          {char}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ✅ EMPTY STATE */}
+                  {!loading && notifications.length === 0 && (
+                    <div className="nofound">
+                      <h3 className="first">No notifications found</h3>
+                      <h3 className="second">No notifications found</h3>
+                    </div>
+                  )}
                   {notifications.map((noti) => (
                     <div className="noti-item" key={noti._id} onClick={() => {
                       if ([3, 4, 9, 10, 11, 8].includes(noti.type)) {

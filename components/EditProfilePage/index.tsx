@@ -503,27 +503,39 @@ const EditProfilePage = () => {
                                 type="date"
                                 className="form-input"
                                 value={
-                                  startDate
-                                    ? startDate.toISOString().split("T")[0]
-                                    : ""
-                                }
+  startDate && !isNaN(startDate.getTime())
+    ? startDate.toISOString().split("T")[0]
+    : ""
+}
                                 max={
                                   maxAllowedDate
                                     ? maxAllowedDate.toISOString().split("T")[0]
                                     : undefined
                                 }
-                                onChange={(e) => {
-                                  const date = new Date(e.target.value);
-                                  if (!date) return;
+                              onChange={(e) => {
+  const value = e.target.value;
 
-                                  setStartDate(date);
+  // ✅ HANDLE CLEAR
+  if (!value) {
+    setStartDate(null);
+    formik.setFieldValue("dob", null);
+    formik.setFieldValue("age", "");
+    return;
+  }
 
-                                  const formattedDate = date.toISOString();
-                                  formik.setFieldValue("dob", formattedDate);
+  const date = new Date(value);
 
-                                  const age = calculateAge(date);
-                                  formik.setFieldValue("age", age);
-                                }}
+  // ✅ SAFETY CHECK
+  if (isNaN(date.getTime())) return;
+
+  setStartDate(date);
+
+  const formattedDate = date.toISOString();
+  formik.setFieldValue("dob", formattedDate);
+
+  const age = calculateAge(date);
+  formik.setFieldValue("age", age);
+}}
                               />
                             ) : (
                               <>

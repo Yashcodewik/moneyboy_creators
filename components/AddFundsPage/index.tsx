@@ -488,7 +488,7 @@ const AddFundsPage = () => {
                               <button
                                 type="button"
                                 className="btn-txt-gradient"
-                                onClick={() => setTab(1)}
+                                onClick={() => router.push("/add-funds?tab=addcard")}
                               >
                                 <span>Add Card</span>
                               </button>
