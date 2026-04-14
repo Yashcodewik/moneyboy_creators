@@ -199,7 +199,7 @@ const SideBar = ({ onSelectChat, activeThreadId }: any) => {
                       )}
                     </div>
                     <div className="user_content">
-                      <h4>{user.username || user.displayName}</h4>
+                      <h4>{user.userName || user.displayName}</h4>
                     </div>
                   </div>
                 ))}
