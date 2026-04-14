@@ -23,6 +23,7 @@ import Modal from "../Modal";
 import { useQueryClient } from "@tanstack/react-query";
 import { fetchFollowerCounts } from "@/redux/other/followActions";
 import { useWaveCanvas } from "@/hooks/useWaveCanvas";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 const accessContentMap = {
   subscriber: {
@@ -143,7 +144,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const emojiRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
   const dobWrapperRef = useRef<HTMLDivElement | null>(null);
-
+const isMobile = useDeviceType();
   const hasMedia = mediaPreviews.length > 0;
   const imageCount = mediaPreviews.filter((m) => m.type === "image").length;
   const videoCount = mediaPreviews.filter((m) => m.type === "video").length;
@@ -222,7 +223,15 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     };
     checkSubscription();
   }, [show]);
+
+  useEffect(() => {
+  if (isMobile) {
+    setShowEmoji(false);
+  }
+}, [isMobile]);
+
   const handleEmojiClick = (emojiData: EmojiClickData) => {
+    if (isMobile) return; 
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -823,7 +832,10 @@ if (selectedTagUsers.length === 0) {
                   type="button"
                   ref={emojiBtnRef}
                   className="emoji-btn"
-                  onClick={() => setShowEmoji((prev) => !prev)}
+                  onClick={() => {
+  if (isMobile) return; // 🚫 stop on mobile
+  setShowEmoji((prev) => !prev);
+}}
                 >
                   {" "}
                   <Smile
@@ -834,7 +846,7 @@ if (selectedTagUsers.length === 0) {
                   />
                 </button>
                 {formik.values.text.length}/300
-                {showEmoji && (
+                {showEmoji && !isMobile && (
                   <div ref={emojiRef} className="emoji-picker-wrapper">
                     <EmojiPicker
                       onEmojiClick={handleEmojiClick}
