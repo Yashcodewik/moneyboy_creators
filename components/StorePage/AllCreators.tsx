@@ -43,7 +43,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
   const { paidContentFeed, loadingPaidContentFeed, paidContentFeedPagination } =
     useSelector((state: RootState) => state.creators);
   const [filter, setFilter] = useState<"subscriber" | "pay_per_view" | "">();
-
+  const previewTimeouts = useRef<{ [key: string]: NodeJS.Timeout }>({});
   const [sort, setSort] = useState<"price_low" | "price_high" | "">();
   const { page, totalPages } = paidContentFeedPagination;
 
@@ -253,9 +253,9 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
   const playersRef = useRef<{ [key: string]: any }>({});
 
   const playPreview = (id: string) => {
-    // pause other videos
+    // stop all videos
     Object.values(playersRef.current).forEach((p: any) => {
-      if (p && !p.paused) {
+      if (p) {
         p.pause();
         p.currentTime = 0;
       }
@@ -266,12 +266,24 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
 
     player.muted = true;
     player.currentTime = 0;
+
     player.play().catch(() => { });
+
+    // ⛔ AUTO STOP AFTER 3 SEC
+    previewTimeouts.current[id] = setTimeout(() => {
+      player.pause();
+      player.currentTime = 0;
+    }, 3000); // change 2000 if needed
   };
 
   const stopPreview = (id: string) => {
     const player = playersRef.current[id];
     if (!player) return;
+
+    // clear timeout
+    if (previewTimeouts.current[id]) {
+      clearTimeout(previewTimeouts.current[id]);
+    }
 
     player.pause();
     player.currentTime = 0;
@@ -388,15 +400,19 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
                           <div className="creator-media-card__media-wrapper">
                             <div className="creator-media-card__media">
                               {post.media?.type === "photo" ? (
-                                <img alt="Post Image" src={post.media?.mediaFiles?.[0]} />
+                                <img alt="Post Image" src={post.media?.mediaFiles?.[0]} onContextMenu={(e) => e.preventDefault()}
+                                  onDragStart={(e) => e.preventDefault()} />
                               ) : (
-                                <video ref={(el) => { if (el) playersRef.current[post._id] = el; }} src={post.media?.mediaFiles?.[0]} muted loop playsInline onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)} />
+                                <video ref={(el) => { if (el) playersRef.current[post._id] = el; }} src={post.media?.mediaFiles?.[0]} muted playsInline controls={false}
+                                  controlsList="nodownload noplaybackrate"
+                                  disablePictureInPicture
+                                  onContextMenu={(e) => e.preventDefault()} onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)} />
                                 // <div className="h-full" onMouseEnter={() => playPreview(post._id)} onMouseLeave={() => stopPreview(post._id)}>
                                 //   <Plyr ref={(ref) => {if (ref?.plyr) {playersRef.current[post._id] = ref.plyr;}}} source={{type: "video", sources: [{src: post.media?.mediaFiles?.[0], type: "video/mp4",},],}} options={{muted: true, controls: [], clickToPlay: false, autoplay: false,}}/>
                                 // </div>
                               )}
                               {post.media?.type === "video" && (
-                                <Link href="#" className="ply_btn"><PlayCircle strokeWidth={1} size={32} /></Link>
+                                <Link href="#" className="ply_btn" onContextMenu={(e) => e.preventDefault()}><PlayCircle strokeWidth={1} size={32} /></Link>
                               )}
                             </div>
                             <div className="creator-media-card__overlay">
