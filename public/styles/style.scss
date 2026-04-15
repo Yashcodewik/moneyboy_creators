@@ -169,6 +169,18 @@ textarea:focus {
     background-position: top;
     background-size: cover;
   }
+  &.smallbtm {
+    .ply_btn {
+      width: 26px;
+      height: 26px;
+      top: 80%;
+      left: 80%;
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
 }
 
 /* Animation Start */
@@ -1721,6 +1733,11 @@ textarea:focus {
     top: 100%;
     left: 0;
     z-index: 1000;
+  }
+  input[type="date"] {
+    position: relative;
+    z-index: 0;
+    background: transparent;
   }
   .mobail_placeholder {
     position: absolute;

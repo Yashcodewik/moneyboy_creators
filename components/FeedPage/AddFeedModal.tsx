@@ -144,7 +144,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const emojiRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
   const dobWrapperRef = useRef<HTMLDivElement | null>(null);
-const isMobile = useDeviceType();
+  const isMobile = useDeviceType();
   const hasMedia = mediaPreviews.length > 0;
   const imageCount = mediaPreviews.filter((m) => m.type === "image").length;
   const videoCount = mediaPreviews.filter((m) => m.type === "video").length;
@@ -225,13 +225,13 @@ const isMobile = useDeviceType();
   }, [show]);
 
   useEffect(() => {
-  if (isMobile) {
-    setShowEmoji(false);
-  }
-}, [isMobile]);
+    if (isMobile) {
+      setShowEmoji(false);
+    }
+  }, [isMobile]);
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
-    if (isMobile) return; 
+    if (isMobile) return;
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -626,7 +626,7 @@ const isMobile = useDeviceType();
         formData.append("text", values.text);
         formData.append("accessType", values.accessType);
         formData.append("isScheduled", values.isScheduled ? "true" : "false");
-formData.append("shareOnX", shareOnX ? "true" : "false");
+        formData.append("shareOnX", shareOnX ? "true" : "false");
         if (values.accessType === "pay_per_view") {
           formData.append("price", values.price);
         }
@@ -679,7 +679,7 @@ formData.append("shareOnX", shareOnX ? "true" : "false");
           showError(res?.message || "Failed to create post");
           return;
         }
-       
+
         queryClient.invalidateQueries({
           queryKey: ["creator-posts"],
           exact: false,
@@ -697,46 +697,46 @@ formData.append("shareOnX", shareOnX ? "true" : "false");
           return;
         }
 
-      if (selectedTagUsers.length > 0) {
-  const tagRes = await apiPost({
-    url: API_TAG_USERS_TO_POST,
-    values: {
-      postId,
-      creatorPercentage: Number(creatorPercentage || 0),
-      taggedUsers: selectedTagUsers.map((u) => ({
-        userId: u._id,
-        percentage: Number(u.percentage),
-      })),
-    },
-  });
+        if (selectedTagUsers.length > 0) {
+          const tagRes = await apiPost({
+            url: API_TAG_USERS_TO_POST,
+            values: {
+              postId,
+              creatorPercentage: Number(creatorPercentage || 0),
+              taggedUsers: selectedTagUsers.map((u) => ({
+                userId: u._id,
+                percentage: Number(u.percentage),
+              })),
+            },
+          });
 
-  if (!tagRes?.success) {
-    showError(tagRes?.message || "Tagging failed");
-    return;
-  }
+          if (!tagRes?.success) {
+            showError(tagRes?.message || "Tagging failed");
+            return;
+          }
 
-  // ✅ ADD HERE
-  dispatch(resetFeedPosts());
-  await dispatch(
-    fetchFeedPosts({
-      userId: (session?.user as any)?.id,
-      page: 1,
-      limit: 10,
-    })
-  );
-}
-if (selectedTagUsers.length === 0) {
-  dispatch(resetFeedPosts());
-  await dispatch(
-    fetchFeedPosts({
-      userId: (session?.user as any)?.id,
-      page: 1,
-      limit: 10,
-    })
-  );
-}
+          // ✅ ADD HERE
+          dispatch(resetFeedPosts());
+          await dispatch(
+            fetchFeedPosts({
+              userId: (session?.user as any)?.id,
+              page: 1,
+              limit: 10,
+            })
+          );
+        }
+        if (selectedTagUsers.length === 0) {
+          dispatch(resetFeedPosts());
+          await dispatch(
+            fetchFeedPosts({
+              userId: (session?.user as any)?.id,
+              page: 1,
+              limit: 10,
+            })
+          );
+        }
 
- 
+
 
         showSuccess("Post created successfully");
         onClose();
@@ -833,9 +833,9 @@ if (selectedTagUsers.length === 0) {
                   ref={emojiBtnRef}
                   className="emoji-btn"
                   onClick={() => {
-  if (isMobile) return; // 🚫 stop on mobile
-  setShowEmoji((prev) => !prev);
-}}
+                    if (isMobile) return; // 🚫 stop on mobile
+                    setShowEmoji((prev) => !prev);
+                  }}
                 >
                   {" "}
                   <Smile
@@ -932,114 +932,41 @@ if (selectedTagUsers.length === 0) {
                 <div>
                   <label>Schedule?</label>
                   <div className="toggleGroup">
-                    <input
-                      type="checkbox"
-                      id="on-off-switch"
-                      className="checkbox"
-                      name="isScheduled"
-                      checked={isScheduled}
-                      onChange={() => {
-                        const newVal = !isScheduled;
-                        setIsScheduled(newVal);
-                        formik.setFieldValue("isScheduled", newVal);
-                        if (!newVal) formik.setFieldValue("scheduledAt", "");
-                      }}
-                    />
+                    <input type="checkbox" id="on-off-switch" className="checkbox" name="isScheduled" checked={isScheduled} onChange={() => { const newVal = !isScheduled; setIsScheduled(newVal); formik.setFieldValue("isScheduled", newVal); if (!newVal) formik.setFieldValue("scheduledAt", ""); }} />
                     <label htmlFor="on-off-switch" className="label" />
-                    <div className="onoffswitch" aria-hidden="true">
-                      <div className="onoffswitchLabel">
-                        <div className="onoffswitchInner" />
-                        <div className="onoffswitchSwitch" />
-                      </div>
+                    <div className="onoffswitch" aria-hidden="true"> <div className="onoffswitchLabel">
+                      <div className="onoffswitchInner" />
+                      <div className="onoffswitchSwitch" />
+                    </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Date Picker */}
-            {isScheduled && (
-  <div className="mw-fit w-full">
-    <label>Schedule at</label>
-    <div
-      className="label-input calendar-dropdown"
-      ref={dobWrapperRef}
-    >
-      <div className="input-placeholder-icon">
-        <CalendarDays className="icons svg-icon" />
-      </div>
-
-      {isMobile ? (
-        // ✅ MOBILE (date only)
-        <input
-          type="date"
-          className="form-input"
-          value={formik.values.scheduledAt || ""}
-          min={new Date().toISOString().split("T")[0]}
-          onChange={(e) => {
-            const value = e.target.value;
-
-            if (!value) {
-              formik.setFieldValue("scheduledAt", "");
-              return;
-            }
-
-            formik.setFieldValue("scheduledAt", value); // ✅ only date
-          }}
-        />
-      ) : (
-        // ✅ DESKTOP (your UI)
-        <>
-          <input
-            type="text"
-            name="scheduledAt"
-            placeholder="Schedule Date (DD/MM/YYYY) *"
-            className="form-input"
-            value={
-              formik.values.scheduledAt
-                ? new Date(
-                    formik.values.scheduledAt,
-                  ).toLocaleDateString("en-GB")
-                : ""
-            }
-            readOnly
-            onFocus={() => setActiveField("schedule")}
-            onBlur={formik.handleBlur}
-          />
-
-          {activeField === "schedule" && (
-            <div className="calendar_show">
-              <DatePicker
-                inline
-                selected={
-                  formik.values.scheduledAt
-                    ? new Date(formik.values.scheduledAt)
-                    : null
-                }
-                minDate={new Date()}
-                onChange={(date: Date | null) => {
-                  if (!date) return;
-
-                  const formatted = date
-                    .toISOString()
-                    .split("T")[0]; // ✅ only date
-
-                  formik.setFieldValue("scheduledAt", formatted);
-                  setActiveField(null);
-                }}
-              />
-            </div>
-          )}
-        </>
-      )}
-    </div>
-
-    {formik.touched.scheduledAt &&
-      formik.errors.scheduledAt && (
-        <div className="error-message">
-          {formik.errors.scheduledAt}
-        </div>
-      )}
-  </div>
-)}
+                {isScheduled && (
+                  <div className="mw-fit w-full">
+                    <label>Schedule at</label>
+                    <div className="label-input calendar-dropdown" ref={dobWrapperRef}>
+                      <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
+                      {isMobile ? (
+                        <>
+                          {!formik.values.scheduledAt && (<span className="mobail_placeholder">DD/MM/YYYY</span>)}
+                          <input type="date" className="form-input" value={formik.values.scheduledAt ? new Date(formik.values.scheduledAt).toISOString().split("T")[0] : ""} min={new Date().toISOString().split("T")[0]} onChange={(e) => { const value = e.target.value; if (!value) { formik.setFieldValue("scheduledAt", ""); return; } const date = new Date(value); if (isNaN(date.getTime())) return; formik.setFieldValue("scheduledAt", date.toISOString()); }} style={{ color: formik.values.scheduledAt ? "inherit" : "transparent", }} />
+                        </>
+                      ) : (
+                        <>
+                          <input type="text" name="scheduledAt" placeholder="Schedule Date (DD/MM/YYYY) *" className="form-input" value={formik.values.scheduledAt ? new Date(formik.values.scheduledAt).toLocaleDateString("en-GB") : ""} readOnly onClick={() => setActiveField("schedule")} />
+                          {activeField === "schedule" && (
+                            <div className="calendar_show">
+                              <DatePicker inline selected={formik.values.scheduledAt ? new Date(formik.values.scheduledAt) : null} minDate={new Date()} onChange={(date: Date | null) => { if (!date || isNaN(date.getTime())) { formik.setFieldValue("scheduledAt", ""); return; } formik.setFieldValue("scheduledAt", date.toISOString()); setActiveField(null); }} />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {formik.touched.scheduledAt && formik.errors.scheduledAt && (<div className="error-message">{formik.errors.scheduledAt}</div>)}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1047,21 +974,11 @@ if (selectedTagUsers.length === 0) {
               {mediaPreviews.map((media, index) => (
                 <div className="img_wrap" key={index}>
                   {media.type === "image" ? (
-                    <img
-                      src={media.url}
-                      className="img-fluid upldimg"
-                      alt={`preview-${index}`}
-                    />
+                    <img src={media.url} className="img-fluid upldimg" alt={`preview-${index}`} />
                   ) : (
                     <video src={media.url} className="img-fluid upldimg" />
                   )}
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => removeMedia(index)}
-                  >
-                    <CircleX size={16} />
-                  </button>
+                  <button type="button" className="btn-danger" onClick={() => removeMedia(index)}> <CircleX size={16} /></button>
                 </div>
               ))}
             </div>
@@ -1077,54 +994,23 @@ if (selectedTagUsers.length === 0) {
                       <div className="profile-card__avatar-settings uplview_user upload-wrapper">
                         <div className="profile-card__avatar img_wrap">
                           {user.profile ? (
-                            <img
-                              src={user.profile}
-                              alt={user.displayName}
-                              className="img-fluid"
-                            />
+                            <img src={user.profile} alt={user.displayName} className="img-fluid" />
                           ) : (
                             <NoProfileSVG />
                           )}
-                          <button
-                            type="button"
-                            className="btn-danger"
-                            onClick={() => removeCollaborator(user._id)}
-                          >
-                            <CircleX size={14} />
-                          </button>
+                          <button type="button" className="btn-danger" onClick={() => removeCollaborator(user._id)}><CircleX size={14} /></button>
                         </div>
                       </div>
                       <div className="profile-card__info">
-                        <div className="profile-card__name">
-                          {user.displayName}
-                        </div>
-                        <div className="profile-card__username">
-                          @{user.userName}
-                        </div>
+                        <div className="profile-card__name">{user.displayName}</div>
+                        <div className="profile-card__username">@{user.userName}</div>
                       </div>
                       <div className="right_box">
-                        {accessType === "free" && (
-                          <span className="btn-primary">Free</span>
-                        )}
-
-                        {accessType === "subscriber" && (
-                          <span className="btn-primary">Subscriber</span>
-                        )}
-
+                        {accessType === "free" && (<span className="btn-primary">Free</span>)}
+                        {accessType === "subscriber" && (<span className="btn-primary">Subscriber</span>)}
                         {accessType === "pay_per_view" && (
                           <div className="quantity">
-                            <button
-                              type="button"
-                              className="qty-btn"
-                              onClick={() => {
-                                const current = user.percentage || 0;
-                                const newVal = Math.max(5, current - 5);
-                                updateUserPercentage(
-                                  user.isCreator ? "creator" : user._id,
-                                  newVal,
-                                );
-                              }}
-                            >
+                            <button type="button" className="qty-btn" onClick={() => { const current = user.percentage || 0; const newVal = Math.max(5, current - 5); updateUserPercentage(user.isCreator ? "creator" : user._id, newVal,); }}>
                               <Minus size={16} />
                             </button>
 
@@ -1309,7 +1195,7 @@ if (selectedTagUsers.length === 0) {
                     </button>
                   </li>
                 </ul>
-                <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={[uploadProgress > 0 ? "upload-btn" : "premium-btn active-down-effect",] .filter(Boolean) .join(" ")}
+                <button type="submit" data-tooltip={!hasMedia ? "Add media to post" : "Publish post"} className={[uploadProgress > 0 ? "upload-btn" : "premium-btn active-down-effect",].filter(Boolean).join(" ")}
                   disabled={!hasMedia || (accessType === "pay_per_view" && selectedTagUsers.length > 0 && totalPercentage !== 100)}>
                   {uploadProgress > 0 && (<canvas className="wave-canvas" ref={waveCanvasRef} />)}
                   <span className="btn-content">
@@ -1406,7 +1292,8 @@ if (selectedTagUsers.length === 0) {
         <VideoRecorder
           onClose={() => setShowRecorder(false)}
           onRecorded={(file: File) => {
-            if (videoCount >= 3) {showError("Maximum 3 videos allowed"); return;
+            if (videoCount >= 3) {
+              showError("Maximum 3 videos allowed"); return;
             }
             setMediaFiles((prev) => [...prev, file]);
             setMediaPreviews((prev) => [
