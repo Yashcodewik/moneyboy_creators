@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   clearConversation,
+  deleteMessageAction,
   deleteThread,
   fetchMessages,
   fetchMessageUnreadCount,
@@ -263,6 +264,12 @@ markMessagesReadFromSocket: (state, action) => {
     setCurrentUser: (state, action: PayloadAction<string>) => {
       state.currentUserId = action.payload;
     },
+
+    removeMessage: (state, action) => {
+  state.messages = state.messages.filter(
+    (msg) => msg._id !== action.payload
+  );
+},
   },
 
   extraReducers: (builder) => {
@@ -415,6 +422,11 @@ markMessagesReadFromSocket: (state, action) => {
           }
         }
       })
+      .addCase(deleteMessageAction.fulfilled, (state, action) => {
+        state.messages = state.messages.filter(
+          (msg) => msg._id !== action.payload
+        );
+      });
     // .addCase(fetchMessageUnreadCount.fulfilled, (state, action) => {
     //   state.messageUnreadCount = action.payload;
     // });
@@ -430,6 +442,7 @@ export const {
   markMessagesReadFromSocket,
   clearMessages,
   setMessageUnreadCount,
+  removeMessage,
   // incrementUnread,
   // resetUnread,
   resetThreadUnread,
