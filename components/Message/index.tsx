@@ -17,16 +17,17 @@ import ChatFeatures from "./ChatFeatures";
 import Link from "next/link";
 import NoProfileSvg from "../common/NoProfileSvg";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { clearConversation, deleteThread, fetchMessages, fetchMessageUnreadCount, fetchSidebar, reportThread, } from "@/redux/message/messageActions";
-import { addSocketMessage, clearMessages, markMessagesReadFromSocket, resetThreadUnread, setActiveThread, setThreadDetails, updatePPVStatus, } from "@/redux/message/messageSlice";
+import { clearConversation, deleteMessageAction, deleteThread, fetchMessages, fetchMessageUnreadCount, fetchSidebar, reportThread, } from "@/redux/message/messageActions";
+import { addSocketMessage, clearMessages, markMessagesReadFromSocket, removeMessage, resetThreadUnread, setActiveThread, setThreadDetails, updatePPVStatus, } from "@/redux/message/messageSlice";
 import CustomAudioPlayer from "../common/CustomAudioPlayer";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
 import { ChevronLeft, ChevronRight, RotateCw, X, ZoomIn, ZoomOut, } from "lucide-react";
-import { showError, showSuccess } from "@/utils/alert";
+import { showError, showQuestion, showSuccess } from "@/utils/alert";
 import Modal from "../Modal";
 import FlipClockCountdown from "@leenguyen/react-flip-clock-countdown";
 import "@leenguyen/react-flip-clock-countdown/dist/index.css";
+import { MdDelete } from "react-icons/md";
 
 const MessagePage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -284,6 +285,38 @@ const MessagePage = () => {
       socket.off("connect", joinRoom);
     };
   }, [activeThreadId]);
+
+const handleDeleteMessage = async (messageId: string) => {
+
+  const confirmed = await showQuestion(
+    `Do you want to delete this message?`,
+    "Yes, Delete",
+    "No, Cancel",
+    true
+  );
+
+  if (!confirmed) return;
+
+  const res: any = await dispatch(deleteMessageAction(messageId));
+
+  if (res.meta.requestStatus === "fulfilled") {
+    showSuccess("Message deleted");
+  } else {
+    showError("Failed to delete message");
+  }
+};
+
+useEffect(() => {
+  const handler = ({ messageId }: any) => {
+    dispatch(removeMessage(messageId));
+  };
+
+  socket.on("messageDeleted", handler);
+
+  return () => {
+    socket.off("messageDeleted", handler);
+  };
+}, [dispatch]);
 
   const sendMessage = () => {
     if (!newComment.trim()) return;
@@ -1325,7 +1358,7 @@ const MessagePage = () => {
                                                   sources: [
                                                     {
                                                       src: msg.mediaUrl,
-                                                      type: "video/mp4",
+                                                      type: "video/*",
                                                     },
                                                   ],
                                                 }}
@@ -1391,6 +1424,16 @@ const MessagePage = () => {
                                               </div>
                                             )}
                                           </div>
+                                          {isSender && !msg._id.startsWith("temp-") && (msg.type === 1 || msg.type === 2 || msg.type === 3 || msg.type === 4) && (
+                                            <div className="msg-actions">
+                                              <button
+                                                onClick={() => handleDeleteMessage(msg._id)}
+                                                className="three-dot-btn"
+                                              >
+                                                <MdDelete size={16} />
+                                              </button>
+                                            </div>
+                                          )}
 
                                           {/* ── PPV Request (type 5) ── */}
                                           {msg.type === 5 && msg.ppvRequestId && (

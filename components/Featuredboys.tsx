@@ -12,6 +12,8 @@ const Featuredboys = () => {
   const [totalPages, setTotalPages] = useState(1);
   const { session } = useDecryptedSession();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [refreshMs, setRefreshMs] = useState(10000); // default
   const limit = 6;
   const router = useRouter();
 const fetchFeatured = async (pageNumber = 1, isBackground = false) => {
@@ -37,6 +39,10 @@ const fetchFeatured = async (pageNumber = 1, isBackground = false) => {
       setFeatured(res.data || []);
       setPage(res.pagination?.page || 1);
       setTotalPages(res.pagination?.totalPages || 1);
+      if (res.refreshMs) {
+    setRefreshMs(res.refreshMs);
+    setIsReady(true); // 👈 dynamic update
+  }
     }
   } catch (error) {
     console.error("Fetch error:", error);
@@ -48,18 +54,20 @@ const fetchFeatured = async (pageNumber = 1, isBackground = false) => {
     }
   }
 };
+// 👉 ONLY fetch when page or user changes
 useEffect(() => {
-  fetchFeatured(page); 
+  fetchFeatured(page);
+}, [session?.user?.publicId, page]);
 
+// 👉 ONLY handle auto refresh
+useEffect(() => {
+   if (!isReady) return; 
   const interval = setInterval(() => {
-    setPage((prev) => {
-      fetchFeatured(prev, true); 
-      return prev;
-    });
-  }, 60000);
+    fetchFeatured(page, true); // 👈 directly call
+  }, refreshMs);
 
   return () => clearInterval(interval);
-}, [session?.user?.publicId,page]);
+}, [page, refreshMs]); // 👉 add page and refreshMs as dependencies
 
   const handleRefresh = () => {
     fetchFeatured(page);

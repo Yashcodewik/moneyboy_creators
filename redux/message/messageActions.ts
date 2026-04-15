@@ -224,3 +224,15 @@ export const fetchMessageUnreadCount = createAsyncThunk(
     return res.unreadCount;
   },
 );
+
+export const deleteMessageAction = createAsyncThunk(
+  "message/deleteMessage",
+  async (messageId: string) => {
+    await apiPost({
+      url: `/messages/delete/${messageId}`,
+      values: {},
+    });
+
+    return messageId;
+  }
+);
