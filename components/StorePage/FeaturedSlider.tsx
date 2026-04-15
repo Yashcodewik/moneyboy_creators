@@ -33,6 +33,7 @@ export default function FeaturedContentSlider({
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement }>({});
   const loggedInUserId = session?.user?.id;
   const [mediaErrors, setMediaErrors] = useState<Record<string, boolean>>({});
+  const previewTimeouts = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
   const { featuredPosts, loadingFeaturedPosts } = useSelector(
     (state: RootState) => state.creators,
@@ -137,7 +138,11 @@ export default function FeaturedContentSlider({
                       playsInline
                       webkit-playsinline="true"
                       preload="auto"
-                      loop
+                      controls={false}
+  controlsList="nodownload noplaybackrate"
+  disablePictureInPicture
+  onContextMenu={(e) => e.preventDefault()}
+
                       onLoadedData={(e) => {
                         const video = e.currentTarget;
                         video.pause();
@@ -151,10 +156,29 @@ export default function FeaturedContentSlider({
                       }}
                       onMouseEnter={(e) => {
                         const v = e.currentTarget;
+
+                        v.muted = true;
+                        v.currentTime = 0;
+
                         v.play().catch(() => { });
+
+                        // ⛔ stop after 3 sec
+                        const id = post._id;
+                        previewTimeouts.current[id] = setTimeout(() => {
+                          v.pause();
+                          v.currentTime = 0;
+                        }, 3000);
                       }}
+
                       onMouseLeave={(e) => {
                         const v = e.currentTarget;
+                        const id = post._id;
+
+                        // clear timeout
+                        if (previewTimeouts.current[id]) {
+                          clearTimeout(previewTimeouts.current[id]);
+                        }
+
                         v.pause();
                         v.currentTime = 0;
                       }}
@@ -169,6 +193,8 @@ export default function FeaturedContentSlider({
                     <img
                       src={post.media[0].mediaFiles[0]}
                       alt="Featured Content"
+                      onContextMenu={(e) => e.preventDefault()}
+  onDragStart={(e) => e.preventDefault()}
                       onError={() =>
                         setMediaErrors((prev) => ({
                           ...prev,

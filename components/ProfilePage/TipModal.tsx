@@ -9,7 +9,10 @@ import { BsBank2 } from "react-icons/bs";
 import Modal from "../Modal";
 interface TipModalProps {
   onClose: () => void;
-  onConfirm: (amount: number, paymentMethod: "wallet" | "card") => Promise<void>;
+  onConfirm: (
+    amount: number,
+    paymentMethod: "wallet" | "card",
+  ) => Promise<void>;
   creator: {
     displayName?: string;
     userName?: string;
@@ -17,6 +20,14 @@ interface TipModalProps {
   };
 }
 const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
+  const [loading, setLoading] = useState(false);
+
+  const [cards, setCards] = useState<any[]>([]);
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card">(
+    "wallet",
+  );
+
   const formik = useFormik({
     initialValues: {
       amount: "",
@@ -29,19 +40,23 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
         .max(999, "Maximum tip amount is $999"),
     }),
     onSubmit: async (values) => {
-      await onConfirm(Number(values.amount), paymentMethod);
+      try {
+        setLoading(true);
+        await onConfirm(Number(values.amount), paymentMethod);
+      } finally {
+        setLoading(false);
+      }
     },
   });
 
-  const [cards, setCards] = useState<any[]>([]);
-  const [loadingCards, setLoadingCards] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card">(
-    "wallet",
-  );
-
   return (
-    <Modal show={true} onClose={onClose} size="md" title=" " className="tip_wrap">
+    <Modal
+      show={true}
+      onClose={onClose}
+      size="md"
+      title=" "
+      className="tip_wrap"
+    >
       <div className="modal_containt tip-modal">
         <h3 className="title justify-start mb-0">Thanks for the Tip</h3>
         <div className="profile-card w-full">
@@ -49,7 +64,10 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
             <div className="profile-card__avatar-settings">
               <div className="profile-card__avatar">
                 {creator?.profile ? (
-                  <img src={creator.profile} alt={creator?.displayName || "Creator Avatar"} />
+                  <img
+                    src={creator.profile}
+                    alt={creator?.displayName || "Creator Avatar"}
+                  />
                 ) : (
                   <div className="noprofile">
                     <svg
@@ -163,7 +181,7 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
             <p>Pay With Credit/Debit Card</p>
           </label>
         </div>
-        {paymentMethod === "card" &&
+        {paymentMethod === "card" && (
           <div>
             <label className="small">Choose Payment Method*</label>
             <CustomSelect
@@ -180,12 +198,13 @@ const TipModal = ({ onClose, creator, onConfirm }: TipModalProps) => {
               }}
             />
           </div>
-        }
+        )}
         <div className="actions">
           <button
-            className="premium-btn active-down-effect"
+            className={`premium-btn active-down-effect ${loading ? "disabled" : ""}`}
             onClick={() => formik.handleSubmit()}
             type="button"
+            disabled={loading}
           >
             <span>Send Tip</span>
           </button>
