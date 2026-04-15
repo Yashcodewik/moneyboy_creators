@@ -21,7 +21,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter } from "react-icons/fa6";
 import { signIn } from "next-auth/react";
 import { useDeviceType } from "@/hooks/useDeviceType";
-
+import { useLoadScript, Autocomplete } from "@react-google-maps/api";
 countries.registerLocale(enLocale);
 
 const CreatorSignupPage = () => {
@@ -124,6 +124,13 @@ const CreatorSignupPage = () => {
     }
   };
 
+  const cityRef = useRef<any>(null);
+
+const { isLoaded } = useLoadScript({
+  googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  libraries: ["places"],
+});
+
   const selectedCountry = formik.values.country;
 
   const countryCode = selectedCountry
@@ -200,6 +207,8 @@ const CreatorSignupPage = () => {
     formik.setFieldValue("age", calculateAge(date));
     setActiveField(null);
   };
+
+  if (!isLoaded) return null;
 
   return (
     <div className="bg-off-white">
@@ -343,7 +352,7 @@ const CreatorSignupPage = () => {
                         </div>
 
                         {/* Country */}
-                        <div>
+                        {/* <div>
                           <CustomSelect label="Select Country *" icon={countryCode ? (
                             <div className="flag-circle">
                               <img src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`} alt="flag" />
@@ -353,16 +362,48 @@ const CreatorSignupPage = () => {
                           )
                           } options={countryOptions} value={formik.values.country} onChange={(val) => formik.setFieldValue("country", val)} />
                           {formik.touched.country && formik.errors.country && (<span className="error-message">{formik.errors.country}</span>)}
-                        </div>
+                        </div> */}
 
                         {/* City */}
-                        <div>
-                          <div className="label-input">
-                            <div className="input-placeholder-icon"><svg className="icons locationIcon svg-icon"></svg></div>
-                            <input type="text" placeholder="City *" name="city" value={formik.values.city} onChange={formik.handleChange} onBlur={formik.handleBlur} />
-                          </div>
-                          {formik.touched.city && formik.errors.city && (<span className="error-message">{formik.errors.city}</span>)}
-                        </div>
+                     <div>
+  <Autocomplete
+    onLoad={(ref) => (cityRef.current = ref)}
+    options={{
+      types: ["(cities)"], // only cities
+    }}
+    onPlaceChanged={() => {
+      const place = cityRef.current.getPlace();
+
+      // ✅ Validate it's a city
+      if (!place.types?.includes("locality")) {
+        ShowToast("Please select a valid city", "error");
+        return;
+      }
+
+      const city = place.name;
+
+      const countryComponent = place.address_components?.find((c: any) =>
+        c.types.includes("country")
+      );
+
+     
+
+      // ✅ SET VALUES
+      formik.setFieldValue("city", city);
+      formik.setFieldValue("country", countryComponent?.long_name || "");
+    }}
+  >
+    <input
+      type="text"
+      placeholder="City *"
+      className="form-input"
+    />
+  </Autocomplete>
+
+  {formik.touched.city && formik.errors.city && (
+    <span className="error-message">{formik.errors.city}</span>
+  )}
+</div>
 
                         {/* Bio */}
                         <div className="one">

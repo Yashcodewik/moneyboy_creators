@@ -141,7 +141,8 @@ interface TaggedUsersProps {
   post: any;
 }
 
-const TaggedUsers = ({ post }: TaggedUsersProps) => {const taggedUsers = post?.collaboration?.taggedUsers ?? []; if (taggedUsers.length === 0) return null;
+const TaggedUsers = ({ post }: TaggedUsersProps) => {
+  const taggedUsers = post?.collaboration?.taggedUsers ?? []; if (taggedUsers.length === 0) return null;
   return (
     <div className="tagview" onClick={(e) => { e.stopPropagation(); e.preventDefault(); showTaggedUserList([...(post?.collaboration?.taggedBy ? [{ user: post.collaboration.taggedBy }] : []), ...(post?.collaboration?.taggedUsers || []),]); }}>
       <ul className="taglist">
@@ -170,13 +171,41 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
   const isOwnPost = isCreator && post.userId === loggedInUserId;
   const isSaved = post.isSaved;
   const isTouchDevice = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  const previewTimeouts = useRef<{ [key: string]: NodeJS.Timeout }>({});
+
   const playPreview = async (id: string) => {
     const video = videoRefs.current[id];
     if (!video) return;
-    try {video.muted = true; video.currentTime = 0; await video.play();} catch (err) {console.log("Play blocked:", err);}
+
+    try {
+      video.muted = true;
+      video.currentTime = 0;
+
+      await video.play();
+
+      // ⛔ stop after 3 sec
+      previewTimeouts.current[id] = setTimeout(() => {
+        video.pause();
+        video.currentTime = 0;
+      }, 3000); // 👉 change to 2000 if you want 2 sec
+
+    } catch (err) {
+      console.log("Play blocked:", err);
+    }
   };
 
-  const stopPreview = (id: string) => {const video = videoRefs.current[id]; if (!video) return; video.pause(); video.currentTime = 0;};
+  const stopPreview = (id: string) => {
+    const video = videoRefs.current[id];
+    if (!video) return;
+
+    // clear timeout
+    if (previewTimeouts.current[id]) {
+      clearTimeout(previewTimeouts.current[id]);
+    }
+
+    video.pause();
+    video.currentTime = 0;
+  };
 
   useEffect(() => {
     Object.values(videoRefs.current).forEach((video) => {
@@ -199,8 +228,9 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
     if (mediaType === "video") {
       if (mediaUrl && !videoErrors[post._id]) {
         return (
-          <div className="creator-media-card__media post_playbtn">
-            <video ref={(el) => {if (el) videoRefs.current[post._id] = el;}} src={mediaUrl} muted playsInline webkit-playsinline="true" loop preload="auto" onMouseEnter={() => {if (!isTouchDevice) playPreview(post._id);}} onMouseLeave={() => {if (!isTouchDevice) stopPreview(post._id);}} onClick={(e) => {if (!isTouchDevice) return; const video = videoRefs.current[post._id]; if (!video) return; Object.values(videoRefs.current).forEach((v) => {if (v && v !== video) {v.pause(); v.currentTime = 0;}}); video.muted = true; video.currentTime = 0; video.play().catch(() => { });}}/>
+          <div className="creator-media-card__media post_playbtn" onContextMenu={(e) => e.preventDefault()} >
+            <video ref={(el) => { if (el) videoRefs.current[post._id] = el; }} src={mediaUrl} muted playsInline webkit-playsinline="true" preload="auto" onContextMenu={(e) => e.preventDefault()} // ✅ ADD HERE on video
+            controlsList="nodownload"   onMouseEnter={() => { if (!isTouchDevice) playPreview(post._id); }} onMouseLeave={() => { if (!isTouchDevice) stopPreview(post._id); }} onClick={(e) => { if (!isTouchDevice) return; const video = videoRefs.current[post._id]; if (!video) return; Object.values(videoRefs.current).forEach((v) => { if (v && v !== video) { v.pause(); v.currentTime = 0; } }); video.muted = true; video.currentTime = 0; video.play().catch(() => { }); }} />
             {playingId !== post._id && (
               <Link href="#" className="ply_btn" onClick={(e) => onPlayClick(e, post._id)}><PlayCircle strokeWidth={1} size={32} /></Link>
             )}
@@ -212,7 +242,7 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
 
     if (mediaType === "photo") {
       return (
-        <div className="creator-media-card__media"><img src={mediaUrl} alt="Post" /></div>
+        <div className="creator-media-card__media"><img src={mediaUrl} alt="Post" onContextMenu={(e) => e.preventDefault()}  /></div>
       );
     }
     return <div className="creator-media-card__media"><NoProfilePlaceholder /></div>;
@@ -622,7 +652,6 @@ const StorePage = () => {
                         </SwiperSlide>
                       ))}
                     </Swiper>
-
                   </div>
                 </div>
                 {!selectedCreator && (
