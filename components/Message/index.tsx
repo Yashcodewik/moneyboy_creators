@@ -1103,43 +1103,24 @@ const MessagePage = () => {
             <div className="msg-page-wrapper card">
               <div className="msg-page-container" msg-page-wrapper={true}>
                 {(!isMobile || !activeThreadId) && (
-                  <SideBar
-                    activeThreadId={activeThreadId}
-                    onSelectChat={(thread: any) => {
-                      setIsChatLoading(true);
-                      dispatch(setActiveThread(thread.publicId));
-                      router.replace(`/message?threadId=${thread.publicId}`);
-                    }}
-                  />
+                  <SideBar activeThreadId={activeThreadId} onSelectChat={(thread: any) => { setIsChatLoading(true); dispatch(setActiveThread(thread.publicId)); router.replace(`/message?threadId=${thread.publicId}`); }} />
                 )}
                 {(!isMobile || activeThreadId) && (
                   <div className="msg-chats-layout">
-                    <div
-                      className="msg-chats-rooms-container"
-                      msg-chat-rooms-wrapper=""
-                    >
-                      <div
-                        className="msg-chat-room-layout"
-                        msg-chat-room=""
-                        data-active=""
-                      >
+                    <div className="msg-chats-rooms-container" msg-chat-rooms-wrapper="">
+                      <div className="msg-chat-room-layout" msg-chat-room="" data-active="">
                         {!activeThreadId ? (
                           <div className="messages-empty">
                             <div className="messages-empty-card">
                               <div className="glow-ring"></div>
                               <div className="messages-empty-icon">
-                                <MessageCircleMore size={32} color="#FFF" />
+                                <MessageCircleMore size={32} color="#FFF" className="msgicon" />
                                 <span className="ping"></span>
                               </div>
                               <h3>Start a conversation</h3>
-                              <p>
-                                Select a creator from the left or discover new
-                                ones to begin chatting.
-                              </p>
+                              <p>Select a creator from the left or discover new ones to begin chatting.</p>
                               <Link href={"/discover"}>
-                                <button className="premium-btn active-down-effect">
-                                  <span>Find creators</span>
-                                </button>
+                                <button className="premium-btn active-down-effect"><span>Find creators</span></button>
                               </Link>
                               <div className="floating-bubbles">
                                 <span></span>
@@ -1166,24 +1147,7 @@ const MessagePage = () => {
                                 {/* Profile */}
                                 <div className="chat-room-header-profile">
                                   <div className="profile-card">
-                                    <div
-                                      className="profile-card__main"
-                                      onClick={() => {
-                                        if (!activeUser) return;
-
-                                        if (isBlockedByOther) {
-                                          showError("You are blocked by this user");
-                                          return;
-                                        }
-
-                                        if (activeUser?.role === 1) {
-                                          router.push(`/userprofile/${activeUser.publicId}`);
-                                        } else {
-                                          if (!activeUser?.username) return;
-                                          router.push(`/${activeUser.username}`);
-                                        }
-                                      }}
-                                    >
+                                    <div className="profile-card__main" onClick={() => { if (!activeUser) return; if (isBlockedByOther) { showError("You are blocked by this user"); return; } if (activeUser?.role === 1) { router.push(`/userprofile/${activeUser.publicId}`); } else { if (!activeUser?.username) return; router.push(`/${activeUser.username}`); } }}>
                                       {isMobile && activeThreadId && (
                                         <button className="backbtnicon active-down-effect" onClick={(e) => { e.stopPropagation(); dispatch(setActiveThread(null)); router.replace("/message"); }}><ArrowLeft size={22} /></button>
                                       )}
@@ -1284,105 +1248,39 @@ const MessagePage = () => {
                               {(isBlockedByYou || isBlockedByOther) && (
                                 <div className="block_wrap">
                                   <div className="icon block-icon">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                    >
-                                      <path
-                                        d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeMiterlimit="10"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                      <path
-                                        d="M20.5 15.5001L15.5 20.5001"
-                                        stroke="none"
-                                        strokeWidth="1.5"
-                                        strokeMiterlimit="10"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                      <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M3.41016 22C3.41016 18.13 7.26015 15 12.0002 15C12.9602 15 13.8902 15.13 14.7602 15.37" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M22 18C22 18.32 21.96 18.63 21.88 18.93C21.79 19.33 21.63 19.72 21.42 20.06C20.73 21.22 19.46 22 18 22C16.97 22 16.04 21.61 15.34 20.97C15.04 20.71 14.78 20.4 14.58 20.06C14.21 19.46 14 18.75 14 18C14 16.92 14.43 15.93 15.13 15.21C15.86 14.46 16.88 14 18 14C19.18 14 20.25 14.51 20.97 15.33C21.61 16.04 22 16.98 22 18Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M20.5 15.5001L15.5 20.5001" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                                     </svg>
                                   </div>
-                                  <span>
-                                    {isBlockedByYou
-                                      ? "You blocked this user"
-                                      : "You cannot message this user"}
-                                  </span>
+                                  <span>{isBlockedByYou ? "You blocked this user" : "You cannot message this user"}</span>
                                 </div>
                               )}
 
-                              <div
-                                ref={chatBodyRef}
-                                className="chat-room-body-container"
-                              >
+                              <div ref={chatBodyRef} className="chat-room-body-container">
                                 {messages.map((msg, index) => {
-                                  const currentDate = new Date(
-                                    msg.createdAt,
-                                  ).toDateString();
-                                  const prevDate =
-                                    index > 0
-                                      ? new Date(
-                                        messages[index - 1].createdAt,
-                                      ).toDateString()
-                                      : null;
-                                  const showDateDivider =
-                                    currentDate !== prevDate;
-                                  const senderId =
-                                    typeof msg.senderId === "object"
-                                      ? msg.senderId._id
-                                      : msg.senderId;
+                                  const currentDate = new Date(msg.createdAt,).toDateString();
+                                  const prevDate = index > 0 ? new Date(messages[index - 1].createdAt,).toDateString() : null;
+                                  const showDateDivider = currentDate !== prevDate;
+                                  const senderId = typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
                                   const isSender = senderId === session?.user?.id;
-                                  const isCreator =
-                                    msg.ppvRequestId &&
-                                    session?.user?.id ===
-                                    (typeof msg.ppvRequestId.creatorId ===
-                                      "object"
-                                      ? msg.ppvRequestId.creatorId._id
-                                      : msg.ppvRequestId.creatorId);
+                                  const isCreator = msg.ppvRequestId && session?.user?.id === (typeof msg.ppvRequestId.creatorId === "object" ? msg.ppvRequestId.creatorId._id : msg.ppvRequestId.creatorId);
 
                                   return (
                                     <React.Fragment key={msg._id}>
                                       {showDateDivider && (
                                         <div className="chat-date-divider">
-                                          <span>
-                                            {formatDateLabel(msg.createdAt)}
-                                          </span>
+                                          <span>{formatDateLabel(msg.createdAt)}</span>
                                         </div>
                                       )}
 
-                                      <div
-                                        ref={(el) => {
-                                          messageRefs.current[msg._id] = el;
-                                        }}
-                                        className={`chat-msg-wrapper ${isSender ? "outcoming-message" : "incoming-message"}`}
-                                      >
+                                      <div ref={(el) => {messageRefs.current[msg._id] = el;}} className={`chat-msg-wrapper ${isSender ? "outcoming-message" : "incoming-message"}`}>
                                         <div className="chat-msg-profile">
                                           {typeof msg.senderId === "object" &&
                                             msg.senderId?.profile ? (
-                                            <img
-                                              src={msg.senderId.profile}
-                                              alt="User"
-                                            />
+                                            <img src={msg.senderId.profile} alt="User"/>
                                           ) : (
                                             <NoProfileSvg />
                                           )}
@@ -1392,14 +1290,7 @@ const MessagePage = () => {
                                           {/* ── TEXT (type 1) ── */}
                                           {msg.type === 1 && (
                                             <div className="chat-msg-txt">
-                                              <p
-                                                dangerouslySetInnerHTML={{
-                                                  __html: highlightText(
-                                                    msg.message,
-                                                    searchText,
-                                                  ),
-                                                }}
-                                              />
+                                              <p dangerouslySetInnerHTML={{__html: highlightText(msg.message, searchText,),}}/>
                                             </div>
                                           )}
                                           {msg.type === 3 && msg.mediaUrl && (
@@ -1939,7 +1830,7 @@ const MessagePage = () => {
                                   </div>
                                 )}
                                 {/* Scroll sentinel - always at the very bottom */}
-                                <div ref={messagesEndRef} style={{ height: 0.5, flexShrink: 0 }}/>
+                                <div ref={messagesEndRef} style={{ height: 0.5, flexShrink: 0 }} />
                               </div>
                             </div>
                             {/* ── Footer ── */}
@@ -2010,35 +1901,35 @@ const MessagePage = () => {
                                     {/* Text input */}
                                     <div className="chat-msg-typing-input">
                                       <input ref={textareaRef} type="text" placeholder="Send a message..." value={newComment} onChange={(e) => {
-                                          setNewComment(e.target.value);
-                                          if (
-                                            !activeThreadId ||
-                                            !session?.user?.id
-                                          )
-                                            return;
-                                          if (!isTypingRef.current) {
-                                            socket.emit("typing", {
+                                        setNewComment(e.target.value);
+                                        if (
+                                          !activeThreadId ||
+                                          !session?.user?.id
+                                        )
+                                          return;
+                                        if (!isTypingRef.current) {
+                                          socket.emit("typing", {
+                                            threadId: activeThreadId,
+                                            userId: session.user.id,
+                                          });
+                                          isTypingRef.current = true;
+                                        }
+                                        if (typingTimeoutRef.current) {
+                                          clearTimeout(
+                                            typingTimeoutRef.current,
+                                          );
+                                        }
+                                        typingTimeoutRef.current = setTimeout(
+                                          () => {
+                                            socket.emit("stopTyping", {
                                               threadId: activeThreadId,
                                               userId: session.user.id,
                                             });
-                                            isTypingRef.current = true;
-                                          }
-                                          if (typingTimeoutRef.current) {
-                                            clearTimeout(
-                                              typingTimeoutRef.current,
-                                            );
-                                          }
-                                          typingTimeoutRef.current = setTimeout(
-                                            () => {
-                                              socket.emit("stopTyping", {
-                                                threadId: activeThreadId,
-                                                userId: session.user.id,
-                                              });
-                                              isTypingRef.current = false;
-                                            },
-                                            1200,
-                                          );
-                                        }}
+                                            isTypingRef.current = false;
+                                          },
+                                          1200,
+                                        );
+                                      }}
                                         onKeyDown={(e) => {
                                           if (e.key === "Enter" && !e.shiftKey) {
                                             e.preventDefault();
@@ -2054,23 +1945,23 @@ const MessagePage = () => {
                                       {!isMobile && (
                                         <button ref={emojiButtonRef} className="emojis-icon-btn" onClick={() => setShowEmojiPicker((prev) => !prev)}>
                                           <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
-                                            <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"/>
-                                            <path d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none" />
+                                            <path d="M15.1257 25.4173H19.8756C23.834 25.4173 25.4173 23.834 25.4173 19.8756V15.1257C25.4173 11.1673 23.834 9.58398 19.8756 9.58398H15.1257C11.1673 9.58398 9.58398 11.1673 9.58398 15.1257V19.8756C9.58398 23.834 11.1673 25.4173 15.1257 25.4173Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M20.2715 15.7188C20.9273 15.7188 21.459 15.1871 21.459 14.5312C21.459 13.8754 20.9273 13.3438 20.2715 13.3438C19.6156 13.3438 19.084 13.8754 19.084 14.5312C19.084 15.1871 19.6156 15.7188 20.2715 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M14.7285 15.7188C15.3844 15.7188 15.916 15.1871 15.916 14.5312C15.916 13.8754 15.3844 13.3438 14.7285 13.3438C14.0727 13.3438 13.541 13.8754 13.541 14.5312C13.541 15.1871 14.0727 15.7188 14.7285 15.7188Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M14.65 18.5293H20.35C20.7458 18.5293 21.0625 18.846 21.0625 19.2418C21.0625 21.213 19.4713 22.8043 17.5 22.8043C15.5288 22.8043 13.9375 21.213 13.9375 19.2418C13.9375 18.846 14.2542 18.5293 14.65 18.5293Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
                                           </svg>
                                         </button>
                                       )}
                                       {/* Voice recorder */}
                                       <button className={`voice-recorder-icon-btn ${isRecording ? "recording" : ""}`} type="button" onMouseDown={handleVoicePressStart} onMouseUp={handleVoicePressEnd} onMouseLeave={isRecording ? () => stopRecording() : undefined} onTouchStart={handleVoicePressStart} onTouchEnd={handleVoicePressEnd} onTouchCancel={() => stopRecording(true)} disabled={uploading}>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
-                                          <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none"/>
-                                          <path d="M11.4434 15.6387V16.9845C11.4434 20.3253 14.1588 23.0408 17.4996 23.0408C20.8404 23.0408 23.5559 20.3253 23.5559 16.9845V15.6387" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                          <path d="M17.5007 20.2715C19.2502 20.2715 20.6673 18.8544 20.6673 17.1048V12.7507C20.6673 11.0011 19.2502 9.58398 17.5007 9.58398C15.7511 9.58398 14.334 11.0011 14.334 12.7507V17.1048C14.334 18.8544 15.7511 20.2715 17.5007 20.2715Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                          <path d="M16.4004 13.0905C17.1129 12.8292 17.8887 12.8292 18.6012 13.0905" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                          <path d="M16.8672 14.7687C17.2868 14.6578 17.7222 14.6578 18.1418 14.7687" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                          <path d="M17.5 23.041V25.416" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          <rect x="0.5" y="0.5" width="34" height="34" rx="17" stroke="none" />
+                                          <path d="M11.4434 15.6387V16.9845C11.4434 20.3253 14.1588 23.0408 17.4996 23.0408C20.8404 23.0408 23.5559 20.3253 23.5559 16.9845V15.6387" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M17.5007 20.2715C19.2502 20.2715 20.6673 18.8544 20.6673 17.1048V12.7507C20.6673 11.0011 19.2502 9.58398 17.5007 9.58398C15.7511 9.58398 14.334 11.0011 14.334 12.7507V17.1048C14.334 18.8544 15.7511 20.2715 17.5007 20.2715Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M16.4004 13.0905C17.1129 12.8292 17.8887 12.8292 18.6012 13.0905" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M16.8672 14.7687C17.2868 14.6578 17.7222 14.6578 18.1418 14.7687" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M17.5 23.041V25.416" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                       </button>
                                       {/* Send button */}
@@ -2085,7 +1976,7 @@ const MessagePage = () => {
                                       {/* Emoji picker */}
                                       {showEmojiPicker && (
                                         <div ref={emojiRef} className="emoji-picker-wrapper">
-                                          <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={360} width={340}/>
+                                          <EmojiPicker onEmojiClick={onEmojiClick} autoFocusSearch={false} skinTonesDisabled previewConfig={{ showPreview: false }} height={360} width={340} />
                                         </div>
                                       )}
                                     </div>
