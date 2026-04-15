@@ -103,16 +103,45 @@ const LoadingText = () => (
   </div>
 );
 
-// ========== Sub-components ==========
+const tabConfig = {
+  all: {
+    label: "All",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+        <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+        <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+      </svg>
+    ),
+  },
+  videos: {
+    label: "Videos",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+        <path d="M12.53 20.92H6.21C3.05 20.92 2 18.82 2 16.71V8.29002C2 5.13002 3.05 4.08002 6.21 4.08002H12.53C15.69 4.08002 16.74 5.13002 16.74 8.29002V16.71C16.74 19.87 15.68 20.92 12.53 20.92Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M19.5202 17.6L16.7402 15.65V9.34001L19.5202 7.39001C20.8802 6.44001 22.0002 7.02001 22.0002 8.69001V16.31C22.0002 17.98 20.8802 18.56 19.5202 17.6Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M11.5 11.5C12.3284 11.5 13 10.8284 13 10C13 9.17157 12.3284 8.5 11.5 8.5C10.6716 8.5 10 9.17157 10 10C10 10.8284 10.6716 11.5 11.5 11.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    ),
+  },
+  photos: {
+    label: "Photos",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+        <path d="M9.5 22.5H15.5C20.5 22.5 22.5 20.5 22.5 15.5V9.5C22.5 4.5 20.5 2.5 15.5 2.5H9.5C4.5 2.5 2.5 4.5 2.5 9.5V15.5C2.5 20.5 4.5 22.5 9.5 22.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M9.5 10.5C10.6046 10.5 11.5 9.60457 11.5 8.5C11.5 7.39543 10.6046 6.5 9.5 6.5C8.39543 6.5 7.5 7.39543 7.5 8.5C7.5 9.60457 8.39543 10.5 9.5 10.5Z" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M3.16992 19.45L8.09992 16.14C8.88992 15.61 10.0299 15.67 10.7399 16.28L11.0699 16.57C11.8499 17.24 13.1099 17.24 13.8899 16.57L18.0499 13C18.8299 12.33 20.0899 12.33 20.8699 13L22.4999 14.4" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    ),
+  },
+};
 
+// ========== Sub-components ==========
 interface TaggedUsersProps {
   post: any;
 }
 
-const TaggedUsers = ({ post }: TaggedUsersProps) => {
-  const taggedUsers = post?.collaboration?.taggedUsers ?? [];
-  if (taggedUsers.length === 0) return null;
-
+const TaggedUsers = ({ post }: TaggedUsersProps) => {const taggedUsers = post?.collaboration?.taggedUsers ?? []; if (taggedUsers.length === 0) return null;
   return (
     <div className="tagview" onClick={(e) => { e.stopPropagation(); e.preventDefault(); showTaggedUserList([...(post?.collaboration?.taggedBy ? [{ user: post.collaboration.taggedBy }] : []), ...(post?.collaboration?.taggedUsers || []),]); }}>
       <ul className="taglist">
@@ -140,45 +169,25 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
   const mediaUrl = media?.mediaFiles?.[0] || "";
   const isOwnPost = isCreator && post.userId === loggedInUserId;
   const isSaved = post.isSaved;
-  const isTouchDevice =
-    typeof window !== "undefined" &&
-    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-
-
+  const isTouchDevice = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
   const playPreview = async (id: string) => {
     const video = videoRefs.current[id];
     if (!video) return;
-
-    try {
-      video.muted = true; // MUST for Safari
-      video.currentTime = 0;
-      await video.play();
-    } catch (err) {
-      console.log("Play blocked:", err);
-    }
+    try {video.muted = true; video.currentTime = 0; await video.play();} catch (err) {console.log("Play blocked:", err);}
   };
 
-
-  const stopPreview = (id: string) => {
-    const video = videoRefs.current[id];
-    if (!video) return;
-
-    video.pause();
-    video.currentTime = 0;
-  };
+  const stopPreview = (id: string) => {const video = videoRefs.current[id]; if (!video) return; video.pause(); video.currentTime = 0;};
 
   useEffect(() => {
     Object.values(videoRefs.current).forEach((video) => {
       if (video) {
         video.pause();
         video.currentTime = 0;
-
         const playPromise = video.play();
-
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              video.pause(); // render first frame only
+              video.pause();
             })
             .catch(() => { });
         }
@@ -186,50 +195,12 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
     });
   }, [mediaUrl]);
 
-
-
   const renderMedia = () => {
     if (mediaType === "video") {
       if (mediaUrl && !videoErrors[post._id]) {
         return (
           <div className="creator-media-card__media post_playbtn">
-            <video
-              ref={(el) => {
-                if (el) videoRefs.current[post._id] = el;
-              }}
-              src={mediaUrl}
-              muted
-              playsInline
-              webkit-playsinline="true"
-              loop
-              preload="auto"
-              onMouseEnter={() => {
-                if (!isTouchDevice) playPreview(post._id);
-              }}
-              onMouseLeave={() => {
-                if (!isTouchDevice) stopPreview(post._id);
-              }}
-              onClick={(e) => {
-                if (!isTouchDevice) return;
-
-                const video = videoRefs.current[post._id];
-                if (!video) return;
-
-                Object.values(videoRefs.current).forEach((v) => {
-                  if (v && v !== video) {
-                    v.pause();
-                    v.currentTime = 0;
-                  }
-                });
-
-                video.muted = true;
-                video.currentTime = 0;
-
-                video.play().catch(() => { });
-
-              }}
-            />
-
+            <video ref={(el) => {if (el) videoRefs.current[post._id] = el;}} src={mediaUrl} muted playsInline webkit-playsinline="true" loop preload="auto" onMouseEnter={() => {if (!isTouchDevice) playPreview(post._id);}} onMouseLeave={() => {if (!isTouchDevice) stopPreview(post._id);}} onClick={(e) => {if (!isTouchDevice) return; const video = videoRefs.current[post._id]; if (!video) return; Object.values(videoRefs.current).forEach((v) => {if (v && v !== video) {v.pause(); v.currentTime = 0;}}); video.muted = true; video.currentTime = 0; video.play().catch(() => { });}}/>
             {playingId !== post._id && (
               <Link href="#" className="ply_btn" onClick={(e) => onPlayClick(e, post._id)}><PlayCircle strokeWidth={1} size={32} /></Link>
             )}
@@ -274,7 +245,6 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
         </Link>
       );
     }
-
     return null;
   };
 
@@ -412,7 +382,6 @@ const StorePage = () => {
     fetchStoreImages();
   }, [activeStoreOwner?._id, activeStoreOwner?.id]);
   useEffect(() => { setStoreImages({ profileImage: "", coverImage: "" }); }, [activeStoreOwner?._id]);
-
   useEffect(() => {
     if (swiperRef.current) {
       swiperRef.current.update();
@@ -880,40 +849,25 @@ const StorePage = () => {
                               </div>
                             </div>
 
-                            {/* Sub-tabs */}
                             <div className="creator-content-tabs-btn-wrapper">
                               <div className="multi-tabs-action-buttons">
-                                {(["all", "videos", "photos"] as SubTab[]).map((tab) => (
-                                  <button
-                                    key={tab}
-                                    className={`multi-tab-switch-btn ${tab}-btn ${subActiveTab === tab ? "active" : ""}`}
-                                    onClick={() => setSubActiveTab(tab)}
-                                  >
-                                    <span>{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
-                                  </button>
-                                ))}
+                                {(Object.keys(tabConfig) as SubTab[]).map((tab) => {
+                                  const config = tabConfig[tab]; return (
+                                    <button key={tab} className={`multi-tab-switch-btn ${tab}-btn ${subActiveTab === tab ? "active" : ""}`} onClick={() => setSubActiveTab(tab)}>
+                                      {config.icon} <span>{config.label}</span>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
 
                             {/* Time Filter + Layout Toggle */}
                             <div className="creater-content-filters-layouts">
                               <div className="creator-content-select-filter">
-                                <CustomSelect
-                                  className="bg-white p-sm size-sm"
-                                  label="All Time"
-                                  options={timeOptions}
-                                  value={time}
-                                  searchable={false}
-                                  onChange={(value) => {
-                                    if (typeof value === "string") setTime(value as TimeFilter);
-                                  }}
-                                />
+                                <CustomSelect className="bg-white p-sm size-sm" label="All Time" options={timeOptions} value={time} searchable={false} onChange={(value) => { if (typeof value === "string") setTime(value as TimeFilter); }} />
                               </div>
                               <div className="creator-content-grid-layout-options" data-multi-dem-cards-layout-btns>
-                                <button
-                                  className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"}`}
-                                  onClick={() => setLayout("grid")}
-                                >
+                                <button className={`creator-content-grid-layout-btn ${layout === "grid" ? "active" : "inactive"}`} onClick={() => setLayout("grid")}>
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                     <path d="M22 8.52V3.98C22 2.57 21.36 2 19.77 2H15.73C14.14 2 13.5 2.57 13.5 3.98V8.51C13.5 9.93 14.14 10.49 15.73 10.49H19.77C21.36 10.5 22 9.93 22 8.52Z" fill="none" />
                                     <path d="M22 19.77V15.73C22 14.14 21.36 13.5 19.77 13.5H15.73C14.14 13.5 13.5 14.14 13.5 15.73V19.77C13.5 21.36 14.14 22 15.73 22H19.77C21.36 22 22 21.36 22 19.77Z" fill="none" />
@@ -921,10 +875,7 @@ const StorePage = () => {
                                     <path d="M10.5 19.77V15.73C10.5 14.14 9.86 13.5 8.27 13.5H4.23C2.64 13.5 2 14.14 2 15.73V19.77C2 21.36 2.64 22 4.23 22H8.27C9.86 22 10.5 21.36 10.5 19.77Z" fill="none" />
                                   </svg>
                                 </button>
-                                <button
-                                  className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"}`}
-                                  onClick={() => setLayout("list")}
-                                >
+                                <button className={`creator-content-grid-layout-btn ${layout === "list" ? "active" : "inactive"}`} onClick={() => setLayout("list")}>
                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                     <path d="M19.9 13.5H4.1C2.6 13.5 2 14.14 2 15.73V19.77C2 21.36 2.6 22 4.1 22H19.9C21.4 22 22 21.36 22 19.77V15.73C22 14.14 21.4 13.5 19.9 13.5Z" stroke="none" strokeLinecap="round" strokeLinejoin="round" />
                                     <path d="M19.9 2H4.1C2.6 2 2 2.64 2 4.23V8.27C2 9.86 2.6 10.5 4.1 10.5H19.9C21.4 10.5 22 9.86 22 8.27V4.23C22 2.64 21.4 2 19.9 2Z" stroke="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -936,10 +887,7 @@ const StorePage = () => {
                         </div>
 
                         {/* Cards Grid */}
-                        <div
-                          className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card"
-                          data-layout-toggle-rows={layout === "list" ? true : undefined}
-                        >
+                        <div className="creator-content-cards-wrapper multi-dem-cards-wrapper-layout store_card" data-layout-toggle-rows={layout === "list" ? true : undefined}>
                           <div className="creator-content-type-container-wrapper" data-multi-tabs-content-tabdata__active>
                             {loadingPaidPosts && <LoadingText />}
                             <div className="col-4-cards-layout">
@@ -969,31 +917,10 @@ const StorePage = () => {
 
       {/* ========== Modals ========== */}
       {showSubscriptionModal && (
-        <SubscriptionModal
-          onClose={() => setShowSubscriptionModal(false)}
-          onConfirm={handleConfirmSubscription}
-          plan={subscriptionPlan}
-          setPlan={setSubscriptionPlan}
-          action="subscribe"
-          creator={{
-            displayName: activeSubscriptionCreator?.displayName,
-            userName: activeSubscriptionCreator?.userName,
-            profile: activeSubscriptionCreator?.profile,
-          }}
-          subscription={{
-            monthlyPrice: activeSubscriptionCreator?.subscription?.monthlyPrice,
-            yearlyPrice: activeSubscriptionCreator?.subscription?.yearlyPrice,
-          }}
-        />
+        <SubscriptionModal onClose={() => setShowSubscriptionModal(false)} onConfirm={handleConfirmSubscription} plan={subscriptionPlan} setPlan={setSubscriptionPlan} action="subscribe" creator={{ displayName: activeSubscriptionCreator?.displayName, userName: activeSubscriptionCreator?.userName, profile: activeSubscriptionCreator?.profile, }} subscription={{ monthlyPrice: activeSubscriptionCreator?.subscription?.monthlyPrice, yearlyPrice: activeSubscriptionCreator?.subscription?.yearlyPrice, }} />
       )}
       {unlockModalPost && (
-        <UnlockContentModal
-          onClose={() => setUnlockModalPost(null)}
-          creator={{
-            displayName: unlockModalPost.creatorInfo?.displayName || unlockModalPost.user?.displayName,
-            userName: unlockModalPost.creatorInfo?.userName || unlockModalPost.user?.userName,
-            profile: unlockModalPost.creatorInfo?.profile || unlockModalPost.user?.profile,
-          }}
+        <UnlockContentModal onClose={() => setUnlockModalPost(null)} creator={{ displayName: unlockModalPost.creatorInfo?.displayName || unlockModalPost.user?.displayName, userName: unlockModalPost.creatorInfo?.userName || unlockModalPost.user?.userName, profile: unlockModalPost.creatorInfo?.profile || unlockModalPost.user?.profile, }}
           post={{
             publicId: unlockModalPost.publicId,
             text: unlockModalPost.text,

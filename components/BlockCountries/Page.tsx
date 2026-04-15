@@ -10,6 +10,7 @@ import {
 import { countryOptions } from "../helper/creatorOptions";
 import ShowToast from "../common/ShowToast";
 import { useRouter } from "next/navigation";
+import { showError, showSuccess } from "@/utils/alert";
 
 export enum UserStatus {
   ACTIVE = 0,
@@ -21,17 +22,15 @@ export enum UserStatus {
 }
 
 const BlockCountriesPage = () => {
-  const router=useRouter();
+  const router = useRouter();
   const [tab, setTab] = useState(0);
   const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
   const prevBlockedCountriesRef = useRef<string[]>([]);
   const handleSaveBlockedCountries = async () => {
     const previous = prevBlockedCountriesRef.current;
     const current = blockedCountries;
-
     const toBlock = current.filter((c) => !previous.includes(c));
     const toUnblock = previous.filter((c) => !current.includes(c));
-
     try {
       if (toBlock.length) {
         await apiPost({
@@ -39,19 +38,16 @@ const BlockCountriesPage = () => {
           values: { countryNames: toBlock },
         });
       }
-
       if (toUnblock.length) {
         await apiPost({
           url: API_UNBLOCK_COUNTRIES,
           values: { countryNames: toUnblock },
         });
       }
-
       prevBlockedCountriesRef.current = current;
-
-      ShowToast("Blocked countries updated successfully", "success");
+      showSuccess("Blocked countries updated successfully");
     } catch (err: any) {
-      ShowToast(err?.message || "Failed to update blocked countries", "error");
+      showError(err?.message || "Failed to update blocked countries");
     }
   };
 
@@ -82,7 +78,7 @@ const BlockCountriesPage = () => {
               <button className="page-content-type-button active">Block Countries</button>
             </div>
             <div className="moneyboy-feed-page-cate-buttons card hide_mobile" id="posts-tabs-btn-card" >
-              <button className="cate-back-btn active-down-effect"  onClick={() => router.push("/feed")}><span className="icons arrowLeft hwhite"></span></button>
+              <button className="cate-back-btn active-down-effect" onClick={() => router.push("/feed")}><span className="icons arrowLeft hwhite"></span></button>
               <button className={`page-content-type-button active-down-effect max-w-50 ${tab === 0 ? "active" : ""}`} onClick={() => setTab(0)}>Block Countries</button>
             </div>
             <div className="creator-profile-page-container">

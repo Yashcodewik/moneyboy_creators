@@ -22,14 +22,24 @@ const autoAlert = (icon: SweetAlertIcon, message: string, timer = 2200) => {
     icon,
     title: message,
     showConfirmButton: false,
-    timer,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.addEventListener("mouseenter", Swal.stopTimer);
-      toast.addEventListener("mouseleave", Swal.resumeTimer);
-    },
+    timer: timer,
+    timerProgressBar: false,
   });
 };
+// const autoAlert = (icon: SweetAlertIcon, message: string, timer = 2200) => {
+//   Swal.fire({
+//     ...baseConfig,
+//     icon,
+//     title: message,
+//     showConfirmButton: false,
+//     timer: undefined,
+//     timerProgressBar: false,
+//     didOpen: (toast) => {
+//       toast.addEventListener("mouseenter", Swal.stopTimer);
+//       toast.addEventListener("mouseleave", Swal.resumeTimer);
+//     },
+//   });
+// };
 
 /* ================= SIMPLE ALERTS ================= */
 export const showSuccess = (msg: string) => autoAlert("success", msg);
