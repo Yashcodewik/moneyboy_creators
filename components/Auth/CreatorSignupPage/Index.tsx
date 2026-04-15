@@ -2,27 +2,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import CustomSelect from "@/components/CustomSelect";
 import Link from "next/link";
-import {} from "react";
 import { useFormik } from "formik";
 import { apiPost } from "@/utils/endpoints/common";
-import {
-  API_CREATOR_REGISTER,
-  API_RESEND_OTP,
-  API_VERIFY_OTP,
-} from "@/utils/api/APIConstant";
+import { API_CREATOR_REGISTER, API_RESEND_OTP, API_VERIFY_OTP, } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
-import {
-  ageGroupOptions,
-  bodyTypeOptions,
-  countryOptions,
-  ethnicityOptions,
-  eyeColorOptions,
-  hairColorOptions,
-  heightOptions,
-  sexualOrientationOptions,
-  sizeOptions,
-  styleOptions,
-} from "@/components/helper/creatorOptions";
+import { ageGroupOptions, bodyTypeOptions, countryOptions, ethnicityOptions, eyeColorOptions, hairColorOptions, heightOptions, sexualOrientationOptions, sizeOptions, styleOptions, } from "@/components/helper/creatorOptions";
 import OtpModal from "@/components/OtpModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays } from "lucide-react";
@@ -73,30 +57,7 @@ const CreatorSignupPage = () => {
   }, []);
 
   const formik = useFormik({
-    initialValues: {
-      firstName: "",
-      lastName: "",
-      displayName: "",
-      userName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      gender: "Male",
-      dob: null,
-      country: "",
-      city: "",
-      bio: "",
-      bodyType: "",
-      sexualOrientation: "",
-      age: "",
-      eyeColor: "",
-      hairColor: "",
-      ethnicity: "",
-      height: "",
-      style: "",
-      size: "",
-      popularity: "",
-    },
+    initialValues: { firstName: "", lastName: "", displayName: "", userName: "", email: "", password: "", confirmPassword: "", gender: "Male", dob: null, country: "", city: "", bio: "", bodyType: "", sexualOrientation: "", age: "", eyeColor: "", hairColor: "", ethnicity: "", height: "", style: "", size: "", popularity: "", },
     validationSchema: validationSchemaCreator,
     onSubmit: async (values) => {
       try {
@@ -107,46 +68,30 @@ const CreatorSignupPage = () => {
           values,
         });
 
-        // ✅ If backend sends success: false
-const message = String(res?.message || res?.error || "").toLowerCase();
+        const message = String(res?.message || res?.error || "").toLowerCase();
 
-// ❌ HANDLE ERROR FIRST
-if (!res?.success) {
-  if (message.includes("already")) {
-    ShowToast(
-      "Email already exists. Please use another email.",
-      "error"
-    );
-  } else if (message.includes("invalid")) {
-    ShowToast(
-      "Enter a valid email address",
-      "error"
-    );
-  } else {
-    ShowToast(
-      message || "Something went wrong",
-      "error"
-    );
-  }
+        if (!res?.success) {
+          if (message.includes("already")) {
+            ShowToast("Email already exists. Please use another email.", "error");
+          } else if (message.includes("invalid")) {
+            ShowToast("Enter a valid email address", "error");
+          } else {
+            ShowToast(message || "Something went wrong", "error");
+          }
+          setLoading(false);
+          return;
+        }
 
-  setLoading(false);
-  return; // ⛔ VERY IMPORTANT (STOP HERE)
-}
-
-// ✅ ONLY SUCCESS CASE BELOW
-ShowToast(res.message, "success");
-setEmailForOtp(values.email);
-setOtpOpen(true);
+        ShowToast(res.message, "success");
+        setEmailForOtp(values.email);
+        setOtpOpen(true);
       } catch (err: any) {
-        // ✅ If API throws error (409 / 400)
         if (err?.response?.data?.message?.toLowerCase().includes("email")) {
           ShowToast("Email already exists. Please use another email.", "error");
         } else {
           ShowToast(
-            err?.response?.data?.message ||
-              err?.message ||
-              "Something went wrong",
-            "error",
+            err?.response?.data?.message || err?.message || "Something went wrong",
+            "error"
           );
         }
       } finally {
@@ -190,35 +135,20 @@ setOtpOpen(true);
   const maxAllowedDate = new Date(
     today.getFullYear() - 18,
     today.getMonth(),
-    today.getDate(),
+    today.getDate()
   );
 
   const calculateAge = (dob: Date) => {
     const today = new Date();
     let age = today.getFullYear() - dob.getFullYear();
     const m = today.getMonth() - dob.getMonth();
-
     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
       age--;
     }
-
     return age;
   };
 
-  const months = [
-    { label: "Jan", value: "0" },
-    { label: "Feb", value: "1" },
-    { label: "Mar", value: "2" },
-    { label: "Apr", value: "3" },
-    { label: "May", value: "4" },
-    { label: "Jun", value: "5" },
-    { label: "Jul", value: "6" },
-    { label: "Aug", value: "7" },
-    { label: "Sep", value: "8" },
-    { label: "Oct", value: "9" },
-    { label: "Nov", value: "10" },
-    { label: "Dec", value: "11" },
-  ];
+  const months = [{ label: "Jan", value: "0" }, { label: "Feb", value: "1" }, { label: "Mar", value: "2" }, { label: "Apr", value: "3" }, { label: "May", value: "4" }, { label: "Jun", value: "5" }, { label: "Jul", value: "6" }, { label: "Aug", value: "7" }, { label: "Sep", value: "8" }, { label: "Oct", value: "9" }, { label: "Nov", value: "10" }, { label: "Dec", value: "11" },];
 
   const currentYear = new Date().getFullYear();
   const maxYear = currentYear - 18;
@@ -230,12 +160,45 @@ setOtpOpen(true);
 
   const handleSocialLogin = async (provider: "google" | "twitter") => {
     document.cookie = "userType=Creator; path=/";
-    const res = await signIn(provider, {
-      redirect: false,
-    });
+    const res = await signIn(provider, { redirect: false });
     if (res?.error) {
       console.log("Login failed");
     }
+  };
+
+  const mobileDateValue =
+    startDate && !isNaN(startDate.getTime())
+      ? startDate.toISOString().split("T")[0]
+      : "";
+
+  const handleMobileDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (!value) {
+      setStartDate(null);
+      formik.setFieldValue("dob", null);
+      formik.setFieldValue("age", "");
+      return;
+    }
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return;
+    setStartDate(date);
+    formik.setFieldValue("dob", date.toISOString());
+    formik.setFieldValue("age", calculateAge(date));
+  };
+
+  const handleDesktopDateChange = (date: Date | null) => {
+    if (!date) {
+      setStartDate(null);
+      formik.setFieldValue("dob", null);
+      formik.setFieldValue("age", "");
+      setActiveField(null);
+      return;
+    }
+    if (isNaN(date.getTime())) return;
+    setStartDate(date);
+    formik.setFieldValue("dob", date.toISOString());
+    formik.setFieldValue("age", calculateAge(date));
+    setActiveField(null);
   };
 
   return (
@@ -249,9 +212,7 @@ setOtpOpen(true);
                 <div className="moneyboy-post__container card">
                   <div className="head">
                     <div className="backicons">
-                      <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}>
-                        <span><IoArrowBackOutline className="icons" /></span>
-                      </button>
+                      <button className="cate-back-btn active-down-effect" onClick={() => router.push("/")}> <span>   <IoArrowBackOutline className="icons" /> </span></button>
                     </div>
                     <div className="textcont">
                       <h3 className="heading">Creator Sign Up</h3>
@@ -259,20 +220,8 @@ setOtpOpen(true);
                     </div>
                   </div>
                   <div className="loginbtn_wrap">
-                    <button
-                      type="button"
-                      className="google-button active-down-effect "
-                      onClick={() => handleSocialLogin("google")}
-                    >
-                      <FcGoogle size={18} /> Sign up with Google
-                    </button>
-                    <button
-                      type="button"
-                      className="x-button active-down-effect"
-                      onClick={() => handleSocialLogin("twitter")}
-                    >
-                      <FaXTwitter size={18} /> Sign up with X
-                    </button>
+                    <button type="button" className="google-button active-down-effect" onClick={() => handleSocialLogin("google")}><FcGoogle size={18} /> Sign up with Google</button>
+                    <button type="button" className="x-button active-down-effect" onClick={() => handleSocialLogin("twitter")}><FaXTwitter size={18} /> Sign up with X</button>
                   </div>
                   <div className="or-divider">
                     <span>Or</span>
@@ -282,589 +231,215 @@ setOtpOpen(true);
                       <div className="form_grid">
                         <div>
                           <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="First Name *"
-                              value={formik.values.firstName}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="firstName"
-                            />
+                            <div className="input-placeholder-icon"><i className="icons user svg-icon"></i></div>
+                            <input type="text" placeholder="First Name *" name="firstName" value={formik.values.firstName} onChange={formik.handleChange} onBlur={formik.handleBlur} />
                           </div>
-                          {formik.touched.firstName &&
-                            formik.errors.firstName && (
-                              <span className="error-message">
-                                {formik.errors.firstName}
-                              </span>
-                            )}
+                          {formik.touched.firstName && formik.errors.firstName && (
+                            <span className="error-message">{formik.errors.firstName}</span>
+                          )}
+                        </div>
+
+                        {/* Last Name */}
+                        <div>
+                          <div className="label-input">
+                            <div className="input-placeholder-icon"><i className="icons user svg-icon"></i></div>
+                            <input type="text" placeholder="Last name *" name="lastName" value={formik.values.lastName} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                          </div>
+                          {formik.touched.lastName && formik.errors.lastName && (
+                            <span className="error-message">{formik.errors.lastName}</span>
+                          )}
                         </div>
                         <div>
                           <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Last name *"
-                              value={formik.values.lastName}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="lastName"
-                            />
+                            <div className="input-placeholder-icon"><i className="icons user2 svg-icon"></i></div>
+                            <input type="text" placeholder="Display name *" name="displayName" value={formik.values.displayName} onChange={formik.handleChange} onBlur={formik.handleBlur} />
                           </div>
-                          {formik.touched.lastName &&
-                            formik.errors.lastName && (
-                              <span className="error-message">
-                                {formik.errors.lastName}
-                              </span>
-                            )}
+                          {formik.touched.displayName && formik.errors.displayName && (
+                            <span className="error-message">{formik.errors.displayName}</span>
+                          )}
                         </div>
+
+                        {/* User Name */}
                         <div>
                           <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons user2 svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Display name *"
-                              value={formik.values.displayName}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="displayName"
-                            />
+                            <div className="input-placeholder-icon"><i className="icons profile-check svg-icon"></i></div>
+                            <input type="text" placeholder="User name *" name="userName" value={formik.values.userName} onChange={formik.handleChange} onBlur={formik.handleBlur} />
                           </div>
-                          {formik.touched.displayName &&
-                            formik.errors.displayName && (
-                              <span className="error-message">
-                                {formik.errors.displayName}
-                              </span>
-                            )}
+                          {formik.touched.userName && formik.errors.userName && (
+                            <span className="error-message">{formik.errors.userName}</span>
+                          )}
                         </div>
-                        <div>
-                          <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <i className="icons profile-check svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="User name *"
-                              value={formik.values.userName}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="userName"
-                            />
-                          </div>
-                          {formik.touched.userName &&
-                            formik.errors.userName && (
-                              <span className="error-message">
-                                {formik.errors.userName}
-                              </span>
-                            )}
-                        </div>
+
+                        {/* Email */}
                         <div className="one">
-                          <div className="label-input ">
-                            <div className="input-placeholder-icon">
-                              <i className="icons message svg-icon"></i>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Email Address *"
-                              value={formik.values.email}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="email"
-                            />
+                          <div className="label-input">
+                            <div className="input-placeholder-icon"><i className="icons message svg-icon"></i></div>
+                            <input type="text" placeholder="Email Address *" name="email" value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur} />
                           </div>
                           {formik.touched.email && formik.errors.email && (
-                            <span className="error-message">
-                              {formik.errors.email}
-                            </span>
+                            <span className="error-message">{formik.errors.email}</span>
                           )}
                         </div>
+
+                        {/* Password */}
                         <div>
                           <div className="label-input password">
-                            <div className="input-placeholder-icon">
-                              <i className="icons lock svg-icon"></i>
-                            </div>
-                            <input
-                              type={showPass ? "text" : "password"}
-                              placeholder="Password *"
-                              value={formik.values.password}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="password"
-                            />
-                            <span
-                              onClick={() => setShowPass(!showPass)}
-                              className="input-placeholder-icon eye-icon"
-                            >
-                              {showPass ? (
-                                <i className="icons eye-slash svg-icon"></i>
-                              ) : (
-                                <i className="icons eye svg-icon"></i>
-                              )}
-                            </span>
+                            <div className="input-placeholder-icon"><i className="icons lock svg-icon"></i></div>
+                            <input type={showPass ? "text" : "password"} placeholder="Password *" name="password" value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                            <span onClick={() => setShowPass(!showPass)} className="input-placeholder-icon eye-icon"> {showPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
                           </div>
-                          {formik.touched.password &&
-                            formik.errors.password && (
-                              <span className="error-message">
-                                {formik.errors.password}
-                              </span>
-                            )}
+                          {formik.touched.password && formik.errors.password && (<span className="error-message">{formik.errors.password}</span>)}
                         </div>
+
+                        {/* Confirm Password */}
                         <div>
                           <div className="label-input password">
-                            <div className="input-placeholder-icon">
-                              <i className="icons lock svg-icon"></i>
-                            </div>
-                            <input
-                              type={showConfirmPass ? "text" : "password"}
-                              placeholder="Confirm password *"
-                              value={formik.values.confirmPassword}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="confirmPassword"
-                            />
-                            <span
-                              onClick={() =>
-                                setShowConfirmPass(!showConfirmPass)
-                              }
-                              className="input-placeholder-icon eye-icon"
-                            >
-                              {showConfirmPass ? (
-                                <i className="icons eye-slash svg-icon"></i>
-                              ) : (
-                                <i className="icons eye svg-icon"></i>
-                              )}
-                            </span>
+                            <div className="input-placeholder-icon"> <i className="icons lock svg-icon"></i></div>
+                            <input type={showConfirmPass ? "text" : "password"} placeholder="Confirm password *" name="confirmPassword" value={formik.values.confirmPassword} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                            <span onClick={() => setShowConfirmPass(!showConfirmPass)} className="input-placeholder-icon eye-icon">{showConfirmPass ? (<i className="icons eye-slash svg-icon"></i>) : (<i className="icons eye svg-icon"></i>)}</span>
                           </div>
-                          {formik.touched.confirmPassword &&
-                            formik.errors.confirmPassword && (
-                              <span className="error-message">
-                                {formik.errors.confirmPassword}
-                              </span>
-                            )}
+                          {formik.touched.confirmPassword && formik.errors.confirmPassword && (<span className="error-message">{formik.errors.confirmPassword}</span>)}
                         </div>
-                        <div>
-                          <div className="label-input ">
-                            <div className="input-placeholder-icon">
-                              <i className="icons groupUser svg-icon"></i>
-                            </div>
-                            <input
-                              type={"text"}
-                              placeholder="Gender"
-                              value={formik.values.gender}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="gender"
-                              disabled
-                            />
-                          </div>
-                          {formik.touched.gender && formik.errors.gender && (
-                            <span className="error-message">
-                              {formik.errors.gender}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-<div
-  className="label-input calendar-dropdown"
-  ref={wrapperRef}
->
-  <div className="input-placeholder-icon">
-    <CalendarDays className="icons svg-icon" />
-  </div>
 
-  {isMobile ? (
-    // ✅ MOBILE → Native picker (FIXED)
-    <input
-      type="date"
-      className="form-input"
-      value={
-        startDate && !isNaN(startDate.getTime())
-          ? startDate.toISOString().split("T")[0]
-          : ""
-      }
-      max={
-        maxAllowedDate
-          ? maxAllowedDate.toISOString().split("T")[0]
-          : undefined
-      }
-      onChange={(e) => {
-        const value = e.target.value;
-
-        // ✅ HANDLE CLEAR (IMPORTANT FIX)
-        if (!value) {
-          setStartDate(null);
-          formik.setFieldValue("dob", null);
-          formik.setFieldValue("age", "");
-          return;
-        }
-
-        const date = new Date(value);
-
-        // ✅ SAFETY CHECK
-        if (isNaN(date.getTime())) return;
-
-        setStartDate(date);
-
-        const formattedDate = date.toISOString();
-        formik.setFieldValue("dob", formattedDate);
-
-        const age = calculateAge(date);
-        formik.setFieldValue("age", age);
-      }}
-    />
-  ) : (
-    // ✅ DESKTOP → Custom calendar (FIXED)
-    <>
-      <input
-        type="text"
-        placeholder="(DD/MM/YYYY)"
-        className="form-input"
-        readOnly
-        value={
-          startDate && !isNaN(startDate.getTime())
-            ? startDate.toLocaleDateString("en-GB")
-            : ""
-        }
-        onClick={() => setActiveField("schedule")}
-      />
-
-      {activeField === "schedule" && (
-        <div className="calendar_show">
-          <DatePicker
-            selected={startDate}
-            inline
-            maxDate={maxAllowedDate}
-            minDate={new Date(1900, 0, 1)}
-            showMonthDropdown
-            showYearDropdown
-            dropdownMode="select"
-            scrollableYearDropdown
-            yearDropdownItemNumber={100}
-            renderCustomHeader={({
-              date,
-              changeYear,
-              changeMonth,
-            }) => (
-              <div
-                className="flex gap-5 select_wrap"
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <CustomSelect
-                  className="bg-white p-sm size-sm"
-                  options={months}
-                  value={date.getMonth().toString()}
-                  onChange={(val) => changeMonth(Number(val))}
-                  searchable={false}
-                />
-                <CustomSelect
-                  className="bg-white p-sm size-sm"
-                  options={years}
-                  value={date.getFullYear().toString()}
-                  onChange={(val) => changeYear(Number(val))}
-                  searchable={false}
-                />
-              </div>
-            )}
-            onChange={(date: Date | null) => {
-              // ✅ HANDLE CLEAR (IMPORTANT)
-              if (!date) {
-                setStartDate(null);
-                formik.setFieldValue("dob", null);
-                formik.setFieldValue("age", "");
-                setActiveField(null);
-                return;
-              }
-
-              // ✅ SAFETY CHECK
-              if (isNaN(date.getTime())) return;
-
-              setStartDate(date);
-
-              const formattedDate = date.toISOString();
-              formik.setFieldValue("dob", formattedDate);
-
-              const age = calculateAge(date);
-              formik.setFieldValue("age", age);
-
-              setActiveField(null);
-            }}
-          />
-        </div>
-      )}
-    </>
-  )}
-</div>
-                          {formik.touched.dob && formik.errors.dob && (
-                            <span className="error-message">
-                              {formik.errors.dob}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <CustomSelect
-                            label="Select Country *"
-                            icon={
-                              countryCode ? (
-                                <div className="flag-circle">
-                                  <img
-                                    src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`}
-                                    alt="flag"
-                                  />
-                                </div>
-                              ) : (
-                                <svg className="icons locationIcon svg-icon"></svg>
-                              )
-                            }
-                            options={countryOptions}
-                            value={formik.values.country}
-                            onChange={(val) =>
-                              formik.setFieldValue("country", val)
-                            }
-                          />
-                          {formik.touched.country && formik.errors.country && (
-                            <span className="error-message">
-                              {formik.errors.country}
-                            </span>
-                          )}
-                        </div>
+                        {/* Gender */}
                         <div>
                           <div className="label-input">
-                            <div className="input-placeholder-icon">
-                              <svg className="icons locationIcon svg-icon"></svg>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="City *"
-                              value={formik.values.city}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="city"
-                            />
+                            <div className="input-placeholder-icon"><i className="icons groupUser svg-icon"></i></div>
+                            <input type="text" placeholder="Gender" name="gender" value={formik.values.gender} onChange={formik.handleChange} onBlur={formik.handleBlur} disabled />
                           </div>
-                          {formik.touched.city && formik.errors.city && (
-                            <span className="error-message">
-                              {formik.errors.city}
-                            </span>
+                          {formik.touched.gender && formik.errors.gender && (<span className="error-message">{formik.errors.gender}</span>)}
+                        </div>
+
+                        {/* Date of Birth */}
+                        <div>
+                          <div className="label-input calendar-dropdown" ref={wrapperRef}>
+                            <div className="input-placeholder-icon"><CalendarDays className="icons svg-icon" /></div>
+                            {isMobile ? (
+                              <>
+                                {!mobileDateValue && (
+                                  <span className="mobail_placeholder">DD/MM/YYYY</span>
+                                )}
+                                <input type="date" className="form-input" value={mobileDateValue} max={maxAllowedDate.toISOString().split("T")[0]} onChange={handleMobileDateChange} style={{ color: mobileDateValue ? "inherit" : "transparent" }} />
+                              </>
+                            ) : (
+                              <>
+                                <input type="text" placeholder="DD/MM/YYYY" className="form-input" readOnly value={startDate && !isNaN(startDate.getTime()) ? startDate.toLocaleDateString("en-GB") : ""} onClick={() => setActiveField("schedule")} />
+                                {activeField === "schedule" && (
+                                  <div className="calendar_show">
+                                    <DatePicker selected={startDate} inline maxDate={maxAllowedDate} minDate={new Date(1900, 0, 1)} showMonthDropdown showYearDropdown dropdownMode="select" scrollableYearDropdown yearDropdownItemNumber={100} renderCustomHeader={({ date, changeYear, changeMonth }) => (
+                                      <div className="flex gap-5 select_wrap" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                                        <CustomSelect className="bg-white p-sm size-sm" options={months} value={date.getMonth().toString()} onChange={(val) => changeMonth(Number(val))} searchable={false} />
+                                        <CustomSelect className="bg-white p-sm size-sm" options={years} value={date.getFullYear().toString()} onChange={(val) => changeYear(Number(val))} searchable={false} />
+                                      </div>
+                                    )} onChange={handleDesktopDateChange} />
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                          {formik.touched.dob && formik.errors.dob && (
+                            <span className="error-message">{formik.errors.dob}</span>
                           )}
                         </div>
+
+                        {/* Country */}
+                        <div>
+                          <CustomSelect label="Select Country *" icon={countryCode ? (
+                            <div className="flag-circle">
+                              <img src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`} alt="flag" />
+                            </div>
+                          ) : (
+                            <svg className="icons locationIcon svg-icon"></svg>
+                          )
+                          } options={countryOptions} value={formik.values.country} onChange={(val) => formik.setFieldValue("country", val)} />
+                          {formik.touched.country && formik.errors.country && (<span className="error-message">{formik.errors.country}</span>)}
+                        </div>
+
+                        {/* City */}
+                        <div>
+                          <div className="label-input">
+                            <div className="input-placeholder-icon"><svg className="icons locationIcon svg-icon"></svg></div>
+                            <input type="text" placeholder="City *" name="city" value={formik.values.city} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                          </div>
+                          {formik.touched.city && formik.errors.city && (<span className="error-message">{formik.errors.city}</span>)}
+                        </div>
+
+                        {/* Bio */}
                         <div className="one">
                           <div className="label-input textarea one">
-                            <div className="input-placeholder-icon">
-                              <svg className="icons messageUser svg-icon"></svg>
-                            </div>
-                            <textarea
-                              rows={4}
-                              placeholder="Bio"
-                              value={formik.values.bio}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              name="bio"
-                            ></textarea>
+                            <div className="input-placeholder-icon"><svg className="icons messageUser svg-icon"></svg></div>
+                            <textarea rows={4} placeholder="Bio" name="bio" value={formik.values.bio} onChange={formik.handleChange} onBlur={formik.handleBlur} />
                           </div>
                           {formik.touched.bio && formik.errors.bio && (
-                            <span className="error-message">
-                              {formik.errors.bio}
-                            </span>
+                            <span className="error-message">{formik.errors.bio}</span>
                           )}
                         </div>
+
+                        {/* Body Type */}
                         <div>
-                          <CustomSelect
-                            label="All Body Types"
-                            icon={<svg className="icons handbody svg-icon" />}
-                            options={bodyTypeOptions}
-                            value={formik.values.bodyType}
-                            onChange={(val) =>
-                              formik.setFieldValue("bodyType", val)
-                            }
-                          />
-                          {formik.touched.bodyType &&
-                            formik.errors.bodyType && (
-                              <span className="error-message">
-                                {formik.errors.bodyType}
-                              </span>
-                            )}
+                          <CustomSelect label="All Body Types" icon={<svg className="icons handbody svg-icon" />} options={bodyTypeOptions} value={formik.values.bodyType} onChange={(val) => formik.setFieldValue("bodyType", val)} />
+                          {formik.touched.bodyType && formik.errors.bodyType && (
+                            <span className="error-message">{formik.errors.bodyType}</span>
+                          )}
                         </div>
+
+                        {/* Sexual Orientation */}
                         <div>
-                          <CustomSelect
-                            label="All Sexual Orientation"
-                            icon={
-                              <svg className="icons timeIcon svg-icon"></svg>
-                            }
-                            options={sexualOrientationOptions}
-                            value={formik.values.sexualOrientation}
-                            onChange={(val) =>
-                              formik.setFieldValue("sexualOrientation", val)
-                            }
-                          />
-                          {formik.touched.sexualOrientation &&
-                            formik.errors.sexualOrientation && (
-                              <span className="error-message">
-                                {formik.errors.sexualOrientation}
-                              </span>
-                            )}
+                          <CustomSelect label="All Sexual Orientation" icon={<svg className="icons timeIcon svg-icon"></svg>} options={sexualOrientationOptions} value={formik.values.sexualOrientation} onChange={(val) => formik.setFieldValue("sexualOrientation", val)} />
+                          {formik.touched.sexualOrientation && formik.errors.sexualOrientation && (<span className="error-message">{formik.errors.sexualOrientation}</span>)}
                         </div>
+
+                        {/* Age (auto-calculated) */}
                         <div className="label-input">
-                          <div className="input-placeholder-icon">
-                            <svg className="icons calendarClock svg-icon"></svg>
-                          </div>
-
-                          <input
-                            type="text"
-                            placeholder="All Ages"
-                            value={
-                              formik.values.age ? `${formik.values.age}` : ""
-                            }
-                            disabled
-                          />
+                          <div className="input-placeholder-icon"><svg className="icons calendarClock svg-icon"></svg></div>
+                          <input type="text" placeholder="All Ages" value={formik.values.age ? `${formik.values.age}` : ""} disabled />
                         </div>
 
+                        {/* Eye Color */}
                         <div>
-                          <CustomSelect
-                            label="All Eye Colors"
-                            icon={
-                              <svg className="icons cameraEye svg-icon"></svg>
-                            }
-                            options={eyeColorOptions}
-                            value={formik.values.eyeColor}
-                            onChange={(val) =>
-                              formik.setFieldValue("eyeColor", val)
-                            }
-                          />
-                          {formik.touched.eyeColor &&
-                            formik.errors.eyeColor && (
-                              <span className="error-message">
-                                {formik.errors.eyeColor}
-                              </span>
-                            )}
-                        </div>
-                        <div>
-                          <CustomSelect
-                            label="All Hair Colors"
-                            icon={
-                              <svg className="icons paintDrop svg-icon"></svg>
-                            }
-                            options={hairColorOptions}
-                            value={formik.values.hairColor}
-                            onChange={(val) =>
-                              formik.setFieldValue("hairColor", val)
-                            }
-                          />
-                          {formik.touched.hairColor &&
-                            formik.errors.hairColor && (
-                              <span className="error-message">
-                                {formik.errors.hairColor}
-                              </span>
-                            )}
+                          <CustomSelect label="All Eye Colors" icon={<svg className="icons cameraEye svg-icon"></svg>} options={eyeColorOptions} value={formik.values.eyeColor} onChange={(val) => formik.setFieldValue("eyeColor", val)} />
+                          {formik.touched.eyeColor && formik.errors.eyeColor && (<span className="error-message">{formik.errors.eyeColor}</span>)}
                         </div>
 
+                        {/* Hair Color */}
                         <div>
-                          <CustomSelect
-                            label="All Ethnicities"
-                            icon={
-                              <svg className="icons multiUser svg-icon"></svg>
-                            }
-                            options={ethnicityOptions}
-                            value={formik.values.ethnicity}
-                            onChange={(val) =>
-                              formik.setFieldValue("ethnicity", val)
-                            }
-                          />
-                          {formik.touched.ethnicity &&
-                            formik.errors.ethnicity && (
-                              <span className="error-message">
-                                {formik.errors.ethnicity}
-                              </span>
-                            )}
+                          <CustomSelect label="All Hair Colors" icon={<svg className="icons paintDrop svg-icon"></svg>} options={hairColorOptions} value={formik.values.hairColor} onChange={(val) => formik.setFieldValue("hairColor", val)} />
+                          {formik.touched.hairColor && formik.errors.hairColor && (<span className="error-message">{formik.errors.hairColor}</span>)}
                         </div>
+
+                        {/* Ethnicity */}
                         <div>
-                          <CustomSelect
-                            label="All Heights"
-                            icon={
-                              <svg className="icons uploadDownload svg-icon"></svg>
-                            }
-                            options={heightOptions}
-                            value={formik.values.height}
-                            onChange={(val) =>
-                              formik.setFieldValue("height", val)
-                            }
-                          />
-                          {formik.touched.height && formik.errors.height && (
-                            <span className="error-message">
-                              {formik.errors.height}
-                            </span>
-                          )}
+                          <CustomSelect label="All Ethnicities" icon={<svg className="icons multiUser svg-icon"></svg>} options={ethnicityOptions} value={formik.values.ethnicity} onChange={(val) => formik.setFieldValue("ethnicity", val)} />
+                          {formik.touched.ethnicity && formik.errors.ethnicity && (<span className="error-message">{formik.errors.ethnicity}</span>)}
                         </div>
+
+                        {/* Height */}
                         <div>
-                          <CustomSelect
-                            label="All Styles"
-                            icon={
-                              <svg className="icons documentHeart svg-icon"></svg>
-                            }
-                            options={styleOptions}
-                            value={formik.values.style}
-                            onChange={(val) =>
-                              formik.setFieldValue("style", val)
-                            }
-                          />
-                          {formik.touched.style && formik.errors.style && (
-                            <span className="error-message">
-                              {formik.errors.style}
-                            </span>
-                          )}
+                          <CustomSelect label="All Heights" icon={<svg className="icons uploadDownload svg-icon"></svg>} options={heightOptions} value={formik.values.height} onChange={(val) => formik.setFieldValue("height", val)} />
+                          {formik.touched.height && formik.errors.height && (<span className="error-message">{formik.errors.height}</span>)}
                         </div>
+
+                        {/* Style */}
                         <div>
-                          <CustomSelect
-                            label="All Sizes"
-                            icon={
-                              <svg className="icons expanddiagonal svg-icon size-18"></svg>
-                            }
-                            options={sizeOptions}
-                            value={formik.values.size}
-                            onChange={(val) =>
-                              formik.setFieldValue("size", val)
-                            }
-                          />
-                          {formik.touched.size && formik.errors.size && (
-                            <span className="error-message">
-                              {formik.errors.size}
-                            </span>
-                          )}
+                          <CustomSelect label="All Styles" icon={<svg className="icons documentHeart svg-icon"></svg>} options={styleOptions} value={formik.values.style} onChange={(val) => formik.setFieldValue("style", val)} />
+                          {formik.touched.style && formik.errors.style && (<span className="error-message">{formik.errors.style}</span>)}
+                        </div>
+
+                        {/* Size */}
+                        <div>
+                          <CustomSelect label="All Sizes" icon={<svg className="icons expanddiagonal svg-icon size-18"></svg>} options={sizeOptions} value={formik.values.size} onChange={(val) => formik.setFieldValue("size", val)} />
+                          {formik.touched.size && formik.errors.size && (<span className="error-message">{formik.errors.size}</span>)}
                         </div>
                       </div>
                     </div>
-                    <button
-                      type="submit"
-                      className="premium-btn"
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <span className="loader"></span>
-                      ) : (
-                        <span>Create your account</span>
-                      )}
+                    <button type="submit" className="premium-btn" disabled={loading}>
+                      {loading ? (<span className="loader"></span>) : (<span>Create your account</span>)}
                     </button>
                   </form>
-                  <p>
-                    By signing up you agree to our{" "}
-                    <Link href="/terms">Terms of Service</Link> and{" "}
-                    <Link href="/privacy">Privacy Policy</Link>, and confirm
-                    that you are at least 18 years old.
-                  </p>
-                  <p className="fs-18">
-                    Have an account already?{" "}
-                    <Link href="/login">Log in here.</Link>
-                  </p>
+                  <p>By signing up you agree to our{" "} <Link href="/terms">Terms of Service</Link> and{" "} <Link href="/privacy">Privacy Policy</Link>, and confirm that you are at least 18 years old.</p>
+                  <p className="fs-18">Have an account already?{" "} <Link href="/login">Log in here.</Link></p>
                 </div>
-                <h4 className="account_login">
-                  Are you a fan? <a href="/signup">Sign up here.</a>
-                </h4>
+                <h4 className="account_login">Are you a fan? <a href="/signup">Sign up here.</a></h4>
               </>
             )}
           </div>
@@ -872,33 +447,11 @@ setOtpOpen(true);
       </div>
 
       {emailForOtp && otpOpen && (
-        <OtpModal
-          open={otpOpen}
-          onClose={() => setOtpOpen(false)}
-          email={emailForOtp}
-          onSubmit={verifyOtp}
-          resendApi={API_RESEND_OTP}
-        />
+        <OtpModal open={otpOpen} onClose={() => setOtpOpen(false)} email={emailForOtp} onSubmit={verifyOtp} resendApi={API_RESEND_OTP} />
       )}
 
       {token && (
-        <SumsubWebSdk
-          accessToken={token}
-          expirationHandler={() => window.location.reload()}
-          config={{ lang: "en" }}
-          options={{ adaptIframeHeight: true }}
-          onMessage={(type: any, payload: any) => {
-            console.log("Sumsub Event:", type, payload);
-            if (
-              type === "idCheck.onApplicantStatusChanged" &&
-              payload?.reviewStatus === "completed"
-            ) {
-              setTimeout(() => {
-                router.push("/login");
-              }, 1500);
-            }
-          }}
-        />
+        <SumsubWebSdk accessToken={token} expirationHandler={() => window.location.reload()} config={{ lang: "en" }} options={{ adaptIframeHeight: true }} onMessage={(type: any, payload: any) => { console.log("Sumsub Event:", type, payload); if (type === "idCheck.onApplicantStatusChanged" && payload?.reviewStatus === "completed") { setTimeout(() => { router.push("/login"); }, 1500); } }} />
       )}
     </div>
   );

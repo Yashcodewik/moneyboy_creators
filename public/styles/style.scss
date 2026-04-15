@@ -1722,6 +1722,21 @@ textarea:focus {
     left: 0;
     z-index: 1000;
   }
+  .mobail_placeholder {
+    position: absolute;
+    left: 35px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 1;
+    color: #716f6f;
+    font-size: 13px;
+    line-height: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    font-family: var(--font-family-base);
+    transition: var(--transition-fast);
+  }
   @media (max-width: 768px) {
     .calendar_show {
       position: fixed;

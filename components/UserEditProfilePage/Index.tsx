@@ -75,7 +75,7 @@ const UserEditProfilePage = () => {
   const [tab, setTab] = useState<0 | 1>(0);
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
-    const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -228,7 +228,7 @@ const UserEditProfilePage = () => {
       setLoading(true);
       const payload = new FormData();
 
-          (Object.keys(formData) as (keyof FormData)[]).forEach((key) => {
+      (Object.keys(formData) as (keyof FormData)[]).forEach((key) => {
         const value = formData[key];
 
         // ❌ skip dob here
@@ -433,109 +433,109 @@ const UserEditProfilePage = () => {
                                 value="Male"
                                 disabled
                               />
-                          </div>
+                            </div>
                             {/* Date of Birth */}
-                       <div className="label-input calendar-dropdown" ref={calendarRef}>
-  <div className="input-placeholder-icon">
-    <CalendarDays className="icons svg-icon" />
-  </div>
+                            <div className="label-input calendar-dropdown" ref={calendarRef}>
+                              <div className="input-placeholder-icon">
+                                <CalendarDays className="icons svg-icon" />
+                              </div>
 
-  {isMobile ? (
-    // ✅ MOBILE
-    <input
-      type="date"
-      className="form-input"
-      value={
-        selectedDate && !isNaN(selectedDate.getTime())
-          ? selectedDate.toISOString().split("T")[0]
-          : ""
-      }
-      onChange={(e) => {
-        const value = e.target.value;
+                              {isMobile ? (
+                                // ✅ MOBILE
+                                <input
+                                  type="date"
+                                  className="form-input"
+                                  value={
+                                    selectedDate && !isNaN(selectedDate.getTime())
+                                      ? selectedDate.toISOString().split("T")[0]
+                                      : ""
+                                  }
+                                  onChange={(e) => {
+                                    const value = e.target.value;
 
-        // ✅ CLEAR FIX
-        if (!value) {
-          setSelectedDate(null);
-          handleFormChange("dob", "");
-          return;
-        }
+                                    // ✅ CLEAR FIX
+                                    if (!value) {
+                                      setSelectedDate(null);
+                                      handleFormChange("dob", "");
+                                      return;
+                                    }
 
-        const date = new Date(value);
+                                    const date = new Date(value);
 
-        // ✅ SAFETY
-        if (isNaN(date.getTime())) return;
+                                    // ✅ SAFETY
+                                    if (isNaN(date.getTime())) return;
 
-        setSelectedDate(date);
-        handleFormChange("dob", date.toISOString());
-      }}
-    />
-  ) : (
-    // ✅ DESKTOP
-    <>
-      <input
-        type="text"
-        placeholder="(DD/MM/YYYY)"
-        className="form-input"
-        readOnly
-        value={
-          selectedDate && !isNaN(selectedDate.getTime())
-            ? selectedDate.toLocaleDateString("en-GB")
-            : ""
-        }
-        onClick={(e) => {
-          e.stopPropagation();
-          setCalendarOpen(true);
-        }}
-      />
+                                    setSelectedDate(date);
+                                    handleFormChange("dob", date.toISOString());
+                                  }}
+                                />
+                              ) : (
+                                // ✅ DESKTOP
+                                <>
+                                  <input
+                                    type="text"
+                                    placeholder="(DD/MM/YYYY)"
+                                    className="form-input"
+                                    readOnly
+                                    value={
+                                      selectedDate && !isNaN(selectedDate.getTime())
+                                        ? selectedDate.toLocaleDateString("en-GB")
+                                        : ""
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setCalendarOpen(true);
+                                    }}
+                                  />
 
-      {calendarOpen && (
-        <div
-          className="calendar_show shadow"
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <DatePicker
-            selected={selectedDate}
-            inline
-            renderCustomHeader={({ date, changeYear, changeMonth }) => (
-              <div className="flex gap-5 select_wrap p-2">
-                <CustomSelect
-                  options={months}
-                  searchable={false}
-                  value={date.getMonth().toString()}
-                  onChange={(val) => changeMonth(Number(val))}
-                />
-                <CustomSelect
-                  options={years}
-                  searchable={false}
-                  value={date.getFullYear().toString()}
-                  onChange={(val) => changeYear(Number(val))}
-                />
-              </div>
-            )}
-            onChange={(date: Date | null) => {
-              // ✅ CLEAR FIX
-              if (!date) {
-                setSelectedDate(null);
-                handleFormChange("dob", "");
-                setCalendarOpen(false);
-                return;
-              }
+                                  {calendarOpen && (
+                                    <div
+                                      className="calendar_show shadow"
+                                      onMouseDown={(e) => e.stopPropagation()}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <DatePicker
+                                        selected={selectedDate}
+                                        inline
+                                        renderCustomHeader={({ date, changeYear, changeMonth }) => (
+                                          <div className="flex gap-5 select_wrap p-2">
+                                            <CustomSelect
+                                              options={months}
+                                              searchable={false}
+                                              value={date.getMonth().toString()}
+                                              onChange={(val) => changeMonth(Number(val))}
+                                            />
+                                            <CustomSelect
+                                              options={years}
+                                              searchable={false}
+                                              value={date.getFullYear().toString()}
+                                              onChange={(val) => changeYear(Number(val))}
+                                            />
+                                          </div>
+                                        )}
+                                        onChange={(date: Date | null) => {
+                                          // ✅ CLEAR FIX
+                                          if (!date) {
+                                            setSelectedDate(null);
+                                            handleFormChange("dob", "");
+                                            setCalendarOpen(false);
+                                            return;
+                                          }
 
-              // ✅ SAFETY
-              if (isNaN(date.getTime())) return;
+                                          // ✅ SAFETY
+                                          if (isNaN(date.getTime())) return;
 
-              setSelectedDate(date);
-              handleFormChange("dob", date.toISOString());
+                                          setSelectedDate(date);
+                                          handleFormChange("dob", date.toISOString());
 
-              setCalendarOpen(false);
-            }}
-          />
-        </div>
-      )}
-    </>
-  )}
-</div>
+                                          setCalendarOpen(false);
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
                             {/* Country */}
                             <CustomSelect
                               label="Select Country *"
