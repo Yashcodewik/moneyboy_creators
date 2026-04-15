@@ -175,9 +175,12 @@ const WalletTransactionsPage = () => {
   };
 
 const getStatusLabel = (txn: any, isIncoming: any) => {
-  const effectiveStatus = isIncoming
-    ? (txn.toUserStatus ?? txn.status)
-    : (txn.fromUserStatus ?? txn.status);
+  const isPPV = txn.type === "PPV_PHOTO" || txn.type === "PPV_VIDEO";
+
+  // ✅ Only use per-party status for PPV types
+  const effectiveStatus = isPPV
+    ? (isIncoming ? (txn.toUserStatus ?? txn.status) : (txn.fromUserStatus ?? txn.status))
+    : txn.status;  // ← all other types use the main status as-is
 
   if (effectiveStatus === "SUCCESS") return "Success";
 
