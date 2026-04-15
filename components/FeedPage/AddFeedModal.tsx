@@ -23,6 +23,7 @@ import Modal from "../Modal";
 import { useQueryClient } from "@tanstack/react-query";
 import { fetchFollowerCounts } from "@/redux/other/followActions";
 import { useWaveCanvas } from "@/hooks/useWaveCanvas";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 const accessContentMap = {
   subscriber: {
@@ -128,6 +129,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [creatorManuallySet, setCreatorManuallySet] = useState(false);
   const creatorManuallySetRef = useRef(false);
+  const [shareOnX, setShareOnX] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
   const [tagUsers, setTagUsers] = useState<TagUser[]>([]);
   const [selectedTagUsers, setSelectedTagUsers] = useState<
@@ -142,7 +144,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const emojiRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
   const dobWrapperRef = useRef<HTMLDivElement | null>(null);
-
+const isMobile = useDeviceType();
   const hasMedia = mediaPreviews.length > 0;
   const imageCount = mediaPreviews.filter((m) => m.type === "image").length;
   const videoCount = mediaPreviews.filter((m) => m.type === "video").length;
@@ -221,7 +223,15 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     };
     checkSubscription();
   }, [show]);
+
+  useEffect(() => {
+  if (isMobile) {
+    setShowEmoji(false);
+  }
+}, [isMobile]);
+
   const handleEmojiClick = (emojiData: EmojiClickData) => {
+    if (isMobile) return; 
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -530,23 +540,6 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
     e.target.value = "";
   };
 
-  const handleShareOnX = async () => {
-    try {
-      const postUrl = `${window.location.origin}/${creator.username}`;
-
-      const shareText = formik.values.text
-        ? formik.values.text.substring(0, 200)
-        : "Check out my latest post!";
-
-      const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        shareText,
-      )}&url=${encodeURIComponent(postUrl)}`;
-
-      window.open(tweetUrl, "_blank", "width=550,height=420");
-    } catch (err) {
-      showError("Failed to open X share");
-    }
-  };
 
   const formik = useFormik({
     initialValues: {
@@ -633,7 +626,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         formData.append("text", values.text);
         formData.append("accessType", values.accessType);
         formData.append("isScheduled", values.isScheduled ? "true" : "false");
-
+formData.append("shareOnX", shareOnX ? "true" : "false");
         if (values.accessType === "pay_per_view") {
           formData.append("price", values.price);
         }
@@ -686,14 +679,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           showError(res?.message || "Failed to create post");
           return;
         }
-        dispatch(resetFeedPosts());
-        await dispatch(
-          fetchFeedPosts({
-            userId: (session?.user as any)?.id,
-            page: 1,
-            limit: 10,
-          }),
-        );
+       
         queryClient.invalidateQueries({
           queryKey: ["creator-posts"],
           exact: false,
@@ -711,49 +697,46 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
           return;
         }
 
-        if (selectedTagUsers.length > 0) {
-          const tagRes = await apiPost({
-            url: API_TAG_USERS_TO_POST,
-            values: {
-              postId,
-              creatorPercentage: Number(creatorPercentage || 0),
-              taggedUsers: selectedTagUsers.map((u) => ({
-                userId: u._id,
-                percentage: Number(u.percentage),
-              })),
-            },
-          });
+      if (selectedTagUsers.length > 0) {
+  const tagRes = await apiPost({
+    url: API_TAG_USERS_TO_POST,
+    values: {
+      postId,
+      creatorPercentage: Number(creatorPercentage || 0),
+      taggedUsers: selectedTagUsers.map((u) => ({
+        userId: u._id,
+        percentage: Number(u.percentage),
+      })),
+    },
+  });
 
-          if (!tagRes?.success) {
-            showError(tagRes?.message || "Tagging failed");
-            return;
-          }
-        }
+  if (!tagRes?.success) {
+    showError(tagRes?.message || "Tagging failed");
+    return;
+  }
 
-        // Ask user if they want to share on X
-        const shareOnX = await showQuestion(
-          "Post created! Would you like to share it on X (Twitter)?",
-          "Share on X",
-          "Skip",
-        );
+  // ✅ ADD HERE
+  dispatch(resetFeedPosts());
+  await dispatch(
+    fetchFeedPosts({
+      userId: (session?.user as any)?.id,
+      page: 1,
+      limit: 10,
+    })
+  );
+}
+if (selectedTagUsers.length === 0) {
+  dispatch(resetFeedPosts());
+  await dispatch(
+    fetchFeedPosts({
+      userId: (session?.user as any)?.id,
+      page: 1,
+      limit: 10,
+    })
+  );
+}
 
-        if (shareOnX) {
-          const postPublicId = res?.post?.publicId;
-          const postUrl = postPublicId
-            ? `${window.location.origin}/post?publicId=${postPublicId}`
-            : `${window.location.origin}/${creator.username}`;
-
-          const shareText = formik.values.text
-            ? formik.values.text.substring(0, 200)
-            : "Check out my latest post!";
-
-          const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(postUrl)}`;
-          window.open(
-            tweetUrl,
-            "_blank",
-            "width=550,height=420,noopener,noreferrer",
-          );
-        }
+ 
 
         showSuccess("Post created successfully");
         onClose();
@@ -849,7 +832,10 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                   type="button"
                   ref={emojiBtnRef}
                   className="emoji-btn"
-                  onClick={() => setShowEmoji((prev) => !prev)}
+                  onClick={() => {
+  if (isMobile) return; // 🚫 stop on mobile
+  setShowEmoji((prev) => !prev);
+}}
                 >
                   {" "}
                   <Smile
@@ -860,7 +846,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                   />
                 </button>
                 {formik.values.text.length}/300
-                {showEmoji && (
+                {showEmoji && !isMobile && (
                   <div ref={emojiRef} className="emoji-picker-wrapper">
                     <EmojiPicker
                       onEmojiClick={handleEmojiClick}
@@ -1289,7 +1275,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                         !hasMedia ? "Add media to share on X" : "Share on X"
                       }
                       disabled={!hasMedia}
-                      onClick={handleShareOnX}
+                      onClick={() => setShareOnX((prev) => !prev)}
                     >
                       <FaXTwitter size={20} />
                     </button>

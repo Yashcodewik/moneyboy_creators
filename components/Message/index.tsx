@@ -626,8 +626,15 @@ const MessagePage = () => {
         return !file.type.startsWith("image/");
       }
 
+     const allowedVideoTypes = [
+        "video/mp4",
+        "video/quicktime", // .mov
+        "video/webm",
+        "video/ogg",
+      ];
+
       if (normalizedRequestType === "VIDEO") {
-        return file.type !== "video/mp4";
+        return !allowedVideoTypes.includes(file.type);
       }
 
       return !file.type.startsWith("image/") && !file.type.startsWith("video/");
@@ -635,12 +642,12 @@ const MessagePage = () => {
 
     if (hasInvalidFile) {
       toast.error(
-        normalizedRequestType === "PHOTO"
-          ? "Please upload only image files"
-          : normalizedRequestType === "VIDEO"
-            ? "Please upload only video files"
-            : "Please upload only image or video files",
-      );
+          normalizedRequestType === "PHOTO"
+            ? "Only JPG, PNG, WEBP images are allowed"
+            : normalizedRequestType === "VIDEO"
+              ? "Only MP4, MOV, WEBM, OGG videos are allowed"
+              : "Only image or video files are allowed",
+        );
       return;
     }
 
@@ -813,6 +820,7 @@ const MessagePage = () => {
           threadId: activeThreadId,
           messageId: res._id,
         });
+        await dispatch(fetchMessages(activeThreadId));
       } else {
         toast.error(res?.error || "Voice upload failed");
       }
@@ -1268,6 +1276,9 @@ const MessagePage = () => {
                                   const isSender = senderId === session?.user?.id;
                                   const isCreator = msg.ppvRequestId && session?.user?.id === (typeof msg.ppvRequestId.creatorId === "object" ? msg.ppvRequestId.creatorId._id : msg.ppvRequestId.creatorId);
 
+                                      const isExpired = msg.ppvRequestId?.status === "EXPIRED" ||
+                                  new Date(msg.ppvRequestId?.expiresAt).getTime() < Date.now();
+
                                   return (
                                     <React.Fragment key={msg._id}>
                                       {showDateDivider && (
@@ -1395,6 +1406,11 @@ const MessagePage = () => {
                                                     request rejected
                                                   </div>
                                                 )}
+                                                {isExpired && (
+                                                <div className="warning_wrap danger">
+                                                  This request is expired, try new one
+                                                </div>
+                                              )}
 
                                               {msg.ppvRequestId.status ===
                                                 "ACCEPTED" && (
@@ -1432,7 +1448,7 @@ const MessagePage = () => {
                                         } */}
 
                                               {/* UPLOAD BOX — CREATOR ONLY + PENDING */}
-                                              {isCreator &&
+                                              {isCreator && !isExpired &&
                                                 msg.ppvRequestId.status ===
                                                 "PENDING" && (
                                                   <div
@@ -1463,14 +1479,12 @@ const MessagePage = () => {
                                                       type="file"
                                                       multiple
                                                       hidden
-                                                      accept={
-                                                        msg.ppvRequestId.type ===
-                                                          "PHOTO"
-                                                          ? "image/*"
-                                                          : msg.ppvRequestId
-                                                            .type === "VIDEO"
-                                                            ? "video/*"
-                                                            : "image/*,video/*"
+                                                     accept={
+                                                        msg.ppvRequestId.type === "PHOTO"
+                                                          ? ".jpg,.jpeg,.png,.webp"
+                                                          : msg.ppvRequestId.type === "VIDEO"
+                                                          ? ".mp4,.mov,.webm,.ogg"
+                                                          : ".jpg,.jpeg,.png,.webp,.mp4,.mov,.webm,.ogg"
                                                       }
                                                       id={`upload-${msg.ppvRequestId._id}`}
                                                       disabled={
@@ -1696,7 +1710,7 @@ const MessagePage = () => {
 
                                                 <div className="right">
                                                   {/* CREATOR SIDE — PENDING */}
-                                                  {isCreator &&
+                                                  {isCreator && !isExpired && 
                                                     msg.ppvRequestId.status ===
                                                     "PENDING" && (
                                                       <>
@@ -1706,7 +1720,7 @@ const MessagePage = () => {
                                                             if (
                                                               !msg.ppvRequestId
                                                                 .deliveredMedia
-                                                                ?.length
+                                                                ?.length  
                                                             ) {
                                                               showError(
                                                                 "Please upload media first",
@@ -1753,11 +1767,14 @@ const MessagePage = () => {
                                                     )}
                                                 </div>
                                               </div>
-
+                                            {!isExpired &&
+                                              (msg.ppvRequestId.status === "PENDING" ||
+                                              msg.ppvRequestId.status === "MEDIA_UPLOADED") && (
                                               <div className="timer_wrap mt-3">
                                                 <p>Expires In</p>
-                                                <FlipClockCountdown to={new Date().getTime() + 5 * 60 * 1000} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>Finished</FlipClockCountdown>
+                                                <FlipClockCountdown to={new Date(msg.ppvRequestId?.expiresAt).getTime()} labels={["", "", "", ""]} renderMap={[false, true, true, true]} showSeparators={true} labelStyle={{ display: "none" }} digitBlockStyle={{ width: 26, height: 34, fontSize: 18 }}>Finished</FlipClockCountdown>
                                               </div>
+                                            )}
 
                                             </div>
                                           )}

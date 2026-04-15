@@ -42,6 +42,9 @@ const walletSlice = createSlice({
         state.summary.walletBalance -= amount;
       }
     },
+    clearTransactions: (state) => {
+      state.transactions = [];
+    },
   },
 
   extraReducers: (builder) => {
@@ -103,6 +106,6 @@ const walletSlice = createSlice({
   },
 });
 
-export const { deductBalance } = walletSlice.actions;
+export const { deductBalance, clearTransactions } = walletSlice.actions;
 
 export default walletSlice.reducer;

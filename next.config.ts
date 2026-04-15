@@ -2,7 +2,7 @@ module.exports = {
   turbopack: {
     root: __dirname,
   },
-  allowedDevOrigins: ['192.168.1.14'],
+  allowedDevOrigins: ['192.168.1.27'],
   async rewrites() {
     return [
       {

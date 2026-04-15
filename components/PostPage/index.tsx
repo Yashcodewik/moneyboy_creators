@@ -72,7 +72,8 @@ const PostPage = () => {
   const [saveLoading, setSaveLoading] = useState(false);
   const dispatch = useAppDispatch();
   const isMobile = useDeviceType();
-
+  const mediaFiles = post?.media?.[0]?.mediaFiles || [];
+  const hasMultipleMedia = mediaFiles.length > 1;
   const desktopStyle: React.CSSProperties = {
     transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
     height: open ? "auto" : "0px",
@@ -111,7 +112,7 @@ const PostPage = () => {
       overlay.classList.remove("active");
     };
   }, [open, isMobile]);
-  
+
   const [showComment, setShowComment] = useState(false);
   const commentsState = useAppSelector((state) => state.comments);
   const commentParam = searchParams.get("comment");
@@ -254,7 +255,14 @@ const PostPage = () => {
     }
   };
 
+  useEffect(() => {
+  if (isMobile) {
+    setShowEmojiPicker(false);
+  }
+}, [isMobile]);
+
   const onEmojiClick = (emojiData: EmojiClickData) => {
+    if (isMobile) return;
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -560,7 +568,7 @@ const PostPage = () => {
                   <Swiper
                     slidesPerView={1}
                     spaceBetween={15}
-                    navigation
+                    navigation={hasMultipleMedia}
                     modules={[Navigation]}
                     className="post_swiper"
                   >
@@ -997,16 +1005,21 @@ const PostPage = () => {
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
                         />
-                        <div
-                          ref={emojiButtonRef}
-                          className="input-placeholder-icon"
-                          onClick={() => setShowEmojiPicker((prev) => !prev)}
-                        >
-                          <i className="icons emojiSmile svg-icon"></i>
-                        </div>
+                      {!isMobile && (
+  <div
+    ref={emojiButtonRef}
+    className="input-placeholder-icon"
+    onClick={() => {
+      if (isMobile) return;
+      setShowEmojiPicker((prev) => !prev);
+    }}
+  >
+    <i className="icons emojiSmile svg-icon"></i>
+  </div>
+)}
                       </div>
 
-                      {showEmojiPicker && (
+                      {showEmojiPicker && !isMobile && (
                         <div ref={emojiRef} className="emoji-picker-wrapper">
                           <EmojiPicker
                             onEmojiClick={onEmojiClick}
@@ -1137,30 +1150,28 @@ const PostPage = () => {
                           <li className={comment.isLiked ? "active" : ""}>
                             <Link
                               href="#"
-                              className={`comment-like-btn ${
-                                comment.isLiked ? "active" : ""
-                              }`}
+                              className={`comment-like-btn ${comment.isLiked ? "active" : ""}`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleLikeComment(comment._id);
                               }}
                             >
                               <ThumbsUp color="black" strokeWidth={2} />
+                              <span>{comment.likeCount || 0}</span>
                             </Link>
                           </li>
 
                           <li className={comment.isDisliked ? "active" : ""}>
                             <Link
                               href="#"
-                              className={`comment-dislike-btn ${
-                                comment.isDisliked ? "active" : ""
-                              }`}
+                              className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""}`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleDislikeComment(comment._id);
                               }}
                             >
                               <ThumbsDown color="black" strokeWidth={2} />
+                              <span>{comment.dislikeCount || 0}</span>
                             </Link>
                           </li>
                         </ul>

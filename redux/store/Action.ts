@@ -14,7 +14,7 @@ export const fetchAllCreators = createAsyncThunk(
   async (
     {
       page = 1,
-      limit = 9,
+      limit = 10,
       creatorPublicId,
     }: {
       page?: number;

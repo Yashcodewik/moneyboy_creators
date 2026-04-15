@@ -149,6 +149,14 @@ const feedPostsSlice = createSlice({
         state.loading = true;
       })
 
+      .addCase(fetchFollowingPosts.pending, (state) => {
+  state.loading = true;
+})
+.addCase(fetchPopularPosts.pending, (state) => {
+  state.loading = true;
+})
+
+
       // .addCase(fetchFeedPosts.fulfilled, (state, action) => {
       //   state.loading = false;
 
@@ -195,6 +203,7 @@ const feedPostsSlice = createSlice({
       })
 
       .addCase(fetchFollowingPosts.fulfilled, (state, action) => {
+        state.loading = false;
         action.payload.posts.forEach((post: any) => {
           state.posts[post._id] = {
             ...post,
@@ -207,6 +216,7 @@ const feedPostsSlice = createSlice({
       })
 
       .addCase(fetchPopularPosts.fulfilled, (state, action) => {
+         state.loading = false; 
         action.payload.posts.forEach((post: any) => {
           state.posts[post._id] = {
             ...post,

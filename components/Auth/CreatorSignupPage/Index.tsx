@@ -36,6 +36,7 @@ import { validationSchemaCreator } from "@/libs/validation";
 import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter } from "react-icons/fa6";
 import { signIn } from "next-auth/react";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 countries.registerLocale(enLocale);
 
@@ -52,6 +53,8 @@ const CreatorSignupPage = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const searchParams = useSearchParams();
   const sumsubToken = searchParams.get("q");
+
+  const isMobile = useDeviceType();
 
   useEffect(() => {
     if (sumsubToken) {
@@ -467,84 +470,137 @@ setOtpOpen(true);
                           )}
                         </div>
                         <div>
-                          <div
-                            className="label-input calendar-dropdown"
-                            ref={wrapperRef}
-                          >
-                            <div className="input-placeholder-icon">
-                              <CalendarDays className="icons svg-icon" />
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="(DD/MM/YYYY)"
-                              className="form-input"
-                              readOnly
-                              value={
-                                startDate?.toLocaleDateString("en-GB") || ""
-                              }
-                              onClick={() => setActiveField("schedule")}
-                            />
-                            {activeField === "schedule" && (
-                              <div className="calendar_show">
-                                <DatePicker
-                                  selected={startDate}
-                                  inline
-                                  maxDate={maxAllowedDate}
-                                  minDate={new Date(1900, 0, 1)}
-                                  showMonthDropdown
-                                  showYearDropdown
-                                  dropdownMode="select"
-                                  scrollableYearDropdown
-                                  yearDropdownItemNumber={100}
-                                  renderCustomHeader={({
-                                    date,
-                                    changeYear,
-                                    changeMonth,
-                                  }) => (
-                                    <div
-                                      className="flex gap-5 select_wrap"
-                                      onMouseDown={(e) => e.stopPropagation()}
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <CustomSelect
-                                        className="bg-white p-sm size-sm"
-                                        options={months}
-                                        value={date.getMonth().toString()}
-                                        onChange={(val) =>
-                                          changeMonth(Number(val))
-                                        }
-                                        searchable={false}
-                                      />
-                                      <CustomSelect
-                                        className="bg-white p-sm size-sm"
-                                        options={years}
-                                        value={date.getFullYear().toString()}
-                                        onChange={(val) =>
-                                          changeYear(Number(val))
-                                        }
-                                        searchable={false}
-                                      />
-                                    </div>
-                                  )}
-                                  onChange={(date: Date | null) => {
-                                    if (date) {
-                                      setStartDate(date);
+<div
+  className="label-input calendar-dropdown"
+  ref={wrapperRef}
+>
+  <div className="input-placeholder-icon">
+    <CalendarDays className="icons svg-icon" />
+  </div>
 
-                                      const formattedDate = date.toISOString();
-                                      formik.setFieldValue(
-                                        "dob",
-                                        formattedDate,
-                                      );
+  {isMobile ? (
+    // ✅ MOBILE → Native picker (FIXED)
+    <input
+      type="date"
+      className="form-input"
+      value={
+        startDate && !isNaN(startDate.getTime())
+          ? startDate.toISOString().split("T")[0]
+          : ""
+      }
+      max={
+        maxAllowedDate
+          ? maxAllowedDate.toISOString().split("T")[0]
+          : undefined
+      }
+      onChange={(e) => {
+        const value = e.target.value;
 
-                                      const age = calculateAge(date);
-                                      formik.setFieldValue("age", age); // ✅ numeric age
-                                    }
-                                    setActiveField(null);
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
+        // ✅ HANDLE CLEAR (IMPORTANT FIX)
+        if (!value) {
+          setStartDate(null);
+          formik.setFieldValue("dob", null);
+          formik.setFieldValue("age", "");
+          return;
+        }
+
+        const date = new Date(value);
+
+        // ✅ SAFETY CHECK
+        if (isNaN(date.getTime())) return;
+
+        setStartDate(date);
+
+        const formattedDate = date.toISOString();
+        formik.setFieldValue("dob", formattedDate);
+
+        const age = calculateAge(date);
+        formik.setFieldValue("age", age);
+      }}
+    />
+  ) : (
+    // ✅ DESKTOP → Custom calendar (FIXED)
+    <>
+      <input
+        type="text"
+        placeholder="(DD/MM/YYYY)"
+        className="form-input"
+        readOnly
+        value={
+          startDate && !isNaN(startDate.getTime())
+            ? startDate.toLocaleDateString("en-GB")
+            : ""
+        }
+        onClick={() => setActiveField("schedule")}
+      />
+
+      {activeField === "schedule" && (
+        <div className="calendar_show">
+          <DatePicker
+            selected={startDate}
+            inline
+            maxDate={maxAllowedDate}
+            minDate={new Date(1900, 0, 1)}
+            showMonthDropdown
+            showYearDropdown
+            dropdownMode="select"
+            scrollableYearDropdown
+            yearDropdownItemNumber={100}
+            renderCustomHeader={({
+              date,
+              changeYear,
+              changeMonth,
+            }) => (
+              <div
+                className="flex gap-5 select_wrap"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CustomSelect
+                  className="bg-white p-sm size-sm"
+                  options={months}
+                  value={date.getMonth().toString()}
+                  onChange={(val) => changeMonth(Number(val))}
+                  searchable={false}
+                />
+                <CustomSelect
+                  className="bg-white p-sm size-sm"
+                  options={years}
+                  value={date.getFullYear().toString()}
+                  onChange={(val) => changeYear(Number(val))}
+                  searchable={false}
+                />
+              </div>
+            )}
+            onChange={(date: Date | null) => {
+              // ✅ HANDLE CLEAR (IMPORTANT)
+              if (!date) {
+                setStartDate(null);
+                formik.setFieldValue("dob", null);
+                formik.setFieldValue("age", "");
+                setActiveField(null);
+                return;
+              }
+
+              // ✅ SAFETY CHECK
+              if (isNaN(date.getTime())) return;
+
+              setStartDate(date);
+
+              const formattedDate = date.toISOString();
+              formik.setFieldValue("dob", formattedDate);
+
+              const age = calculateAge(date);
+              formik.setFieldValue("age", age);
+
+              setActiveField(null);
+            }}
+          />
+        </div>
+      )}
+    </>
+  )}
+</div>
                           {formik.touched.dob && formik.errors.dob && (
                             <span className="error-message">
                               {formik.errors.dob}
