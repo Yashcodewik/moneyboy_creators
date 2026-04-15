@@ -956,62 +956,90 @@ if (selectedTagUsers.length === 0) {
                 </div>
 
                 {/* Date Picker */}
-                {isScheduled && (
-                  <div className="mw-fit w-full">
-                    <label>Schedule at</label>
-                    <div
-                      className="label-input calendar-dropdown"
-                      ref={dobWrapperRef}
-                    >
-                      <div className="input-placeholder-icon">
-                        <CalendarDays className="icons svg-icon" />
-                      </div>
-                      <input
-                        type="text"
-                        name="scheduledAt"
-                        placeholder="Schedule Date (DD/MM/YYYY) *"
-                        className="form-input"
-                        value={
-                          formik.values.scheduledAt
-                            ? new Date(
-                              formik.values.scheduledAt,
-                            ).toLocaleDateString("en-GB")
-                            : ""
-                        }
-                        readOnly
-                        onFocus={() => setActiveField("schedule")}
-                        onBlur={formik.handleBlur}
-                      />
-                      {activeField === "schedule" && (
-                        <div className="calendar_show">
-                          <DatePicker
-                            inline
-                            selected={
-                              formik.values.scheduledAt
-                                ? new Date(formik.values.scheduledAt)
-                                : null
-                            }
-                            minDate={new Date()}
-                            onChange={(date: Date | null) => {
-                              if (!date) return;
-                              formik.setFieldValue(
-                                "scheduledAt",
-                                date.toISOString(),
-                              );
-                              setActiveField(null);
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    {formik.touched.scheduledAt &&
-                      formik.errors.scheduledAt && (
-                        <div className="error-message">
-                          {formik.errors.scheduledAt}
-                        </div>
-                      )}
-                  </div>
-                )}
+            {isScheduled && (
+  <div className="mw-fit w-full">
+    <label>Schedule at</label>
+    <div
+      className="label-input calendar-dropdown"
+      ref={dobWrapperRef}
+    >
+      <div className="input-placeholder-icon">
+        <CalendarDays className="icons svg-icon" />
+      </div>
+
+      {isMobile ? (
+        // ✅ MOBILE (date only)
+        <input
+          type="date"
+          className="form-input"
+          value={formik.values.scheduledAt || ""}
+          min={new Date().toISOString().split("T")[0]}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            if (!value) {
+              formik.setFieldValue("scheduledAt", "");
+              return;
+            }
+
+            formik.setFieldValue("scheduledAt", value); // ✅ only date
+          }}
+        />
+      ) : (
+        // ✅ DESKTOP (your UI)
+        <>
+          <input
+            type="text"
+            name="scheduledAt"
+            placeholder="Schedule Date (DD/MM/YYYY) *"
+            className="form-input"
+            value={
+              formik.values.scheduledAt
+                ? new Date(
+                    formik.values.scheduledAt,
+                  ).toLocaleDateString("en-GB")
+                : ""
+            }
+            readOnly
+            onFocus={() => setActiveField("schedule")}
+            onBlur={formik.handleBlur}
+          />
+
+          {activeField === "schedule" && (
+            <div className="calendar_show">
+              <DatePicker
+                inline
+                selected={
+                  formik.values.scheduledAt
+                    ? new Date(formik.values.scheduledAt)
+                    : null
+                }
+                minDate={new Date()}
+                onChange={(date: Date | null) => {
+                  if (!date) return;
+
+                  const formatted = date
+                    .toISOString()
+                    .split("T")[0]; // ✅ only date
+
+                  formik.setFieldValue("scheduledAt", formatted);
+                  setActiveField(null);
+                }}
+              />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+
+    {formik.touched.scheduledAt &&
+      formik.errors.scheduledAt && (
+        <div className="error-message">
+          {formik.errors.scheduledAt}
+        </div>
+      )}
+  </div>
+)}
               </div>
             )}
 
