@@ -85,6 +85,7 @@ const PostCard = ({ post, onLike, onSave }: PostCardProps) => {
   const postComments = commentsState.comments[post._id] || [];
   const tagMenuRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useDeviceType();
+  const [isSending, setIsSending] = useState(false);
   const isOwnPost = session?.user?.userName === post.creatorInfo?.userName;
   const dispatch = useAppDispatch();
   const desktopStyle: React.CSSProperties = {
@@ -246,17 +247,23 @@ useEffect(() => {
     setShowEmojiPicker(false);
   };
 
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return;
+const handleAddComment = async () => {
+  if (!newComment.trim() || isSending) return;
+
+  try {
+    setIsSending(true); // 🔥 disable button
 
     const res = await dispatch(
-      addComment({ postId: post._id, comment: newComment }),
+      addComment({ postId: post._id, comment: newComment })
     );
 
     if (res?.meta?.requestStatus === "fulfilled") {
       setNewComment("");
     }
-  };
+  } finally {
+    setIsSending(false); // 🔥 enable again
+  }
+};
 
   const handleLikeComment = async (commentId: string) => {
     await dispatch(likeComment({ commentId, currentUserId }));
@@ -551,7 +558,11 @@ useEffect(() => {
                 </div>
               )}
             </div>
-            <button className="premium-btn active-down-effect" onClick={handleAddComment}>
+            <button className="premium-btn active-down-effect" onClick={handleAddComment} disabled={isSending}
+  style={{
+    opacity: isSending ? 0.6 : 1,
+    pointerEvents: isSending ? "none" : "auto",
+  }}>
               <svg width="40" height="35" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z" fill="url(#paint0_linear_4464_314)" />
                 <defs>

@@ -44,7 +44,7 @@ useEffect(() => {
   
   dispatch(
     fetchDiscoverCreators({
-      page : search || filterValues?.bodyType || filterValues?.feature ? 1 : page,
+      page: page,
       search,
       filters: filterValues,
       ...(session?.user && { userPublicId: session.user.publicId }),
@@ -160,12 +160,17 @@ useEffect(() => {
       </div>
     );
   };
+
+  useEffect(() => {
+  dispatch(setPage(1));
+}, [filterValues, search]);
+
   return (
     <>
       <div className="moneyboy-2x-1x-layout-container">
         <div className="discovery-page-container">
           <div className="discovery-page-content-container">
-            <Filter search={search} setSearch={setSearch} setPage={() => { }} filterValues={filterValues} setFilterValues={setFilterValues} />
+            <Filter search={search} setSearch={setSearch} setPage={(page: number) => dispatch(setPage(page))}  filterValues={filterValues} setFilterValues={setFilterValues} />
             <div className="discovery-page-content-wrapper">
               <div className="discovery-page-cards-layouts">
                 {loading && (

@@ -117,6 +117,7 @@ const PostPage = () => {
   const commentsState = useAppSelector((state) => state.comments);
   const commentParam = searchParams.get("comment");
   const postComments = commentsState.comments[post?._id] || [];
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (showComment && post?._id) {
@@ -285,19 +286,32 @@ const PostPage = () => {
     setShowEmojiPicker(false);
   };
 
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return;
-    if (!post?._id) return;
+const handleAddComment = async () => {
+  if (!newComment.trim() || isSending) return;
+  if (!post?._id) return;
+
+  try {
+    setIsSending(true);
 
     const res = await dispatch(
-      addComment({ postId: post._id, comment: newComment }),
+      addComment({ postId: post._id, comment: newComment })
     );
 
     if (res?.meta?.requestStatus === "fulfilled") {
       setNewComment("");
-      dispatch(fetchComments(post._id)); // refresh list
+
+     
+      setPost((prev: any) => ({
+        ...prev,
+        commentCount: (prev.commentCount || 0) + 1,
+      }));
+
+      dispatch(fetchComments(post._id));
     }
-  };
+  } finally {
+    setIsSending(false);
+  }
+};
 
   const handleLikeComment = (commentId: string) => {
     dispatch(likeComment({ commentId }));
@@ -1036,6 +1050,11 @@ const PostPage = () => {
                     <button
                       className="premium-btn active-down-effect"
                       onClick={handleAddComment}
+                      disabled={isSending}
+                      style={{
+                        opacity: isSending ? 0.6 : 1,
+                        pointerEvents: isSending ? "none" : "auto",
+                      }}
                     >
                       <svg
                         width="40"

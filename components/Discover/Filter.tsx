@@ -3,13 +3,15 @@ import CustomSelect from "../CustomSelect";
 import { getDecryptedSession } from "@/libs/getDecryptedSession";
 import { ageGroupOptions, bodyTypeOptions, categoryOptions, cityOptions, countryOptions, ethnicityOptions, eyeColorOptions, featureOptions, hairColorOptions, heightOptions, popularityOptions, sexualOrientationOptions, sizeOptions, styleOptions, } from "../helper/creatorOptions";
 import { CircleX } from "lucide-react";
+import { getApiWithOutQuery } from "@/utils/endpoints/common";
+import { API_GET_CITIES } from "@/utils/api/APIConstant";
 
 type FilterType = | "category" | "feature" | "country" | "city" | "bodyType" | "sexualOrientation" | "age" | "eyeColor" | "hairColor" | "ethnicity" | "height" | "style" | "size" | "popularity" | null;
 
 interface FilterProps {
   search: string;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
+  setPage: (page: number) => void;
   filterValues: Record<string, string>;
   setFilterValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
@@ -23,6 +25,32 @@ const Filter: React.FC<FilterProps> = ({ search, setSearch, setPage, filterValue
 
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [cityOptions, setCityOptions] = useState<any[]>([
+  { label: "All Cities", value: "all" },
+]);
+
+
+useEffect(() => {
+  const fetchCities = async () => {
+    const res = await getApiWithOutQuery({
+      url: API_GET_CITIES,
+    });
+
+    if (res?.success) {
+      const formatted = res.data.map((city: string) => ({
+        label: city,
+        value: city,
+      }));
+
+      setCityOptions([
+        { label: "All Cities", value: "all" },
+        ...formatted,
+      ]);
+    }
+  };
+
+  fetchCities();
+}, []);
 
   useEffect(() => {
     getData();
@@ -267,6 +295,11 @@ const Filter: React.FC<FilterProps> = ({ search, setSearch, setPage, filterValue
                     }
                   />
                 </div>
+              </div>
+              <div className="content-filter-card-wrapper">
+                <button className="btn-primary h-full" onClick={() => { setFilterValues({}); closeAllFilters(); setPage(1); }}>
+                  <span>Clear Filters</span>
+                </button>
               </div>
 
               {/* <div className="content-filter-card-wrapper">

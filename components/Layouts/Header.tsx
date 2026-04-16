@@ -610,9 +610,18 @@ const Header = () => {
                     </div>
 
                     <div className="menu-profile-stats">
-                      <div className="menu-profile-stats-item">
+                      <div
+  className="menu-profile-stats-item"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(false);
+    router.push("/wallet-transactions?tab=earnings");
+  }}
+  style={{ cursor: "pointer" }}
+>
                         <div className="icon">
-                          <Link href="/wallet-transactions?tab=wallet" className="load-wallet-btn" onClick={() => setIsOpen(false)}>
+                          <Link href="" className="load-wallet-btn" onClick={() => setIsOpen(false)}>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 25" fill="none">
                               <path d="M18.04 14.05C17.62 14.46 17.38 15.05 17.44 15.68C17.53 16.76 18.52 17.55 19.6 17.55H21.5V18.74C21.5 20.81 19.81 22.5 17.74 22.5H6.26C4.19 22.5 2.5 20.81 2.5 18.74V12.01C2.5 9.94001 4.19 8.25 6.26 8.25H17.74C19.81 8.25 21.5 9.94001 21.5 12.01V13.45H19.48C18.92 13.45 18.41 13.67 18.04 14.05Z" stroke="none" strokeWidth="none" strokeLinecap="round" strokeLinejoin="round"/>
                               <path
@@ -646,7 +655,10 @@ const Header = () => {
                             <Link
                               href="/add-funds?tab=addfunds"
                               className="load-wallet-btn"
-                              onClick={() => setIsOpen(false)}
+                               onClick={(e) => {
+    e.stopPropagation(); // 🔥 VERY IMPORTANT
+    setIsOpen(false);
+  }}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
