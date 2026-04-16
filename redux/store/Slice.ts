@@ -124,26 +124,31 @@ const creatorsSlice = createSlice({
   extraReducers: (builder) => {
     /* ---------- Creators ---------- */
     builder
+    builder
       .addCase(fetchAllCreators.pending, (state) => {
         state.loadingCreators = true;
       })
-    .addCase(fetchAllCreators.fulfilled, (state, action) => {
-  state.loadingCreators = false;
+      .addCase(fetchAllCreators.fulfilled, (state, action) => {
+        state.loadingCreators = false;
 
-  const { data, pagination } = action.payload;
+        const { data, pagination, append } = action.payload;
 
-  // ✅ IMPORTANT FIX
-  if (pagination.page > 1) {
-    state.items = [...state.items, ...data]; // append
-  } else {
-    state.items = data; // first page
-  }
+        if (append) {
+          const existingIds = new Set(state.items.map((c) => c._id));
+          const newItems = data.filter((c: Creator) => !existingIds.has(c._id));
+          state.items = [...state.items, ...newItems];
+        } else {
+          state.items = data;
+        }
 
-  state.creatorsPagination = {
-    ...pagination,
-    hasNextPage: pagination.page < pagination.totalPages,
-  };
-});
+        state.creatorsPagination = {
+          ...pagination,
+          hasNextPage: pagination.page < pagination.totalPages,
+        };
+      })
+      .addCase(fetchAllCreators.rejected, (state) => {
+        state.loadingCreators = false;
+      });
 
     /* ---------- Paid Posts ---------- */
     builder
@@ -220,18 +225,18 @@ const creatorsSlice = createSlice({
       })
 
       .addCase(unlockPost.fulfilled, (state, action: any) => {
-  const postId = action.meta.arg.postId;
+        const postId = action.meta.arg.postId;
 
-  const update = (list: PaidPost[]) => {
-    const post = list.find((p) => p._id === postId);
-    if (post) post.isUnlocked = true;
-  };
+        const update = (list: PaidPost[]) => {
+          const post = list.find((p) => p._id === postId);
+          if (post) post.isUnlocked = true;
+        };
 
-  update(state.paidPosts);
-  update(state.paidContentFeed);
-  update(state.featuredPosts);
-})
-      
+        update(state.paidPosts);
+        update(state.paidContentFeed);
+        update(state.featuredPosts);
+      })
+
   },
 });
 

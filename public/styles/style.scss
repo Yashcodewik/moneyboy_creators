@@ -358,6 +358,7 @@ textarea:focus {
   from {opacity: 0;transform: translateY(-6px);}
   to {opacity: 1;transform: translateY(0);}
 }
+@keyframes skeleton-pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; }}
 
 /* shimmer layer Start */
 // .shimmer {
@@ -8692,7 +8693,7 @@ textarea:focus {
           text-align: center;
           color: #505050;
           font-size: 12px;
-          line-height: 16px;
+           line-height: 16px;
           font-weight: 500;
           user-select: none;
           -webkit-user-drag: none;
@@ -8761,6 +8762,14 @@ textarea:focus {
                 max-width: 28px;
                 border-radius: 0;
               }
+            }
+          }
+          &.loading-slide {
+            pointer-events: none;
+            opacity: 0.6;
+            .skeleton-pulse {
+              animation: skeleton-pulse 1.2s ease-in-out infinite;
+              background: var(--border-color, #e0e0e0);
             }
           }
         }

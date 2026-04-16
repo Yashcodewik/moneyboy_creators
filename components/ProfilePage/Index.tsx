@@ -41,9 +41,9 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import toast from "react-hot-toast";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
+import toast from "react-hot-toast";
 import ShowToast from "../common/ShowToast";
 import {
   showQuestion,
@@ -313,7 +313,7 @@ const ProfilePage = () => {
     });
 
     if (res?.success) {
-      toast.success("Subscribed successfully");
+      showSuccess("Subscribed successfully");
 
       // ✅ refresh creator profile data
       queryClient.invalidateQueries({
@@ -394,7 +394,7 @@ const ProfilePage = () => {
       });
 
       if (res?.success) {
-        toast.success("Subscription upgraded successfully");
+        showSuccess("Subscription upgraded successfully");
 
         await queryClient.invalidateQueries({
           queryKey: ["creator-profile", username],
@@ -827,11 +827,11 @@ const ProfilePage = () => {
           <div className="creator-content-card__media" onClick={() => handlePostClick(post, isSubscriberPost || isPPVPost)}>
             <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
-                <img src={firstMedia} alt="Creator Content" loading="lazy" onContextMenu={(e) => e.preventDefault()}  />
+                <img src={firstMedia} alt="Creator Content" loading="lazy" onContextMenu={(e) => e.preventDefault()} />
               )}
               {mediaType === "video" && firstMedia && (
-                <video src={firstMedia} playsInline muted preload="metadata" controls={canViewContent}  controlsList="nodownload"         // ✅ hide download button
-        onContextMenu={(e) => e.preventDefault()}  poster={`${firstMedia}#t=0.5`} onLoadedData={(e) => { e.currentTarget.currentTime = 0.1; }} style={{ width: "100%", pointerEvents: canViewContent ? "auto" : "none", }} />
+                <video src={firstMedia} playsInline muted preload="metadata" controls={canViewContent} controlsList="nodownload"         // ✅ hide download button
+                  onContextMenu={(e) => e.preventDefault()} poster={`${firstMedia}#t=0.5`} onLoadedData={(e) => { e.currentTarget.currentTime = 0.1; }} style={{ width: "100%", pointerEvents: canViewContent ? "auto" : "none", }} />
               )}
             </div>
 
@@ -1282,9 +1282,8 @@ const ProfilePage = () => {
     });
 
     if (res?.success) {
-      ShowToast(isSaved ? "Creator removed" : "Creator saved", "success");
-
-      refetch(); // ⭐ refresh state from server
+      showSuccess(isSaved ? "Creator removed" : "Creator saved");
+      refetch();
     }
   };
 

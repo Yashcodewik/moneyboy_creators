@@ -1,10 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  API_GET_ALL_CREATORS,
-  API_GET_MY_PAID_POSTS,
-  API_GET_FEATURED_POSTS,
-  API_GET_PAID_CONTENT_FEED,
-} from "@/utils/api/APIConstant";
+import { API_GET_ALL_CREATORS, API_GET_MY_PAID_POSTS, API_GET_FEATURED_POSTS, API_GET_PAID_CONTENT_FEED, } from "@/utils/api/APIConstant";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import ShowToast from "@/components/common/ShowToast";
 
@@ -16,17 +11,18 @@ export const fetchAllCreators = createAsyncThunk(
       page = 1,
       limit = 10,
       creatorPublicId,
+      append = false,
     }: {
       page?: number;
       limit?: number;
       creatorPublicId?: string;
+      append?: boolean;
     },
     { rejectWithValue }
   ) => {
     try {
-      const url = `${API_GET_ALL_CREATORS}?page=${page}&limit=${limit}${
-        creatorPublicId ? `&creatorPublicId=${creatorPublicId}` : ""
-      }`;
+      const url = `${API_GET_ALL_CREATORS}?page=${page}&limit=${limit}${creatorPublicId ? `&creatorPublicId=${creatorPublicId}` : ""
+        }`;
 
       const res = await getApiWithOutQuery({ url });
 
@@ -35,7 +31,7 @@ export const fetchAllCreators = createAsyncThunk(
         return rejectWithValue("Failed to fetch creators");
       }
 
-      return res;
+      return { ...res, page, append };
     } catch (error: any) {
       ShowToast(error?.message || "Something went wrong", "error");
       return rejectWithValue(error?.message);
@@ -60,7 +56,7 @@ export const fetchMyPaidPosts = createAsyncThunk(
       publicId?: string;
       search?: string;
       time?: "most_recent" | "today" | "last_7_days" | "last_30_days" | "all_time";
-      type?: "all"|"video" | "photo"; // ✅ added
+      type?: "all" | "video" | "photo"; // ✅ added
     },
     { rejectWithValue }
   ) => {

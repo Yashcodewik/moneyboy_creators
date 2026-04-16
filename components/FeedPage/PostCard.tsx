@@ -9,12 +9,7 @@ import "react-photo-view/dist/react-photo-view.css";
 import "swiper/css";
 import "swiper/css/navigation";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
-import {
-  addComment,
-  dislikeComment,
-  fetchComments,
-  likeComment,
-} from "../../redux/other/commentSlice";
+import { addComment, dislikeComment, fetchComments, likeComment,} from "../../redux/other/commentSlice";
 
 interface PostCardProps {
   post: any;
@@ -26,14 +21,10 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { ArrowUpRight, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
-import CustomSelect from "../CustomSelect";
-import { CgClose } from "react-icons/cg";
 import ReportModal from "../ReportModal";
 import TipModal from "../ProfilePage/TipModal";
 import { sendTip } from "@/redux/Subscription/Action";
-import ShowToast from "../common/ShowToast";
 import { fetchWallet } from "@/redux/wallet/Action";
-import VideoPlayer from "../Purchased-MediaPage/VideoPlayer";
 import VideoPlayerFeed from "../VideoPlayerFeed";
 import { showError, showSuccess } from "@/utils/alert";
 
