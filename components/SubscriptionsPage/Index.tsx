@@ -10,10 +10,15 @@ import {
   useMySubscribers,
   useMySubscriptions,
 } from "@/redux/SubscriptionList/Action";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { apiPost } from "@/utils/endpoints/common";
 import BtnGroupTabs from "../BtnGroupTabs";
 import { CircleX } from "lucide-react";
+import SubscriptionModal from "../ProfilePage/SubscriptionModal";
+import toast from "react-hot-toast";
+import { subscribeCreator } from "@/redux/Subscription/Action";
+import { API_SUBSCRIBE_CREATOR } from "@/utils/api/APIConstant";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", {
@@ -55,7 +60,14 @@ const SubscriptionsPage = () => {
 
   const [isSearchActive, setIsSearchActive] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState<"MONTHLY" | "YEARLY" | null>(
+      null,
+    );
+    const [selectedItem, setSelectedItem] = useState<any>(null);
+      const queryClient = useQueryClient();
+      const [subLoading, setSubLoading] = useState(false);
+   
   const isCreator =
     session?.isAuthenticated && session?.user?.role === 2;
 
@@ -95,15 +107,21 @@ const SubscriptionsPage = () => {
     (state: any) => state.SubscriptionList
   );
 
-  const getSubscriptionState = (item: any) => {
-    const now = new Date();
+const getSubscriptionState = (item: any) => {
+  const now = new Date();
 
-    if (item.isActive) return "ACTIVE";
-    if (item.startsAt && new Date(item.startsAt) > now) return "QUEUED";
-    if (item.expiresAt && new Date(item.expiresAt) < now) return "EXPIRED";
+  // ✅ FIRST: respect backend status
+  if (item.status === "EXPIRE_SOON") return "EXPIRE_SOON";
+  if (item.status === "ACTIVE") return "ACTIVE";
+  if (item.status === "EXPIRED") return "EXPIRED";
+  if (item.status === "PENDING") return "QUEUED";
 
-    return "INACTIVE";
-  };
+  // ✅ fallback (safety)
+  if (item.startsAt && new Date(item.startsAt) > now) return "QUEUED";
+  if (item.expiresAt && new Date(item.expiresAt) < now) return "EXPIRED";
+
+  return "INACTIVE";
+};
 
   const handleTabChange = (value: string) => {
     const newTab = value as "subscribers" | "subscriptions";
@@ -132,6 +150,38 @@ const SubscriptionsPage = () => {
     return () => clearTimeout(timer);
   }, [searchText]);
 
+const openSubscriptionModal = (item: any) => {
+  setSelectedItem(item);
+  setSelectedPlan(item.planType);
+  setShowSubscriptionModal(true);
+};
+const handleSubscribe = async (planType: "MONTHLY" | "YEARLY") => {
+  if (!selectedItem?.creatorId || subLoading) return;
+
+  setSubLoading(true);
+
+  const res = await apiPost({
+    url: API_SUBSCRIBE_CREATOR,
+    values: {
+      creatorId: selectedItem.creatorId, // 🔥 FIXED
+      planType,
+    },
+  });
+
+  if (res?.success) {
+    toast.success("Subscribed successfully");
+
+    // ✅ refresh subscription list
+    queryClient.invalidateQueries({
+      queryKey: ["subscriptions"], // 🔥 your list query
+    });
+    return true;
+  } else {
+    toast.error(res?.message || "Subscription failed");
+  }
+
+  setSubLoading(false);
+};
   return (
     <div className="moneyboy-2x-1x-layout-container">
       <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
@@ -290,6 +340,8 @@ const SubscriptionsPage = () => {
                                           {state === "ACTIVE" && <li className="active">Active</li>}
                                           {state === "QUEUED" && <li className="saspnd">Queued</li>}
                                           {state === "EXPIRED" && <li className="saspnd">Expired</li>}
+                                          {state === "EXPIRE_SOON" && <li className="saspnd">Expiring Soon</li>}
+
                                         </ul>
                                       </div>
                                     </div>
@@ -380,6 +432,7 @@ const SubscriptionsPage = () => {
                                           {state === "ACTIVE" && <li className="active">Active</li>}
                                           {state === "QUEUED" && <li className="saspnd">Queued</li>}
                                           {state === "EXPIRED" && <li className="saspnd">Expired</li>}
+                                          {state === "EXPIRE_SOON" && <li className="saspnd">Expiring Soon</li>}
                                         </ul>
                                       </div>
                                     </div>
@@ -429,8 +482,14 @@ const SubscriptionsPage = () => {
                                 )}
 
                                 {state === "EXPIRED" && (
-                                  <button className="btn-txt-gradient shimmer">
+                                  <button className="btn-txt-gradient shimmer"  onClick={() => openSubscriptionModal(item)}>
                                     <span>Activate</span>
+                                  </button>
+                                )}
+
+                                {state === "EXPIRE_SOON" && (
+                                  <button className="btn-danger" disabled>
+                                    <span>Cancelled</span>
                                   </button>
                                 )}
                               </div>
@@ -438,6 +497,29 @@ const SubscriptionsPage = () => {
                           );
                         })}
                       </div>
+                    )}
+                 {showSubscriptionModal && selectedPlan && selectedItem && (
+                      <SubscriptionModal
+                        onClose={() => setShowSubscriptionModal(false)}
+                        plan={selectedPlan}
+                        setPlan={setSelectedPlan}
+                        action="subscribe"
+                        creator={{
+                          displayName: selectedItem?.creator?.displayName,
+                          userName: selectedItem?.creator?.userName,
+                          profile: selectedItem?.creator?.profile,
+                        }}
+                        subscription={{
+                          monthlyPrice: selectedItem?.amount,
+                          yearlyPrice: selectedItem?.amount * 12,
+                        }}
+                        onConfirm={async () => {
+                          const success = await handleSubscribe(selectedPlan);
+                          if (success) {
+                            setShowSubscriptionModal(false);
+                          }
+                        }}
+                      />
                     )}
                   </div>
                 </div>
