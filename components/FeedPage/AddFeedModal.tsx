@@ -794,12 +794,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const difference = Number((100 - totalPercentage).toFixed(2));
   return (
     <>
-      <Modal
-        size="lg"
-        show={show}
-        title="Create New Post"
-        onClose={confirmClose}
-      >
+      <Modal size="lg" show={show} title="Create New Post" onClose={confirmClose}>
         <div className="modal_containt post-modal">
           <form
             className="space"

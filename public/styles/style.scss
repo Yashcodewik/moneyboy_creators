@@ -4144,7 +4144,7 @@ textarea:focus {
         align-items: center;
         margin-left: auto;
         .btn_icons {
-          &:hover {
+          &:hover, &.active {
             background: #000;
 
             svg {
