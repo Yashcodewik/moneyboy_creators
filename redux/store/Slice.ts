@@ -127,15 +127,23 @@ const creatorsSlice = createSlice({
       .addCase(fetchAllCreators.pending, (state) => {
         state.loadingCreators = true;
       })
-      .addCase(fetchAllCreators.fulfilled, (state, action) => {
-        state.loadingCreators = false;
-        const { data, pagination } = action.payload;
-        state.items = data;
-        state.creatorsPagination = {
-          ...pagination,
-          hasNextPage: pagination.page < pagination.totalPages,
-        };
-      });
+    .addCase(fetchAllCreators.fulfilled, (state, action) => {
+  state.loadingCreators = false;
+
+  const { data, pagination } = action.payload;
+
+  // ✅ IMPORTANT FIX
+  if (pagination.page > 1) {
+    state.items = [...state.items, ...data]; // append
+  } else {
+    state.items = data; // first page
+  }
+
+  state.creatorsPagination = {
+    ...pagination,
+    hasNextPage: pagination.page < pagination.totalPages,
+  };
+});
 
     /* ---------- Paid Posts ---------- */
     builder
