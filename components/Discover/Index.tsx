@@ -26,8 +26,6 @@ const Dashboard = () => {
     (state: any) => state.discoverCreators,
   );
 
-  const savedPosts = useSelector((state: any) => state.savedPosts.savedPosts);
-
   const dropdownRefs = useRef<{
     [key in Exclude<FilterType, null>]?: HTMLDivElement | null;
   }>({});
@@ -43,10 +41,10 @@ const Dashboard = () => {
 
 useEffect(() => {
   if (!sessionLoaded) return;
-
+  
   dispatch(
     fetchDiscoverCreators({
-      page,
+      page : search || filterValues?.bodyType || filterValues?.feature ? 1 : page,
       search,
       filters: filterValues,
       ...(session?.user && { userPublicId: session.user.publicId }),
