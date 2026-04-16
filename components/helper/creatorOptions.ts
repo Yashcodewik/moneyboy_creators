@@ -1,9 +1,12 @@
 import countriesData from "../data/countries.json";
 
-export const countryOptions = countriesData.map((country) => ({
-  label: country.label,
-  value: country.value,
-}));
+export const countryOptions = [
+  { label: "All Countries", value: "all" }, // ✅ ADD THIS
+  ...countriesData.map((country) => ({
+    label: country.label,
+    value: country.value,
+  })),
+];
 // Body Type options
 export const bodyTypeOptions = [
   { label: "All Body Types", value: "all" },

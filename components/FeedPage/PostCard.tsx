@@ -50,6 +50,7 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
   const [newComment, setNewComment] = useState("");
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [showReportModal, setShowReportModal] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const firstMedia =
     post?.media?.[0]?.mediaFiles?.[0] ||
@@ -176,18 +177,24 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
     }
   }, [showComment, post._id, currentUserId, dispatch]);
 
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return;
+const handleAddComment = async () => {
+  if (!newComment.trim() || isSending) return;
+
+  try {
+    setIsSending(true); // 🔥 disable button
 
     const res = await dispatch(
-      addComment({ postId: post._id, comment: newComment }),
+      addComment({ postId: post._id, comment: newComment })
     );
 
     if (res?.meta?.requestStatus === "fulfilled") {
-      onCommentAdded?.(post._id); // ✅ only runs if provided
+      onCommentAdded?.(post._id);
       setNewComment("");
     }
-  };
+  } finally {
+    setIsSending(false); // 🔥 enable again
+  }
+};
 
   const handleLikeComment = async (commentId: string) => {
     await dispatch(likeComment({ commentId, currentUserId }));
@@ -920,6 +927,11 @@ const PostCard = ({ post, onLike, onSave, onCommentAdded }: PostCardProps) => {
               <button
                 className="premium-btn active-down-effect"
                 onClick={handleAddComment}
+                 disabled={isSending}
+                style={{
+                  opacity: isSending ? 0.6 : 1,
+                  pointerEvents: isSending ? "none" : "auto",
+                }}
               >
                 <svg
                   width="40"

@@ -145,3 +145,4 @@ export const API_GET_CMS_PAGE = "/auth/cms";
 export const API_GET_ACTIVE_PROMOTION = "/subscription/active-promotion";
 export const API_SOCIAL_DISCONNECT = "/creator/social-disconnect-x";
 export const API_FEATURED_ROTATION = "/admin/featured-rotation-settings";
+export const API_GET_CITIES = "/creator/cities";
