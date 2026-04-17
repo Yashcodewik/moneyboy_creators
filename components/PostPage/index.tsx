@@ -573,7 +573,7 @@ const handleAddComment = async () => {
                       )}
                     </>
                   ) : (
-                    "Today, I experienced the most blissful ride outside. The air is fresh and it feels amazing..."
+                    ""
                   )}
                 </p>
               </div>
@@ -634,6 +634,7 @@ const handleAddComment = async () => {
                                       "fullscreen",
                                     ],
                                   }}
+                                 
                                 />
                               ) : (
                                 <PhotoProvider
@@ -746,6 +747,7 @@ const handleAddComment = async () => {
                                         maxWidth: "100%",
                                         borderRadius: "8px",
                                       }}
+                                      onContextMenu={(e) => e.preventDefault()} 
                                     />
                                   </PhotoView>
                                 </PhotoProvider>

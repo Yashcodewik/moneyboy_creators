@@ -71,7 +71,7 @@ const MediaCard = memo(function MediaCard({
         >
           {isVideo ? (
             <>
-              <Link href="#" className="ply_btn">
+              <Link href="#" className="ply_btn" onContextMenu={(e) => e.preventDefault()} >
                 <PlayCircle strokeWidth={1} size={32} />
               </Link>
               <Plyr
@@ -97,6 +97,7 @@ const MediaCard = memo(function MediaCard({
                   src={mediaUrl}
                   alt={item.publicId}
                   onError={() => setImgError(true)}
+                  onContextMenu={(e) => e.preventDefault()} 
                 />
               ) : (
                 <div className="nomedia" />
@@ -136,7 +137,7 @@ const MediaCard = memo(function MediaCard({
                 <span>0</span>
               )}
             </div>
-            {isVideo && duration && (
+            {/* {isVideo && duration && (
               <div className="creator-content-stat-box mxw_50">
                 <div>
                   <svg
@@ -189,7 +190,7 @@ const MediaCard = memo(function MediaCard({
                 </div>
                 <span>{formatDuration(duration)}</span>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

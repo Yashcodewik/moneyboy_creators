@@ -456,7 +456,7 @@ const handleAddComment = async () => {
                       <VideoPlayerFeed src={file} />
                     ) : (
                       <PhotoView src={file}>
-                        <img src={file} alt="Post" />
+                        <img src={file} alt="Post" onContextMenu={(e) => e.preventDefault()}  />
                       </PhotoView>
                     )}
                   </SwiperSlide>

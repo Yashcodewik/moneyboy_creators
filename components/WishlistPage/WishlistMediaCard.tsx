@@ -31,11 +31,13 @@ const WishlistMediaCard = ({ id, image, description, price = "$10.00", mediaType
             <div className="creator-card__img post_playbtn smallbtm">
               {mediaType === "video" ? (
                 <>
-                  <video ref={videoRef} src={image} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                  <Link href="#" className="ply_btn" onClick={handlePlay}><PlayCircle strokeWidth={1} size={32} /></Link>
+                  <video ref={videoRef} src={`${image}#t=0.001`} className="w-full h-full object-cover" preload="metadata" muted playsInline onContextMenu={(e) => e.preventDefault()}  />
+                  {!isPlaying && (
+                    <Link href="#" className="ply_btn" onClick={handlePlay} onContextMenu={(e) => e.preventDefault()} ><PlayCircle strokeWidth={1} size={32} /></Link>
+                  )}
                 </>
               ) : (
-                <img src={image} alt="Creator Content" />
+                <img src={image} alt="Creator Content" onContextMenu={(e) => e.preventDefault()}  />
               )}
             </div>{" "}
             <div className="creator-media-card__overlay">
