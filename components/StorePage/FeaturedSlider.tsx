@@ -167,7 +167,7 @@ export default function FeaturedContentSlider({
                         previewTimeouts.current[id] = setTimeout(() => {
                           v.pause();
                           v.currentTime = 0;
-                        }, 3000);
+                        }, 5000);
                       }}
 
                       onMouseLeave={(e) => {
