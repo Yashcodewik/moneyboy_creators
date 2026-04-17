@@ -188,7 +188,7 @@ const PostCard = ({ post, isCreator, loggedInUserId, videoRefs, playingId, video
       previewTimeouts.current[id] = setTimeout(() => {
         video.pause();
         video.currentTime = 0;
-      }, 3000); // 👉 change to 2000 if you want 2 sec
+      }, 5000); // 👉 change to 2000 if you want 2 sec
 
     } catch (err) {
       console.log("Play blocked:", err);

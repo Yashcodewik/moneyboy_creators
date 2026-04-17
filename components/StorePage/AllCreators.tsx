@@ -273,7 +273,7 @@ const AllCreators = ({ onUnlock, onSubscribe }: AllCreatorsProps) => {
     previewTimeouts.current[id] = setTimeout(() => {
       player.pause();
       player.currentTime = 0;
-    }, 3000); // change 2000 if needed
+    }, 5000); // change 2000 if needed
   };
 
   const stopPreview = (id: string) => {
