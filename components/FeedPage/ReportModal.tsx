@@ -79,7 +79,7 @@ const ReportModal = ({
               publicId={post.publicId}
               watchedSeconds={post.watchedSeconds}
               postId={post._id}
-              duration={post.videoDuration}
+              
             />
           ) : post.media?.[0]?.mediaFiles?.[0] ? (
             <img

@@ -84,7 +84,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
         {/* ===== MEDIA PREVIEW ===== */}
         <div className="post_wrap">
           {post.media?.[0]?.type === "video" ? (
-            <VideoPlayer src={post.media[0].mediaFiles[0]} publicId={post.publicId} watchedSeconds={post.watchedSeconds} postId={post._id} duration={post.videoDuration}/>
+            <VideoPlayer src={post.media[0].mediaFiles[0]} publicId={post.publicId} watchedSeconds={post.watchedSeconds} postId={post._id} />
           ) : post.media?.[0]?.mediaFiles?.[0] ? (
             <img src={post.media[0].mediaFiles[0]} alt={post.publicId}/>
           ) : (
