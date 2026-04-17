@@ -598,7 +598,7 @@ useEffect(() => {
                                 publicId={selectedItem.publicId}
                                 postId={selectedItem._id}
                                 watchedSeconds={selectedItem.watchedSeconds}
-                                duration={selectedItem.videoDuration}
+                                
                               />
                             )}
 
