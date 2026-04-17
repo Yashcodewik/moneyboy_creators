@@ -418,11 +418,18 @@ const StorePage = () => {
     fetchStoreImages();
   }, [activeStoreOwner?._id, activeStoreOwner?.id]);
   useEffect(() => { setStoreImages({ profileImage: "", coverImage: "" }); }, [activeStoreOwner?._id]);
-  useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.update();
-    }
-  }, [creators]);
+useEffect(() => {
+  if (swiperRef.current && creators.length > 0) {
+    const swiper = swiperRef.current;
+
+    requestAnimationFrame(() => {
+      swiper.update();
+
+      setIsBeginning(swiper.isBeginning);
+      setIsEnd(swiper.isEnd);
+    });
+  }
+}, [creators]);
 
   // ========== Handlers ==========
   const handleClose = () => {
@@ -594,7 +601,14 @@ const StorePage = () => {
                         <button className="moneyboy-swiper-control-btn" disabled={isEnd && creatorPage >= (creatorsPagination?.totalPages ?? 1)} onClick={() => { if (isEnd && creatorPage < (creatorsPagination?.totalPages ?? 1)) { setCreatorPage((prev) => prev + 1); } else { swiperRef.current?.slideNext(); } }}><ChevronRight size={18} /></button>
                       </div>
                     </div>
-                    <Swiper onSwiper={(swiper) => { swiperRef.current = swiper; setIsBeginning(swiper.isBeginning); setIsEnd(swiper.isEnd); }} onSlideChange={(swiper) => { setIsBeginning(swiper.isBeginning); setIsEnd(swiper.isEnd); }} onReachEnd={() => { if (creatorPage < (creatorsPagination?.totalPages ?? 1)) { setCreatorPage((prev) => prev + 1); } }} onReachBeginning={() => setIsBeginning(true)} slidesPerView="auto" spaceBetween={0} freeMode={{ enabled: true, momentum: true, momentumRatio: 0.5 }} watchOverflow observer observeParents simulateTouch grabCursor modules={[FreeMode]} className="creators-swiper">
+                    <Swiper onSwiper={(swiper) => {
+  swiperRef.current = swiper;
+}}
+onInit={(swiper) => {
+  setIsBeginning(swiper.isBeginning);
+  setIsEnd(swiper.isEnd);
+}}
+ onSlideChange={(swiper) => { setIsBeginning(swiper.isBeginning); setIsEnd(swiper.isEnd); }} onReachEnd={() => { if (creatorPage < (creatorsPagination?.totalPages ?? 1)) { setCreatorPage((prev) => prev + 1); } }} onReachBeginning={() => setIsBeginning(true)} slidesPerView="auto" spaceBetween={0} freeMode={{ enabled: true, momentum: true, momentumRatio: 0.5 }} watchOverflow={false} observer observeParents simulateTouch grabCursor modules={[FreeMode]} className="creators-swiper">
                       {loadingCreators && !isAppendingCreators.current ? Array.from({ length: 14 }).map((_, i) => (
                         <SwiperSlide key={`initial-skeleton-${i}`}>
                           <div className="creator-item loading-slide">

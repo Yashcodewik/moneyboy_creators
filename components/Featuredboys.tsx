@@ -24,17 +24,17 @@ const fetchFeatured = async (pageNumber = 1, isBackground = false) => {
   }
 
   try {
-    const res = await apiPost({
-      url: API_GET_FEATURED_MONEYBOYS,
-      values: {
-        page: pageNumber,
-        limit,
-        ...(session?.user?.publicId && {
-          userPublicId: session.user.publicId,
-        }),
-      },
-    });
-
+   const res = await apiPost({
+  url: API_GET_FEATURED_MONEYBOYS,
+  values: {
+    page: pageNumber,
+    limit,
+    forceRefresh: isBackground ? undefined : Date.now() + Math.random(), // 👈 ADD THIS
+    ...(session?.user?.publicId && {
+      userPublicId: session.user.publicId,
+    }),
+  },
+});
     if (res?.success) {
       setFeatured(res.data || []);
       setPage(res.pagination?.page || 1);
