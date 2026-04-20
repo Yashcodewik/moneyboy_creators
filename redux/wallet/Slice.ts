@@ -12,6 +12,13 @@ interface WalletState {
 
   addingFunds: boolean;
   error: string | null;
+
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    rowsPerPage: number;
+  } | null;
 }
 
 const initialState: WalletState = {
@@ -25,6 +32,7 @@ const initialState: WalletState = {
 
   addingFunds: false,
   error: null,
+  pagination: null,
 };
 
 const walletSlice = createSlice({
@@ -44,6 +52,9 @@ const walletSlice = createSlice({
     },
     clearTransactions: (state) => {
       state.transactions = [];
+      state.summary = null;   
+      state.pagination = null;
+
     },
   },
 
@@ -98,6 +109,7 @@ const walletSlice = createSlice({
         }
 
         state.summary = action.payload?.summary || null;
+        state.pagination = action.payload.pagination || null;
       })
       .addCase(fetchTransactions.rejected, (state, action) => {
         state.transactionLoading = false;
