@@ -287,148 +287,55 @@ const Sidebar: React.FC = () => {
 
                   <div className="profile-card__stats">
                     {session?.user?.role === 2 && (
-                      <div
-                        className="profile-card__stats-item posts-stats"
-                        onClick={() => {
-                          if (session?.user?.role === 1) {
-                            router.push(
-                              `/userprofile/${session?.user?.publicId}?tab=posts`,
-                            );
-                          } else if (session?.user?.role === 2) {
-                            router.push(
-                              `/${session?.user?.userName}?tab=posts`,
-                            );
-                          }
-                        }}
-                      >
+                      <div className="profile-card__stats-item posts-stats" onClick={() => { if (session?.user?.role === 1) { router.push(`/userprofile/${session?.user?.publicId}?tab=posts`,); } else if (session?.user?.role === 2) { router.push(`/${session?.user?.userName}?tab=posts`,); } }}>
                         <div className="profile-card__stats-num">
-                          {postCount}
+                          {countsLoading ? (
+                            <div className="loading-text"></div>
+                          ) : (
+                            postCount
+                          )}
                         </div>
                         <div className="profile-card__stats-label">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="25"
-                            viewBox="0 0 24 25"
-                            fill="none"
-                          >
-                            <path
-                              d="M22 10.4286V15.4286C22 20.4286 20 22.4286 15 22.4286H9C4 22.4286 2 20.4286 2 15.4286V9.42856C2 4.42856 4 2.42856 9 2.42856H14"
-                              stroke="none"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M22 10.4286H18C15 10.4286 14 9.42856 14 6.42856V2.42856L22 10.4286Z"
-                              stroke="none"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M7 13.4286H13"
-                              stroke="none"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M7 17.4286H11"
-                              stroke="none"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                            <path d="M22 10.4286V15.4286C22 20.4286 20 22.4286 15 22.4286H9C4 22.4286 2 20.4286 2 15.4286V9.42856C2 4.42856 4 2.42856 9 2.42856H14" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M22 10.4286H18C15 10.4286 14 9.42856 14 6.42856V2.42856L22 10.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M7 13.4286H13" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M7 17.4286H11" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                           <span>Posts</span>
                         </div>
                       </div>
                     )}
-                    <div
-                      className="profile-card__stats-item followers-stats"
-                      onClick={(e) => handleTabfollowNavigation(e, "followers")} // Default to posts for users
-                    >
+                    <div className="profile-card__stats-item followers-stats" onClick={(e) => handleTabfollowNavigation(e, "followers")}>
                       <div className="profile-card__stats-num">
                         {countsLoading ? (
-                          <span className="loading-dots">...</span>
+                          <div className="loading-text"></div>
                         ) : (
                           followerCount.toLocaleString()
                         )}
                       </div>
                       <div className="profile-card__stats-label">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="25"
-                          viewBox="0 0 24 25"
-                          fill="none"
-                        >
-                          <path
-                            d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                          <path d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <span>Followers</span>
                       </div>
                     </div>
-                    <div
-                      className="profile-card__stats-item following-stats"
-                      onClick={(e) => handleTabfollowNavigation(e, "following")}
-                    >
+                    <div className="profile-card__stats-item following-stats" onClick={(e) => handleTabfollowNavigation(e, "following")}>
                       <div className="profile-card__stats-num">
                         {countsLoading ? (
-                          <span className="loading-dots">...</span>
+                          <div className="loading-text"></div>
                         ) : (
                           followingCount.toLocaleString()
                         )}
                       </div>
                       <div className="profile-card__stats-label">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="25"
-                          viewBox="0 0 24 25"
-                          fill="none"
-                        >
-                          <path
-                            d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z"
-                            stroke="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                          <path d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <span>Following</span>
                       </div>
@@ -988,7 +895,7 @@ const Sidebar: React.FC = () => {
                 )}
                 <li className={`menu_dropdown ${isMenuOpen ? "active" : ""}`}>
                   <div className="h-full menu_cont">
-                    <Link href="#" className={`hamburger ${isMenuOpen ? "active" : ""}`} onClick={(e) => {e.preventDefault(); setIsMenuOpen((prev) => !prev);}}>
+                    <Link href="#" className={`hamburger ${isMenuOpen ? "active" : ""}`} onClick={(e) => { e.preventDefault(); setIsMenuOpen((prev) => !prev); }}>
                       <Menu className="size-28" />
                     </Link>
                     {/* <span> Menu </span> */}
@@ -1010,9 +917,11 @@ const Sidebar: React.FC = () => {
                             </Link>
                           </li>
                           <li>
-                            <Link href="/purchased-media" onClick={(e) => { e.preventDefault(); 
+                            <Link href="/purchased-media" onClick={(e) => {
+                              e.preventDefault();
                               handleNavClick("purchased-media", "/purchased-media", e);
-                              setIsMenuOpen(false); }} className="menu-link purchased-media-link">
+                              setIsMenuOpen(false);
+                            }} className="menu-link purchased-media-link">
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                                 <path d="M15.59 12.6886C18.4232 12.6886 20.72 10.3918 20.72 7.55859C20.72 4.72537 18.4232 2.42859 15.59 2.42859C12.7567 2.42859 10.46 4.72537 10.46 7.55859C10.46 10.3918 12.7567 12.6886 15.59 12.6886Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" />
                                 <path d="M6.35977 19.8686C8.06081 19.8686 9.43979 18.4897 9.43979 16.7886C9.43979 15.0876 8.06081 13.7086 6.35977 13.7086C4.65873 13.7086 3.27979 15.0876 3.27979 16.7886C3.27979 18.4897 4.65873 19.8686 6.35977 19.8686Z" stroke="none" strokeWidth="1.5" strokeMiterlimit="10" />
@@ -1022,9 +931,11 @@ const Sidebar: React.FC = () => {
                             </Link>
                           </li>
                           <li>
-                            <Link href="/store?tab=marketplace" onClick={(e) => { e.preventDefault();
+                            <Link href="/store?tab=marketplace" onClick={(e) => {
+                              e.preventDefault();
                               handleNavClick("store", "/store?tab=marketplace", e);
-                            setIsMenuOpen(false);}} className="menu-link store-link">
+                              setIsMenuOpen(false);
+                            }} className="menu-link store-link">
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                                 <path d="M3.00977 11.6486V16.1386C3.00977 20.6286 4.80977 22.4286 9.29977 22.4286H14.6898C19.1798 22.4286 20.9798 20.6286 20.9798 16.1386V11.6486" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 <path d="M12 12.4286C13.83 12.4286 15.18 10.9386 15 9.10859L14.34 2.42859H9.66999L8.99999 9.10859C8.81999 10.9386 10.17 12.4286 12 12.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
