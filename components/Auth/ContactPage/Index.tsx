@@ -10,6 +10,7 @@ import { apiPostWithMultiForm } from "@/utils/endpoints/common";
 import { API_CONTACT_US } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
 import { useFormik } from "formik";
+import { showError, showSuccess } from "@/utils/alert";
 const SUBJECT_OPTIONS = [
   {
     label: "Info – General Questions",
@@ -86,14 +87,14 @@ const ContactPage = () => {
         });
 
         if (res?.success) {
-          ShowToast(res.message, "success");
+          showSuccess(res.message,);
           resetForm();
           setFile(null);
         } else {
-          ShowToast(res?.message || "Something went wrong", "error");
+          showError(res?.message || "Something went wrong");
         }
       } catch (err: any) {
-        ShowToast(err?.error || "Something went wrong", "error");
+        showError(err?.error || "Something went wrong");
       } finally {
         setLoading(false);
       }

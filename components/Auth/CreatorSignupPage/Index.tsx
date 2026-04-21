@@ -22,6 +22,7 @@ import { FaXTwitter } from "react-icons/fa6";
 import { signIn } from "next-auth/react";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { useLoadScript, Autocomplete } from "@react-google-maps/api";
+import { showError, showSuccess } from "@/utils/alert";
 countries.registerLocale(enLocale);
 
 const CreatorSignupPage = () => {
@@ -72,26 +73,25 @@ const CreatorSignupPage = () => {
 
         if (!res?.success) {
           if (message.includes("already")) {
-            ShowToast("Email already exists. Please use another email.", "error");
+            showError("Email already exists. Please use another email.");
           } else if (message.includes("invalid")) {
-            ShowToast("Enter a valid email address", "error");
+            showError("Enter a valid email address");
           } else {
-            ShowToast(message || "Something went wrong", "error");
+            showError(message || "Something went wrong");
           }
           setLoading(false);
           return;
         }
 
-        ShowToast(res.message, "success");
+        showSuccess(res.message);
         setEmailForOtp(values.email);
         setOtpOpen(true);
       } catch (err: any) {
         if (err?.response?.data?.message?.toLowerCase().includes("email")) {
-          ShowToast("Email already exists. Please use another email.", "error");
+          showError("Email already exists. Please use another email.");
         } else {
-          ShowToast(
-            err?.response?.data?.message || err?.message || "Something went wrong",
-            "error"
+          showError(
+            err?.response?.data?.message || err?.message || "Something went wrong"
           );
         }
       } finally {
@@ -116,11 +116,11 @@ const CreatorSignupPage = () => {
       }
 
       if (res?.error) {
-        ShowToast(res.error, "error");
+        showError(res.error,);
         return;
       }
     } catch (err: any) {
-      ShowToast(err?.message || "OTP verification failed", "error");
+      showError(err?.message || "OTP verification failed");
     }
   };
 
@@ -376,7 +376,7 @@ const { isLoaded } = useLoadScript({
 
       // ✅ Validate it's a city
       if (!place.types?.includes("locality")) {
-        ShowToast("Please select a valid city", "error");
+        showError("Please select a valid city");
         return;
       }
 

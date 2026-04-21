@@ -17,7 +17,7 @@ import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { showAcceptPostConsent, showDeclineReason } from "@/utils/alert";
+import { showAcceptPostConsent, showDeclineReason, showError } from "@/utils/alert";
 import { useRouter } from "next/navigation";
 import socket from "@/libs/socket";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
@@ -61,7 +61,7 @@ const NotificationPage = () => {
         setHasMore(pageNumber < (res.pagination?.totalPages || 1));
       }
     } catch (err) {
-      ShowToast("Something went wrong", "error");
+      showError("Something went wrong");
     } finally {
       setLoading(false);
     }

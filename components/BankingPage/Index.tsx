@@ -19,6 +19,7 @@ import {
   API_PAYPAL,
   API_PAYPAL_DETAIL,
 } from "@/utils/api/APIConstant";
+import { showError, showSuccess } from "@/utils/alert";
 
 countries.registerLocale(enLocale);
 
@@ -64,9 +65,9 @@ const BankingPage = () => {
       });
 
       if (res?.success) {
-        ShowToast(res.message, "success");
+        showSuccess(res.message);
       } else {
-        ShowToast(res?.message || "Failed to save", "error");
+        showError(res?.message || "Failed to save");
       }
 
       setSubmitting(false);
@@ -128,13 +129,13 @@ const BankingPage = () => {
 
   const savePaypal = async () => {
     if (!paypalEmail) {
-      ShowToast("Please enter PayPal email", "error");
+      showError("Please enter PayPal email");
       return;
     }
 
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(paypalEmail)) {
-      ShowToast("Invalid email format", "error");
+      showError("Invalid email format");
       return;
     }
 
@@ -146,9 +147,9 @@ const BankingPage = () => {
     });
 
     if (res?.success) {
-      ShowToast(res.message, "success");
+      showSuccess(res.message);
     } else {
-      ShowToast(res?.message || "Failed to save", "error");
+      showError(res?.message || "Failed to save");
     }
 
     setSavingPaypal(false);

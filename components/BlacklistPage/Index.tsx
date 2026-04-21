@@ -14,6 +14,7 @@ import {
 import ShowToast from "../common/ShowToast";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import Modal from "../Modal";
+import { showError, showSuccess } from "@/utils/alert";
 
 const BlacklistPage = () => {
   const router = useRouter();
@@ -37,7 +38,7 @@ const BlacklistPage = () => {
     if (res?.success) {
       setConnections(res.data || []);
     } else {
-      ShowToast(res?.message || "Failed to load users", "error");
+      showError(res?.message || "Failed to load users");
     }
   };
 
@@ -49,7 +50,7 @@ const BlacklistPage = () => {
 
   const handleBlockUser = async () => {
     if (!selectedUser) {
-      ShowToast("Please select a user", "error");
+      showError("Please select a user");
       return;
     }
 
@@ -62,7 +63,7 @@ const BlacklistPage = () => {
     });
 
     if (res?.success) {
-      ShowToast(res.message, "success");
+      showSuccess(res.message);
 
       setIsModalOpen(false);
       setSelectedUser(null);
@@ -70,7 +71,7 @@ const BlacklistPage = () => {
 
       fetchBlockedUsers(); // refresh list
     } else {
-      ShowToast(res?.message || "Action failed", "error");
+      showError(res?.message || "Action failed");
     }
   };
 
@@ -82,7 +83,7 @@ const BlacklistPage = () => {
     if (res?.success) {
       setBlockedUsers(res.data || []);
     } else {
-      ShowToast("Failed to load blocked users", "error");
+      showError("Failed to load blocked users");
     }
   };
   useEffect(() => {
@@ -96,7 +97,7 @@ const BlacklistPage = () => {
     });
 
     if (res?.success) {
-      ShowToast(res.message, "success");
+      showSuccess(res.message);
       fetchBlockedUsers();
     }
   };

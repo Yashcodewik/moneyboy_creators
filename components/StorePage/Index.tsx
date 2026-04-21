@@ -25,7 +25,7 @@ import { API_GET_STORE_IMAGES, API_UPDATE_STORE_IMAGES } from "@/utils/api/APICo
 import ShowToast from "../common/ShowToast";
 import ImageCropModal from "./ImageCropModal";
 import BtnGroupTabs from "../BtnGroupTabs";
-import { showTaggedUserList } from "@/utils/alert";
+import { showSuccess, showTaggedUserList } from "@/utils/alert";
 import { fetchWallet } from "@/redux/wallet/Action";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
@@ -522,7 +522,7 @@ useEffect(() => {
     if (cropType === "cover") formData.append("coverImage", file);
     const uploadRes = await apiPostWithMultiForm({ url: API_UPDATE_STORE_IMAGES, values: formData });
     if (uploadRes?.success) {
-      ShowToast("Image updated successfully", "success");
+      showSuccess("Image updated successfully");
       setStoreImages((prev) => ({
         ...prev,
         ...(cropType === "profile" ? { profileImage: uploadRes.data.profileImage } : { coverImage: uploadRes.data.coverImage }),

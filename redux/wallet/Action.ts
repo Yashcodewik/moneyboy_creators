@@ -6,6 +6,7 @@ import {
   API_GET_TRANSACTIONS,
 } from "@/utils/api/APIConstant";
 import ShowToast from "@/components/common/ShowToast";
+import { showError } from "@/utils/alert";
 
 export const fetchWallet = createAsyncThunk(
   "wallet/fetchWallet",
@@ -16,13 +17,13 @@ export const fetchWallet = createAsyncThunk(
       });
 
       if (!res?.success) {
-        ShowToast(res?.message || "Failed to fetch wallet", "error");
+        showError(res?.message || "Failed to fetch wallet");
         return rejectWithValue(res?.message);
       }
 
       return res; // { success, balance }
     } catch (error: any) {
-      ShowToast("Something went wrong", "error");
+      showError(error?.message || "Something went wrong");
       return rejectWithValue(error?.message);
     }
   },
@@ -50,15 +51,15 @@ export const addWalletFunds = createAsyncThunk(
       });
 
       if (!res?.success) {
-        ShowToast(res?.message || "Failed to add funds", "error");
+        showError(res?.message || "Failed to add funds");
         return rejectWithValue(res?.message);
       }
 
-      ShowToast(res.message || "Funds added successfully", "success");
+      showError(res.message || "Funds added successfully");
 
       return res; // { success, balance }
     } catch (error: any) {
-      ShowToast("Something went wrong", "error");
+      showError(error?.message || "Something went wrong");
       return rejectWithValue(error?.message);
     }
   },

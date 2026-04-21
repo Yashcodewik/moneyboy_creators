@@ -2,6 +2,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { API_GET_ALL_CREATORS, API_GET_MY_PAID_POSTS, API_GET_FEATURED_POSTS, API_GET_PAID_CONTENT_FEED, } from "@/utils/api/APIConstant";
 import { getApiWithOutQuery } from "@/utils/endpoints/common";
 import ShowToast from "@/components/common/ShowToast";
+import { showError } from "@/utils/alert";
 
 /* ------------------- Creators ------------------- */
 export const fetchAllCreators = createAsyncThunk(
@@ -27,13 +28,13 @@ export const fetchAllCreators = createAsyncThunk(
       const res = await getApiWithOutQuery({ url });
 
       if (!res?.data) {
-        ShowToast("Failed to fetch creators", "error");
+        showError("Failed to fetch creators");
         return rejectWithValue("Failed to fetch creators");
       }
 
       return { ...res, page, append };
     } catch (error: any) {
-      ShowToast(error?.message || "Something went wrong", "error");
+      showError(error?.message || "Something went wrong");
       return rejectWithValue(error?.message);
     }
   }
@@ -70,13 +71,13 @@ export const fetchMyPaidPosts = createAsyncThunk(
       const res = await getApiWithOutQuery({ url });
 
       if (!res?.data) {
-        ShowToast("Failed to fetch paid posts", "error");
+        showError("Failed to fetch paid posts");
         return rejectWithValue("Failed to fetch paid posts");
       }
 
       return res;
     } catch (error: any) {
-      ShowToast(error?.message || "Something went wrong", "error");
+      showError(error?.message || "Something went wrong");
       return rejectWithValue(error?.message);
     }
   }
@@ -95,13 +96,13 @@ export const fetchFeaturedPosts = createAsyncThunk(
       const res = await getApiWithOutQuery({ url });
 
       if (!res?.data) {
-        ShowToast("Failed to fetch featured posts", "error");
+        showError("Failed to fetch featured posts");
         return rejectWithValue("Failed to fetch featured posts");
       }
 
       return res;
     } catch (error: any) {
-      ShowToast(error?.message || "Something went wrong", "error");
+      showError(error?.message || "Something went wrong");
       return rejectWithValue(error?.message);
     }
   }
@@ -139,13 +140,13 @@ export const fetchPaidContentFeed = createAsyncThunk(
       const res = await getApiWithOutQuery({ url });
 
       if (!res?.data) {
-        ShowToast("Failed to fetch paid content feed", "error");
+        showError("Failed to fetch paid content feed");
         return rejectWithValue("Failed to fetch paid content feed");
       }
 
       return res;
     } catch (error: any) {
-      ShowToast(error?.message || "Something went wrong", "error");
+      showError(error?.message || "Something went wrong");
       return rejectWithValue(error?.message);
     }
   }

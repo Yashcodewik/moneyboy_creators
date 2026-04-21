@@ -737,9 +737,31 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         }
 
 
+showSuccess("Post created successfully");
 
-        showSuccess("Post created successfully");
-        onClose();
+if (shareOnX) {
+  const postPublicId = res?.post?.publicId;
+
+  const postUrl = postPublicId
+    ? `${window.location.origin}/post?publicId=${postPublicId}`
+    : `${window.location.origin}/${creator.username}`;
+
+  const shareText = values.text
+    ? values.text.substring(0, 200)
+    : "Check out my latest post!";
+
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+    shareText
+  )}&url=${encodeURIComponent(postUrl)}`;
+
+  window.open(
+    tweetUrl,
+    "_blank",
+    "width=550,height=420,noopener,noreferrer"
+  );
+}
+
+onClose();
       } catch (error) {
         console.error(error);
         showError("An error occurred while creating post");
@@ -1179,7 +1201,9 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
                   <li>
                     <button
                       type="button"
-                      className="cate-back-btn active-down-effect btn_icons"
+                      className={`cate-back-btn active-down-effect btn_icons ${
+  shareOnX ? "active" : ""
+}`}
                       data-tooltip={
                         !hasMedia ? "Add media to share on X" : "Share on X"
                       }

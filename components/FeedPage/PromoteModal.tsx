@@ -91,10 +91,10 @@ const handlePromote = async () => {
         setPlans(sortedPlans);
         setDuration(Number(sortedPlans[0].days));
       } else {
-        ShowToast("Failed to load promotion plans", "error");
+        showError("Failed to load promotion plans");
       }
     } catch {
-      ShowToast("Failed to load promotion plans", "error");
+      showError("Failed to load promotion plans");
     }
   };
 
