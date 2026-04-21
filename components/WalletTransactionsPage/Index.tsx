@@ -10,7 +10,7 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 import { useAppDispatch } from "@/redux/store";
 import { useSelector } from "react-redux";
 import { fetchTransactions } from "@/redux/wallet/Action";
-import { CircleQuestionMark } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleQuestionMark } from "lucide-react";
 import { clearTransactions } from "@/redux/wallet/Slice";
 
 const WalletTransactionsPage = () => {
@@ -20,9 +20,10 @@ const WalletTransactionsPage = () => {
   const [page, setPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const dispatch = useAppDispatch();
-  const { transactions, summary, transactionLoading } = useSelector(
+  const { transactions, summary, transactionLoading , pagination} = useSelector(
     (state: any) => state.wallet,
   );
+    type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
   const orderParam = searchParams.get("orders");
   const [prevTab, setPrevTab] = useState<TabType>("orders");
   const router = useRouter();
@@ -155,8 +156,6 @@ const WalletTransactionsPage = () => {
   useEffect(() => {
     if (!session?.user?.role) return;
 
-    dispatch(clearTransactions());
-
     dispatch(
       fetchTransactions({
         activeTab,
@@ -168,7 +167,7 @@ const WalletTransactionsPage = () => {
     );
   }, [activeTab, mode, page, getApiTab, session?.user?.role]);
 
-  type TabType = "earnings" | "spending" | "orders" | "payouts" | "details";
+
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     router.replace(`/wallet-transactions?tab=${tab}`, { scroll: false });
@@ -197,6 +196,63 @@ const getStatusLabel = (txn: any, isIncoming: any) => {
   return effectiveStatus;
 };
 
+const renderPagination = () => {
+  if (!pagination?.totalPages || pagination.totalPages <= 1) return null;
+  
+  const pages: (number | string)[] = [];
+  const start = Math.max(1, page - 1);
+  const end = Math.min(pagination.totalPages, page + 1);
+  
+  if (start > 1) {
+    pages.push(1);
+    if (start > 2) pages.push("...");
+  }
+  
+  for (let i = start; i <= end; i++) pages.push(i);
+  
+  if (end < pagination.totalPages) {
+    if (end < pagination.totalPages - 1) pages.push("...");
+    pages.push(pagination.totalPages);
+  }
+
+  return (
+    <div className="pagination_wrap">
+      <button
+        className="btn-prev"
+        disabled={page === 1 || transactionLoading}
+        onClick={() => !transactionLoading && setPage(page - 1)}
+      >
+        <ChevronLeft size={18} />
+      </button>
+      
+      {pages.map((p, i) =>
+        p === "..." ? (
+          <button key={i} className="premium-btn shimmer" disabled>
+            <span>…</span>
+          </button>
+        ) : (
+          <button
+            key={i}
+            className={page === p ? "premium-btn shimmer" : "btn-primary"}
+            onClick={() =>
+              !transactionLoading && p !== page && setPage(p as number)
+            }
+          >
+            <span>{p}</span>
+          </button>
+        )
+      )}
+      
+      <button
+        className="btn-next"
+        disabled={page === pagination.totalPages || transactionLoading}
+        onClick={() => !transactionLoading && setPage(page + 1)}
+      >
+        <ChevronRight size={18} />
+      </button>
+    </div>
+  );
+};
 
   return (
     <div className="moneyboy-2x-1x-layout-container">
@@ -496,6 +552,7 @@ const getStatusLabel = (txn: any, isIncoming: any) => {
                         </div>
                       )}
                     </div>
+                 {(activeTab as TabType) !== "details" && renderPagination()}
                 </div>
                 )}
               </div>
