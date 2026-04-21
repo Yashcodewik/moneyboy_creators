@@ -5,7 +5,6 @@ import { TbCamera } from "react-icons/tb";
 import { apiPostWithMultiForm, getApiWithOutQuery } from "@/utils/endpoints/common";
 import { API_CREATOR_PROFILE_INFO, API_UPDATE_CREATOR_PROFILE } from "@/utils/api/APIConstant";
 import { bodyTypeOptions, countryOptions, ethnicityOptions, eyeColorOptions, hairColorOptions, heightOptions, sexualOrientationOptions, sizeOptions, styleOptions, } from "../helper/creatorOptions";
-import ShowToast from "../common/ShowToast";
 import { useFormik } from "formik";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";

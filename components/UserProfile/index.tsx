@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import ShowToast from "../common/ShowToast";
 import InfiniteScrollWrapper from "../common/InfiniteScrollWrapper";
 import {
   API_USER_PROFILE,
