@@ -1825,7 +1825,6 @@ const ProfilePage = () => {
                           <path d="M16.1092 9.45001C16.7292 9.68001 17.2792 10.13 17.6292 10.77C18.4292 12.23 17.9392 14.13 16.5192 15.01L14.1792 16.46C12.7692 17.34 10.9492 16.86 10.1492 15.41C9.34921 13.95 9.83922 12.05 11.2592 11.17L11.5692 10.95" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                           <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-
                         <span>
                           {profile?.user?.userName ? (
                             profileUrl
