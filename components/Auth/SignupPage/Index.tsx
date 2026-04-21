@@ -21,6 +21,7 @@ import enLocale from "i18n-iso-countries/langs/en.json";
 import { countryOptions } from "@/components/helper/creatorOptions";
 import CustomSelect from "@/components/CustomSelect";
 import { useDeviceType } from "@/hooks/useDeviceType";
+import { showError, showSuccess } from "@/utils/alert";
 
 countries.registerLocale(enLocale);
 
@@ -87,15 +88,15 @@ const SignupPage = () => {
         });
 
         if (res?.success) {
-          ShowToast(res.message, "success");
+          showSuccess(res.message);
           setEmailForOtp(values.email);
           formik.resetForm();
           setOtpOpen(true);
         } else {
-          ShowToast(res?.message || "Registration failed", "error");
+          showError(res?.message || "Registration failed");
         }
       } catch (err: any) {
-        ShowToast(err?.error || "Registration failed", "error");
+        showError(err?.error || "Registration failed");
       } finally {
         setLoading(false);
       }
@@ -111,17 +112,17 @@ const SignupPage = () => {
       });
 
       if (res?.error) {
-        ShowToast(res.error, "error");
+        showError(res.error);
         return;
       }
 
-      ShowToast("OTP verified successfully", "success");
+      showSuccess("OTP verified successfully");
       setOtpOpen(false);
 
       // redirect to feed
       router.push("/feed");
     } catch (err: any) {
-      ShowToast(err?.message || "OTP verification failed", "error");
+      showError(err?.message || "OTP verification failed");
     }
   };
 

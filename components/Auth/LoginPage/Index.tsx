@@ -9,6 +9,7 @@ import { signIn } from "next-auth/react";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { useRouter, useSearchParams } from "next/navigation";
 import ShowToast from "@/components/common/ShowToast";
+import { showError } from "@/utils/alert";
 
 const LoginPage = () => {
   const [showPass, setShowPass] = useState(false);
@@ -18,7 +19,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (error === "not_registered") {
-      ShowToast("Account not found. Please register first.", "error");
+      showError("Account not found. Please register first.");
     }
   }, [error]);
 
@@ -47,9 +48,9 @@ const LoginPage = () => {
       setSubmitting(false);
       if (res?.error) {
         if (res.error.toLowerCase().includes("banned")) {
-          ShowToast(
+          showError(
             "Your account has been banned by the administrator. Please contact support.",
-            "error",
+            
           );
           return;
         }
@@ -60,7 +61,7 @@ const LoginPage = () => {
           return;
         }
 
-        ShowToast("Invalid email or password", "error");
+        showError("Invalid email or password");
         return;
       }
       router.push("/feed");

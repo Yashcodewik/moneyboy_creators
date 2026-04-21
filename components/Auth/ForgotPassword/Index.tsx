@@ -64,10 +64,10 @@ const ForgotPassword = () => {
           });
 
           if (res?.success) {
-            ShowToast(res.message, "success");
+            showSuccess(res.message);
             setOtpOpen(true);
           } else {
-            ShowToast(res?.message || "Failed to send OTP", "error");
+            showError(res?.message || "Failed to send OTP");
           }
 
           setSubmitting(false);
@@ -101,7 +101,7 @@ const ForgotPassword = () => {
           }
         }
       } catch (err) {
-        ShowToast("Something went wrong", "error");
+        showError("Something went wrong",);
       }
 
       setSubmitting(false);
@@ -110,7 +110,7 @@ const ForgotPassword = () => {
 
   const handleOtpSubmit = async (otp: string) => {
     if (otp.length !== 6) {
-      ShowToast("Enter valid OTP", "error");
+      showError("Enter valid OTP");
       return;
     }
 
@@ -128,10 +128,10 @@ const ForgotPassword = () => {
         setOtpOpen(false);
         setShowChangePassword(true);
 
-        ShowToast("OTP verified", "success");
+        showSuccess("OTP verified");
       }
     } catch (err: any) {
-      ShowToast(err?.response?.data?.message || "Invalid OTP", "error");
+      showError(err?.response?.data?.message || "Invalid OTP");
     }
   };
 

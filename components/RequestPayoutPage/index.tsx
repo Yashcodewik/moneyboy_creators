@@ -19,6 +19,7 @@ import { AppDispatch, useAppDispatch } from "@/redux/store";
 import { fetchTransactions, fetchWallet } from "@/redux/wallet/Action";
 import { deductBalance } from "@/redux/wallet/Slice";
 import { CircleQuestionMark } from "lucide-react";
+import { showError, showSuccess } from "@/utils/alert";
 
 const RequestPayoutPage = () => {
   const router = useRouter();
@@ -90,15 +91,15 @@ const RequestPayoutPage = () => {
 
   const submitPayout = async () => {
     if (!amount || Number(amount) <= 0) {
-      return ShowToast("Enter valid amount", "error");
+      return showError("Enter valid amount");
     }
 
     if (Number(amount) > walletBalance) {
-      return ShowToast("Amount exceeds wallet balance", "error");
+      return showError("Amount exceeds wallet balance");
     }
 
     if (!selectedMethod) {
-      return ShowToast("Select payout method", "error");
+      return showError("Select payout method");
     }
 
     try {
@@ -115,7 +116,7 @@ const RequestPayoutPage = () => {
 
       if (res?.success) {
         dispatch(deductBalance(Number(amount)));
-        ShowToast("Payout request submitted", "success");
+        showSuccess("Payout request submitted");
 
         dispatch(fetchTransactions({ getApiTab: () => API_GET_TRANSACTIONS }));
         dispatch(fetchWallet());
@@ -125,10 +126,10 @@ const RequestPayoutPage = () => {
         setSelectedMethod(null);
         loadSummary();
       } else {
-        ShowToast(res?.message || "Failed", "error");
+        showError(res?.message || "Failed");
       }
     } catch (err) {
-      ShowToast("Something went wrong", "error");
+      showError("Something went wrong");
     } finally {
       setIsSubmitting(false); // 🔥 stop loader
     }

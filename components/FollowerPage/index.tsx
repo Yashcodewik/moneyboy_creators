@@ -28,6 +28,7 @@ import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 import ShowToast from "../common/ShowToast";
 import { useSession } from "next-auth/react";
 import Modal from "../Modal";
+import { showError, showSuccess } from "@/utils/alert";
 
 interface Creator {
   _id: string;
@@ -107,7 +108,7 @@ const FollowersPage = () => {
 
   const handleReportUser = async () => {
     if (!reportMessage.trim()) {
-      ShowToast("Please enter reason", "error");
+      showError("Please enter reason");
       return;
     }
 
@@ -121,15 +122,15 @@ const FollowersPage = () => {
       });
 
       if (res?.success) {
-        ShowToast("Report submitted", "success");
+        showSuccess("Report submitted");
         setReportMessage("");
         setIsReportModalOpen(false);
       } else {
-        ShowToast(res?.message || "Failed to submit report", "error");
+        showError(res?.message || "Failed to submit report");
       }
     } catch (error) {
       console.error(error);
-      ShowToast("Something went wrong", "error");
+      showError("Something went wrong");
     }
   };
 
@@ -154,7 +155,7 @@ const FollowersPage = () => {
 
     navigator.clipboard.writeText(url);
 
-    ShowToast("Profile link copied", "success");
+    showSuccess("Profile link copied");
   };
 
   useEffect(() => {
@@ -259,16 +260,16 @@ const FollowersPage = () => {
         setCreators((prev) => prev.filter((u) => u._id !== userId));
         dispatch(fetchFollowerCounts());
 
-        ShowToast("User blocked successfully", "success");
+        showSuccess("User blocked successfully");
 
         // close popup
         setOpenMoreId(null);
       } else {
-        ShowToast(res?.message || "Failed to block user", "error");
+        showError(res?.message || "Failed to block user");
       }
     } catch (error) {
       console.error(error);
-      ShowToast("Something went wrong", "error");
+      showError("Something went wrong");
     }
   };
 
@@ -540,11 +541,11 @@ const FollowersPage = () => {
 
       setFollowers((prev) => prev.filter((f) => f._id !== userId));
       dispatch(fetchFollowerCounts());
-      ShowToast("Follower removed", "success");
+      showSuccess("Follower removed");
       setOpenMoreId(null);
     } catch (error) {
       console.error(error);
-      ShowToast("Failed to remove follower", "error");
+      showError("Failed to remove follower");
     }
   };
 
