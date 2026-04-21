@@ -12,7 +12,6 @@ import enLocale from "i18n-iso-countries/langs/en.json";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { apiPost, getApiWithOutQuery } from "@/utils/endpoints/common";
-import ShowToast from "../common/ShowToast";
 import {
   API_BANK,
   API_BANK_DETAIL,

@@ -171,7 +171,7 @@ const ProfilePage = () => {
     const profileLink = `${window.location.origin}/${profile.user.userName}`;
     try {
       await navigator.clipboard.writeText(profileLink);
-      toast.success("Profile link copied!");
+      showSuccess("Profile link copied!");
     } catch (err) {
       console.error("Failed to copy:", err);
     }
