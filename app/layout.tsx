@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Moneyboy Creators",
     description: "Start earning from your content today.",
-    images:"/images/logo/white-logo-square.png",
+    images:"/images/logo/moneyboy-logo.png",
   },
 
   robots: {

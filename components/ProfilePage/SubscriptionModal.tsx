@@ -3,6 +3,7 @@
 import { CgClose } from "react-icons/cg";
 import CustomSelect from "../CustomSelect";
 import Modal from "../Modal";
+import { useState } from "react";
 
 interface SubscriptionModalProps {
   onClose: () => void;
@@ -23,7 +24,6 @@ interface SubscriptionModalProps {
   };
 }
 
-
 const SubscriptionModal = ({
   onClose,
   onConfirm,
@@ -33,59 +33,93 @@ const SubscriptionModal = ({
   creator,
   subscription,
 }: SubscriptionModalProps) => {
+  // const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
 
   const finalPrice =
-    plan === "MONTHLY"
-      ? subscription?.monthlyPrice
-      : subscription?.yearlyPrice;
+    plan === "MONTHLY" ? subscription?.monthlyPrice : subscription?.yearlyPrice;
 
   const savings =
-    subscription?.monthlyPrice &&
-      subscription?.yearlyPrice
+    subscription?.monthlyPrice && subscription?.yearlyPrice
       ? Math.round(
-        ((subscription.monthlyPrice * 12 -
-          subscription.yearlyPrice) /
-          (subscription.monthlyPrice * 12)) *
-        100
-      )
+          ((subscription.monthlyPrice * 12 - subscription.yearlyPrice) /
+            (subscription.monthlyPrice * 12)) *
+            100,
+        )
       : null;
 
+  const isDisabled = !finalPrice || !action;
+
   return (
-    <Modal show={true} onClose={onClose} title=" " className="subscription_wrap">
+    <Modal
+      show={true}
+      onClose={onClose}
+      title=" "
+      className="subscription_wrap"
+    >
       <div className="modal_containt subscription-modal">
         <div className="profile-card">
           <div className="profile-card__main justify-center">
             <div className="profile-card__avatar-settings">
               <div className="profile-card__avatar">
-                <img src={creator?.profile || "/images/profile-avatars/profile-avatar-1.png"} alt={creator?.displayName || "Creator Avatar"} />
+                <img
+                  src={
+                    creator?.profile ||
+                    "/images/profile-avatars/profile-avatar-1.png"
+                  }
+                  alt={creator?.displayName || "Creator Avatar"}
+                />
               </div>
             </div>
             <div className="profile-card__info">
               <div className="profile-card__name-badge">
-                <div className="profile-card__name">{creator?.displayName || "Unknown Creator"}</div>
+                <div className="profile-card__name">
+                  {creator?.displayName || "Unknown Creator"}
+                </div>
                 <div className="profile-card__badge">
-                  <img src="/images/logo/profile-badge.png" alt="MoneyBoy Social Profile Badge" />
+                  <img
+                    src="/images/logo/profile-badge.png"
+                    alt="MoneyBoy Social Profile Badge"
+                  />
                 </div>
               </div>
-              <div className="profile-card__username">@{creator?.userName || "Unknown User"}</div>
+              <div className="profile-card__username">
+                @{creator?.userName || "Unknown User"}
+              </div>
             </div>
             <div className="select_wrap">
-              <label className={`radio_wrap box_select ${plan === "MONTHLY" ? "active" : ""}`}>
-                <input type="radio" name="plan" checked={plan === "MONTHLY"} onChange={() => setPlan("MONTHLY")} /> Month
+              <label
+                className={`radio_wrap box_select ${plan === "MONTHLY" ? "active" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="plan"
+                  checked={plan === "MONTHLY"}
+                  onChange={() => setPlan("MONTHLY")}
+                />{" "}
+                Month
               </label>
-              <label className={`radio_wrap box_select ${plan === "YEARLY" ? "active" : ""}`}>
-                <input type="radio" name="plan" checked={plan === "YEARLY"} onChange={() => setPlan("YEARLY")} /> Year
+              <label
+                className={`radio_wrap box_select ${plan === "YEARLY" ? "active" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="plan"
+                  checked={plan === "YEARLY"}
+                  onChange={() => setPlan("YEARLY")}
+                />{" "}
+                Year
               </label>
             </div>
           </div>
         </div>
         <h3 className="title">
-          {plan === "MONTHLY" ? "Monthly" : "Yearly"} {action}{" "} <span className="gradinttext">{finalPrice ? `$${finalPrice}` : "Not Updated yet"}</span>{" "}
+          {plan === "MONTHLY" ? "Monthly" : "Yearly"} {action}{" "}
+          <span className="gradinttext">
+            {finalPrice ? `$${finalPrice}` : "Not Updated yet"}
+          </span>{" "}
           <sub>
             /{plan === "MONTHLY" ? "Month" : "Year"}
-            {plan === "YEARLY" && savings && (
-              <span>(Save {savings}%)</span>
-            )}
+            {plan === "YEARLY" && savings && <span>(Save {savings}%)</span>}
           </sub>
         </h3>
         <ul className="points">
@@ -106,11 +140,24 @@ const SubscriptionModal = ({
               { label: "Discover Card", value: "discover" },
             ]}
           />
-          <button className="premium-btn active-down-effect" onClick={onConfirm}>
-            <span>{action === "upgrade" ? "Upgrade" : action === "renew" ? "Renew" : "Subscribe"}</span>
+          <button
+            className="premium-btn active-down-effect"
+            disabled={isDisabled}
+            onClick={onConfirm}
+          >
+            <span>
+              {action === "upgrade"
+                ? "Upgrade"
+                : action === "renew"
+                  ? "Renew"
+                  : "Subscribe"}
+            </span>
           </button>
         </div>
-        <p className="note">Clicking “Subscribe” will take you to the payment screen to finalize you subscription</p>
+        <p className="note">
+          Clicking “Subscribe” will take you to the payment screen to finalize
+          you subscription
+        </p>
       </div>
     </Modal>
   );

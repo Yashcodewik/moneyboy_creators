@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   apiPost,
   getApiByParams,
@@ -10,27 +10,24 @@ import {
   API_CREATOR_PROFILE,
   API_CREATOR_PROFILE_BY_ID,
   API_DELETE_POST,
-  API_FOLLOWER_COUNT,
   API_GET_POSTS_BY_CREATOR,
   API_SAVE_CREATOR,
-  API_SAVE_POST,
   API_SEND_TIP,
   API_SUBSCRIBE_CREATOR,
   API_UNLOCK_POST,
   API_UNSAVE_CREATOR,
-  API_UNSAVE_POST,
   API_UPGRADE_SUBSCRIPTION,
 } from "@/utils/api/APIConstant";
 import ProfileTab from "./ProfileTab";
 import { useDecryptedSession } from "@/libs/useDecryptedSession";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { AppDispatch, RootState } from "../../redux/store";
+import { AppDispatch } from "../../redux/store";
 import {
   fetchFollowerCounts,
   followUserAction,
   unfollowUserAction,
 } from "../../redux/other/followActions";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import SubscriptionModal from "./SubscriptionModal";
 import TipModal from "./TipModal";
 import UnlockContentModal from "./UnlockContentModal";
@@ -38,13 +35,11 @@ import {
   AtSign,
   CircleArrowLeft,
   CircleArrowRight,
-  Pencil,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { savePost, unsavePost } from "@/redux/other/savedPostsSlice";
 import toast from "react-hot-toast";
-import ShowToast from "../common/ShowToast";
 import {
   showQuestion,
   showSuccess,
@@ -160,12 +155,14 @@ const ProfilePage = () => {
   const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
   const limit = 12;
+
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab) {
       setActiveTab(tab);
     }
   }, [searchParams]);
+
   const copyProfileLink = async () => {
     if (typeof window === "undefined" || !profile?.user?.userName) return;
     const profileLink = `${window.location.origin}/${profile.user.userName}`;
@@ -182,8 +179,6 @@ const ProfilePage = () => {
       ? `${window.location.origin}/${profile.user.userName}`
       : "";
 
-  const isProfileLoading = status === "loading" || !profile;
-
   const [profileStats, setProfileStats] = useState({
     followerCount: 0,
     followingCount: 0,
@@ -191,6 +186,7 @@ const ProfilePage = () => {
   });
 
   const dispatch = useDispatch<AppDispatch>();
+
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName);
     setPage(1);
@@ -202,6 +198,7 @@ const ProfilePage = () => {
   }, [search, timeFilter, activeTab]);
 
   const isOwnProfile = sessionUsername === username;
+
   const { data: profileData, refetch } = useQuery({
     queryKey: ["creator-profile", username],
     queryFn: async () => {
@@ -210,9 +207,9 @@ const ProfilePage = () => {
       const response = isOwnProfile
         ? await getApiWithOutQuery({ url: API_CREATOR_PROFILE })
         : await getApiByParams({
-          url: API_CREATOR_PROFILE_BY_ID,
-          params: username,
-        });
+            url: API_CREATOR_PROFILE_BY_ID,
+            params: username,
+          });
 
       return response;
     },
@@ -243,7 +240,6 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!username) return;
-
     // ❌ DO NOT call API if not logged in
     if (!session?.isAuthenticated) return;
 
@@ -333,8 +329,9 @@ const ProfilePage = () => {
 
     setSubLoading(false);
   };
-  const typeParam =
-    activeTab === "videos" ? "video" : activeTab === "photos" ? "photo" : "";
+
+
+  const typeParam = activeTab === "videos" ? "video" : activeTab === "photos" ? "photo" : "";
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ["creator-posts", username, search, timeFilter, page, activeTab],
@@ -348,9 +345,11 @@ const ProfilePage = () => {
 
   const posts = postsData?.posts || [];
   const totalPages = postsData?.meta?.totalPages || 1;
+
   const photoPosts = posts?.filter((post: any) =>
     post?.media?.some((m: any) => m.type === "photo"),
   );
+
   const videoPosts = posts?.filter((post: any) =>
     post?.media?.some((m: any) => m.type === "video"),
   );
@@ -361,7 +360,6 @@ const ProfilePage = () => {
 
   const confirmUnlockPost = async (paymentMethod: "wallet" | "card") => {
     if (!unlockPost) return;
-
     try {
       setUnlockLoading(true);
 
@@ -417,6 +415,7 @@ const ProfilePage = () => {
       setUpgradeLoading(false);
     }
   };
+  
   const renderPagination = () => {
     if (!totalPages || totalPages <= 1) return null;
 
@@ -438,7 +437,6 @@ const ProfilePage = () => {
       if (end < totalPages - 1) pages.push("...");
       pages.push(totalPages);
     }
-
 
     return (
       <div className="pagination_wrap">
@@ -742,7 +740,7 @@ const ProfilePage = () => {
                 ...oldData,
                 posts: oldData.posts.filter((p: any) => p._id !== postId),
               };
-            }
+            },
           );
 
           // ✅ refresh posts
@@ -833,19 +831,42 @@ const ProfilePage = () => {
         key={post?.publicId}
       >
         <div className="creator-content-card">
-          <div className="creator-content-card__media" onClick={() => handlePostClick(post, isSubscriberPost || isPPVPost)}>
+          <div
+            className="creator-content-card__media"
+            onClick={() => handlePostClick(post, isSubscriberPost || isPPVPost)}
+          >
             <div className={`creator-card__img ${!hasMedia ? "nomedia" : ""}`}>
               {mediaType === "photo" && firstMedia && (
-                <img src={firstMedia} alt="Creator Content" loading="lazy" onContextMenu={(e) => e.preventDefault()} />
+                <img
+                  src={firstMedia}
+                  alt="Creator Content"
+                  loading="lazy"
+                  onContextMenu={(e) => e.preventDefault()}
+                />
               )}
               {mediaType === "video" && firstMedia && (
-                <video src={firstMedia} playsInline muted preload="metadata" controls={canViewContent} controlsList="nodownload"         // ✅ hide download button
-                  onContextMenu={(e) => e.preventDefault()} poster={`${firstMedia}#t=0.5`} onLoadedData={(e) => { e.currentTarget.currentTime = 0.1; }} style={{ width: "100%", pointerEvents: canViewContent ? "auto" : "none", }} />
+                <video
+                  src={firstMedia}
+                  playsInline
+                  muted
+                  preload="metadata"
+                  controls={canViewContent}
+                  controlsList="nodownload" // ✅ hide download button
+                  onContextMenu={(e) => e.preventDefault()}
+                  poster={`${firstMedia}#t=0.5`}
+                  onLoadedData={(e) => {
+                    e.currentTarget.currentTime = 0.1;
+                  }}
+                  style={{
+                    width: "100%",
+                    pointerEvents: canViewContent ? "auto" : "none",
+                  }}
+                />
               )}
             </div>
 
             {(isSubscriberPost && !isSubscribed) ||
-              (isPPVPost && (!post.isUnlocked || isOwner)) ? (
+            (isPPVPost && (!post.isUnlocked || isOwner)) ? (
               <div
                 className="content-locked-label"
                 onClick={(e) => {
@@ -943,7 +964,7 @@ const ProfilePage = () => {
             ) : null}
             <div
               className="creator-media-card__overlay"
-            // onClick={(e) => e.stopPropagation()}
+              // onClick={(e) => e.stopPropagation()}
             >
               <div className="creator-media-card__stats">
                 {isOwner &&
@@ -1231,8 +1252,9 @@ const ProfilePage = () => {
           )}
 
           <div
-            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${layoutTab === "list" ? "layout-list" : "layout-grid"
-              }`}
+            className={`creator-content-cards-wrapper multi-dem-cards-wrapper-layout ${
+              layoutTab === "list" ? "layout-list" : "layout-grid"
+            }`}
             data-direct-cards-layout
             data-layout-toggle-rows={layoutTab === "list" ? true : undefined}
           >
@@ -1743,9 +1765,9 @@ const ProfilePage = () => {
                         Joined{" "}
                         {profile?.user?.createdAt
                           ? new Date(profile.user.createdAt).toLocaleString(
-                            "default",
-                            { month: "long", year: "numeric" },
-                          )
+                              "default",
+                              { month: "long", year: "numeric" },
+                            )
                           : ""}
                       </span>
                     </div>
@@ -1754,7 +1776,10 @@ const ProfilePage = () => {
                 {session?.isAuthenticated && (
                   <div className="creator-profile-stats-link">
                     <div className="profile-card__stats">
-                      <div className="profile-card__stats-item posts-stats" onClick={() => setActiveTab("posts")}>
+                      <div
+                        className="profile-card__stats-item posts-stats"
+                        onClick={() => setActiveTab("posts")}
+                      >
                         <div className="profile-card__stats-num">
                           {countsLoading ? (
                             <div className="loading-text" />
@@ -1763,11 +1788,41 @@ const ProfilePage = () => {
                           )}
                         </div>
                         <div className="profile-card__stats-label">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                            <path d="M22 10.4286V15.4286C22 20.4286 20 22.4286 15 22.4286H9C4 22.4286 2 20.4286 2 15.4286V9.42856C2 4.42856 4 2.42856 9 2.42856H14" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                            <path d="M22 10.4286H18C15 10.4286 14 9.42856 14 6.42856V2.42856L22 10.4286Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                            <path d="M7 13.4286H13" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                            <path d="M7 17.4286H11" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="25"
+                            viewBox="0 0 24 25"
+                            fill="none"
+                          >
+                            <path
+                              d="M22 10.4286V15.4286C22 20.4286 20 22.4286 15 22.4286H9C4 22.4286 2 20.4286 2 15.4286V9.42856C2 4.42856 4 2.42856 9 2.42856H14"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            ></path>
+                            <path
+                              d="M22 10.4286H18C15 10.4286 14 9.42856 14 6.42856V2.42856L22 10.4286Z"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            ></path>
+                            <path
+                              d="M7 13.4286H13"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            ></path>
+                            <path
+                              d="M7 17.4286H11"
+                              stroke="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            ></path>
                           </svg>
                           <span className="fs_11">Posts</span>
                         </div>
@@ -1781,15 +1836,46 @@ const ProfilePage = () => {
                             {countsLoading ? (
                               <div className="loading-text" />
                             ) : (
-                              profileStats.followerCount?.toLocaleString() || "0"
+                              profileStats.followerCount?.toLocaleString() ||
+                              "0"
                             )}
                           </div>
                           <div className="profile-card__stats-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                              <path d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                              <path d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                              <path d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                              <path d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="25"
+                              viewBox="0 0 24 25"
+                              fill="none"
+                            >
+                              <path
+                                d="M9.16006 11.2986C9.06006 11.2886 8.94006 11.2886 8.83006 11.2986C6.45006 11.2186 4.56006 9.26859 4.56006 6.86859C4.56006 4.41859 6.54006 2.42859 9.00006 2.42859C11.4501 2.42859 13.4401 4.41859 13.4401 6.86859C13.4301 9.26859 11.5401 11.2186 9.16006 11.2986Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M16.4098 4.42859C18.3498 4.42859 19.9098 5.99859 19.9098 7.92859C19.9098 9.81859 18.4098 11.3586 16.5398 11.4286C16.4598 11.4186 16.3698 11.4186 16.2798 11.4286"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M4.16021 14.9886C1.74021 16.6086 1.74021 19.2486 4.16021 20.8586C6.91021 22.6986 11.4202 22.6986 14.1702 20.8586C16.5902 19.2386 16.5902 16.5986 14.1702 14.9886C11.4302 13.1586 6.92021 13.1586 4.16021 14.9886Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M18.3398 20.4286C19.0598 20.2786 19.7398 19.9886 20.2998 19.5586C21.8598 18.3886 21.8598 16.4586 20.2998 15.2886C19.7498 14.8686 19.0798 14.5886 18.3698 14.4286"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
                             </svg>
                             <span className="fs_11">Followers</span>
                           </div>
@@ -1804,13 +1890,32 @@ const ProfilePage = () => {
                             {countsLoading ? (
                               <div className="loading-text" />
                             ) : (
-                              profileStats.followingCount?.toLocaleString() || "0"
+                              profileStats.followingCount?.toLocaleString() ||
+                              "0"
                             )}
                           </div>
                           <div className="profile-card__stats-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
-                              <path d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                              <path d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="25"
+                              viewBox="0 0 24 25"
+                              fill="none"
+                            >
+                              <path
+                                d="M12.1601 11.2986C12.0601 11.2886 11.9401 11.2886 11.8301 11.2986C9.45006 11.2186 7.56006 9.26859 7.56006 6.86859C7.56006 4.41859 9.54006 2.42859 12.0001 2.42859C14.4501 2.42859 16.4401 4.41859 16.4401 6.86859C16.4301 9.26859 14.5401 11.2186 12.1601 11.2986Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                              <path
+                                d="M7.16021 14.9886C4.74021 16.6086 4.74021 19.2486 7.16021 20.8586C9.91021 22.6986 14.4202 22.6986 17.1702 20.8586C19.5902 19.2386 19.5902 16.5986 17.1702 14.9886C14.4302 13.1586 9.92021 13.1586 7.16021 14.9886Z"
+                                stroke="none"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
                             </svg>
                             <span className="fs_11">Following</span>
                           </div>
@@ -1819,11 +1924,41 @@ const ProfilePage = () => {
                     </div>
 
                     <div className="creator-profile-link">
-                      <a href="#" onClick={(e) => { e.preventDefault(); if (profileUrl) copyProfileLink(); }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <path d="M7.9407 14.51C7.3207 14.28 6.7707 13.83 6.4207 13.19C5.6207 11.73 6.1107 9.83001 7.5307 8.95001L9.8707 7.5C11.2807 6.62 13.1007 7.09999 13.9007 8.54999C14.7007 10.01 14.2107 11.91 12.7907 12.79L12.4807 13.01" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M16.1092 9.45001C16.7292 9.68001 17.2792 10.13 17.6292 10.77C18.4292 12.23 17.9392 14.13 16.5192 15.01L14.1792 16.46C12.7692 17.34 10.9492 16.86 10.1492 15.41C9.34921 13.95 9.83922 12.05 11.2592 11.17L11.5692 10.95" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (profileUrl) copyProfileLink();
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M7.9407 14.51C7.3207 14.28 6.7707 13.83 6.4207 13.19C5.6207 11.73 6.1107 9.83001 7.5307 8.95001L9.8707 7.5C11.2807 6.62 13.1007 7.09999 13.9007 8.54999C14.7007 10.01 14.2107 11.91 12.7907 12.79L12.4807 13.01"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M16.1092 9.45001C16.7292 9.68001 17.2792 10.13 17.6292 10.77C18.4292 12.23 17.9392 14.13 16.5192 15.01L14.1792 16.46C12.7692 17.34 10.9492 16.86 10.1492 15.41C9.34921 13.95 9.83922 12.05 11.2592 11.17L11.5692 10.95"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                            stroke="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                         <span>
                           {profile?.user?.userName ? (
