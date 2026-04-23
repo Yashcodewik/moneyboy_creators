@@ -148,6 +148,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const hasMedia = mediaPreviews.length > 0;
   const imageCount = mediaPreviews.filter((m) => m.type === "image").length;
   const videoCount = mediaPreviews.filter((m) => m.type === "video").length;
+  
 
   const creator = {
     name: session?.user?.displayName,
@@ -742,9 +743,19 @@ showSuccess("Post created successfully");
 if (shareOnX) {
   const postPublicId = res?.post?.publicId;
 
-  const postUrl = postPublicId
-    ? `${window.location.origin}/post?publicId=${postPublicId}`
+let postUrl = "";
+
+if (values.accessType === "subscriber") {
+  // ✅ ALWAYS profile link for subscriber content
+  postUrl = `${window.location.origin}/${creator.username}?from=x`;
+} else {
+  // ✅ normal behavior for free / PPV
+  const postPublicId = res?.post?.publicId;
+
+  postUrl = postPublicId
+    ? `${window.location.origin}/post?publicId=${postPublicId}&from=x`
     : `${window.location.origin}/${creator.username}`;
+}
 
   const shareText = values.text
     ? values.text.substring(0, 200)

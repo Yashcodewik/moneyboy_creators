@@ -156,6 +156,7 @@ const ProfilePage = () => {
   const [page, setPage] = useState(1);
   const limit = 12;
 
+  
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab) {
@@ -415,6 +416,22 @@ const ProfilePage = () => {
       setUpgradeLoading(false);
     }
   };
+
+  useEffect(() => {
+  const from = searchParams.get("from");
+
+  // ✅ wait until profile is loaded
+  if (!profile) return;
+
+  if (from === "x") {
+    setSelectedPlan("MONTHLY");
+    setModalAction("subscribe");
+    setShowSubscriptionModal(true);
+
+    // optional: remove query param
+    router.replace(`/${username}`, { scroll: false });
+  }
+}, [searchParams, profile]);
   
   const renderPagination = () => {
     if (!totalPages || totalPages <= 1) return null;
