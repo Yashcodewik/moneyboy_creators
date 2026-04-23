@@ -6,11 +6,12 @@ import CustomSelect from "../CustomSelect";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiPost, getApiByParams } from "@/utils/endpoints/common";
 import {
-  API_GET_POST_BY_PUBLIC_ID,
-  API_LIKE_POST,
-  API_SAVE_POST,
-  API_UNLIKE_POST,
-  API_UNSAVE_POST,
+    API_GET_POST_BY_PUBLIC_ID,
+    API_LIKE_POST,
+    API_SAVE_POST,
+    API_UNLIKE_POST,
+    API_UNLOCK_POST,
+    API_UNSAVE_POST,
 } from "@/utils/api/APIConstant";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
@@ -19,9 +20,9 @@ import "swiper/css/navigation";
 import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "../../redux/store";
 import {
-  dislikeComment,
-  fetchComments,
-  likeComment,
+    dislikeComment,
+    fetchComments,
+    likeComment,
 } from "../../redux/other/commentSlice";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -37,1177 +38,1277 @@ import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
 
 import {
-  ChevronLeft,
-  ChevronRight,
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
-  X,
+    ChevronLeft,
+    ChevronRight,
+    ZoomIn,
+    ZoomOut,
+    RotateCw,
+    X,
 } from "lucide-react";
 import { fetchWallet } from "@/redux/wallet/Action";
+import UnlockContentModal from "../ProfilePage/UnlockContentModal";
 
 
 const PostPage = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const publicId = searchParams.get("publicId");
-  const [post, setPost] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [showTipModal, setShowTipModal] = useState(false);
-  const { data: session, status } = useSession();
-  const isLoggedIn = status === "authenticated";
-  const [newComment, setNewComment] = useState("");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const emojiRef = useRef<HTMLDivElement | null>(null);
-  const emojiButtonRef = useRef<HTMLDivElement | null>(null);
-  const [isReported, setIsReported] = useState(false);
-  const [likeLoading, setLikeLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-  const dispatch = useAppDispatch();
-  const isMobile = useDeviceType();
-  const mediaFiles = post?.media?.[0]?.mediaFiles || [];
-  const hasMultipleMedia = mediaFiles.length > 1;
-  const desktopStyle: React.CSSProperties = {
-    transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
-    height: open ? "auto" : "0px",
-    opacity: open ? 1 : 0,
-    display: open ? "block" : "none",
-    overflow: "visible",
-    left: "auto",
-    transition: "all 0.2s ease",
-  };
-  const mobileStyle: React.CSSProperties = {
-    position: "fixed",
-    left: "0%",
-    bottom: "25px",
-    width: "100%",
-    zIndex: 1000,
-    transform: open ? "translate(0px, 0px)" : "translate(0px, 100%)",
-    height: open ? "auto" : "0px",
-    opacity: 1,
-    display: open ? "block" : "none",
-    overflow: "hidden",
-    transition: "transform 0.25s ease",
-  };
-
-  const isOwnPost = (session?.user as any)?.id === post?.userId;
-
-  useEffect(() => {
-    if (!isMobile) return;
-    const overlay = document.querySelector(".mobile-popup-overlay");
-    if (!overlay) return;
-    if (open) {
-      overlay.classList.add("active");
-    } else {
-      overlay.classList.remove("active");
-    }
-    return () => {
-      overlay.classList.remove("active");
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const publicId = searchParams.get("publicId");
+    const [post, setPost] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [expanded, setExpanded] = useState(false);
+    const menuRef = useRef<HTMLDivElement | null>(null);
+    const buttonRef = useRef<HTMLButtonElement | null>(null);
+    const [copied, setCopied] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [showTipModal, setShowTipModal] = useState(false);
+    const { data: session, status } = useSession();
+    const isLoggedIn = status === "authenticated";
+    const [newComment, setNewComment] = useState("");
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const emojiRef = useRef<HTMLDivElement | null>(null);
+    const emojiButtonRef = useRef<HTMLDivElement | null>(null);
+    const [isReported, setIsReported] = useState(false);
+    const [likeLoading, setLikeLoading] = useState(false);
+    const [showUnlockModal, setShowUnlockModal] = useState(false);
+    const [unlockPost, setUnlockPost] = useState<any>(null);
+    const [saveLoading, setSaveLoading] = useState(false);
+    const dispatch = useAppDispatch();
+    const isMobile = useDeviceType();
+    const mediaFiles = post?.media?.[0]?.mediaFiles || [];
+    const hasMultipleMedia = mediaFiles.length > 1;
+    const desktopStyle: React.CSSProperties = {
+        transform: open ? "translate(0px, 0px)" : "translate(0px, -10px)",
+        height: open ? "auto" : "0px",
+        opacity: open ? 1 : 0,
+        display: open ? "block" : "none",
+        overflow: "visible",
+        left: "auto",
+        transition: "all 0.2s ease",
     };
-  }, [open, isMobile]);
+    const mobileStyle: React.CSSProperties = {
+        position: "fixed",
+        left: "0%",
+        bottom: "25px",
+        width: "100%",
+        zIndex: 1000,
+        transform: open ? "translate(0px, 0px)" : "translate(0px, 100%)",
+        height: open ? "auto" : "0px",
+        opacity: 1,
+        display: open ? "block" : "none",
+        overflow: "hidden",
+        transition: "transform 0.25s ease",
+    };
 
-  const [showComment, setShowComment] = useState(false);
-  const commentsState = useAppSelector((state) => state.comments);
-  const commentParam = searchParams.get("comment");
-  const postComments = commentsState.comments[post?._id] || [];
-  const [isSending, setIsSending] = useState(false);
 
-  useEffect(() => {
-    if (showComment && post?._id) {
-      dispatch(fetchComments(post._id));
-    }
-  }, [showComment, post?._id, dispatch]);
 
-  useEffect(() => {
-    if (!publicId) return;
-    const fetchPost = async () => {
-      try {
-        const data = await apiPost({
-          url: API_GET_POST_BY_PUBLIC_ID,
-          values: {
-            publicId,
-            userId: (session?.user as any)?.id || "",
-          },
+    const isOwnPost = (session?.user as any)?.id === post?.userId;
+    const isLocked =
+        post?.accessType === "pay_per_view" &&
+        !post?.hasUnlocked &&
+        !post?.hasSubscription &&
+        !isOwnPost;
+    const from = searchParams.get("from");
+    const isFromX = from === "x";
+    const isPPV = post?.accessType === "pay_per_view";
+    const shouldHideActions = isLocked;
+    const isVideoPost = post?.media?.[0]?.type === "video";
+    const shouldBlur = isLocked && !isVideoPost;
+
+
+    useEffect(() => {
+        if (!isMobile) return;
+        const overlay = document.querySelector(".mobile-popup-overlay");
+        if (!overlay) return;
+        if (open) {
+            overlay.classList.add("active");
+        } else {
+            overlay.classList.remove("active");
+        }
+        return () => {
+            overlay.classList.remove("active");
+        };
+    }, [open, isMobile]);
+
+    const [showComment, setShowComment] = useState(false);
+    const commentsState = useAppSelector((state) => state.comments);
+    const commentParam = searchParams.get("comment");
+    const postComments = commentsState.comments[post?._id] || [];
+    const [isSending, setIsSending] = useState(false);
+
+    const disableSwiper = isLocked;
+
+    useEffect(() => {
+        if (showComment && post?._id) {
+            dispatch(fetchComments(post._id));
+        }
+    }, [showComment, post?._id, dispatch]);
+
+    useEffect(() => {
+        if (!publicId) return;
+        const fetchPost = async () => {
+            try {
+                const data = await apiPost({
+                    url: API_GET_POST_BY_PUBLIC_ID,
+                    values: {
+                        publicId,
+                        userId: (session?.user as any)?.id || "",
+                         from,
+                    },
+                });
+
+                if (data?.success) {
+                    setPost(data.post);
+                }
+            } catch (err) {
+                console.error("Error fetching post:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPost();
+    }, [publicId, (session?.user as any)?.id || ""]);
+
+    const formatRelativeTime = (dateString: string) => {
+        const postDate = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - postDate.getTime();
+        const seconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        if (seconds < 60) return "just now";
+        if (minutes < 60) return `${minutes} min ago`;
+        if (hours < 24) return `${hours} hr ago`;
+        if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+        if (days < 30)
+            return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
+        if (days < 365)
+            return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
+        return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
+    };
+
+    const handleLike = async () => {
+        if (!isLoggedIn) return router.push("/login");
+        if (likeLoading) return;
+
+        setLikeLoading(true);
+
+        // optimistic UI
+        setPost((prev: any) => ({
+            ...prev,
+            isLiked: !prev.isLiked,
+            likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
+        }));
+
+        const res = await apiPost({
+            url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
+            values: { postId: post._id },
         });
 
-        if (data?.success) {
-          setPost(data.post);
+        if (!res?.success) {
+            // rollback
+            setPost((prev: any) => ({
+                ...prev,
+                isLiked: !prev.isLiked,
+                likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
+            }));
         }
-      } catch (err) {
-        console.error("Error fetching post:", err);
-      } finally {
-        setLoading(false);
-      }
+
+        setLikeLoading(false);
     };
-    fetchPost();
-  }, [publicId, (session?.user as any)?.id || ""]);
 
-  const formatRelativeTime = (dateString: string) => {
-    const postDate = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - postDate.getTime();
-    const seconds = Math.floor(diffMs / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    if (seconds < 60) return "just now";
-    if (minutes < 60) return `${minutes} min ago`;
-    if (hours < 24) return `${hours} hr ago`;
-    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
-    if (days < 30)
-      return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
-    if (days < 365)
-      return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? "s" : ""} ago`;
-    return `${Math.floor(days / 365)} year${Math.floor(days / 365) > 1 ? "s" : ""} ago`;
-  };
+    useEffect(() => {
+        if (commentParam === "open") {
+            setShowComment(true);
+        }
+    }, [commentParam]);
 
-  const handleLike = async () => {
-    if (!isLoggedIn) return router.push("/login");
-    if (likeLoading) return;
+    const handleSave = async () => {
+        if (!isLoggedIn) return router.push("/login");
+        if (saveLoading) return;
+        setSaveLoading(true);
+        setPost((prev: any) => ({
+            ...prev,
+            isSaved: !prev.isSaved,
+        }));
 
-    setLikeLoading(true);
+        const res = await apiPost({
+            url: post.isSaved ? API_UNSAVE_POST : API_SAVE_POST,
+            values: { postId: post._id },
+        });
 
-    // optimistic UI
-    setPost((prev: any) => ({
-      ...prev,
-      isLiked: !prev.isLiked,
-      likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
-    }));
+        if (!res?.success) {
+            setPost((prev: any) => ({
+                ...prev,
+                isSaved: !prev.isSaved,
+            }));
+        }
 
-    const res = await apiPost({
-      url: post.isLiked ? API_UNLIKE_POST : API_LIKE_POST,
-      values: { postId: post._id },
-    });
+        setSaveLoading(false);
+    };
 
-    if (!res?.success) {
-      // rollback
-      setPost((prev: any) => ({
-        ...prev,
-        isLiked: !prev.isLiked,
-        likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
-      }));
-    }
+    const handleSendTip = async (
+        amount: number,
+        paymentMethod: "wallet" | "card",
+    ) => {
+        if (!session?.user?.id) {
+            router.push("/login");
+            return;
+        }
 
-    setLikeLoading(false);
-  };
+        try {
+            await dispatch(
+                sendTip({
+                    creatorId: post.userId,
+                    amount,
+                    paymentMethod,
+                }),
+            ).unwrap();
 
-  useEffect(() => {
-    if (commentParam === "open") {
-      setShowComment(true);
-    }
-  }, [commentParam]);
+            if (paymentMethod === "wallet") {
+                dispatch(fetchWallet());
+            }
 
-  const handleSave = async () => {
-    if (!isLoggedIn) return router.push("/login");
-    if (saveLoading) return;
-    setSaveLoading(true);
-    setPost((prev: any) => ({
-      ...prev,
-      isSaved: !prev.isSaved,
-    }));
+            setShowTipModal(false);
+        } catch (err) {
+            console.error("Tip failed:", err);
+        }
+    };
 
-    const res = await apiPost({
-      url: post.isSaved ? API_UNSAVE_POST : API_SAVE_POST,
-      values: { postId: post._id },
-    });
+    useEffect(() => {
+        if (isMobile) {
+            setShowEmojiPicker(false);
+        }
+    }, [isMobile]);
 
-    if (!res?.success) {
-      setPost((prev: any) => ({
-        ...prev,
-        isSaved: !prev.isSaved,
-      }));
-    }
+    const onEmojiClick = (emojiData: EmojiClickData) => {
+        if (isMobile) return;
+        const textarea = textareaRef.current;
+        if (!textarea) return;
 
-    setSaveLoading(false);
-  };
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
 
-  const handleSendTip = async (
-    amount: number,
-    paymentMethod: "wallet" | "card",
-  ) => {
-    if (!session?.user?.id) {
-      router.push("/login");
-      return;
-    }
+        const updatedText =
+            newComment.substring(0, start) +
+            emojiData.emoji +
+            newComment.substring(end);
 
-    try {
-      await dispatch(
-        sendTip({
-          creatorId: post.userId,
-          amount,
-          paymentMethod,
-        }),
-      ).unwrap();
+        setNewComment(updatedText);
 
-      if (paymentMethod === "wallet") {
-        dispatch(fetchWallet());
-      }
+        requestAnimationFrame(() => {
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd =
+                start + emojiData.emoji.length;
+        });
 
-      setShowTipModal(false);
-    } catch (err) {
-      console.error("Tip failed:", err);
-    }
-  };
+        setShowEmojiPicker(false);
+    };
 
-  useEffect(() => {
-  if (isMobile) {
-    setShowEmojiPicker(false);
-  }
-}, [isMobile]);
-
-  const onEmojiClick = (emojiData: EmojiClickData) => {
-    if (isMobile) return;
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-
-    const updatedText =
-      newComment.substring(0, start) +
-      emojiData.emoji +
-      newComment.substring(end);
-
-    setNewComment(updatedText);
-
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.selectionStart = textarea.selectionEnd =
-        start + emojiData.emoji.length;
-    });
-
-    setShowEmojiPicker(false);
-  };
-
-const handleAddComment = async () => {
-  if (!newComment.trim() || isSending) return;
-  if (!post?._id) return;
+    const handleUnlockPost = async (paymentMethod: "wallet" | "card") => {
+  if (!unlockPost) return;
 
   try {
-    setIsSending(true);
+    const res = await apiPost({
+      url: API_UNLOCK_POST,
+      values: {
+        postId: unlockPost._id,
+        creatorId: post.userId,
+        paymentMethod,
+      },
+    });
 
-    const res = await dispatch(
-      addComment({ postId: post._id, comment: newComment })
-    );
-
-    if (res?.meta?.requestStatus === "fulfilled") {
-      setNewComment("");
-
-     
+    if (res?.success) {
       setPost((prev: any) => ({
         ...prev,
-        commentCount: (prev.commentCount || 0) + 1,
+        hasUnlocked: true,
       }));
 
-      dispatch(fetchComments(post._id));
+      setShowUnlockModal(false);
+      setUnlockPost(null);
+      router.push(`/purchased-media?publicId=${unlockPost.publicId}`);
+    } else {
+      alert(res?.message || "Failed to unlock post");
     }
-  } finally {
-    setIsSending(false);
+  } catch (err) {
+    console.error(err);
   }
 };
 
-  const handleLikeComment = (commentId: string) => {
-    dispatch(likeComment({ commentId }));
-  };
+    const handleAddComment = async () => {
+        if (!newComment.trim() || isSending) return;
+        if (!post?._id) return;
 
-  const handleDislikeComment = (commentId: string) => {
-    dispatch(dislikeComment({ commentId }));
-  };
+        try {
+            setIsSending(true);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
+            const res = await dispatch(
+                addComment({ postId: post._id, comment: newComment })
+            );
 
-      if (
-        emojiRef.current &&
-        !emojiRef.current.contains(target) &&
-        !textareaRef.current?.contains(target) &&
-        !emojiButtonRef.current?.contains(target)
-      ) {
-        setShowEmojiPicker(false);
-      }
+            if (res?.meta?.requestStatus === "fulfilled") {
+                setNewComment("");
+
+
+                setPost((prev: any) => ({
+                    ...prev,
+                    commentCount: (prev.commentCount || 0) + 1,
+                }));
+
+                dispatch(fetchComments(post._id));
+            }
+        } finally {
+            setIsSending(false);
+        }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
-  useEffect(() => {
-    if (post?.isReported !== undefined) {
-      setIsReported(post.isReported);
-    }
-  }, [post]);
+    const handleLikeComment = (commentId: string) => {
+        dispatch(likeComment({ commentId }));
+    };
 
-  const handleCopy = () => {
-    const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  };
+    const handleDislikeComment = (commentId: string) => {
+        dispatch(dislikeComment({ commentId }));
+    };
 
-  if (loading) {
-    return (
-      <div className="loadingtext">
-        {"Loading".split("").map((char, i) => (
-          <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-            {char}
-          </span>
-        ))}
-      </div>
-    );
-  }
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as Node;
 
-  const sortedComments = [...postComments].filter(Boolean);
+            if (
+                emojiRef.current &&
+                !emojiRef.current.contains(target) &&
+                !textareaRef.current?.contains(target) &&
+                !emojiButtonRef.current?.contains(target)
+            ) {
+                setShowEmojiPicker(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
-  if (!post) {
-    return <div className="nodeta">Post not found</div>;
-  }
+    useEffect(() => {
+        if (post?.isReported !== undefined) {
+            setIsReported(post.isReported);
+        }
+    }, [post]);
 
-  return (
-    <div className="moneyboy-2x-1x-layout-container">
-      <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
-        <div className="moneyboy-feed-page-container common-cntwrap">
-          <div
-            className="moneyboy-feed-page-cate-buttons card"
-            id="posts-tabs-btn-card"
-          >
-            <button
-              className="cate-back-btn active-down-effect"
-              onClick={() => router.push("/feed")}
-            >
-              <span className="icons arrowLeft"></span>
-            </button>
-            <button className="page-content-type-button active-down-effect active max-w-50">
-              Post Details
-            </button>
-          </div>
-          <div className="moneyboy-posts-wrapper">
-            {/* ================= Post ================= */}
-            <div className="moneyboy-post__container card">
-              <div className="moneyboy-post__header">
-                <a
-                  href={`/${post?.creatorInfo?.userName}`}
-                  className="profile-card"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    router.push(`/${post?.creatorInfo?.userName}`);
-                  }}
-                >
-                  <div className="profile-card__main">
-                    <div className="profile-card__avatar-settings">
-                      <div className="profile-card__avatar">
-                        {post?.creatorInfo?.profile?.trim() ? (
-                          <img
-                            src={post.creatorInfo.profile}
-                            alt={
-                              post?.creatorInfo?.displayName || "Profile Avatar"
-                            }
-                            onError={(e) => {
-                              (
-                                e.currentTarget as HTMLImageElement
-                              ).style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <div className="noprofile">
-                            <svg
-                              width="40"
-                              height="40"
-                              viewBox="0 0 66 54"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                className="animate-m"
-                                d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                                fill="url(#paint0_linear_4470_53804)"
-                              />
-                              <defs>
-                                {" "}
-                                <linearGradient
-                                  id="paint0_linear_4470_53804"
-                                  x1="0"
-                                  y1="27"
-                                  x2="66"
-                                  y2="27"
-                                  gradientUnits="userSpaceOnUse"
-                                >
-                                  <stop stopColor="#FDAB0A" />
-                                  <stop offset="0.4" stopColor="#FECE26" />
-                                  <stop offset="1" stopColor="#FE990B" />
-                                </linearGradient>
-                              </defs>
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="profile-card__info">
-                      <div className="profile-card__name-badge">
-                        <div className="profile-card__name">
-                          {post.creatorInfo?.displayName || "User"}
-                        </div>
-                        <div className="profile-card__badge">
-                          <img
-                            src="/images/logo/profile-badge.png"
-                            alt="MoneyBoy Social Profile Badge"
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-card__username">
-                        @{post.creatorInfo?.userName || "username"}
-                      </div>
-                    </div>
-                  </div>
-                </a>
-                <div className="moneyboy-post__upload-more-info">
-                  <div className="moneyboy-post__upload-time">
-                    {formatRelativeTime(post.createdAt)}
-                  </div>
-                  <div className="rel-user-more-opts-wrapper">
-                    <button
-                      ref={buttonRef}
-                      className="rel-user-more-opts-trigger-icon"
-                      onClick={() => setOpen(!open)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="25"
-                        viewBox="0 0 24 25"
-                        fill="none"
-                      >
-                        <path
-                          d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
-                          stroke="none"
-                          stroke-width="1.5"
-                        ></path>
-                        <path
-                          d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
-                          stroke="none"
-                          stroke-width="1.5"
-                        ></path>
-                        <path
-                          d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
-                          stroke="none"
-                          stroke-width="1.5"
-                        ></path>
-                      </svg>
-                    </button>
+    const handleCopy = () => {
+        const url = `${window.location.origin}/post?page&publicId=${post.publicId}`;
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+    };
 
-                    <div
-                      ref={menuRef}
-                      className="rel-users-more-opts-popup-wrapper"
-                      style={isMobile ? mobileStyle : desktopStyle}
-                    >
-                      <div className="rel-users-more-opts-popup-container">
-                        <ul>
-                          <li
-                            onClick={handleCopy}
-                            className="copy-post-link"
-                            data-copy-post-link="inset-post-link-here"
-                          >
-                            <div className="icon copy-link-icon">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                                ></path>
-                              </svg>
-                            </div>
-                            <span>{copied ? "Copied!" : "Copy Link"}</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {post.taggedCreators?.length > 0 && (
-                <div className="taggedlist_wrap">
-                  <ul>
-                    {post.taggedCreators.map((user: any) => (
-                      <li
-                        key={user._id}
-                        onClick={() => router.push(`/${user.userName}`)}
-                      >
-                        <img
-                          src={user.profile}
-                          alt={user.userName}
-                          className="user_icons"
-                        />
-                        <span>@{user.userName}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="moneyboy-post__desc">
-                <p className="post-text">
-                  {post?.text ? (
-                    <>
-                      {expanded || post.text.length <= 150
-                        ? post.text
-                        : `${post.text.substring(0, 150)}...`}
-
-                      {post.text.length > 150 && (
-                        <span
-                          className="active-down-effect-2x post-more"
-                          onClick={() => setExpanded(!expanded)}
-                        >
-                          {expanded ? " less" : " more"}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    ""
-                  )}
-                </p>
-              </div>
-              <div className="moneyboy-post__media">
-                <div className="moneyboy-post__img">
-                  <Swiper
-                    slidesPerView={1}
-                    spaceBetween={15}
-                    navigation={hasMultipleMedia}
-                    modules={[Navigation]}
-                    className="post_swiper"
-                  >
-                    {post.media?.[0]?.mediaFiles?.length > 0 ? (
-                      post.media[0].mediaFiles.map(
-                        (file: string, i: number) => {
-                          const isVideo = post.media?.[0]?.type === "video";
-
-                          return (
-                            <SwiperSlide key={i}>
-                              {isVideo ? (
-                                <Plyr
-                                  ref={(ref: any) => {
-                                    if (!ref) return;
-
-                                    // support both ref shapes
-                                    const player = ref.plyr || ref;
-
-                                    if (
-                                      !player ||
-                                      typeof player.on !== "function"
-                                    )
-                                      return;
-
-                                    // prevent duplicate binding
-                                    if (player.__eventsBound) return;
-                                    player.__eventsBound = true;
-
-                                    player.on("enterfullscreen", () => {
-                                      player.muted = true; // mobile autoplay requirement
-                                      player.play();
-                                    });
-
-                                    player.on("exitfullscreen", () => {
-                                      player.pause();
-                                    });
-                                  }}
-                                  source={{
-                                    type: "video",
-                                    sources: [{ src: file, type: "video/mp4" }],
-                                  }}
-                                  options={{
-                                    controls: [
-                                      "play",
-                                      "progress",
-                                      "current-time",
-                                      "mute",
-                                      "volume",
-                                      "fullscreen",
-                                    ],
-                                  }}
-                                 
-                                />
-                              ) : (
-                                <PhotoProvider
-                                  toolbarRender={({
-                                    images,
-                                    index,
-                                    onIndexChange,
-                                    onClose,
-                                    rotate,
-                                    onRotate,
-                                    scale,
-                                    onScale,
-                                    visible,
-                                  }) => {
-                                    if (!visible) return null;
-
-                                    const btnStyle = {
-                                      background: "transparent",
-                                      border: "none",
-                                      color: "#fff",
-                                      cursor: "pointer",
-                                      padding: "6px",
-                                      display: "flex",
-                                      alignItems: "center",
-                                    };
-
-                                    return (
-                                      <div
-                                        style={{
-                                          position: "absolute",
-                                          top: 20,
-                                          right: 20,
-                                          display: "flex",
-                                          gap: "12px",
-                                          background: "rgba(0,0,0,0.6)",
-                                          padding: "10px 14px",
-                                          borderRadius: "12px",
-                                          alignItems: "center",
-                                          zIndex: 9999,
-                                        }}
-                                      >
-                                        <button
-                                          style={btnStyle}
-                                          onClick={() =>
-                                            index > 0 &&
-                                            onIndexChange(index - 1)
-                                          }
-                                        >
-                                          <ChevronLeft size={20} />
-                                        </button>
-
-                                        <span
-                                          style={{
-                                            color: "#fff",
-                                            fontSize: "14px",
-                                          }}
-                                        >
-                                          {index + 1} / {images.length}
-                                        </span>
-
-                                        <button
-                                          style={btnStyle}
-                                          onClick={() =>
-                                            index < images.length - 1 &&
-                                            onIndexChange(index + 1)
-                                          }
-                                        >
-                                          <ChevronRight size={20} />
-                                        </button>
-
-                                        <button
-                                          style={btnStyle}
-                                          onClick={() => onScale(scale + 0.2)}
-                                        >
-                                          <ZoomIn size={20} />
-                                        </button>
-
-                                        <button
-                                          style={btnStyle}
-                                          onClick={() =>
-                                            onScale(Math.max(0.5, scale - 0.2))
-                                          }
-                                        >
-                                          <ZoomOut size={20} />
-                                        </button>
-
-                                        <button
-                                          style={btnStyle}
-                                          onClick={() => onRotate(rotate + 90)}
-                                        >
-                                          <RotateCw size={20} />
-                                        </button>
-
-                                        <button
-                                          style={btnStyle}
-                                          onClick={onClose}
-                                        >
-                                          <X size={20} />
-                                        </button>
-                                      </div>
-                                    );
-                                  }}
-                                >
-                                  <PhotoView src={file}>
-                                    <img
-                                      src={file}
-                                      alt="Post media"
-                                      style={{
-                                        cursor: "pointer",
-                                        maxWidth: "100%",
-                                        borderRadius: "8px",
-                                      }}
-                                      onContextMenu={(e) => e.preventDefault()} 
-                                    />
-                                  </PhotoView>
-                                </PhotoProvider>
-                              )}
-                            </SwiperSlide>
-                          );
-                        },
-                      )
-                    ) : (
-                      <SwiperSlide>
-                        <div className="nomedia"></div>
-                      </SwiperSlide>
-                    )}
-                  </Swiper>
-                </div>
-
-                <div className="moneyboy-post__actions">
-                  <ul>
-                    {/* Send Tip */}
-                    <li>
-                      <Link
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (!isLoggedIn) return router.push("/login");
-                          if (isOwnPost) return;
-                          setShowTipModal(true);
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M10 12.85V13.59"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            className="dollar-sign"
-                            d="M10 6.40997V7.18997"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                        </svg>
-                        <span>Send Tip</span>
-                      </Link>
-                    </li>
-
-                    {/* Like */}
-                    <li>
-                      <Link
-                        href="#"
-                        className={`post-like-btn ${post.isLiked ? "active" : ""}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // if (isOwnPost) return;
-                          handleLike();
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
-                            stroke="white"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span>{post.likeCount || 0}</span>
-                      </Link>
-                    </li>
-
-                    {/* Comment */}
-                    <li>
-                      <Link
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (!isLoggedIn) return router.push("/login");
-                          setShowComment((prev) => !prev);
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-miterlimit="10"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M7 8H17"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M7 13H13"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                        </svg>
-                        <span>{post.commentCount || 0}</span>
-                      </Link>
-                    </li>
-                  </ul>
-
-                  <ul>
-                    {/* Share */}
-                    <li>
-                      <Link
-                        href="#"
-                        className={isReported ? "active" : ""}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (!isLoggedIn) return router.push("/login");
-                          if (isReported) return;
-                          if (isOwnPost) return;
-                          setShowReportModal(true);
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M5.15002 2V22"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-miterlimit="10"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-miterlimit="10"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                        </svg>
-                      </Link>
-                    </li>
-
-                    {/* Save */}
-                    <li>
-                      <Link
-                        href="#"
-                        className={`post-save-btn ${post.isSaved ? "active" : ""}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (isOwnPost) return;
-                          handleSave();
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                          <path
-                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>
-                        </svg>
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {showTipModal && (
-                <TipModal
-                  onClose={() => setShowTipModal(false)}
-                  onConfirm={handleSendTip} // 👈 use your function here
-                  creator={{
-                    displayName: post.creatorInfo?.displayName,
-                    userName: post.creatorInfo?.userName,
-                    profile: post.creatorInfo?.profile,
-                  }}
-                />
-              )}
-
-              {showReportModal && (
-                <ReportModal
-                  show={showReportModal}
-                  post={post}
-                  onClose={(reported?: boolean) => {
-                    if (reported) setIsReported(true);
-                    setShowReportModal(false);
-                  }}
-                />
-              )}
-              {showComment && (
-                <div className="flex flex-column gap-20">
-                  {/* ================= Add Comment ================= */}
-                  <div className="moneyboy-comment-wrap">
-                    <div className="comment-wrap">
-                      <div className="label-input">
-                        <textarea
-                          ref={textareaRef}
-                          placeholder="Add a comment here"
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                        />
-                      {!isMobile && (
-  <div
-    ref={emojiButtonRef}
-    className="input-placeholder-icon"
-    onClick={() => {
-      if (isMobile) return;
-      setShowEmojiPicker((prev) => !prev);
-    }}
-  >
-    <i className="icons emojiSmile svg-icon"></i>
-  </div>
-)}
-                      </div>
-
-                      {showEmojiPicker && !isMobile && (
-                        <div ref={emojiRef} className="emoji-picker-wrapper">
-                          <EmojiPicker
-                            onEmojiClick={onEmojiClick}
-                            autoFocusSearch={false}
-                            skinTonesDisabled
-                            previewConfig={{ showPreview: false }}
-                            height={360}
-                            width={340}
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      className="premium-btn active-down-effect"
-                      onClick={handleAddComment}
-                      disabled={isSending}
-                      style={{
-                        opacity: isSending ? 0.6 : 1,
-                        pointerEvents: isSending ? "none" : "auto",
-                      }}
-                    >
-                      <svg
-                        width="40"
-                        height="35"
-                        viewBox="0 0 40 35"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
-                          fill="url(#paint0_linear_4464_314)"
-                        />
-                        <defs>
-                          <linearGradient
-                            id="paint0_linear_4464_314"
-                            x1="2.37044"
-                            y1="-1.89024e-06"
-                            x2="54.674"
-                            y2="14.6715"
-                            gradientUnits="userSpaceOnUse"
-                          >
-                            <stop stopColor="#FECE26" />
-                            <stop offset="1" stopColor="#E5741F" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* ================= Render ALL Comments ================= */}
-                  {sortedComments.map((comment: any) => (
-                    <div
-                      key={comment._id}
-                      className="moneyboy-post__container card gap-15"
-                    >
-                      <div className="moneyboy-post__header">
-                        <a href="#" className="profile-card">
-                          <div className="profile-card__main">
-                            <div className="profile-card__avatar-settings">
-                              <div className="profile-card__avatar">
-                                {comment.userId?.profile?.trim() ? (
-                                  <img
-                                    src={comment.userId.profile}
-                                    alt="User profile"
-                                  />
-                                ) : (
-                                  <div className="noprofile">
-                                    <svg
-                                      width="40"
-                                      height="40"
-                                      viewBox="0 0 66 54"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        className="animate-m"
-                                        d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
-                                        fill="url(#paint0_linear_4470_53804)"
-                                      />
-                                      <defs>
-                                        <linearGradient
-                                          id="paint0_linear_4470_53804"
-                                          x1="0"
-                                          y1="27"
-                                          x2="66"
-                                          y2="27"
-                                          gradientUnits="userSpaceOnUse"
-                                        >
-                                          <stop stop-color="#FDAB0A" />
-                                          <stop
-                                            offset="0.4"
-                                            stop-color="#FECE26"
-                                          />
-                                          <stop
-                                            offset="1"
-                                            stop-color="#FE990B"
-                                          />
-                                        </linearGradient>
-                                      </defs>
-                                    </svg>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="profile-card__info">
-                              <div className="profile-card__name-badge">
-                                <div className="profile-card__name">
-                                  {comment.userId?.displayName}
-                                </div>
-                              </div>
-                              <div className="profile-card__username">
-                                @{comment.userId?.userName}
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-
-                        <div className="moneyboy-post__upload-more-info">
-                          <div className="moneyboy-post__upload-time">
-                            {formatRelativeTime(comment.createdAt)}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="moneyboy-post__desc">
-                        <p>{comment.comment}</p>
-                      </div>
-
-                      <div className="like-deslike-wrap">
-                        <ul>
-                          <li className={comment.isLiked ? "active" : ""}>
-                            <Link
-                              href="#"
-                              className={`comment-like-btn ${comment.isLiked ? "active" : ""}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleLikeComment(comment._id);
-                              }}
-                            >
-                              <ThumbsUp color="black" strokeWidth={2} />
-                              <span>{comment.likeCount || 0}</span>
-                            </Link>
-                          </li>
-
-                          <li className={comment.isDisliked ? "active" : ""}>
-                            <Link
-                              href="#"
-                              className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleDislikeComment(comment._id);
-                              }}
-                            >
-                              <ThumbsDown color="black" strokeWidth={2} />
-                              <span>{comment.dislikeCount || 0}</span>
-                            </Link>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+    if (loading) {
+        return (
+            <div className="loadingtext">
+                {"Loading".split("").map((char, i) => (
+                    <span key={i} style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+                        {char}
+                    </span>
+                ))}
             </div>
-          </div>
+        );
+    }
+
+    const sortedComments = [...postComments].filter(Boolean);
+
+    if (!post) {
+        return <div className="nodeta">Post not found</div>;
+    }
+
+    return (
+        <div className="moneyboy-2x-1x-layout-container">
+            <div className="moneyboy-2x-1x-a-layout wishlist-page-container">
+                <div className="moneyboy-feed-page-container common-cntwrap">
+                    <div
+                        className="moneyboy-feed-page-cate-buttons card"
+                        id="posts-tabs-btn-card"
+                    >
+                        <button
+                            className="cate-back-btn active-down-effect"
+                            onClick={() => router.push("/feed")}
+                        >
+                            <span className="icons arrowLeft"></span>
+                        </button>
+                        <button className="page-content-type-button active-down-effect active max-w-50">
+                            Post Details
+                        </button>
+                    </div>
+                    <div className="moneyboy-posts-wrapper">
+                        {/* ================= Post ================= */}
+                        <div className="moneyboy-post__container card">
+                            <div className="moneyboy-post__header">
+                                <a
+                                    href={`/${post?.creatorInfo?.userName}`}
+                                    className="profile-card"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        router.push(`/${post?.creatorInfo?.userName}`);
+                                    }}
+                                >
+                                    <div className="profile-card__main">
+                                        <div className="profile-card__avatar-settings">
+                                            <div className="profile-card__avatar">
+                                                {post?.creatorInfo?.profile?.trim() ? (
+                                                    <img
+                                                        src={post.creatorInfo.profile}
+                                                        alt={
+                                                            post?.creatorInfo?.displayName || "Profile Avatar"
+                                                        }
+                                                        onError={(e) => {
+                                                            (
+                                                                e.currentTarget as HTMLImageElement
+                                                            ).style.display = "none";
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="noprofile">
+                                                        <svg
+                                                            width="40"
+                                                            height="40"
+                                                            viewBox="0 0 66 54"
+                                                            fill="none"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                        >
+                                                            <path
+                                                                className="animate-m"
+                                                                d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                                                fill="url(#paint0_linear_4470_53804)"
+                                                            />
+                                                            <defs>
+                                                                {" "}
+                                                                <linearGradient
+                                                                    id="paint0_linear_4470_53804"
+                                                                    x1="0"
+                                                                    y1="27"
+                                                                    x2="66"
+                                                                    y2="27"
+                                                                    gradientUnits="userSpaceOnUse"
+                                                                >
+                                                                    <stop stopColor="#FDAB0A" />
+                                                                    <stop offset="0.4" stopColor="#FECE26" />
+                                                                    <stop offset="1" stopColor="#FE990B" />
+                                                                </linearGradient>
+                                                            </defs>
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="profile-card__info">
+                                            <div className="profile-card__name-badge">
+                                                <div className="profile-card__name">
+                                                    {post.creatorInfo?.displayName || "User"}
+                                                </div>
+                                                <div className="profile-card__badge">
+                                                    <img
+                                                        src="/images/logo/profile-badge.png"
+                                                        alt="MoneyBoy Social Profile Badge"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="profile-card__username">
+                                                @{post.creatorInfo?.userName || "username"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div className="moneyboy-post__upload-more-info">
+                                    <div className="moneyboy-post__upload-time">
+                                        {formatRelativeTime(post.createdAt)}
+                                    </div>
+                                    {!shouldHideActions && (
+                                        <div className="rel-user-more-opts-wrapper">
+                                            <button
+                                                ref={buttonRef}
+                                                className="rel-user-more-opts-trigger-icon"
+                                                onClick={() => setOpen(!open)}
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="24"
+                                                    height="25"
+                                                    viewBox="0 0 24 25"
+                                                    fill="none"
+                                                >
+                                                    <path
+                                                        d="M5 10.5C3.9 10.5 3 11.4 3 12.5C3 13.6 3.9 14.5 5 14.5C6.1 14.5 7 13.6 7 12.5C7 11.4 6.1 10.5 5 10.5Z"
+                                                        stroke="none"
+                                                        stroke-width="1.5"
+                                                    ></path>
+                                                    <path
+                                                        d="M19 10.5C17.9 10.5 17 11.4 17 12.5C17 13.6 17.9 14.5 19 14.5C20.1 14.5 21 13.6 21 12.5C21 11.4 20.1 10.5 19 10.5Z"
+                                                        stroke="none"
+                                                        stroke-width="1.5"
+                                                    ></path>
+                                                    <path
+                                                        d="M12 10.5C10.9 10.5 10 11.4 10 12.5C10 13.6 10.9 14.5 12 14.5C13.1 14.5 14 13.6 14 12.5C14 11.4 13.1 10.5 12 10.5Z"
+                                                        stroke="none"
+                                                        stroke-width="1.5"
+                                                    ></path>
+                                                </svg>
+                                            </button>
+
+                                            <div
+                                                ref={menuRef}
+                                                className="rel-users-more-opts-popup-wrapper"
+                                                style={isMobile ? mobileStyle : desktopStyle}
+                                            >
+                                                <div className="rel-users-more-opts-popup-container">
+                                                    <ul>
+                                                        <li
+                                                            onClick={handleCopy}
+                                                            className="copy-post-link"
+                                                            data-copy-post-link="inset-post-link-here"
+                                                        >
+                                                            <div className="icon copy-link-icon">
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    fill="none"
+                                                                    viewBox="0 0 24 24"
+                                                                    stroke-width="1.5"
+                                                                    stroke="currentColor"
+                                                                >
+                                                                    <path
+                                                                        stroke-linecap="round"
+                                                                        stroke-linejoin="round"
+                                                                        d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
+                                                                    ></path>
+                                                                </svg>
+                                                            </div>
+                                                            <span>{copied ? "Copied!" : "Copy Link"}</span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {post.taggedCreators?.length > 0 && (
+                                <div className="taggedlist_wrap">
+                                    <ul>
+                                        {post.taggedCreators.map((user: any) => (
+                                            <li
+                                                key={user._id}
+                                                onClick={() => router.push(`/${user.userName}`)}
+                                            >
+                                                <img
+                                                    src={user.profile}
+                                                    alt={user.userName}
+                                                    className="user_icons"
+                                                />
+                                                <span>@{user.userName}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            <div className="moneyboy-post__desc">
+                                <p className="post-text">
+                                    {post?.text ? (
+                                        <>
+                                            {expanded || post.text.length <= 150
+                                                ? post.text
+                                                : `${post.text.substring(0, 150)}...`}
+
+                                            {post.text.length > 150 && (
+                                                <span
+                                                    className="active-down-effect-2x post-more"
+                                                    onClick={() => setExpanded(!expanded)}
+                                                >
+                                                    {expanded ? " less" : " more"}
+                                                </span>
+                                            )}
+                                        </>
+                                    ) : (
+                                        ""
+                                    )}
+                                </p>
+                            </div>
+                            <div className="moneyboy-post__media">
+                                {isLocked && (
+                                    <div
+                                        className="content-locked-label"
+                                        onClick={() => {
+                                            if (!isLoggedIn) {
+                                                router.push("/login");
+                                            }
+                                             setUnlockPost(post);
+                                            setShowUnlockModal(true);
+                                        }}
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                                            <path d="M5.375 8.33335V6.66669C5.375 3.90835 6.20833 1.66669 10.375 1.66669C14.5417 1.66669 15.375 3.90835 15.375 6.66669V8.33335" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M10.3753 15.4167C11.5259 15.4167 12.4587 14.4839 12.4587 13.3333C12.4587 12.1827 11.5259 11.25 10.3753 11.25C9.22473 11.25 8.29199 12.1827 8.29199 13.3333C8.29199 14.4839 9.22473 15.4167 10.3753 15.4167Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M14.542 18.3333H6.20866C2.87533 18.3333 2.04199 17.5 2.04199 14.1666V12.5C2.04199 9.16665 2.87533 8.33331 6.20866 8.33331H14.542C17.8753 8.33331 18.7087 9.16665 18.7087 12.5V14.1666C18.7087 17.5 17.8753 18.3333 14.542 18.3333Z" stroke="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        <span>${post?.price || 0}</span>
+                                    </div>
+                                )}
+                                <div className={`moneyboy-post__img ${shouldBlur ? "prime_cont" : ""}`}>
+
+                                    <Swiper
+                                        slidesPerView={1}
+                                        spaceBetween={15}
+                                        navigation={hasMultipleMedia}
+                                        modules={[Navigation]}
+                                        className="post_swiper"
+                                    >
+                                        {post.media?.[0]?.mediaFiles?.length > 0 ? (
+                                            (disableSwiper
+                                                ? post.media[0].mediaFiles.slice(0, 1)
+                                                : post.media[0].mediaFiles
+                                            ).map(
+                                                (file: string, i: number) => {
+                                                    const isVideo = post.media?.[0]?.type === "video";
+
+                                                    return (
+                                                        <SwiperSlide key={i}>
+                                                            {isVideo ? (
+                                                                <Plyr
+                                                                    ref={(ref: any) => {
+                                                                        if (!ref) return;
+
+                                                                        const player = ref.plyr || ref;
+                                                                        if (!player) return;
+
+                                                                        // prevent duplicate binding
+                                                                        if (player.__hoverBound) return;
+                                                                        player.__hoverBound = true;
+
+                                                                        const container = player.elements?.container;
+                                                                        if (!container) return;
+
+                                                                        if (shouldHideActions) {
+                                                                            player.muted = true;
+
+                                                                            // 👉 HOVER START
+                                                                            container.addEventListener("mouseenter", () => {
+                                                                                player.currentTime = 0;
+                                                                                player.play();
+                                                                            });
+
+                                                                            // 👉 HOVER END
+                                                                            container.addEventListener("mouseleave", () => {
+                                                                                player.pause();
+                                                                                player.currentTime = 0;
+                                                                            });
+
+                                                                            // 👉 LIMIT TO 5 SEC
+                                                                            player.on("timeupdate", () => {
+                                                                                if (player.currentTime >= 5) {
+                                                                                    player.pause();
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    }}
+                                                                    source={{
+                                                                        type: "video",
+                                                                        sources: [{ src: file, type: "video/mp4" }],
+                                                                    }}
+                                                                    options={{
+                                                                        controls: shouldHideActions
+                                                                            ? [] // ❌ hide controls in preview
+                                                                            : ["play", "progress", "current-time", "mute", "volume", "fullscreen"],
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <PhotoProvider
+                                                                    toolbarRender={({
+                                                                        images,
+                                                                        index,
+                                                                        onIndexChange,
+                                                                        onClose,
+                                                                        rotate,
+                                                                        onRotate,
+                                                                        scale,
+                                                                        onScale,
+                                                                        visible,
+                                                                    }) => {
+                                                                        if (!visible) return null;
+
+                                                                        const btnStyle = {
+                                                                            background: "transparent",
+                                                                            border: "none",
+                                                                            color: "#fff",
+                                                                            cursor: "pointer",
+                                                                            padding: "6px",
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                        };
+
+                                                                        return (
+                                                                            <div
+                                                                                style={{
+                                                                                    position: "absolute",
+                                                                                    top: 20,
+                                                                                    right: 20,
+                                                                                    display: "flex",
+                                                                                    gap: "12px",
+                                                                                    background: "rgba(0,0,0,0.6)",
+                                                                                    padding: "10px 14px",
+                                                                                    borderRadius: "12px",
+                                                                                    alignItems: "center",
+                                                                                    zIndex: 9999,
+                                                                                }}
+                                                                            >
+                                                                                <button
+                                                                                    style={btnStyle}
+                                                                                    onClick={() =>
+                                                                                        index > 0 &&
+                                                                                        onIndexChange(index - 1)
+                                                                                    }
+                                                                                >
+                                                                                    <ChevronLeft size={20} />
+                                                                                </button>
+
+                                                                                <span
+                                                                                    style={{
+                                                                                        color: "#fff",
+                                                                                        fontSize: "14px",
+                                                                                    }}
+                                                                                >
+                                                                                    {index + 1} / {images.length}
+                                                                                </span>
+
+                                                                                <button
+                                                                                    style={btnStyle}
+                                                                                    onClick={() =>
+                                                                                        index < images.length - 1 &&
+                                                                                        onIndexChange(index + 1)
+                                                                                    }
+                                                                                >
+                                                                                    <ChevronRight size={20} />
+                                                                                </button>
+
+                                                                                <button
+                                                                                    style={btnStyle}
+                                                                                    onClick={() => onScale(scale + 0.2)}
+                                                                                >
+                                                                                    <ZoomIn size={20} />
+                                                                                </button>
+
+                                                                                <button
+                                                                                    style={btnStyle}
+                                                                                    onClick={() =>
+                                                                                        onScale(Math.max(0.5, scale - 0.2))
+                                                                                    }
+                                                                                >
+                                                                                    <ZoomOut size={20} />
+                                                                                </button>
+
+                                                                                <button
+                                                                                    style={btnStyle}
+                                                                                    onClick={() => onRotate(rotate + 90)}
+                                                                                >
+                                                                                    <RotateCw size={20} />
+                                                                                </button>
+
+                                                                                <button
+                                                                                    style={btnStyle}
+                                                                                    onClick={onClose}
+                                                                                >
+                                                                                    <X size={20} />
+                                                                                </button>
+                                                                            </div>
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <PhotoView src={shouldHideActions ? "" : file}>
+                                                                        <img
+                                                                            src={file}
+                                                                            alt="Post media"
+                                                                            style={{
+                                                                                cursor: "pointer",
+                                                                                maxWidth: "100%",
+                                                                                borderRadius: "8px",
+                                                                                pointerEvents: shouldHideActions ? "none" : "auto",
+                                                                            }}
+                                                                            onContextMenu={(e) => e.preventDefault()}
+                                                                        />
+                                                                    </PhotoView>
+                                                                </PhotoProvider>
+                                                            )}
+                                                        </SwiperSlide>
+                                                    );
+                                                },
+                                            )
+                                        ) : (
+                                            <SwiperSlide>
+                                                <div className="nomedia"></div>
+                                            </SwiperSlide>
+                                        )}
+                                    </Swiper>
+                                </div>
+                                {!shouldHideActions && (
+                                    <div className="moneyboy-post__actions">
+                                        <ul>
+                                            {/* Send Tip */}
+                                            <li>
+                                                <Link
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (!isLoggedIn) return router.push("/login");
+                                                        if (isOwnPost) return;
+                                                        setShowTipModal(true);
+                                                    }}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="24"
+                                                        height="24"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                    >
+                                                        <path
+                                                            d="M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.58001C8.32 9.41001 8 9.15001 8 8.42001C8 7.75001 8.52 7.20001 9.16 7.20001H10.66C11.4 7.21001 12 7.83001 12 8.60001"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M10 12.85V13.59"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            className="dollar-sign"
+                                                            d="M10 6.40997V7.18997"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                    </svg>
+                                                    <span>Send Tip</span>
+                                                </Link>
+                                            </li>
+
+                                            {/* Like */}
+                                            <li>
+                                                <Link
+                                                    href="#"
+                                                    className={`post-like-btn ${post.isLiked ? "active" : ""}`}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        // if (isOwnPost) return;
+                                                        handleLike();
+                                                    }}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="24"
+                                                        height="24"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                    >
+                                                        <path
+                                                            d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.68998C2 5.59998 4.49 3.09998 7.56 3.09998C9.38 3.09998 10.99 3.97998 12 5.33998C13.01 3.97998 14.63 3.09998 16.44 3.09998C19.51 3.09998 22 5.59998 22 8.68998C22 15.69 15.52 19.82 12.62 20.81Z"
+                                                            stroke="white"
+                                                            strokeWidth="1.5"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        />
+                                                    </svg>
+                                                    <span>{post.likeCount || 0}</span>
+                                                </Link>
+                                            </li>
+
+                                            {/* Comment */}
+                                            <li>
+                                                <Link
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (!isLoggedIn) return router.push("/login");
+                                                        setShowComment((prev) => !prev);
+                                                    }}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="24"
+                                                        height="24"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                    >
+                                                        <path
+                                                            d="M8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H16C20 2 22 4 22 8V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19Z"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-miterlimit="10"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M7 8H17"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M7 13H13"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                    </svg>
+                                                    <span>{post.commentCount || 0}</span>
+                                                </Link>
+                                            </li>
+                                        </ul>
+
+                                        <ul>
+                                            {/* Share */}
+                                            <li>
+                                                <Link
+                                                    href="#"
+                                                    className={isReported ? "active" : ""}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (!isLoggedIn) return router.push("/login");
+                                                        if (isReported) return;
+                                                        if (isOwnPost) return;
+                                                        setShowReportModal(true);
+                                                    }}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="24"
+                                                        height="24"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                    >
+                                                        <path
+                                                            d="M5.15002 2V22"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-miterlimit="10"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M5.15002 4H16.35C19.05 4 19.65 5.5 17.75 7.4L16.55 8.6C15.75 9.4 15.75 10.7 16.55 11.4L17.75 12.6C19.65 14.5 18.95 16 16.35 16H5.15002"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-miterlimit="10"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                    </svg>
+                                                </Link>
+                                            </li>
+
+                                            {/* Save */}
+                                            <li>
+                                                <Link
+                                                    href="#"
+                                                    className={`post-save-btn ${post.isSaved ? "active" : ""}`}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (isOwnPost) return;
+                                                        handleSave();
+                                                    }}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="24"
+                                                        height="24"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                    >
+                                                        <path
+                                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M16.8199 2H7.17995C5.04995 2 3.31995 3.74 3.31995 5.86V19.95C3.31995 21.75 4.60995 22.51 6.18995 21.64L11.0699 18.93C11.5899 18.64 12.4299 18.64 12.9399 18.93L17.8199 21.64C19.3999 22.52 20.6899 21.76 20.6899 19.95V5.86C20.6799 3.74 18.9499 2 16.8199 2Z"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                        <path
+                                                            d="M9.25 9.04999C11.03 9.69999 12.97 9.69999 14.75 9.04999"
+                                                            stroke="white"
+                                                            stroke-width="1.5"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        ></path>
+                                                    </svg>
+                                                </Link>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+
+                            {showUnlockModal && (
+<UnlockContentModal
+  onClose={() => setShowUnlockModal(false)}
+  onConfirm={handleUnlockPost}
+  creator={{
+    displayName: post?.creatorInfo?.displayName,
+    userName: post?.creatorInfo?.userName,
+    profile: post?.creatorInfo?.profile,
+  }}
+  post={{
+    publicId: post?.publicId,
+    text: post?.text,
+    price: post?.price,
+  }}
+/>
+)}
+
+                            {showTipModal && (
+                                <TipModal
+                                    onClose={() => setShowTipModal(false)}
+                                    onConfirm={handleSendTip} // 👈 use your function here
+                                    creator={{
+                                        displayName: post.creatorInfo?.displayName,
+                                        userName: post.creatorInfo?.userName,
+                                        profile: post.creatorInfo?.profile,
+                                    }}
+                                />
+                            )}
+
+                            {showReportModal && (
+                                <ReportModal
+                                    show={showReportModal}
+                                    post={post}
+                                    onClose={(reported?: boolean) => {
+                                        if (reported) setIsReported(true);
+                                        setShowReportModal(false);
+                                    }}
+                                />
+                            )}
+                            {showComment && (
+                                <div className="flex flex-column gap-20">
+                                    {/* ================= Add Comment ================= */}
+                                    <div className="moneyboy-comment-wrap">
+                                        <div className="comment-wrap">
+                                            <div className="label-input">
+                                                <textarea
+                                                    ref={textareaRef}
+                                                    placeholder="Add a comment here"
+                                                    value={newComment}
+                                                    onChange={(e) => setNewComment(e.target.value)}
+                                                />
+                                                {!isMobile && (
+                                                    <div
+                                                        ref={emojiButtonRef}
+                                                        className="input-placeholder-icon"
+                                                        onClick={() => {
+                                                            if (isMobile) return;
+                                                            setShowEmojiPicker((prev) => !prev);
+                                                        }}
+                                                    >
+                                                        <i className="icons emojiSmile svg-icon"></i>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {showEmojiPicker && !isMobile && (
+                                                <div ref={emojiRef} className="emoji-picker-wrapper">
+                                                    <EmojiPicker
+                                                        onEmojiClick={onEmojiClick}
+                                                        autoFocusSearch={false}
+                                                        skinTonesDisabled
+                                                        previewConfig={{ showPreview: false }}
+                                                        height={360}
+                                                        width={340}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <button
+                                            className="premium-btn active-down-effect"
+                                            onClick={handleAddComment}
+                                            disabled={isSending}
+                                            style={{
+                                                opacity: isSending ? 0.6 : 1,
+                                                pointerEvents: isSending ? "none" : "auto",
+                                            }}
+                                        >
+                                            <svg
+                                                width="40"
+                                                height="35"
+                                                viewBox="0 0 40 35"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    d="M39.9728 1.42057C40.1678 0.51284 39.2779 -0.252543 38.4098 0.078704L0.753901 14.4536C0.300702 14.6266 0.000939696 15.061 2.20527e-06 15.5461C-0.000935286 16.0312 0.297109 16.4667 0.749682 16.6415L11.3279 20.727V33.5951C11.3279 34.1379 11.7007 34.6096 12.2288 34.7352C12.7534 34.8599 13.3004 34.6103 13.5464 34.1224L17.9214 25.4406L28.5982 33.3642C29.2476 33.8463 30.1811 33.5397 30.4174 32.7651C40.386 0.0812832 39.9551 1.50267 39.9728 1.42057ZM30.6775 5.53912L12.3337 18.603L4.44097 15.5547L30.6775 5.53912ZM13.6717 20.5274L29.6612 9.14025C15.9024 23.655 16.621 22.891 16.561 22.9718C16.4719 23.0917 16.7161 22.6243 13.6717 28.6656V20.5274ZM28.6604 30.4918L19.2624 23.5172L36.2553 5.59068L28.6604 30.4918Z"
+                                                    fill="url(#paint0_linear_4464_314)"
+                                                />
+                                                <defs>
+                                                    <linearGradient
+                                                        id="paint0_linear_4464_314"
+                                                        x1="2.37044"
+                                                        y1="-1.89024e-06"
+                                                        x2="54.674"
+                                                        y2="14.6715"
+                                                        gradientUnits="userSpaceOnUse"
+                                                    >
+                                                        <stop stopColor="#FECE26" />
+                                                        <stop offset="1" stopColor="#E5741F" />
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    {/* ================= Render ALL Comments ================= */}
+                                    {sortedComments.map((comment: any) => (
+                                        <div
+                                            key={comment._id}
+                                            className="moneyboy-post__container card gap-15"
+                                        >
+                                            <div className="moneyboy-post__header">
+                                                <a href="#" className="profile-card">
+                                                    <div className="profile-card__main">
+                                                        <div className="profile-card__avatar-settings">
+                                                            <div className="profile-card__avatar">
+                                                                {comment.userId?.profile?.trim() ? (
+                                                                    <img
+                                                                        src={comment.userId.profile}
+                                                                        alt="User profile"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="noprofile">
+                                                                        <svg
+                                                                            width="40"
+                                                                            height="40"
+                                                                            viewBox="0 0 66 54"
+                                                                            fill="none"
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                        >
+                                                                            <path
+                                                                                className="animate-m"
+                                                                                d="M65.4257 49.6477L64.1198 52.8674C64.0994 52.917 64.076 52.9665 64.0527 53.0132C63.6359 53.8294 62.6681 54.2083 61.8081 53.8848C61.7673 53.8731 61.7265 53.8556 61.6886 53.8381L60.2311 53.1764L57.9515 52.1416C57.0945 51.7509 56.3482 51.1446 55.8002 50.3779C48.1132 39.6156 42.1971 28.3066 38.0271 16.454C37.8551 16.1304 37.5287 15.9555 37.1993 15.9555C36.9631 15.9555 36.7241 16.0459 36.5375 16.2325L28.4395 24.3596C28.1684 24.6307 27.8099 24.7678 27.4542 24.7678C27.4076 24.7678 27.3609 24.7648 27.3143 24.7619C27.2239 24.7503 27.1307 24.7328 27.0432 24.7065C26.8217 24.6366 26.6118 24.5112 26.4427 24.3276C23.1676 20.8193 20.6053 17.1799 18.3097 15.7369C18.1698 15.6495 18.0153 15.6057 17.8608 15.6057C17.5634 15.6057 17.2719 15.7602 17.1029 16.0313C14.1572 20.7377 11.0702 24.8873 7.75721 28.1157C7.31121 28.5471 6.74277 28.8299 6.13061 28.9115L3.0013 29.3254L1.94022 29.4683L1.66912 29.5033C0.946189 29.5994 0.296133 29.0602 0.258237 28.3314L0.00754237 23.5493C-0.0274383 22.8701 0.191188 22.2025 0.610956 21.669C1.51171 20.5293 2.39789 19.3545 3.26512 18.152C5.90032 14.3304 9.52956 8.36475 13.1253 1.39631C13.548 0.498477 14.4283 0 15.3291 0C15.8479 0 16.3727 0.163246 16.8187 0.513052L27.3799 8.76557L39.285 0.521797C39.6931 0.206971 40.1711 0.0583046 40.6434 0.0583046C41.4683 0.0583046 42.2729 0.510134 42.6635 1.32052C50.16 18.2735 55.0282 34.2072 63.6378 47.3439C63.9584 47.8336 64.0197 48.4487 63.8039 48.9851L65.4257 49.6477Z"
+                                                                                fill="url(#paint0_linear_4470_53804)"
+                                                                            />
+                                                                            <defs>
+                                                                                <linearGradient
+                                                                                    id="paint0_linear_4470_53804"
+                                                                                    x1="0"
+                                                                                    y1="27"
+                                                                                    x2="66"
+                                                                                    y2="27"
+                                                                                    gradientUnits="userSpaceOnUse"
+                                                                                >
+                                                                                    <stop stop-color="#FDAB0A" />
+                                                                                    <stop
+                                                                                        offset="0.4"
+                                                                                        stop-color="#FECE26"
+                                                                                    />
+                                                                                    <stop
+                                                                                        offset="1"
+                                                                                        stop-color="#FE990B"
+                                                                                    />
+                                                                                </linearGradient>
+                                                                            </defs>
+                                                                        </svg>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="profile-card__info">
+                                                            <div className="profile-card__name-badge">
+                                                                <div className="profile-card__name">
+                                                                    {comment.userId?.displayName}
+                                                                </div>
+                                                            </div>
+                                                            <div className="profile-card__username">
+                                                                @{comment.userId?.userName}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </a>
+
+                                                <div className="moneyboy-post__upload-more-info">
+                                                    <div className="moneyboy-post__upload-time">
+                                                        {formatRelativeTime(comment.createdAt)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="moneyboy-post__desc">
+                                                <p>{comment.comment}</p>
+                                            </div>
+
+                                            <div className="like-deslike-wrap">
+                                                <ul>
+                                                    <li className={comment.isLiked ? "active" : ""}>
+                                                        <Link
+                                                            href="#"
+                                                            className={`comment-like-btn ${comment.isLiked ? "active" : ""}`}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleLikeComment(comment._id);
+                                                            }}
+                                                        >
+                                                            <ThumbsUp color="black" strokeWidth={2} />
+                                                            <span>{comment.likeCount || 0}</span>
+                                                        </Link>
+                                                    </li>
+
+                                                    <li className={comment.isDisliked ? "active" : ""}>
+                                                        <Link
+                                                            href="#"
+                                                            className={`comment-dislike-btn ${comment.isDisliked ? "active" : ""}`}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleDislikeComment(comment._id);
+                                                            }}
+                                                        >
+                                                            <ThumbsDown color="black" strokeWidth={2} />
+                                                            <span>{comment.dislikeCount || 0}</span>
+                                                        </Link>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <Featuredboys />
         </div>
-      </div>
-      <Featuredboys />
-    </div>
-  );
+    );
 };
 
 export default PostPage;
