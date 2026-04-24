@@ -158,7 +158,7 @@ const Sidebar: React.FC = () => {
 
 
 
-      dispatch(fetchFollowerCounts());
+      
     };
 
     fetchAllData();
@@ -168,6 +168,13 @@ const Sidebar: React.FC = () => {
     session?.user?.publicId,
     dispatch,
   ]);
+
+  useEffect(() => {
+  if (session?.isAuthenticated) {
+    dispatch(fetchFollowerCounts());
+  }
+}, [session?.isAuthenticated, dispatch]);
+
 
   const handleTabfollowNavigation = (e: React.MouseEvent, tab: string) => {
     e.preventDefault();
@@ -289,7 +296,7 @@ const Sidebar: React.FC = () => {
                     {session?.user?.role === 2 && (
                       <div className="profile-card__stats-item posts-stats" onClick={() => { if (session?.user?.role === 1) { router.push(`/userprofile/${session?.user?.publicId}?tab=posts`,); } else if (session?.user?.role === 2) { router.push(`/${session?.user?.userName}?tab=posts`,); } }}>
                         <div className="profile-card__stats-num">
-                          {countsLoading ? (
+                          {countsLoading || !counts ? (
                             <div className="loading-text"></div>
                           ) : (
                             postCount
@@ -308,7 +315,7 @@ const Sidebar: React.FC = () => {
                     )}
                     <div className="profile-card__stats-item followers-stats" onClick={(e) => handleTabfollowNavigation(e, "followers")}>
                       <div className="profile-card__stats-num">
-                        {countsLoading ? (
+                        {countsLoading || !counts ? (
                           <div className="loading-text"></div>
                         ) : (
                           followerCount.toLocaleString()
@@ -326,7 +333,7 @@ const Sidebar: React.FC = () => {
                     </div>
                     <div className="profile-card__stats-item following-stats" onClick={(e) => handleTabfollowNavigation(e, "following")}>
                       <div className="profile-card__stats-num">
-                        {countsLoading ? (
+                        {countsLoading || !counts ? (
                           <div className="loading-text"></div>
                         ) : (
                           followingCount.toLocaleString()
