@@ -10,7 +10,7 @@ import { useDeviceType } from "@/hooks/useDeviceType";
 import { useAppDispatch } from "@/redux/store";
 import { useSelector } from "react-redux";
 import { fetchTransactions } from "@/redux/wallet/Action";
-import { ChevronLeft, ChevronRight, CircleQuestionMark } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleArrowLeft, CircleArrowRight, CircleQuestionMark } from "lucide-react";
 import { clearTransactions } from "@/redux/wallet/Slice";
 
 const WalletTransactionsPage = () => {
@@ -222,7 +222,7 @@ const renderPagination = () => {
         disabled={page === 1 || transactionLoading}
         onClick={() => !transactionLoading && setPage(page - 1)}
       >
-        <ChevronLeft size={18} />
+        <CircleArrowLeft color="#000" />
       </button>
       
       {pages.map((p, i) =>
@@ -248,7 +248,7 @@ const renderPagination = () => {
         disabled={page === pagination.totalPages || transactionLoading}
         onClick={() => !transactionLoading && setPage(page + 1)}
       >
-        <ChevronRight size={18} />
+        <CircleArrowRight color="#000"/>
       </button>
     </div>
   );
