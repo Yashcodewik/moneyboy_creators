@@ -14,7 +14,7 @@ import AddFeedModal from "../FeedPage/AddFeedModal";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchFollowerCounts } from "@/redux/other/followActions";
 import NoProfileSvg from "../common/NoProfileSvg";
-import { CirclePlus, Menu } from "lucide-react";
+import { CirclePlus, LogIn, Menu, UserPlus } from "lucide-react";
 import { selectTotalUnread } from "@/redux/message/messageSlice";
 
 const Sidebar: React.FC = () => {
@@ -741,27 +741,17 @@ const Sidebar: React.FC = () => {
                 ) : (
                   <>
                     <li>
-                      <Link href="/login" className={`active-down-effect `}>
+                      <Link href="/login" className={`login active-down-effect `}>
                         <div>
-                          <img
-                            src="/images/icons/sign-up-icon.svg"
-                            alt="Login Icon"
-                            width="22"
-                            height="22"
-                          />
+                          <LogIn size={20} color="#000"/>
                           <span>Login</span>
                         </div>
                       </Link>
                     </li>
                     <li>
-                      <Link href="/benefits" className={`active-down-effect`}>
+                      <Link href="/benefits" className={`signup active-down-effect`}>
                         <div>
-                          <img
-                            src="/images/icons/sign-in-icon.svg"
-                            alt="Login Icon"
-                            width="25"
-                            height="25"
-                          />
+                          <UserPlus size={20} color="#000"/>
                           <span>Sign Up</span>
                         </div>
                       </Link>
