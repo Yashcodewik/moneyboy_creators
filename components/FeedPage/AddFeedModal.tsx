@@ -148,7 +148,7 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
   const hasMedia = mediaPreviews.length > 0;
   const imageCount = mediaPreviews.filter((m) => m.type === "image").length;
   const videoCount = mediaPreviews.filter((m) => m.type === "video").length;
-  
+
 
   const creator = {
     name: session?.user?.displayName,
@@ -738,41 +738,39 @@ const AddFeedModal = ({ show, onClose }: FeedParams) => {
         }
 
 
-showSuccess("Post created successfully");
+        showSuccess("Post created successfully");
 
-if (shareOnX) {
-  const postPublicId = res?.post?.publicId;
+        if (shareOnX) {
+          const postPublicId = res?.post?.publicId;
 
-let postUrl = "";
+          let postUrl = "";
 
-if (values.accessType === "subscriber") {
-  // ✅ ALWAYS profile link for subscriber content
-  postUrl = `${window.location.origin}/${creator.username}?from=x`;
-} else {
-  // ✅ normal behavior for free / PPV
-  const postPublicId = res?.post?.publicId;
+          if (values.accessType === "subscriber") {
+            postUrl = `${window.location.origin}/${creator.username}?from=x`;
+          } else {
+            const postPublicId = res?.post?.publicId;
 
-  postUrl = postPublicId
-    ? `${window.location.origin}/post?publicId=${postPublicId}&from=x`
-    : `${window.location.origin}/${creator.username}`;
-}
+            postUrl = postPublicId
+              ? `${window.location.origin}/post?publicId=${postPublicId}&from=x`
+              : `${window.location.origin}/${creator.username}`;
+          }
 
-  const shareText = values.text
-    ? values.text.substring(0, 200)
-    : "Check out my latest post!";
+          const shareText = values.text
+            ? values.text.substring(0, 200)
+            : "Check out my latest post!";
 
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    shareText
-  )}&url=${encodeURIComponent(postUrl)}`;
+          const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            shareText
+          )}&url=${encodeURIComponent(postUrl)}`;
 
-  window.open(
-    tweetUrl,
-    "_blank",
-    "width=550,height=420,noopener,noreferrer"
-  );
-}
+          window.open(
+            tweetUrl,
+            "_blank",
+            "width=550,height=420,noopener,noreferrer"
+          );
+        }
 
-onClose();
+        onClose();
       } catch (error) {
         console.error(error);
         showError("An error occurred while creating post");
@@ -1212,9 +1210,8 @@ onClose();
                   <li>
                     <button
                       type="button"
-                      className={`cate-back-btn active-down-effect btn_icons ${
-  shareOnX ? "active" : ""
-}`}
+                      className={`cate-back-btn active-down-effect btn_icons ${shareOnX ? "active" : ""
+                        }`}
                       data-tooltip={
                         !hasMedia ? "Add media to share on X" : "Share on X"
                       }
